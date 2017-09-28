@@ -1,0 +1,5 @@
+[package]
+name = "quicksilver"
+version = "0.1.0"
+authors = ["Ryan Goldstein <ryanisaacg@gmail.com>"]
+
