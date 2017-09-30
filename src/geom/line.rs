@@ -2,6 +2,7 @@ mod vector;
 use vector::{Vector, FLOAT_LIMIT};
 
 #[derive(Debug, Copy, Clone)]
+///Represents a 2D line segment
 pub struct Line {
     pub start: Vector,
     pub end: Vector
@@ -12,7 +13,9 @@ impl Line {
         Line { start: start, end: end }
     }
 
+    ///Check if two line segments interact
     pub fn intersects(self, other: Line) -> bool {
+        //See https://stackoverflow.com/a/565282 for algorithm
         let p = self.start;
         let q = other.start;
         let r = self.end - self.start;
