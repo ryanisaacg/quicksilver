@@ -43,11 +43,11 @@ impl Transform {
         }
     }
 
-    pub fn index(&self, x: usize, y: usize) -> f32 {
+    fn index(&self, x: usize, y: usize) -> f32 {
         self.data[x * 3 + y]
     }
 
-    pub fn index_mut(&mut self, x: usize, y: usize) -> &mut f32 {
+    fn index_mut(&mut self, x: usize, y: usize) -> &mut f32 {
         &mut self.data[x * 3 + y]
     }
 
