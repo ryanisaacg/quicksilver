@@ -3,3 +3,18 @@ name = "quicksilver"
 version = "0.1.0"
 authors = ["Ryan Goldstein <ryanisaacg@gmail.com>"]
 
+[lib]
+name = "qs"
+path = "src/lib.rs"
+
+[[bin]]
+name = "example"
+path = "src/bin.rs"
+
+[dependencies.sdl2]
+version = "0.30"
+default-features = false
+features = ["ttf", "image", "mixer"]
+
+[dependencies.gl]
+version = "0.6.0"
