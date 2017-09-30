@@ -1,9 +1,9 @@
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 use std::cmp::{Eq, PartialEq};
 
-const FLOAT_LIMIT: f32 = 0.000001f32;
+pub const FLOAT_LIMIT: f32 = 0.000001f32;
 
-#[derive(Copy, Clone)]
+#[derive(Debug, Copy, Clone)]
 pub struct Vector {
     pub x: f32,
     pub y: f32
@@ -138,8 +138,8 @@ mod tests {
 
     #[test]
     fn equality() {
-        assert_eq!(Vector::new(5f32, 5f32), Vector::(5f32, 5f32));
-        assert_neq!(Vector::new(0f32, 5f32), Vector::(5f32, 5f32));
+        assert_eq!(Vector::new(5f32, 5f32), Vector::new(5f32, 5f32));
+        assert_ne!(Vector::new(0f32, 5f32), Vector::new(5f32, 5f32));
     }
 
     #[test]
@@ -161,9 +161,9 @@ mod tests {
     fn scale() {
         let vec = Vector::new(1f32, 1f32);
         let doubled = Vector::new(2f32, 2f32);
-        assert_eq!(vec * 2, doubled);
+        assert_eq!(vec * 2f32, doubled);
         let halved = Vector::new(0.5f32, 0.5f32);
-        assert_eq!(vec / 2, halved);
+        assert_eq!(vec / 2f32, halved);
     }
 
     #[test]
@@ -171,7 +171,7 @@ mod tests {
         let min = Vector::new(-10f32, -2f32);
         let max = Vector::new(5f32, 6f32);
         let vec = Vector::new(-11f32, 3f32);
-        let clamped = a.clamp(min, max);
+        let clamped = vec.clamp(min, max);
         let expected = Vector::new(-10f32, 3f32);
         assert_eq!(clamped, expected);
     }
