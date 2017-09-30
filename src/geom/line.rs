@@ -1,5 +1,4 @@
-mod vector;
-use vector::{Vector, FLOAT_LIMIT};
+use super::Vector;
 
 #[derive(Debug, Copy, Clone)]
 ///Represents a 2D line segment
@@ -25,19 +24,19 @@ impl Line {
         let u_numerator = (q - p).cross(r);
         let t_numerator = (q - p).cross(s);
         let denominator = r.cross(s);
-        if denominator == 0 {
-            if u_numerator == 0 {
+        if denominator == 0f32 {
+            if u_numerator == 0f32 {
                 false
             } else {
                 let t0 = (q - p).dot(r) / r.dot(r);
                 let t1 = t0 + s.dot(r) / r.dot(r);
-                (t0 >= 0 && t0 <= 1) || (t1 >= 0 && t1 <= 1) 
-                    || (t0.signum() == t1.signum()) || t0 == 0 && t1 == 0
+                (t0 >= 0f32 && t0 <= 1f32) || (t1 >= 0f32 && t1 <= 1f32) 
+                    || (t0.signum() == t1.signum()) || t0 == 0f32 && t1 == 0f32
             }
         } else {
             let u = u_numerator / denominator;
             let t = t_numerator / denominator;
-            t >= 0 && t <= 1 && u >= 0 && u <= 1
+            t >= 0f32 && t <= 1f32 && u >= 0f32 && u <= 1f32
         }
     }
 }
