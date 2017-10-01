@@ -1,4 +1,7 @@
+extern crate gl;
+
 pub mod geom;
+pub mod graphics;
 
 #[cfg(test)]
 mod tests {
