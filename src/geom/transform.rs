@@ -106,6 +106,10 @@ impl Transform {
         other = other.transpose();
         other * (1f32 / self.determinant())
     }
+
+    pub fn get_array(&self) -> &[f32] {
+        &self.data
+    }
 }
 
 impl Mul<Transform> for Transform {
