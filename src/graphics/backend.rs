@@ -2,7 +2,7 @@ extern crate gl;
 
 use gl::types::*;
 use geom::Transform;
-use graphics::Color;
+use graphics::{Color, Vertex};
 use std::vec::Vec;
 use std::ffi::CString;
 use std::mem::size_of;
@@ -23,6 +23,8 @@ pub struct Backend {
     texture_location: GLint,
     transform: Transform
 }
+
+const VERTEX_SIZE: usize = 8; // the number of floats in a vertex
 
 const DEFAULT_VERTEX_SHADER: &str = r#"#version 150
 in vec2 position;
@@ -190,6 +192,35 @@ impl Backend {
         }
 		self.vertices.clear();
         self.indices.clear();
+        self.texture = 0;
     }
 
+    pub fn flip(&mut self) {
+        self.flush();
+    }
+
+    fn switch_texture(&mut self, texture: GLuint) {
+        if self.texture != 0 && self.texture != texture {
+            self.flush();
+        }
+        self.texture = texture;
+    }
+
+    pub fn add(&mut self, texture: GLuint, vertices: &[Vertex], indices: &[GLuint]) {
+        self.switch_texture(texture);
+        let offset = self.vertices.len() / VERTEX_SIZE;
+        for vertex in vertices {
+            self.vertices.push(vertex.pos.x);
+            self.vertices.push(vertex.pos.y);
+            self.vertices.push(vertex.tex_pos.x);
+            self.vertices.push(vertex.tex_pos.y);
+            self.vertices.push(vertex.col.r);
+            self.vertices.push(vertex.col.g);
+            self.vertices.push(vertex.col.b);
+            self.vertices.push(vertex.col.a);
+        }
+        for index in indices {
+            self.indices.push(index + offset as u32);
+        }
+    }
 }
