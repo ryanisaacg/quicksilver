@@ -3,7 +3,7 @@ extern crate gl;
 extern crate sdl2;
 
 use qs::geom::Vector;
-use qs::graphics::{Backend, Color, TextureData, PixelFormat, Vertex, WHITE};
+use qs::graphics::{Backend, Color, Texture, PixelFormat, Vertex, WHITE};
 
 fn find_sdl_gl_driver() -> Option<u32> {
     for (index, item) in sdl2::render::drivers().enumerate() {
@@ -30,7 +30,7 @@ fn main() {
     canvas.window().gl_set_context_to_current().unwrap();
 
     let mut backend = Backend::new();
-    let texture = TextureData::from_raw(&[255, 255, 255, 255], 1, 1, PixelFormat::RGBA);
+    let texture = Texture::from_raw(&[255, 255, 255, 255], 1, 1, PixelFormat::RGBA);
     let region = texture.region();
     loop {
         backend.clear(Color {r: 0f32, g: 1f32, b: 1f32, a: 1f32});

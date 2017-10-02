@@ -14,14 +14,14 @@ pub enum PixelFormat {
     BGRA = gl::BGRA as isize 
 }
 
-pub struct TextureData {
+pub struct Texture {
     id: u32,
     width: i32,
     height: i32
 }
 
-impl TextureData {
-    pub fn from_raw(data: &[u8], w: i32, h: i32, format: PixelFormat) -> TextureData {
+impl Texture {
+    pub fn from_raw(data: &[u8], w: i32, h: i32, format: PixelFormat) -> Texture {
         unsafe {
             let mut texture = 0;
             gl::GenTextures(1, &mut texture as *mut GLuint);
@@ -33,7 +33,7 @@ impl TextureData {
             gl::TexImage2D(gl::TEXTURE_2D, 0, gl::RGBA as GLint, w, h, 0, format as u32, 
                            gl::UNSIGNED_BYTE, data.as_ptr() as *const c_void);
             gl::GenerateMipmap(gl::TEXTURE_2D);
-            TextureData {
+            Texture {
                 id: texture,
                 width: w,
                 height: h,
@@ -41,7 +41,7 @@ impl TextureData {
         }
     }
 
-    pub fn load(path: &Path) -> Result<TextureData, imagefmt::Error> {
+    pub fn load(path: &Path) -> Result<Texture, imagefmt::Error> {
         let data = imagefmt::read(path, imagefmt::ColFmt::RGBA)?;
         let format = match data.fmt {
             imagefmt::ColFmt::RGB => Result::Ok(PixelFormat::RGB),
@@ -50,7 +50,7 @@ impl TextureData {
             imagefmt::ColFmt::BGRA => Result::Ok(PixelFormat::BGRA),
             _ => Result::Err(imagefmt::Error::Unsupported("Unsupported color format of loaded image"))
         };
-        Result::Ok(TextureData::from_raw(data.buf.as_slice(), data.w as i32, data.h as i32, format?))
+        Result::Ok(Texture::from_raw(data.buf.as_slice(), data.w as i32, data.h as i32, format?))
     }
 
     pub fn region(&self) -> TextureRegion {
@@ -61,7 +61,7 @@ impl TextureData {
     }
 }
 
-impl Drop for TextureData {
+impl Drop for Texture {
     fn drop(&mut self) {
         unsafe {
             gl::DeleteTextures(1, &self.id as *const u32);
@@ -70,7 +70,7 @@ impl Drop for TextureData {
 }
 
 pub struct TextureRegion<'a> {
-    source: &'a TextureData,
+    source: &'a Texture,
     region: Rectangle
 }
 
