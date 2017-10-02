@@ -121,7 +121,7 @@ impl Mul<Transform> for Transform {
             for j in 0..3 {
                 *returnval.index_mut(i, j) = 0f32;
                 for k in 0..3 {
-                    *returnval.index_mut(i, j) += self.index(k, j) * other.index(i, k);
+                    *returnval.index_mut(i, j) += other.index(k, j) * self.index(i, k);
                 }
             }
         }
@@ -204,7 +204,7 @@ mod tests {
     }
 
     #[test]
-    fn transformation() {
+    fn identity() {
         let trans = Transform::identity()
             * Transform::translate(Vector::new(0f32, 0f32))
             * Transform::rotate(0f32)
