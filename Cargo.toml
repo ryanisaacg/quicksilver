@@ -12,9 +12,7 @@ path = "src/lib.rs"
 name = "example"
 path = "src/bin.rs"
 
-[dependencies.sdl2]
-version = "0.30"
-default-features = false
-
-[dependencies.gl]
-version = "0.6.0"
+[dependencies]
+gl = "0.6.0"
+imagefmt = "4.0.0"
+sdl2 = "0.30.0"

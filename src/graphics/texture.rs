@@ -1,9 +1,11 @@
 extern crate gl;
+extern crate imagefmt;
 
 use gl::types::*;
 use geom::Rectangle;
 use std::os::raw::c_void;
 use std::ops::Drop;
+use std::path::Path;
 
 pub enum PixelFormat {
     RGB = gl::RGB as isize,
@@ -39,6 +41,18 @@ impl TextureData {
         }
     }
 
+    pub fn load(path: &Path) -> Result<TextureData, imagefmt::Error> {
+        let data = imagefmt::read(path, imagefmt::ColFmt::RGBA)?;
+        let format = match data.fmt {
+            imagefmt::ColFmt::RGB => Result::Ok(PixelFormat::RGB),
+            imagefmt::ColFmt::RGBA => Result::Ok(PixelFormat::RGBA),
+            imagefmt::ColFmt::BGR => Result::Ok(PixelFormat::BGR),
+            imagefmt::ColFmt::BGRA => Result::Ok(PixelFormat::BGRA),
+            _ => Result::Err(imagefmt::Error::Unsupported("Unsupported color format of loaded image"))
+        };
+        Result::Ok(TextureData::from_raw(data.buf.as_slice(), data.w as i32, data.h as i32, format?))
+    }
+
     pub fn region(&self) -> TextureRegion {
         TextureRegion {
             source: self,
@@ -49,7 +63,9 @@ impl TextureData {
 
 impl Drop for TextureData {
     fn drop(&mut self) {
-        gl::DeleteTextures(1, self.id);
+        unsafe {
+            gl::DeleteTextures(1, &self.id as *const u32);
+        }
     }
 }
 
