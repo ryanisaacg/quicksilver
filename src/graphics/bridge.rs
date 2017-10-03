@@ -29,7 +29,7 @@ impl<'a> Bridge<'a> {
         self.front.clone()
     }
 
-    pub fn process_one(&self, backend: &mut Backend) {
+    pub fn process_drawable(&self, backend: &mut Backend) {
         let (drawable, transform, color) = self.back.recv().unwrap();
         match drawable {
             Drawable::Image(texture) => {
@@ -50,7 +50,7 @@ impl<'a> Bridge<'a> {
                             &[0, 1, 2, 2, 3, 0]);
             },
             Drawable::Rect(rect) => {
-                self.process_poly(backend, &[rect.top_left(), 
+                self.process_polygon(backend, &[rect.top_left(), 
                                   rect.top_left() + rect.size().x_comp(),
                                   rect.top_left() + rect.size(),
                                   rect.top_left() + rect.size().y_comp()], transform, color);
@@ -63,12 +63,12 @@ impl<'a> Bridge<'a> {
                     points[i] = circ.center() + arrow;
                     arrow = rotation * arrow;
                 }
-                self.process_poly(backend, &points, transform, color);
+                self.process_polygon(backend, &points, transform, color);
             }
         }
     }
     
-    fn process_poly(&self, backend: &mut Backend, vertices: &[Vector], trans: Transform, col: Color) {
+    fn process_polygon(&self, backend: &mut Backend, vertices: &[Vector], trans: Transform, col: Color) {
         let first_index = backend.num_vertices() as u32;
         for vertex in vertices {
             backend.add_vertex(&Vertex {

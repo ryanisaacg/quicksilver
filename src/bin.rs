@@ -3,7 +3,7 @@ extern crate gl;
 extern crate sdl2;
 
 use qs::geom::{Rectangle, Vector, Transform};
-use qs::graphics::{Backend, Bridge, Color, Drawable, Texture, PixelFormat, Vertex, WHITE};
+use qs::graphics::{Backend, Bridge, Color, Drawable, Texture, PixelFormat};
 
 fn find_sdl_gl_driver() -> Option<u32> {
     for (index, item) in sdl2::render::drivers().enumerate() {
@@ -39,7 +39,7 @@ fn main() {
         backend.switch_texture(region.get_id());
         send.send((Drawable::Rect(Rectangle::new(0f32, 0f32, 1f32, 1f32)), Transform::translate(-Vector::one() / 2f32),
             Color { r: 0.5f32, g: 0.5f32, b: 0f32, a: 1f32 })).unwrap();
-        bridge.process_one(&mut backend);
+        bridge.process_drawable(&mut backend);
         backend.flip();
         canvas.window().gl_swap_window();
     }
