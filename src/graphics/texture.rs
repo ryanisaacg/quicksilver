@@ -2,7 +2,7 @@ extern crate gl;
 extern crate imagefmt;
 
 use gl::types::*;
-use geom::Rectangle;
+use geom::{Rectangle, Vector};
 use std::os::raw::c_void;
 use std::ops::Drop;
 use std::path::Path;
@@ -80,12 +80,16 @@ impl<'a> TextureRegion<'a> {
         self.source.id
     }
 
-    pub fn get_width(&self) -> i32 {
+    pub fn source_width(&self) -> i32 {
         self.source.width
     }
 
-    pub fn get_height(&self) -> i32 {
+    pub fn source_height(&self) -> i32 {
         self.source.height
+    }
+
+    pub fn source_size(&self) -> Vector {
+        Vector::new(self.source_width() as f32, self.source_height() as f32)
     }
 
     pub fn get_region(&self) -> Rectangle {
