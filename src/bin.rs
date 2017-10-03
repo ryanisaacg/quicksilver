@@ -34,10 +34,10 @@ fn main() {
     let send = bridge.get_front().clone();
     let texture = Texture::from_raw(&[255, 255, 255, 255], 1, 1, PixelFormat::RGBA);
     let region = texture.region();
-    backend.switch_texture(region.get_id());
     loop {
         backend.clear(Color {r: 0f32, g: 1f32, b: 1f32, a: 1f32});
-        send.send((Drawable::Rect(Rectangle::new(0f32, 0f32, 1f32, 1f32)), Transform::identity(),
+        backend.switch_texture(region.get_id());
+        send.send((Drawable::Rect(Rectangle::new(0f32, 0f32, 1f32, 1f32)), Transform::translate(-Vector::one() / 2f32),
             Color { r: 0.5f32, g: 0.5f32, b: 0f32, a: 1f32 })).unwrap();
         bridge.process_one(&mut backend);
         backend.flip();
