@@ -226,7 +226,7 @@ mod tests {
     #[test]
     fn times() {
         let vec = Vector::new(3f32, -2f32);
-        let two = Vector::one() * 2;
-        asset_eq!(vec.times(two), vec * 2);
+        let two = Vector::one() * 2f32;
+        assert_eq!(vec.times(two), vec * 2f32);
     }
 }
