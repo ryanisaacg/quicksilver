@@ -69,6 +69,7 @@ impl Drop for Texture {
     }
 }
 
+#[derive(Clone, Copy)]
 pub struct TextureRegion<'a> {
     source: &'a Texture,
     region: Rectangle
