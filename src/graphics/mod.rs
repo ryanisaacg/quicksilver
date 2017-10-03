@@ -1,8 +1,10 @@
+mod bridge;
 mod camera;
 mod color;
 mod vertex;
 mod backend;
 mod texture;
+pub use self::bridge::*;
 pub use self::camera::Camera;
 pub use self::color::*;
 pub use self::vertex::Vertex;

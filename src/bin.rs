@@ -2,8 +2,8 @@ extern crate qs;
 extern crate gl;
 extern crate sdl2;
 
-use qs::geom::Vector;
-use qs::graphics::{Backend, Color, Texture, PixelFormat, Vertex, WHITE};
+use qs::geom::{Rectangle, Vector, Transform};
+use qs::graphics::{Backend, Bridge, Color, Drawable, Texture, PixelFormat, Vertex, WHITE};
 
 fn find_sdl_gl_driver() -> Option<u32> {
     for (index, item) in sdl2::render::drivers().enumerate() {
@@ -30,15 +30,16 @@ fn main() {
     canvas.window().gl_set_context_to_current().unwrap();
 
     let mut backend = Backend::new();
+    let bridge = Bridge::new();
+    let send = bridge.get_front().clone();
     let texture = Texture::from_raw(&[255, 255, 255, 255], 1, 1, PixelFormat::RGBA);
     let region = texture.region();
+    backend.switch_texture(region.get_id());
     loop {
         backend.clear(Color {r: 0f32, g: 1f32, b: 1f32, a: 1f32});
-        backend.add(region.get_id(), 
-                    &[Vertex {pos: Vector::new(0f32, 0f32), tex_pos: Vector::new(0f32, 0f32), col: WHITE},
-                        Vertex {pos: Vector::new(1f32, 0f32), tex_pos: Vector::new(0f32, 0f32), col: WHITE},
-                        Vertex {pos: Vector::new(1f32, 1f32), tex_pos: Vector::new(0f32, 0f32), col: WHITE}], 
-                    &[0, 1, 2]);
+        send.send((Drawable::Rect(Rectangle::new(0f32, 0f32, 1f32, 1f32)), Transform::identity(),
+            Color { r: 0.5f32, g: 0.5f32, b: 0f32, a: 1f32 })).unwrap();
+        bridge.process_one(&mut backend);
         backend.flip();
         canvas.window().gl_swap_window();
     }
