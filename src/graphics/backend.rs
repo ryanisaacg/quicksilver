@@ -199,28 +199,40 @@ impl Backend {
         self.flush();
     }
 
-    fn switch_texture(&mut self, texture: GLuint) {
+    pub fn switch_texture(&mut self, texture: GLuint) {
         if self.texture != 0 && self.texture != texture {
             self.flush();
         }
         self.texture = texture;
     }
 
+    pub fn num_vertices(&self) -> usize {
+        self.vertices.len()
+    }
+
+    pub fn add_vertex(&mut self, vertex: &Vertex) {
+        self.vertices.push(vertex.pos.x);
+        self.vertices.push(vertex.pos.y);
+        self.vertices.push(vertex.tex_pos.x);
+        self.vertices.push(vertex.tex_pos.y);
+        self.vertices.push(vertex.col.r);
+        self.vertices.push(vertex.col.g);
+        self.vertices.push(vertex.col.b);
+        self.vertices.push(vertex.col.a);
+    }
+
+    pub fn add_index(&mut self, index: GLuint) {
+        self.indices.push(index);
+    }
+
     pub fn add(&mut self, texture: GLuint, vertices: &[Vertex], indices: &[GLuint]) {
         self.switch_texture(texture);
         let offset = self.vertices.len() / VERTEX_SIZE;
         for vertex in vertices {
-            self.vertices.push(vertex.pos.x);
-            self.vertices.push(vertex.pos.y);
-            self.vertices.push(vertex.tex_pos.x);
-            self.vertices.push(vertex.tex_pos.y);
-            self.vertices.push(vertex.col.r);
-            self.vertices.push(vertex.col.g);
-            self.vertices.push(vertex.col.b);
-            self.vertices.push(vertex.col.a);
+            self.add_vertex(vertex);
         }
         for index in indices {
-            self.indices.push(index + offset as u32);
+            self.add_index(index + offset as u32);
         }
     }
 }
