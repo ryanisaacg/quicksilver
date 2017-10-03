@@ -12,55 +12,80 @@ pub struct Vector {
 }
 
 impl Vector {
-   pub fn new(x: f32, y: f32) -> Vector {
+    ///The zero vector
+    pub fn zero() -> Vector {
+        Vector { x: 0f32, y: 0f32 }
+    }
+
+    ///A vector with x = 1f32, y = 0f32
+    pub fn x() -> Vector {
+        Vector { x: 1f32, y: 0f32 }
+    }
+
+    ///A vector with x = 0f32, y = 1f32
+    pub fn y() -> Vector {
+        Vector { x: 0f32, y: 1f32 }
+    }
+
+    ///A vector with x = 1f32, y = 1f32
+    pub fn one() -> Vector {
+        Vector { x: 1f32, y : 1f32 }
+    }
+   
+    pub fn new(x: f32, y: f32) -> Vector {
        Vector { x: x, y: y }
-   }
+    }
 
-   ///Get the squared length of the vector (faster than getting the length)
-   pub fn len2(self) -> f32 {
+    ///Get the squared length of the vector (faster than getting the length)
+    pub fn len2(self) -> f32 {
        self.x * self.x + self.y * self.y
-   }
+    }
 
-   ///Get the length of the vector
-   pub fn len(self) -> f32 {
+    ///Get the length of the vector
+    pub fn len(self) -> f32 {
        self.len2().sqrt()
-   }
+    }
 
-   ///Clamp a vector somewhere between a minimum and a maximum
-   pub fn clamp(self, min_bound: Vector, max_bound: Vector) -> Vector {
+    ///Clamp a vector somewhere between a minimum and a maximum
+    pub fn clamp(self, min_bound: Vector, max_bound: Vector) -> Vector {
        Vector::new(max_bound.x.min(min_bound.x.max(self.x)),
            max_bound.y.min(min_bound.y.max(self.y)))
-   }
+    }
 
-   ///Get the cross product of a vector
-   pub fn cross(self, other: Vector) -> f32 {
+    ///Get the cross product of a vector
+    pub fn cross(self, other: Vector) -> f32 {
        self.x * other.y - self.y * other.x
-   }
+    }
 
-   ///Get the dot product of a vector
-   pub fn dot(self, other: Vector) -> f32 {
+    ///Get the dot product of a vector
+    pub fn dot(self, other: Vector) -> f32 {
        self.x * other.x + self.y * other.y
-   }
+    }
 
-   ///Normalize the vector's length from [0, 1]
-   pub fn normalize(self) -> Vector {
+    ///Normalize the vector's length from [0, 1]
+    pub fn normalize(self) -> Vector {
        self / self.len()
-   }
+    }
 
-   ///Get only the X component of the Vector, represented as a vector
-   pub fn x_comp(self) -> Vector {
+    ///Get only the X component of the Vector, represented as a vector
+    pub fn x_comp(self) -> Vector {
        Vector::new(self.x, 0f32)
-   }
+    }
 
-   ///Get only the Y component of the Vector, represented as a vector
-   pub fn y_comp(self) -> Vector {
+    ///Get only the Y component of the Vector, represented as a vector
+    pub fn y_comp(self) -> Vector {
        Vector::new(0f32, self.y)
-   }
+    }
 
-   ///Get the vector equal to Vector(1 / x, 1 / y)
-   pub fn recip(self) -> Vector {
+    ///Get the vector equal to Vector(1 / x, 1 / y)
+    pub fn recip(self) -> Vector {
        Vector::new(self.x.recip(), self.y.recip())
-   }
+    }
+
+    ///Multiply the components in the matching places
+    pub fn times(self, other: Vector) -> Vector {
+       Vector::new(self.x * other.x, self.y * other.y)
+    }
 }
 
 impl Neg for Vector {
@@ -196,5 +221,12 @@ mod tests {
     #[test]
     fn dot() {
         assert!((Vector::new(6f32, 5f32).dot(Vector::new(2f32, -8f32)) - 28f32) <= FLOAT_LIMIT);
+    }
+
+    #[test]
+    fn times() {
+        let vec = Vector::new(3f32, -2f32);
+        let two = Vector::one() * 2;
+        asset_eq!(vec.times(two), vec * 2);
     }
 }
