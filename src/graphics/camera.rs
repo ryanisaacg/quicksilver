@@ -13,7 +13,7 @@ impl Camera {
 
     pub fn new_transformed(window: Rectangle, world: Rectangle, transform: Transform) -> Camera {
         let unproject = Transform::translate(window.top_left())
-            * Transform::scale(Vector::new(window.width / world.width, window.height / world.height))
+            * Transform::scale(window.size().times(world.size().recip()))
             * Transform::translate(-world.top_left())
             * transform;
         Camera {
@@ -41,7 +41,7 @@ mod tests {
         let world_bottom = Vector::new(0f32, 50f32);
         assert_eq!(camera.project * screen_bottom, world_bottom);
         assert_eq!(camera.unproject * world_bottom, screen_bottom);
-        assert_eq!(camera.opengl * world_bottom, Vector::new(-1f32, -1f32));
+        assert_eq!(camera.opengl * world_bottom, -Vector::one());
     }
 
     #[test]
