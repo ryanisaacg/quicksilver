@@ -1,5 +1,6 @@
 extern crate gl;
 extern crate imagefmt;
+extern crate sdl2;
 
 pub mod geom;
 pub mod graphics;
