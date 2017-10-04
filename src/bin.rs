@@ -3,7 +3,7 @@ extern crate gl;
 extern crate sdl2;
 
 use qs::geom::{Rectangle, Vector, Transform};
-use qs::graphics::{Backend, Bridge, Color, Drawable, Texture, PixelFormat};
+use qs::graphics::{Backend, Bridge, Frontend, Camera, Color, Drawable, Texture, PixelFormat, WHITE};
 
 fn find_sdl_gl_driver() -> Option<u32> {
     for (index, item) in sdl2::render::drivers().enumerate() {
@@ -29,18 +29,20 @@ fn main() {
     gl::load_with(|name| video_subsystem.gl_get_proc_address(name) as *const _);
     canvas.window().gl_set_context_to_current().unwrap();
 
-    let mut backend = Backend::new();
-    let bridge = Bridge::new();
-    let send = bridge.get_front().clone();
     let texture = Texture::from_raw(&[255, 255, 255, 255], 1, 1, PixelFormat::RGBA);
-    let region = texture.region();
-    loop {
-        backend.clear(Color {r: 0f32, g: 1f32, b: 1f32, a: 1f32});
-        backend.switch_texture(region.get_id());
-        send.send((Drawable::Rect(Rectangle::new(0f32, 0f32, 1f32, 1f32)), Transform::translate(-Vector::one() / 2f32),
-            Color { r: 0.5f32, g: 0.5f32, b: 0f32, a: 1f32 })).unwrap();
-        bridge.process_drawable(&mut backend);
-        backend.flip();
-        canvas.window().gl_swap_window();
+    {
+        let mut backend = Backend::new();
+        let bridge = Bridge::new();
+        let rect = Rectangle::new_sized(800f32, 600f32);
+        let frontend = Frontend::new(bridge.get_front().clone(), Camera::new(rect, rect));
+        let region = texture.region();
+        loop {
+            backend.clear(Color {r: 0f32, g: 1f32, b: 1f32, a: 1f32});
+            backend.switch_texture(region.get_id());
+            frontend.draw_image(region, Rectangle::new_sized(32f32, 32f32), Transform::identity(), WHITE);
+            bridge.process_drawable(&mut backend);
+            backend.flip();
+            canvas.window().gl_swap_window();
+        }
     }
 }

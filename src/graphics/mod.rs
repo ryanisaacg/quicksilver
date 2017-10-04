@@ -1,12 +1,14 @@
+mod backend;
 mod bridge;
 mod camera;
 mod color;
-mod vertex;
-mod backend;
+mod frontend;
 mod texture;
+mod vertex;
+pub use self::backend::Backend;
 pub use self::bridge::*;
 pub use self::camera::Camera;
 pub use self::color::*;
+pub use self::frontend::Frontend;
 pub use self::vertex::Vertex;
-pub use self::backend::Backend;
 pub use self::texture::*;
