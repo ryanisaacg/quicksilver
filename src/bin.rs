@@ -41,7 +41,7 @@ fn main() {
             backend.switch_texture(region.get_id());
             frontend.draw_image(region, Rectangle::new_sized(32f32, 32f32), Transform::identity(), WHITE);
             frontend.present();
-            bridge.process_drawable(&mut backend, &window);
+            bridge.process_drawable(&mut backend, &canvas.window());
         }
     }
 }
