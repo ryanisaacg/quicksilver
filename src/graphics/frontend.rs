@@ -1,5 +1,5 @@
 use geom::{Circle, Rectangle, Vector, Transform};
-use graphics::{BridgeFront, Camera, Color, Drawable, TextureRegion};
+use graphics::{BridgeFront, Camera, Color, Drawable, TextureRegion, WHITE};
 
 pub struct Frontend<'a> {
     sender: BridgeFront<'a>,
@@ -30,6 +30,14 @@ impl<'a> Frontend<'a> {
 
     fn camera(&self) -> Transform {
         self.cam.opengl
+    }
+
+    pub fn clear(&self, color: Color) {
+        self.sender.send((Drawable::Clear, Transform::identity(), color));
+    }
+
+    pub fn present(&self) {
+        self.sender.send((Drawable::Present, Transform::identity(), WHITE));
     }
 
     pub fn draw_image(&self, image: TextureRegion<'a>, area: Rectangle, trans: Transform, col: Color) {

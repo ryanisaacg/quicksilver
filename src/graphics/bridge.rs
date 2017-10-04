@@ -1,8 +1,14 @@
+extern crate sdl2;
+
 use geom::{Circle, Rectangle, Vector, Transform};
 use graphics::{Backend, Color, TextureRegion, Vertex};
+use sdl2::video::Window;
 use std::sync::mpsc::{channel, Receiver, Sender};
 
+
 pub enum Drawable<'a> {
+    Clear,
+    Present,
     Image(TextureRegion<'a>),
     Rect(Rectangle),
     Circ(Circle)
@@ -29,9 +35,14 @@ impl<'a> Bridge<'a> {
         self.front.clone()
     }
 
-    pub fn process_drawable(&self, backend: &mut Backend) {
+    pub fn process_drawable(&self, backend: &mut Backend, window: &Window) {
         let (drawable, transform, color) = self.back.recv().unwrap();
         match drawable {
+            Drawable::Clear => backend.clear(color),
+            Drawable::Present => {
+                backend.flip();
+                window.gl_swap_window();
+            },
             Drawable::Image(texture) => {
                 let recip_size = texture.source_size().recip();
                 let normalized_pos = texture.get_region().top_left().times(recip_size);

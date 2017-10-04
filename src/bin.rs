@@ -37,12 +37,11 @@ fn main() {
         let frontend = Frontend::new(bridge.get_front().clone(), Camera::new(rect, rect));
         let region = texture.region();
         loop {
-            backend.clear(Color {r: 0f32, g: 1f32, b: 1f32, a: 1f32});
+            frontend.clear(Color {r: 0f32, g: 1f32, b: 1f32, a: 1f32});
             backend.switch_texture(region.get_id());
             frontend.draw_image(region, Rectangle::new_sized(32f32, 32f32), Transform::identity(), WHITE);
-            bridge.process_drawable(&mut backend);
-            backend.flip();
-            canvas.window().gl_swap_window();
+            frontend.present();
+            bridge.process_drawable(&mut backend, &window);
         }
     }
 }
