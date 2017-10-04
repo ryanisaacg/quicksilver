@@ -1,5 +1,6 @@
 use geom::{Rectangle, Transform, Vector};
 
+#[derive(Clone, Copy)]
 pub struct Camera {
     pub project: Transform,
     pub unproject: Transform,
