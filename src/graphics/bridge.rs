@@ -1,8 +1,9 @@
-extern crate sdl2;
+extern crate glutin;
+
 
 use geom::{Circle, Rectangle, Vector, Transform};
+use glutin::GlContext;
 use graphics::{Backend, Color, Vertex};
-use sdl2::video::Window;
 use std::sync::mpsc::{channel, Receiver, Sender};
 
 
@@ -35,13 +36,13 @@ impl Bridge {
         self.front.clone()
     }
 
-    pub fn process_drawable(&self, backend: &mut Backend, window: &Window) {
+    pub fn process_drawable(&self, backend: &mut Backend, window: &glutin::GlWindow) {
         let (drawable, transform, color) = self.back.recv().unwrap();
         match drawable {
             Drawable::Clear => backend.clear(color),
             Drawable::Present => {
                 backend.flip();
-                window.gl_swap_window();
+                window.swap_buffers().unwrap();
             },
             Drawable::Image(texture) => {
                 let (id, source_size, region) = texture;

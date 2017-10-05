@@ -1,21 +1,12 @@
 extern crate gl;
 extern crate imagefmt;
-extern crate sdl2;
+extern crate glutin;
 
 pub mod geom;
 pub mod graphics;
 
 mod manager;
 pub use manager::AssetManager;
-
-fn find_sdl_gl_driver() -> Option<u32> {
-    for (index, item) in sdl2::render::drivers().enumerate() {
-        if item.name == "opengl" {
-            return Some(index as u32);
-        }
-    }
-    None
-}
 
 use graphics::Frontend;
 use std::time::Duration;
@@ -31,21 +22,21 @@ pub fn run<T: State>(title: &str, width: u32, height: u32) {
     use geom::Rectangle;
     use graphics::{Backend, Bridge, Camera, Frontend};
     use std::thread;
+    use glutin::GlContext;
 
-    let sdl_context = sdl2::init().unwrap();
-    let video_subsystem = sdl_context.video().unwrap();
-    let window = video_subsystem.window(title, width, height)
-        .opengl()
-        .build()
-        .unwrap();
-    let canvas = window.into_canvas()
-            .index(find_sdl_gl_driver().unwrap())
-            .build()
-            .unwrap();
+    let mut events_loop = glutin::EventsLoop::new();
+    let window = glutin::WindowBuilder::new()
+        .with_title(title)
+        .with_dimensions(width, height);
+    let context = glutin::ContextBuilder::new()
+        .with_vsync(true);
+    let gl_window = glutin::GlWindow::new(window, context, &events_loop).unwrap();
 
-    gl::load_with(|name| video_subsystem.gl_get_proc_address(name) as *const _);
-    canvas.window().gl_set_context_to_current().unwrap();
-
+    unsafe {
+        gl_window.make_current().unwrap();
+        gl::load_with(|symbol| gl_window.get_proc_address(symbol) as *const _);
+    }
+    
     let bridge = Bridge::new();
     let mut backend = Backend::new();
     let rect = Rectangle::new_sized(width as f32, height as f32);
@@ -59,6 +50,6 @@ pub fn run<T: State>(title: &str, width: u32, height: u32) {
         }
     });
     loop {
-        bridge.process_drawable(&mut backend, &canvas.window());
+        bridge.process_drawable(&mut backend, &gl_window);
     }
 }

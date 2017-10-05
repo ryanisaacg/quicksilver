@@ -2,7 +2,6 @@
 name = "quicksilver"
 version = "0.1.0"
 authors = ["Ryan Goldstein <ryanisaacg@gmail.com>"]
-build = "build.rs"
 
 [lib]
 name = "qs"
@@ -15,4 +14,5 @@ path = "src/bin.rs"
 [dependencies]
 gl = "0.6.0"
 imagefmt = "4.0.0"
+glutin = "0.10.0"
 sdl2 = "0.30.0"
