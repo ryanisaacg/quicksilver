@@ -2,10 +2,9 @@ extern crate qs;
 extern crate gl;
 extern crate sdl2;
 
-use qs::AssetManager;
+use qs::{AssetManager, State, run};
 use qs::geom::{Rectangle, Vector, Transform};
 use qs::graphics::{Frontend, Color, Texture, TextureRegion, PixelFormat, WHITE};
-use qs::runtime::{State, run}; 
 use std::time::Duration;
 
 fn find_sdl_gl_driver() -> Option<u32> {
