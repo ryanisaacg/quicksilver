@@ -2,8 +2,11 @@ extern crate qs;
 extern crate gl;
 extern crate sdl2;
 
+use qs::AssetManager;
 use qs::geom::{Rectangle, Vector, Transform};
-use qs::graphics::{Backend, Bridge, Frontend, Camera, Color, Drawable, Texture, PixelFormat, WHITE};
+use qs::graphics::{Frontend, Color, Texture, TextureRegion, PixelFormat, WHITE};
+use qs::runtime::{State, run}; 
+use std::time::Duration;
 
 fn find_sdl_gl_driver() -> Option<u32> {
     for (index, item) in sdl2::render::drivers().enumerate() {
@@ -14,34 +17,29 @@ fn find_sdl_gl_driver() -> Option<u32> {
     None
 }
 
-fn main() {
-    let sdl_context = sdl2::init().unwrap();
-    let video_subsystem = sdl_context.video().unwrap();
-    let window = video_subsystem.window("Window", 800, 600)
-        .opengl()
-        .build()
-        .unwrap();
-    let canvas = window.into_canvas()
-            .index(find_sdl_gl_driver().unwrap())
-            .build()
-            .unwrap();
+struct Screen {
+    white: Texture
+}
 
-    gl::load_with(|name| video_subsystem.gl_get_proc_address(name) as *const _);
-    canvas.window().gl_set_context_to_current().unwrap();
-
-    let texture = Texture::from_raw(&[255, 255, 255, 255], 1, 1, PixelFormat::RGBA);
-    {
-        let mut backend = Backend::new();
-        let bridge = Bridge::new();
-        let rect = Rectangle::new_sized(800f32, 600f32);
-        let frontend = Frontend::new(bridge.get_front().clone(), Camera::new(rect, rect));
-        let region = texture.region();
-        loop {
-            frontend.clear(Color {r: 0f32, g: 1f32, b: 1f32, a: 1f32});
-            backend.switch_texture(region.get_id());
-            frontend.draw_image(region, Rectangle::new_sized(32f32, 32f32), Transform::identity(), WHITE);
-            frontend.present();
-            bridge.process_drawable(&mut backend, &canvas.window());
+impl State for Screen {
+    fn new(assets: &mut AssetManager) -> Screen {
+        let tex = Texture::from_raw(&[255, 255, 255, 255], 1, 1, PixelFormat::RGBA);
+        Screen {
+            white: tex
         }
     }
+
+    fn tick(&mut self, draw: &mut Frontend) {
+        draw.clear(Color {r: 0f32, g: 1f32, b: 1f32, a: 1f32});
+        draw.draw_image(self.white.region(), Rectangle::new_sized(32f32, 32f32), Transform::identity(), WHITE);
+        draw.present();
+    }
+
+    fn get_tick_delay(&self) -> Duration {
+        Duration::from_millis(10)
+    }
+}
+
+fn main() {
+    run::<Screen>("Window", 800, 600);
 }

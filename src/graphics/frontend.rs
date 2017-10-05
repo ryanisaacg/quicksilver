@@ -1,14 +1,14 @@
 use geom::{Circle, Rectangle, Vector, Transform};
 use graphics::{BridgeFront, Camera, Color, Drawable, TextureRegion, WHITE};
 
-pub struct Frontend<'a> {
-    sender: BridgeFront<'a>,
+pub struct Frontend {
+    sender: BridgeFront,
     cam: Camera,
     ui_mode: bool
 }
 
-impl<'a> Frontend<'a> {
-    pub fn new(sender: BridgeFront<'a>, cam: Camera) -> Frontend<'a> {
+impl Frontend {
+    pub fn new(sender: BridgeFront, cam: Camera) -> Frontend {
         Frontend {
             sender: sender, 
             cam: cam,
@@ -40,12 +40,12 @@ impl<'a> Frontend<'a> {
         self.sender.send((Drawable::Present, Transform::identity(), WHITE));
     }
 
-    pub fn draw_image(&self, image: TextureRegion<'a>, area: Rectangle, trans: Transform, col: Color) {
+    pub fn draw_image(&self, image: TextureRegion, area: Rectangle, trans: Transform, col: Color) {
         let trans = self.camera()
             * trans 
             * Transform::translate(area.top_left()) 
             * Transform::scale(area.size());
-        let call = (Drawable::Image(image), trans, col);
+        let call = (Drawable::Image((image.get_id(), image.source_size(), image.get_region())), trans, col);
         self.sender.send(call).unwrap();
     }
 

@@ -6,32 +6,32 @@ use sdl2::video::Window;
 use std::sync::mpsc::{channel, Receiver, Sender};
 
 
-pub enum Drawable<'a> {
+pub enum Drawable {
     Clear,
     Present,
-    Image(TextureRegion<'a>),
+    Image((u32, Vector, Rectangle)),
     Rect(Rectangle),
     Circ(Circle)
 }
 
-pub type Payload<'a> = (Drawable<'a>, Transform, Color);
-pub type BridgeFront<'a> = Sender<Payload<'a>>;
-pub type BridgeBack<'a> = Receiver<Payload<'a>>;
+pub type Payload = (Drawable, Transform, Color);
+pub type BridgeFront = Sender<Payload>;
+pub type BridgeBack = Receiver<Payload>;
 
-pub struct Bridge<'a> {
-    front: BridgeFront<'a>,
-    back: BridgeBack<'a>
+pub struct Bridge {
+    front: BridgeFront,
+    back: BridgeBack
 }
 
 const CIRCLE_POINTS: usize = 32; //the number of points in the poly to simulate the circle
 
-impl<'a> Bridge<'a> {
-    pub fn new() -> Bridge<'a> {
+impl Bridge {
+    pub fn new() -> Bridge {
         let (tx, rx) = channel::<Payload>();
         Bridge { front: tx, back: rx }
     }
 
-    pub fn get_front(&self) -> BridgeFront<'a> {
+    pub fn get_front(&self) -> BridgeFront {
         self.front.clone()
     }
 
@@ -44,9 +44,10 @@ impl<'a> Bridge<'a> {
                 window.gl_swap_window();
             },
             Drawable::Image(texture) => {
-                let recip_size = texture.source_size().recip();
-                let normalized_pos = texture.get_region().top_left().times(recip_size);
-                let normalized_size = texture.get_region().size().times(recip_size);
+                let (id, source_size, region) = texture;
+                let recip_size = source_size.recip();
+                let normalized_pos = region.top_left().times(recip_size);
+                let normalized_size = region.size().times(recip_size);
                 let get_vertex = |v: Vector| {
                     Vertex {
                         pos: transform * v,
@@ -54,7 +55,7 @@ impl<'a> Bridge<'a> {
                         col: color
                     }
                 };
-                backend.add(texture.get_id(), &[get_vertex(Vector::zero()),
+                backend.add(id, &[get_vertex(Vector::zero()),
                             get_vertex(Vector::zero() + Vector::x()),
                             get_vertex(Vector::zero() + Vector::one()),
                             get_vertex(Vector::zero() + Vector::y())],
