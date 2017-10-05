@@ -30,8 +30,6 @@ pub fn run<T: State>(title: &str, width: u32, height: u32) {
     use AssetManager;
     use geom::Rectangle;
     use graphics::{Backend, Bridge, Camera, Frontend};
-    use std::sync::mpsc::channel;
-    use std::sync::{Arc, Mutex};
     use std::thread;
 
     let sdl_context = sdl2::init().unwrap();

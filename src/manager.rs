@@ -1,6 +1,5 @@
 use graphics::Texture;
 use std::collections::HashMap;
-use std::ops::Index;
 use std::path::Path;
 
 pub struct AssetManager {
@@ -14,7 +13,7 @@ impl AssetManager {
         }
     }
 
-    fn load_texture(&mut self, path: &str) -> &Texture {
+    pub fn load_texture(&mut self, path: &str) -> &Texture {
         if self.loaded.contains_key(path) {
             match self.loaded.get(path) {
                 Some(tex) => &tex,

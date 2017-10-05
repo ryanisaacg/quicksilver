@@ -1,4 +1,4 @@
-use geom::{Circle, Rectangle, Vector, Transform};
+use geom::{Circle, Rectangle, Transform};
 use graphics::{BridgeFront, Camera, Color, Drawable, TextureRegion, WHITE};
 
 pub struct Frontend {
@@ -33,11 +33,11 @@ impl Frontend {
     }
 
     pub fn clear(&self, color: Color) {
-        self.sender.send((Drawable::Clear, Transform::identity(), color));
+        self.sender.send((Drawable::Clear, Transform::identity(), color)).unwrap();
     }
 
     pub fn present(&self) {
-        self.sender.send((Drawable::Present, Transform::identity(), WHITE));
+        self.sender.send((Drawable::Present, Transform::identity(), WHITE)).unwrap();
     }
 
     pub fn draw_image(&self, image: TextureRegion, area: Rectangle, trans: Transform, col: Color) {

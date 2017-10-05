@@ -1,7 +1,7 @@
 extern crate sdl2;
 
 use geom::{Circle, Rectangle, Vector, Transform};
-use graphics::{Backend, Color, TextureRegion, Vertex};
+use graphics::{Backend, Color, Vertex};
 use sdl2::video::Window;
 use std::sync::mpsc::{channel, Receiver, Sender};
 

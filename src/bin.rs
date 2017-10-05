@@ -3,25 +3,16 @@ extern crate gl;
 extern crate sdl2;
 
 use qs::{AssetManager, State, run};
-use qs::geom::{Rectangle, Vector, Transform};
-use qs::graphics::{Frontend, Color, Texture, TextureRegion, PixelFormat, WHITE};
+use qs::geom::{Rectangle, Transform};
+use qs::graphics::{Frontend, Color, Texture, PixelFormat, WHITE};
 use std::time::Duration;
-
-fn find_sdl_gl_driver() -> Option<u32> {
-    for (index, item) in sdl2::render::drivers().enumerate() {
-        if item.name == "opengl" {
-            return Some(index as u32);
-        }
-    }
-    None
-}
 
 struct Screen {
     white: Texture
 }
 
 impl State for Screen {
-    fn new(assets: &mut AssetManager) -> Screen {
+    fn new(_: &mut AssetManager) -> Screen {
         let tex = Texture::from_raw(&[255, 255, 255, 255], 1, 1, PixelFormat::RGBA);
         Screen {
             white: tex
