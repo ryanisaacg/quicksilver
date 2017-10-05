@@ -4,17 +4,9 @@ extern crate sdl2;
 
 pub mod geom;
 pub mod graphics;
-pub mod runtime;
 
 mod manager;
 pub use manager::AssetManager;
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-    }
-}
 
 fn find_sdl_gl_driver() -> Option<u32> {
     for (index, item) in sdl2::render::drivers().enumerate() {
