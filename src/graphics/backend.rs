@@ -1,7 +1,6 @@
 extern crate gl;
 
 use gl::types::*;
-use geom::Transform;
 use graphics::{Color, Vertex};
 use std::vec::Vec;
 use std::ffi::CString;
@@ -21,7 +20,6 @@ pub struct Backend {
     ebo: GLuint,
     vao: GLuint,
     texture_location: GLint,
-    transform: Transform
 }
 
 const VERTEX_SIZE: usize = 8; // the number of floats in a vertex
@@ -30,15 +28,12 @@ const DEFAULT_VERTEX_SHADER: &str = r#"#version 150
 in vec2 position;
 in vec2 tex_coord;
 in vec4 color;
-uniform mat3 transform;
 out vec4 Color;
 out vec2 Tex_coord;
 void main() {
 	Color = color;
 	Tex_coord = tex_coord;
-	vec3 transformed = vec3(position, 1.0) * transform;
-	transformed.z = 0;
-	gl_Position = vec4(transformed, 1.0);
+	gl_Position = vec4(position, 0.0, 1.0);
 }"#;
 
 const DEFAULT_FRAGMENT_SHADER: &str = r#"#version 150
@@ -85,7 +80,6 @@ impl Backend {
                 ebo: ebo,
                 vao: vao,
                 texture_location: 0,
-                transform: Transform::identity()
             };
             backend.set_shader(DEFAULT_VERTEX_SHADER, DEFAULT_FRAGMENT_SHADER);
             backend
@@ -149,14 +143,10 @@ impl Backend {
 
     pub fn flush(&mut self) {
         unsafe {
-            let transform_string = CString::new("transform").unwrap().into_raw();
             let position_string = CString::new("position").unwrap().into_raw();
             let tex_coord_string = CString::new("tex_coord").unwrap().into_raw();
             let color_string = CString::new("color").unwrap().into_raw();
             let tex_string = CString::new("tex").unwrap().into_raw();
-            let transform_attrib = gl::GetUniformLocation(self.shader, transform_string as *const GLchar);
-            let transform_ptr = self.transform.get_array().as_ptr() as *const GLfloat;
-            gl::UniformMatrix3fv(transform_attrib, 1, gl::FALSE, transform_ptr);
             //Bind the vertex data
             gl::BindBuffer(gl::ARRAY_BUFFER, self.vbo);
             gl::BufferData(gl::ARRAY_BUFFER, (self.vertices.len() * size_of::<GLfloat>()) as isize, 
@@ -185,7 +175,6 @@ impl Backend {
             gl::Uniform1i(self.texture_location, 0);
             //Draw the triangles
             gl::DrawElements(gl::TRIANGLES, self.indices.len() as i32, gl::UNSIGNED_INT, null());
-            CString::from_raw(transform_string);
             CString::from_raw(position_string);
             CString::from_raw(tex_coord_string);
             CString::from_raw(color_string);
