@@ -1,6 +1,5 @@
 extern crate qs;
 extern crate gl;
-extern crate sdl2;
 
 use qs::{AssetManager, State, run};
 use qs::geom::{Rectangle, Transform};
