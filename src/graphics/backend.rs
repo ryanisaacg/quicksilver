@@ -69,6 +69,7 @@ impl Backend {
         unsafe {
             let mut vao: u32 = 0;
             gl::GenVertexArrays(1, &mut vao as *mut GLuint);
+            gl::BindVertexArray(vao);
             let mut vbo: u32 = 0;
             let mut ebo: u32 = 0;
             gl::GenBuffers(1, &mut vbo as *mut GLuint);
