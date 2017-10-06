@@ -197,7 +197,7 @@ impl Backend {
     }
 
     pub fn num_vertices(&self) -> usize {
-        self.vertices.len()
+        self.vertices.len() / VERTEX_SIZE
     }
 
     pub fn add_vertex(&mut self, vertex: &Vertex) {
