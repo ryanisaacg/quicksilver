@@ -1,3 +1,4 @@
+mod animation;
 mod backend;
 mod bridge;
 mod camera;
@@ -5,6 +6,7 @@ mod color;
 mod frontend;
 mod texture;
 mod vertex;
+pub use self::animation::*;
 pub use self::backend::Backend;
 pub use self::bridge::*;
 pub use self::camera::Camera;

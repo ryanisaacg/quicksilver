@@ -53,7 +53,8 @@ impl Bridge {
                     Vertex {
                         pos: transform * v,
                         tex_pos: normalized_pos + v.times(normalized_size),
-                        col: color
+                        col: color,
+                        use_texture: true
                     }
                 };
                 backend.add(id, &[get_vertex(Vector::zero()),
@@ -87,7 +88,8 @@ impl Bridge {
             backend.add_vertex(&Vertex {
                 pos: trans * vertex.clone(),
                 tex_pos: Vector::zero(),
-                col: col
+                col: col,
+                use_texture: false
             });
         }
         let mut current = 1;

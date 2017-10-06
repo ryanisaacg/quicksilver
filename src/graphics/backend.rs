@@ -22,27 +22,31 @@ pub struct Backend {
     texture_location: GLint,
 }
 
-const VERTEX_SIZE: usize = 8; // the number of floats in a vertex
+const VERTEX_SIZE: usize = 9; // the number of floats in a vertex
 
 const DEFAULT_VERTEX_SHADER: &str = r#"#version 150
 in vec2 position;
 in vec2 tex_coord;
 in vec4 color;
+in float uses_texture;
 out vec4 Color;
 out vec2 Tex_coord;
+out float Uses_texture;
 void main() {
 	Color = color;
 	Tex_coord = tex_coord;
-	gl_Position = vec4(position, 0.0, 1.0);
+    Uses_texture = uses_texture;
+	gl_Position = vec4(position, 0, 1);
 }"#;
 
 const DEFAULT_FRAGMENT_SHADER: &str = r#"#version 150
 in vec4 Color;
 in vec2 Tex_coord;
+in float Uses_texture;
 out vec4 outColor;
 uniform sampler2D tex;
 void main() {
-	vec4 tex_color = texture(tex, Tex_coord);
+	vec4 tex_color = (Uses_texture != 0) ? texture(tex, Tex_coord) : vec4(1, 1, 1, 1);
 	outColor = Color * tex_color;
 }"#;
 
@@ -147,6 +151,7 @@ impl Backend {
             let tex_coord_string = CString::new("tex_coord").unwrap().into_raw();
             let color_string = CString::new("color").unwrap().into_raw();
             let tex_string = CString::new("tex").unwrap().into_raw();
+            let use_texture_string = CString::new("uses_texture").unwrap().into_raw();
             //Bind the vertex data
             gl::BindBuffer(gl::ARRAY_BUFFER, self.vbo);
             gl::BufferData(gl::ARRAY_BUFFER, (self.vertices.len() * size_of::<GLfloat>()) as isize, 
@@ -155,19 +160,23 @@ impl Backend {
             gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, self.ebo);
             gl::BufferData(gl::ELEMENT_ARRAY_BUFFER, (self.indices.len() * size_of::<GLuint>()) as isize, 
                            self.indices.as_ptr() as *const c_void, gl::STREAM_DRAW);
+            let stride_distance = (VERTEX_SIZE * size_of::<GLfloat>()) as i32;
             //Set up the vertex attributes
             let pos_attrib = gl::GetAttribLocation(self.shader, position_string as *const GLchar) as u32;
             gl::EnableVertexAttribArray(pos_attrib);
-            gl::VertexAttribPointer(pos_attrib, 2, gl::FLOAT, gl::FALSE, 8 * size_of::<GLfloat>() as i32, 
-                                    null());
+            gl::VertexAttribPointer(pos_attrib, 2, gl::FLOAT, gl::FALSE, stride_distance, null());
             let tex_attrib = gl::GetAttribLocation(self.shader, tex_coord_string as *const GLchar) as u32;
             gl::EnableVertexAttribArray(tex_attrib);
-            gl::VertexAttribPointer(tex_attrib, 2, gl::FLOAT, gl::FALSE, 8 * size_of::<GLfloat>() as i32, 
+            gl::VertexAttribPointer(tex_attrib, 2, gl::FLOAT, gl::FALSE, stride_distance, 
                                     (2 * size_of::<GLfloat>()) as *const c_void);
             let col_attrib = gl::GetAttribLocation(self.shader, color_string as *const GLchar) as u32;
             gl::EnableVertexAttribArray(col_attrib);
-            gl::VertexAttribPointer(col_attrib, 4, gl::FLOAT, gl::FALSE, 8 * size_of::<GLfloat>() as i32, 
+            gl::VertexAttribPointer(col_attrib, 4, gl::FLOAT, gl::FALSE, stride_distance, 
                                     (4 * size_of::<GLfloat>()) as *const c_void);
+            let use_texture_attrib = gl::GetAttribLocation(self.shader, use_texture_string as *const GLchar) as u32;
+            gl::EnableVertexAttribArray(use_texture_attrib);
+            gl::VertexAttribPointer(use_texture_attrib, 1, gl::FLOAT, gl::FALSE, stride_distance, 
+                                    (8 * size_of::<GLfloat>()) as *const c_void);
             //Upload the texture to the GPU
             self.texture_location = gl::GetUniformLocation(self.shader, tex_string as *const GLchar);
             gl::ActiveTexture(gl::TEXTURE0);
@@ -179,6 +188,7 @@ impl Backend {
             CString::from_raw(tex_coord_string);
             CString::from_raw(color_string);
             CString::from_raw(tex_string);
+            CString::from_raw(use_texture_string);
         }
 		self.vertices.clear();
         self.indices.clear();
@@ -209,6 +219,7 @@ impl Backend {
         self.vertices.push(vertex.col.g);
         self.vertices.push(vertex.col.b);
         self.vertices.push(vertex.col.a);
+        self.vertices.push(if vertex.use_texture { 1f32 } else { 0f32 } );
     }
 
     pub fn add_index(&mut self, index: GLuint) {
