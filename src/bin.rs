@@ -2,8 +2,8 @@ extern crate qs;
 extern crate gl;
 
 use qs::{AssetManager, State, run};
-use qs::geom::{Rectangle, Transform};
-use qs::graphics::{Frontend, Color, Texture, PixelFormat, WHITE};
+use qs::geom::{Circle, Rectangle, Transform};
+use qs::graphics::{Frontend, BLUE, Color, Texture, PixelFormat, WHITE};
 use std::time::Duration;
 
 struct Screen {
@@ -21,6 +21,8 @@ impl State for Screen {
     fn tick(&mut self, draw: &mut Frontend) {
         draw.clear(Color {r: 0f32, g: 1f32, b: 1f32, a: 1f32});
         draw.draw_image(self.white.region(), Rectangle::new_sized(32f32, 32f32), Transform::identity(), WHITE);
+        draw.draw_circle(Circle::new(100f32, 100f32, 60f32), Transform::identity(), BLUE);
+        draw.draw_rect(Rectangle::new(100f32, 100f32, 60f32, 60f32), Transform::identity(), WHITE);
         draw.present();
     }
 
