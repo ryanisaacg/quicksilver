@@ -29,6 +29,8 @@ pub fn run<T: State + Send + 'static>(title: &str, width: u32, height: u32) {
         .with_title(title)
         .with_dimensions(width, height);
     let context = glutin::ContextBuilder::new()
+        .with_gl(glutin::GlRequest::Specific(glutin::Api::OpenGl, (3, 2)))
+        .with_gl_profile(glutin::GlProfile::Core)
         .with_vsync(true);
     let gl_window = glutin::GlWindow::new(window, context, &events_loop).unwrap();
 
