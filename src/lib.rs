@@ -17,7 +17,7 @@ pub trait State {
     fn get_tick_delay(&self) -> Duration;
 }
 
-pub fn run<T: State>(title: &str, width: u32, height: u32) {
+pub fn run<T: State + Send + 'static>(title: &str, width: u32, height: u32) {
     use AssetManager;
     use geom::Rectangle;
     use graphics::{Backend, Bridge, Camera, Frontend};
@@ -41,9 +41,9 @@ pub fn run<T: State>(title: &str, width: u32, height: u32) {
     let mut backend = Backend::new();
     let rect = Rectangle::new_sized(width as f32, height as f32);
     let mut frontend = Frontend::new(bridge.get_front(), Camera::new(rect, rect));
+    let mut assets = AssetManager::new();
+    let mut state = T::new(&mut assets);
     thread::spawn(move || {
-        let mut assets = AssetManager::new();
-        let mut state = T::new(&mut assets);
         loop {
             state.tick(&mut frontend);
             thread::sleep(state.get_tick_delay());
