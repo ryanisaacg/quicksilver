@@ -72,7 +72,9 @@ impl Backend {
             let mut vbo: u32 = 0;
             let mut ebo: u32 = 0;
             gl::GenBuffers(1, &mut vbo as *mut GLuint);
+            gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
             gl::GenBuffers(1, &mut ebo as *mut GLuint);
+            gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, ebo);
             let mut backend = Backend {
                 texture: 0,
                 vertices: Vec::with_capacity(1024),
@@ -136,6 +138,43 @@ impl Backend {
         }
     }
 
+    unsafe fn create_buffers(&mut self, vbo_size: isize, ebo_size: isize) {
+        //Create strings for all of the shader attributes
+        let position_string = CString::new("position").unwrap().into_raw();
+        let tex_coord_string = CString::new("tex_coord").unwrap().into_raw();
+        let color_string = CString::new("color").unwrap().into_raw();
+        let tex_string = CString::new("tex").unwrap().into_raw();
+        let use_texture_string = CString::new("uses_texture").unwrap().into_raw();
+        gl::BufferData(gl::ARRAY_BUFFER, vbo_size * size_of::<GLfloat>() as isize, null(), gl::STREAM_DRAW);
+        //Bind the index data
+        gl::BufferData(gl::ELEMENT_ARRAY_BUFFER, ebo_size * size_of::<GLuint>() as isize, null(), gl::STREAM_DRAW);
+        let stride_distance = (VERTEX_SIZE * size_of::<GLfloat>()) as i32;
+        //Set up the vertex attributes
+        let pos_attrib = gl::GetAttribLocation(self.shader, position_string as *const GLchar) as u32;
+        gl::EnableVertexAttribArray(pos_attrib);
+        gl::VertexAttribPointer(pos_attrib, 2, gl::FLOAT, gl::FALSE, stride_distance, null());
+        let tex_attrib = gl::GetAttribLocation(self.shader, tex_coord_string as *const GLchar) as u32;
+        gl::EnableVertexAttribArray(tex_attrib);
+        gl::VertexAttribPointer(tex_attrib, 2, gl::FLOAT, gl::FALSE, stride_distance, 
+                                (2 * size_of::<GLfloat>()) as *const c_void);
+        let col_attrib = gl::GetAttribLocation(self.shader, color_string as *const GLchar) as u32;
+        gl::EnableVertexAttribArray(col_attrib);
+        gl::VertexAttribPointer(col_attrib, 4, gl::FLOAT, gl::FALSE, stride_distance, 
+                                (4 * size_of::<GLfloat>()) as *const c_void);
+        let use_texture_attrib = gl::GetAttribLocation(self.shader, use_texture_string as *const GLchar) as u32;
+        gl::EnableVertexAttribArray(use_texture_attrib);
+        gl::VertexAttribPointer(use_texture_attrib, 1, gl::FLOAT, gl::FALSE, stride_distance, 
+                                (8 * size_of::<GLfloat>()) as *const c_void);
+        self.texture_location = gl::GetUniformLocation(self.shader, tex_string as *const GLchar);
+        //Make sure to deallocate the attribute strings
+        CString::from_raw(position_string);
+        CString::from_raw(tex_coord_string);
+        CString::from_raw(color_string);
+        CString::from_raw(tex_string);
+        CString::from_raw(use_texture_string);
+
+    }
+
     pub fn clear(&mut self, col: Color) {
         unsafe {
             gl::ClearColor(col.r, col.g, col.b, col.a);
@@ -147,48 +186,26 @@ impl Backend {
 
     pub fn flush(&mut self) {
         unsafe {
-            let position_string = CString::new("position").unwrap().into_raw();
-            let tex_coord_string = CString::new("tex_coord").unwrap().into_raw();
-            let color_string = CString::new("color").unwrap().into_raw();
-            let tex_string = CString::new("tex").unwrap().into_raw();
-            let use_texture_string = CString::new("uses_texture").unwrap().into_raw();
+            //Check to see if the GL buffers can hold the data
+            let mut vbo_size: GLint = 0;
+            gl::GetBufferParameteriv(gl::ARRAY_BUFFER, gl::BUFFER_SIZE, &mut vbo_size as *mut GLint);
+            let mut ebo_size: GLint = 0;
+            gl::GetBufferParameteriv(gl::ELEMENT_ARRAY_BUFFER, gl::BUFFER_SIZE, &mut ebo_size as *mut GLint);
+            if self.vertices.len() > (vbo_size as usize / VERTEX_SIZE) as usize 
+                || self.indices.len() > ebo_size as usize {
+                let vertex_capacity = self.vertices.capacity() as isize * 2;
+                let index_capacity = self.indices.capacity() as isize* 2;
+                self.create_buffers(vertex_capacity, index_capacity);
+            }
             //Bind the vertex data
-            gl::BindBuffer(gl::ARRAY_BUFFER, self.vbo);
-            gl::BufferData(gl::ARRAY_BUFFER, (self.vertices.len() * size_of::<GLfloat>()) as isize, 
-                           self.vertices.as_ptr() as *const c_void, gl::STREAM_DRAW);
-            //Bind the index data
-            gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, self.ebo);
-            gl::BufferData(gl::ELEMENT_ARRAY_BUFFER, (self.indices.len() * size_of::<GLuint>()) as isize, 
-                           self.indices.as_ptr() as *const c_void, gl::STREAM_DRAW);
-            let stride_distance = (VERTEX_SIZE * size_of::<GLfloat>()) as i32;
-            //Set up the vertex attributes
-            let pos_attrib = gl::GetAttribLocation(self.shader, position_string as *const GLchar) as u32;
-            gl::EnableVertexAttribArray(pos_attrib);
-            gl::VertexAttribPointer(pos_attrib, 2, gl::FLOAT, gl::FALSE, stride_distance, null());
-            let tex_attrib = gl::GetAttribLocation(self.shader, tex_coord_string as *const GLchar) as u32;
-            gl::EnableVertexAttribArray(tex_attrib);
-            gl::VertexAttribPointer(tex_attrib, 2, gl::FLOAT, gl::FALSE, stride_distance, 
-                                    (2 * size_of::<GLfloat>()) as *const c_void);
-            let col_attrib = gl::GetAttribLocation(self.shader, color_string as *const GLchar) as u32;
-            gl::EnableVertexAttribArray(col_attrib);
-            gl::VertexAttribPointer(col_attrib, 4, gl::FLOAT, gl::FALSE, stride_distance, 
-                                    (4 * size_of::<GLfloat>()) as *const c_void);
-            let use_texture_attrib = gl::GetAttribLocation(self.shader, use_texture_string as *const GLchar) as u32;
-            gl::EnableVertexAttribArray(use_texture_attrib);
-            gl::VertexAttribPointer(use_texture_attrib, 1, gl::FLOAT, gl::FALSE, stride_distance, 
-                                    (8 * size_of::<GLfloat>()) as *const c_void);
+            gl::BufferSubData(gl::ARRAY_BUFFER, 0, (size_of::<GLfloat>() * self.vertices.len()) as isize, self.vertices.as_ptr() as *const c_void);
+            gl::BufferSubData(gl::ELEMENT_ARRAY_BUFFER, 0, (size_of::<GLuint>() * self.indices.len()) as isize, self.indices.as_ptr() as *const c_void);
             //Upload the texture to the GPU
-            self.texture_location = gl::GetUniformLocation(self.shader, tex_string as *const GLchar);
             gl::ActiveTexture(gl::TEXTURE0);
             gl::BindTexture(gl::TEXTURE_2D, self.texture);
             gl::Uniform1i(self.texture_location, 0);
             //Draw the triangles
             gl::DrawElements(gl::TRIANGLES, self.indices.len() as i32, gl::UNSIGNED_INT, null());
-            CString::from_raw(position_string);
-            CString::from_raw(tex_coord_string);
-            CString::from_raw(color_string);
-            CString::from_raw(tex_string);
-            CString::from_raw(use_texture_string);
         }
 		self.vertices.clear();
         self.indices.clear();
