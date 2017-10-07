@@ -1,8 +1,7 @@
-extern crate glutin;
+extern crate glfw;
 
 
 use geom::{Circle, Rectangle, Vector, Transform};
-use glutin::GlContext;
 use graphics::{Backend, Color, Vertex};
 use std::sync::mpsc::{channel, Receiver, Sender};
 
@@ -36,13 +35,14 @@ impl Bridge {
         self.front.clone()
     }
 
-    pub fn process_drawable(&self, backend: &mut Backend, window: &glutin::GlWindow) {
+    pub fn process_drawable(&self, backend: &mut Backend, window: &mut glfw::Window) {
         let (drawable, transform, color) = self.back.recv().unwrap();
         match drawable {
             Drawable::Clear => backend.clear(color),
             Drawable::Present => {
+                use glfw::Context;
                 backend.flip();
-                window.swap_buffers().unwrap();
+                window.swap_buffers();
             },
             Drawable::Image(texture) => {
                 let (id, source_size, region) = texture;
