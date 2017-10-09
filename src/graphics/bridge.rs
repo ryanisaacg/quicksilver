@@ -1,9 +1,9 @@
-extern crate glfw;
+extern crate glutin;
 
 
 use geom::{Circle, Rectangle, Vector, Transform};
 use graphics::{Backend, Color, Vertex};
-use std::sync::mpsc::{channel, Receiver, Sender};
+use std::collections::VecDeque;
 
 
 pub enum Drawable {
@@ -15,69 +15,70 @@ pub enum Drawable {
 }
 
 pub type Payload = (Drawable, Transform, Color);
-pub type BridgeFront = Sender<Payload>;
-pub type BridgeBack = Receiver<Payload>;
 
 pub struct Bridge {
-    front: BridgeFront,
-    back: BridgeBack
+    pipeline: VecDeque<Payload>
 }
 
 const CIRCLE_POINTS: usize = 32; //the number of points in the poly to simulate the circle
 
 impl Bridge {
     pub fn new() -> Bridge {
-        let (tx, rx) = channel::<Payload>();
-        Bridge { front: tx, back: rx }
+        Bridge {
+            pipeline: VecDeque::new()
+        }
     }
 
-    pub fn get_front(&self) -> BridgeFront {
-        self.front.clone()
+    ///Adds an item to the list of things to draw
+    pub fn add(&mut self, payload: Payload) {
+        self.pipeline.push_back(payload);
     }
 
-    pub fn process_drawable(&self, backend: &mut Backend, window: &mut glfw::Window) {
-        let (drawable, transform, color) = self.back.recv().unwrap();
-        match drawable {
-            Drawable::Clear => backend.clear(color),
-            Drawable::Present => {
-                use glfw::Context;
-                backend.flip();
-                window.swap_buffers();
-            },
-            Drawable::Image(texture) => {
-                let (id, source_size, region) = texture;
-                let recip_size = source_size.recip();
-                let normalized_pos = region.top_left().times(recip_size);
-                let normalized_size = region.size().times(recip_size);
-                let get_vertex = |v: Vector| {
-                    Vertex {
-                        pos: transform * v,
-                        tex_pos: normalized_pos + v.times(normalized_size),
-                        col: color,
-                        use_texture: true
+
+    ///Processes a drawable item if one is available
+    pub fn process_drawable(&mut self, backend: &mut Backend, window: &glutin::GlContext) {
+        if let Some((drawable, transform, color)) = self.pipeline.pop_front() {
+            match drawable {
+                Drawable::Clear => backend.clear(color),
+                Drawable::Present => {
+                    backend.flip();
+                    window.swap_buffers().unwrap();
+                },
+                Drawable::Image(texture) => {
+                    let (id, source_size, region) = texture;
+                    let recip_size = source_size.recip();
+                    let normalized_pos = region.top_left().times(recip_size);
+                    let normalized_size = region.size().times(recip_size);
+                    let get_vertex = |v: Vector| {
+                        Vertex {
+                            pos: transform * v,
+                            tex_pos: normalized_pos + v.times(normalized_size),
+                            col: color,
+                            use_texture: true
+                        }
+                    };
+                    backend.add(id, &[get_vertex(Vector::zero()),
+                                get_vertex(Vector::zero() + Vector::x()),
+                                get_vertex(Vector::zero() + Vector::one()),
+                                get_vertex(Vector::zero() + Vector::y())],
+                                &[0, 1, 2, 2, 3, 0]);
+                },
+                Drawable::Rect(rect) => {
+                    self.process_polygon(backend, &[rect.top_left(), 
+                                      rect.top_left() + rect.size().x_comp(),
+                                      rect.top_left() + rect.size(),
+                                      rect.top_left() + rect.size().y_comp()], transform, color);
+                },
+                Drawable::Circ(circ) => {
+                    let mut points = [Vector::zero(); CIRCLE_POINTS];
+                    let rotation = Transform::rotate(360f32 / CIRCLE_POINTS as f32);
+                    let mut arrow = Vector::new(0f32, -circ.radius);
+                    for i in 0..CIRCLE_POINTS {
+                        points[i] = circ.center() + arrow;
+                        arrow = rotation * arrow;
                     }
-                };
-                backend.add(id, &[get_vertex(Vector::zero()),
-                            get_vertex(Vector::zero() + Vector::x()),
-                            get_vertex(Vector::zero() + Vector::one()),
-                            get_vertex(Vector::zero() + Vector::y())],
-                            &[0, 1, 2, 2, 3, 0]);
-            },
-            Drawable::Rect(rect) => {
-                self.process_polygon(backend, &[rect.top_left(), 
-                                  rect.top_left() + rect.size().x_comp(),
-                                  rect.top_left() + rect.size(),
-                                  rect.top_left() + rect.size().y_comp()], transform, color);
-            },
-            Drawable::Circ(circ) => {
-                let mut points = [Vector::zero(); CIRCLE_POINTS];
-                let rotation = Transform::rotate(360f32 / CIRCLE_POINTS as f32);
-                let mut arrow = Vector::new(0f32, -circ.radius);
-                for i in 0..CIRCLE_POINTS {
-                    points[i] = circ.center() + arrow;
-                    arrow = rotation * arrow;
+                    self.process_polygon(backend, &points, transform, color);
                 }
-                self.process_polygon(backend, &points, transform, color);
             }
         }
     }

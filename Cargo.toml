@@ -14,4 +14,4 @@ path = "src/bin.rs"
 [dependencies]
 gl = "*"
 imagefmt = "*"
-glfw = "*"
+glutin = "*"

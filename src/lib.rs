@@ -1,6 +1,6 @@
 extern crate gl;
 extern crate imagefmt;
-extern crate glfw;
+extern crate glutin;
 
 pub mod geom;
 pub mod graphics;
@@ -20,25 +20,28 @@ pub trait State {
 pub fn run<T: State + Send + 'static>(title: &str, width: u32, height: u32) {
     use AssetManager;
     use geom::Rectangle;
-    use glfw::{Context, Window};
     use graphics::{Backend, Bridge, Camera, Frontend};
+    use std::sync::{Arc, Mutex};
     use std::thread;
-    
-    let mut glfw = glfw::init(glfw::FAIL_ON_ERRORS).unwrap();
-    glfw.window_hint(glfw::WindowHint::ContextVersion(3, 2));
-    glfw.window_hint(glfw::WindowHint::OpenGlForwardCompat(true));
-    glfw.window_hint(glfw::WindowHint::OpenGlProfile(glfw::OpenGlProfileHint::Core));
-    let (mut window, events) = glfw.create_window(width, height, title, glfw::WindowMode::Windowed)
-        .expect("Failed to create GLFW window.");
-    // Make the window's context current
-    window.make_current();
-    window.set_key_polling(true);
-    gl::load_with(|name| window.get_proc_address(name) as *const _);
 
-    let bridge = Bridge::new();
+    use glutin::GlContext;
+
+    let mut events_loop = glutin::EventsLoop::new();
+    let window = glutin::WindowBuilder::new()
+        .with_title(title)
+        .with_dimensions(width, height);
+    let context = glutin::ContextBuilder::new()
+        .with_vsync(true);
+    let gl_window = glutin::GlWindow::new(window, context, &events_loop).unwrap();
+    unsafe {
+        gl_window.make_current().unwrap();
+        gl::load_with(|symbol| gl_window.get_proc_address(symbol) as *const _);
+    }
+
+    let bridge = Arc::new(Mutex::new(Bridge::new()));
     let mut backend = Backend::new();
     let rect = Rectangle::new_sized(width as f32, height as f32);
-    let mut frontend = Frontend::new(bridge.get_front(), Camera::new(rect, rect));
+    let mut frontend = Frontend::new(bridge.clone(), Camera::new(rect, rect));
     let mut assets = AssetManager::new();
     let mut state = T::new(&mut assets);
     thread::spawn(move || {
@@ -47,7 +50,18 @@ pub fn run<T: State + Send + 'static>(title: &str, width: u32, height: u32) {
             thread::sleep(state.get_tick_delay());
         }
     });
-    loop {
-        bridge.process_drawable(&mut backend, &mut window);
+    let mut running = true;
+    while running {
+        events_loop.poll_events(|event| {
+            match event {
+                glutin::Event::WindowEvent { event, .. } => match event {
+                    glutin::WindowEvent::Closed => running = false,
+                    _ => ()
+                },
+                _ => ()
+            }
+
+        });
+        bridge.lock().unwrap().process_drawable(&mut backend, &gl_window);
     }
 }

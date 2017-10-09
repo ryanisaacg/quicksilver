@@ -1,16 +1,17 @@
 use geom::{Circle, Rectangle, Transform};
-use graphics::{BridgeFront, Camera, Color, Drawable, TextureRegion, WHITE};
+use graphics::{Bridge, Camera, Color, Drawable, TextureRegion, WHITE};
+use std::sync::{Arc, Mutex};
 
 pub struct Frontend {
-    sender: BridgeFront,
+    bridge: Arc<Mutex<Bridge>>,
     cam: Camera,
     ui_mode: bool
 }
 
 impl Frontend {
-    pub fn new(sender: BridgeFront, cam: Camera) -> Frontend {
+    pub fn new(bridge: Arc<Mutex<Bridge>>, cam: Camera) -> Frontend {
         Frontend {
-            sender: sender, 
+            bridge: bridge,
             cam: cam,
             ui_mode: false
         }
@@ -33,11 +34,11 @@ impl Frontend {
     }
 
     pub fn clear(&self, color: Color) {
-        self.sender.send((Drawable::Clear, Transform::identity(), color)).unwrap();
+        self.bridge.lock().unwrap().add((Drawable::Clear, Transform::identity(), color));
     }
 
     pub fn present(&self) {
-        self.sender.send((Drawable::Present, Transform::identity(), WHITE)).unwrap();
+        self.bridge.lock().unwrap().add((Drawable::Present, Transform::identity(), WHITE));
     }
 
     pub fn draw_image(&self, image: TextureRegion, area: Rectangle, trans: Transform, col: Color) {
@@ -46,21 +47,21 @@ impl Frontend {
             * Transform::translate(area.top_left()) 
             * Transform::scale(area.size());
         let call = (Drawable::Image((image.get_id(), image.source_size(), image.get_region())), trans, col);
-        self.sender.send(call).unwrap();
+        self.bridge.lock().unwrap().add(call);
     }
 
     pub fn draw_rect(&self, rect: Rectangle, trans: Transform, col: Color) {
         let trans = self.camera()
             * trans;
         let call = (Drawable::Rect(rect), trans, col);
-        self.sender.send(call).unwrap();
+        self.bridge.lock().unwrap().add(call);
     }
 
     pub fn draw_circle(&self, circ: Circle, trans: Transform, col: Color) {
         let trans = self.camera()
             * trans;
         let call = (Drawable::Circ(circ), trans, col);
-        self.sender.send(call).unwrap();
+        self.bridge.lock().unwrap().add(call);
     }
 }
 
