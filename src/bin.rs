@@ -4,7 +4,7 @@ extern crate gl;
 use qs::{AssetManager, State, run};
 use qs::geom::{Circle, Rectangle, Transform};
 use qs::graphics::{Frontend, BLUE, Color, Texture, PixelFormat, WHITE};
-use qs::input::Keyboard;
+use qs::input::{Keyboard, Mouse};
 use std::time::Duration;
 
 struct Screen {
@@ -21,14 +21,14 @@ impl State for Screen {
         }
     }
 
-    fn tick(&mut self, draw: &mut Frontend, keys: &Keyboard) {
+    fn tick(&mut self, draw: &mut Frontend, keys: &Keyboard, mouse: &Mouse) {
         draw.clear(Color {r: 0f32, g: 1f32, b: 1f32, a: 1f32});
         if keys[30].is_down() {
             self.position += 1f32;
         }
         draw.draw_image(self.white.region(), Rectangle::new_sized(32f32, 32f32), Transform::identity(), WHITE);
         draw.draw_circle(Circle::new(self.position, 100f32, 60f32), Transform::identity(), BLUE);
-        draw.draw_rect(Rectangle::new(100f32, 100f32, 60f32, 60f32), Transform::identity(), WHITE);
+        draw.draw_rect(Rectangle::new(mouse.pos.x, mouse.pos.y, 60f32, 60f32), Transform::identity(), WHITE);
         draw.present();
     }
 

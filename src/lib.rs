@@ -9,13 +9,13 @@ pub mod input;
 mod manager;
 pub use manager::AssetManager;
 
-use input::Keyboard;
+use input::{Keyboard, Mouse};
 use graphics::Frontend;
 use std::time::Duration;
 
 pub trait State {
     fn new(&mut AssetManager) -> Self;
-    fn tick(&mut self, frontend: &mut Frontend, keyboard: &Keyboard) -> ();
+    fn tick(&mut self, frontend: &mut Frontend, keyboard: &Keyboard, mouse: &Mouse) -> ();
     fn get_tick_delay(&self) -> Duration;
 }
 
@@ -48,11 +48,16 @@ pub fn run<T: State + Send + 'static>(title: &str, width: u32, height: u32) {
     let mut state = T::new(&mut assets);
     let running = Arc::new(Mutex::new(true));
     let keyboard = Arc::new(Mutex::new(Keyboard::new()));
+    let mouse = Arc::new(Mutex::new(Mouse::new()));
     let update_keyboard = keyboard.clone();
+    let update_mouse = mouse.clone();
     thread::spawn(move || {
         let keyboard = update_keyboard;
+        let mouse = update_mouse;
         loop {
-            state.tick(&mut frontend, &keyboard.lock().unwrap());
+            {
+                state.tick(&mut frontend, &keyboard.lock().unwrap(), &mouse.lock().unwrap());
+            }
             thread::sleep(state.get_tick_delay());
         }
     });
@@ -64,6 +69,12 @@ pub fn run<T: State + Send + 'static>(title: &str, width: u32, height: u32) {
                 glutin::Event::WindowEvent{ event, .. } => match event {
                     glutin::WindowEvent::KeyboardInput { device_id: _, input: event } => {
                         keyboard.lock().unwrap().process_event(&event);
+                    },
+                    glutin::WindowEvent::MouseMoved { position, .. } => {
+                        mouse.lock().unwrap().set_position(position);
+                    },
+                    glutin::WindowEvent::MouseInput { state, button, .. } => {
+                        mouse.lock().unwrap().process_button(state, button);
                     },
                     glutin::WindowEvent::Closed => {
                         *(running.lock().unwrap()) = false;
