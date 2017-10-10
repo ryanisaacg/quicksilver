@@ -4,16 +4,18 @@ extern crate glutin;
 
 pub mod geom;
 pub mod graphics;
+pub mod input;
 
 mod manager;
 pub use manager::AssetManager;
 
+use input::Keyboard;
 use graphics::Frontend;
 use std::time::Duration;
 
 pub trait State {
     fn new(&mut AssetManager) -> Self;
-    fn tick(&mut self, frontend: &mut Frontend) -> ();
+    fn tick(&mut self, frontend: &mut Frontend, keyboard: &Keyboard) -> ();
     fn get_tick_delay(&self) -> Duration;
 }
 
@@ -44,24 +46,39 @@ pub fn run<T: State + Send + 'static>(title: &str, width: u32, height: u32) {
     let mut frontend = Frontend::new(bridge.clone(), Camera::new(rect, rect));
     let mut assets = AssetManager::new();
     let mut state = T::new(&mut assets);
+    let running = Arc::new(Mutex::new(true));
+    let keyboard = Arc::new(Mutex::new(Keyboard::new()));
+    let update_keyboard = keyboard.clone();
     thread::spawn(move || {
+        let keyboard = update_keyboard;
         loop {
-            state.tick(&mut frontend);
+            state.tick(&mut frontend, &keyboard.lock().unwrap());
             thread::sleep(state.get_tick_delay());
         }
     });
-    let mut running = true;
-    while running {
-        events_loop.poll_events(|event| {
+    let events_running = running.clone();
+    thread::spawn(move || {
+        let running = events_running;
+        events_loop.run_forever(|event| {
             match event {
-                glutin::Event::WindowEvent { event, .. } => match event {
-                    glutin::WindowEvent::Closed => running = false,
+                glutin::Event::WindowEvent{ event, .. } => match event {
+                    glutin::WindowEvent::KeyboardInput { device_id: _, input: event } => {
+                        keyboard.lock().unwrap().process_event(&event);
+                    },
+                    glutin::WindowEvent::Closed => {
+                        *(running.lock().unwrap()) = false;
+                    },
                     _ => ()
                 },
                 _ => ()
             }
-
+            glutin::ControlFlow::Continue
         });
+    });
+    loop {
         bridge.lock().unwrap().process_drawable(&mut backend, &gl_window);
+        if !(*running.lock().unwrap()) {
+            break;
+        }
     }
 }
