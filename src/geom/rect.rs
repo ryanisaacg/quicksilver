@@ -14,9 +14,17 @@ impl Rectangle {
         Rectangle { x: x, y: y, width: width, height: height }
     }
 
+    pub fn newi(x: i32, y: i32, width: i32, height: i32) -> Rectangle {
+        Rectangle::new(x as f32, y as f32, width as f32, height as f32)
+    }
+
     ///Create a rectangle at the origin with the given size
     pub fn new_sized(width: f32, height: f32) -> Rectangle {
         Rectangle::new(0f32, 0f32, width, height)
+    }
+    
+    pub fn newi_sized(width: i32, height: i32) -> Rectangle {
+        Rectangle::newi(0, 0, width, height)
     }
 
     ///Get the top left coordinate of the Rectangle
@@ -80,48 +88,48 @@ mod tests {
 
     #[test]
     fn overlap() {
-        let a = Rectangle::new_sized(32f32, 32f32);
-        let b = Rectangle::new(16f32, 16f32, 32f32, 32f32);
-        let c = Rectangle::new(50f32, 50f32, 5f32, 5f32);
+        let a = Rectangle::newi_sized(32, 32);
+        let b = Rectangle::newi(16, 16, 32, 32);
+        let c = Rectangle::newi(50, 50, 5, 5);
         assert!(a.overlaps_rect(b));
         assert!(!a.overlaps_rect(c));
     }
 
     #[test]
     fn contains() {
-        let rect = Rectangle::new_sized(32f32, 32f32);
-        let vec1 = Vector::new(5f32, 5f32);
-        let vec2 = Vector::new(33f32, 1f32);
+        let rect = Rectangle::newi_sized(32, 32);
+        let vec1 = Vector::newi(5, 5);
+        let vec2 = Vector::newi(33, 1);
         assert!(rect.contains(vec1));
         assert!(!rect.contains(vec2));
     }
 
     #[test]
     fn constraint() {
-        let constraint = Rectangle::new_sized(10f32, 10f32);
-        let a = Rectangle::new(-1f32, 3f32, 5f32, 5f32);
-        let b = Rectangle::new(4f32, 4f32, 8f32, 3f32);
+        let constraint = Rectangle::newi_sized(10, 10);
+        let a = Rectangle::newi(-1, 3, 5, 5);
+        let b = Rectangle::newi(4, 4, 8, 3);
         let a = a.constrain(constraint);
-        assert_eq!(a.top_left(), Vector::new(0f32, 3f32));
+        assert_eq!(a.top_left(), Vector::newi(0, 3));
         let b = b.constrain(constraint);
-        assert_eq!(b.top_left(), Vector::new(2f32, 4f32));
+        assert_eq!(b.top_left(), Vector::newi(2, 4));
     }
 
     #[test]
     fn translate() {
-        let a = Rectangle::new(10f32, 10f32, 5f32, 5f32);
-        let v = Vector::new(1f32, -1f32);
+        let a = Rectangle::newi(10, 10, 5, 5);
+        let v = Vector::newi(1, -1);
         let translated = a.translate(v);
         assert_eq!(a.top_left() + v, translated.top_left());
     }
 
     #[test]
     fn intersect() {
-        let line1 = Line::new(Vector::new(0f32, 0f32), Vector::new(32f32, 32f32));
-        let line2 = Line::new(Vector::new(0f32, 32f32), Vector::new(32f32, 0f32));
-        let line3 = Line::new(Vector::new(32f32, 32f32), Vector::new(64f32, 64f32));
-        let line4 = Line::new(Vector::new(100f32, 100f32), Vector::new(1000f32, 1000f32));
-        let rect = Rectangle::new_sized(32f32, 32f32);
+        let line1 = Line::new(Vector::newi(0, 0), Vector::newi(32, 32));
+        let line2 = Line::new(Vector::newi(0, 32), Vector::newi(32, 0));
+        let line3 = Line::new(Vector::newi(32, 32), Vector::newi(64, 64));
+        let line4 = Line::new(Vector::newi(100, 100), Vector::newi(1000, 1000));
+        let rect = Rectangle::newi_sized(32, 32);
         assert!(rect.intersects(line1));
         assert!(rect.intersects(line2));
         assert!(rect.intersects(line3));

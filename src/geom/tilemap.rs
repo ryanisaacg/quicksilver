@@ -139,18 +139,18 @@ mod tests {
 
     fn setup() -> Tilemap<i32> {
         let mut map = Tilemap::new(640f32, 480f32, 32f32, 32f32);
-        map.set(Vector::new(35f32, 35f32), Tile::solid(Some(5)));
+        map.set(Vector::newi(35, 35), Tile::solid(Some(5)));
         map
     }
 
     #[test]
     fn tile_values() {
         let map = setup();
-        assert!(match map.get(Vector::new(-1f32, 0f32)) { None => true, _ => false });
-        assert!(map.get(Vector::new(35f32, 0f32)).unwrap().empty);
-        assert!(!map.get(Vector::new(35f32, 35f32)).unwrap().empty);
-        assert!(!map.get(Vector::new(35f32, 35f32)).unwrap().empty);
-        assert_eq!(map.get(Vector::new(35f32, 35f32)).unwrap().value.unwrap(), 5);
+        assert!(match map.get(Vector::x() * -1) { None => true, _ => false });
+        assert!(map.get(Vector::newi(35, 0)).unwrap().empty);
+        assert!(!map.get(Vector::newi(35, 35)).unwrap().empty);
+        assert!(!map.get(Vector::newi(35, 35)).unwrap().empty);
+        assert_eq!(map.get(Vector::newi(35, 35)).unwrap().value.unwrap(), 5);
     }
 
     #[test]
@@ -158,16 +158,16 @@ mod tests {
         let map = setup();
         //Each test case has a starting rectangle, starting speed, expected top-left and expected
         //speed
-        let test_cases = [(Rectangle::new(300f32, 5f32, 32f32, 32f32), Vector::new(0f32, -10f32),
-                Vector::new(300f32, 0f32), Vector::zero()),
-            (Rectangle::new(80f32, 10f32, 16f32, 16f32), Vector::new(1f32, -20f32),
-                Vector::new(81f32, 0f32), Vector::new(1f32, 0f32)),
-            (Rectangle::new(600f32, 10f32, 30f32, 10f32), Vector::new(15f32, 10f32),
-                Vector::new(609f32, 20f32), Vector::new(0f32, 10f32)),
-            (Rectangle::new(10f32, 5f32, 5f32, 5f32), Vector::new(2f32, 2f32),
-                Vector::new(12f32, 7f32), Vector::new(2f32, 2f32)),
-            (Rectangle::new(5f32, 5f32, 10f32, 10f32), Vector::new(-7.2f32, 0f32),
-                Vector::new(0f32, 5f32), Vector::zero())];
+        let test_cases = [(Rectangle::newi(300, 5, 32, 32), Vector::newi(0, -10),
+                Vector::newi(300, 0), Vector::zero()),
+            (Rectangle::newi(80, 10, 16, 16), Vector::newi(1, -20),
+                Vector::newi(81, 0), Vector::newi(1, 0)),
+            (Rectangle::newi(600, 10, 30, 10), Vector::newi(15, 10),
+                Vector::newi(609, 20), Vector::newi(0, 10)),
+            (Rectangle::newi(10, 5, 5, 5), Vector::newi(2, 2),
+                Vector::newi(12, 7), Vector::newi(2, 2)),
+            (Rectangle::newi(5, 5, 10, 10), Vector::x() * -7.2,
+                Vector::newi(0, 5), Vector::zero())];
         for case in test_cases.iter() {
             let (region, speed, expected_tl, expected_speed) = *case;
             let (region_new, speed_new) = map.move_until_contact(region, speed);

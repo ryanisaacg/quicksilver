@@ -171,11 +171,11 @@ mod tests {
 
     #[test]
     fn inverse() {
-        let vec = Vector::new(2f32, 4f32);
-        let translate = Transform::scale(Vector::new(0.5f32, 0.5f32));
+        let vec = Vector::newi(2, 4);
+        let translate = Transform::scale(Vector::one() * 0.5);
         let inverse = translate.inverse();
         let transformed = inverse * vec;
-        let expected = Vector::new(4f32, 8f32);
+        let expected = vec * 2;
         for i in 0..3 {
             for j in 0..3 {
                 print!("{},", inverse.index(i, j));
@@ -187,29 +187,30 @@ mod tests {
 
     #[test]
     fn scale() {
-        let trans = Transform::scale(Vector::new(2f32, 2f32));
-        let vec = Vector::new(2f32, 5f32);
+        let trans = Transform::scale(Vector::one() * 2);
+        let vec = Vector::newi(2, 5);
         let scaled = trans * vec;
-        let expected = Vector::new(4f32, 10f32);
+        let expected = vec * 2;
         assert_eq!(scaled, expected);
     }
 
     #[test]
     fn translate() {
-        let trans = Transform::translate(Vector::new(3f32, 4f32));
-        let vec = Vector::new(1f32, 1f32);
+        let translate = Vector::newi(3, 4);
+        let trans = Transform::translate(translate);
+        let vec = Vector::one();
         let translated = trans * vec;
-        let expected = Vector::new(4f32, 5f32);
+        let expected = vec + translate;
         assert_eq!(translated, expected);
     }
 
     #[test]
     fn identity() {
         let trans = Transform::identity()
-            * Transform::translate(Vector::new(0f32, 0f32))
+            * Transform::translate(Vector::zero())
             * Transform::rotate(0f32)
-            * Transform::scale(Vector::new(1f32, 1f32));
-        let vec = Vector::new(15f32, 12f32);
+            * Transform::scale(Vector::one());
+        let vec = Vector::newi(15, 12);
         assert_eq!(vec, trans * vec);
     }
 }

@@ -47,10 +47,10 @@ mod tests {
 
     #[test]
     fn intersect() {
-        let line1 = Line::new(Vector::new(0f32, 0f32), Vector::new(32f32, 32f32));
-        let line2 = Line::new(Vector::new(0f32, 32f32), Vector::new(32f32, 0f32));
-        let line3 = Line::new(Vector::new(32f32, 32f32), Vector::new(64f32, 64f32));
-        let line4 = Line::new(Vector::new(100f32, 100f32), Vector::new(1000f32, 1000f32));
+        let line1 = Line::new(Vector::newi(0, 0), Vector::newi(32, 32));
+        let line2 = Line::new(Vector::newi(0, 32), Vector::newi(32, 0));
+        let line3 = Line::new(Vector::newi(32, 32), Vector::newi(64, 64));
+        let line4 = Line::new(Vector::newi(100, 100), Vector::newi(1000, 1000));
         assert!(line1.intersects(line2));
         assert!(!line2.intersects(line3));
         assert!(!line1.intersects(line4));

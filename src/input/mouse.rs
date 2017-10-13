@@ -14,7 +14,7 @@ pub struct Mouse {
 impl Mouse {
     pub fn new() -> Mouse {
         Mouse {
-            pos: Vector::new(0f32, 0f32),
+            pos: Vector::newi(0, 0),
             left: State::NotPressed,
             right: State::NotPressed,
             middle: State::NotPressed

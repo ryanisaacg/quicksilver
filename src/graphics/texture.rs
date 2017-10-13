@@ -56,7 +56,7 @@ impl Texture {
     pub fn region(&self) -> TextureRegion {
         TextureRegion {
             source: self,
-            region: Rectangle::new_sized(self.width as f32, self.height as f32)
+            region: Rectangle::newi_sized(self.width, self.height)
         }
     }
 }
@@ -89,7 +89,7 @@ impl<'a> TextureRegion<'a> {
     }
 
     pub fn source_size(&self) -> Vector {
-        Vector::new(self.source_width() as f32, self.source_height() as f32)
+        Vector::newi(self.source_width(), self.source_height())
     }
 
     pub fn get_region(&self) -> Rectangle {

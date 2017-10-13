@@ -20,9 +20,9 @@ impl Camera {
         Camera {
             unproject: unproject,
             project: unproject.inverse(),
-            opengl: Transform::scale(Vector::new(1f32, -1f32))
-                * Transform::translate(Vector::new(-1f32, -1f32))
-                * Transform::scale(world.size().recip() * 2f32)
+            opengl: Transform::scale(Vector::x() - Vector::y())
+                * Transform::translate(-Vector::one())
+                * Transform::scale(world.size().recip() * 2)
                 * Transform::translate(-world.top_left())
                 * transform
         }
@@ -36,10 +36,10 @@ mod tests {
     #[test]
     fn projection() {
         let camera = Camera::new(
-            Rectangle::new_sized(100f32, 100f32), 
-            Rectangle::new_sized(50f32, 50f32));
-        let screen_bottom = Vector::new(0f32, 100f32);
-        let world_bottom = Vector::new(0f32, 50f32);
+            Rectangle::newi_sized(100, 100), 
+            Rectangle::newi_sized(50, 50));
+        let screen_bottom = Vector::y() * 100;
+        let world_bottom = Vector::y() * 50;
         assert_eq!(camera.project * screen_bottom, world_bottom);
         assert_eq!(camera.unproject * world_bottom, screen_bottom);
         assert_eq!(camera.opengl * world_bottom, -Vector::one());
@@ -48,19 +48,19 @@ mod tests {
     #[test]
     fn opengl_projection() {
         let camera = Camera::new(
-            Rectangle::new_sized(100f32, 100f32), 
-            Rectangle::new(50f32, 50f32, 50f32, 50f32));
-        let world_top = Vector::new(50f32, 50f32);
-        let expected = Vector::new(-1f32, 1f32);
+            Rectangle::newi_sized(100, 100), 
+            Rectangle::newi(50, 50, 50, 50));
+        let world_top = Vector::one() * 50;
+        let expected = -Vector::x() + Vector::y();
         assert_eq!(camera.opengl * world_top, expected);
     }
 
     #[test]
     fn custom_transform() {
-        let rect = Rectangle::new_sized(10f32, 10f32);
+        let rect = Rectangle::newi_sized(10, 10);
         let camera = Camera::new_transformed(rect, rect, Transform::rotate(-90f32));
-        let point = Vector::new(5f32, 0f32);
-        let expected = Vector::new(0f32, 5f32);
+        let point = Vector::x() * 5;
+        let expected = Vector::y() * 5;
         assert_eq!(camera.project * point, expected);
     }
 }

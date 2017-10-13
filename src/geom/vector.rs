@@ -36,6 +36,10 @@ impl Vector {
        Vector { x: x, y: y }
     }
 
+    pub fn newi(x: i32, y: i32) -> Vector {
+        Vector::new(x as f32, y as f32)
+    }
+
     ///Get the squared length of the vector (faster than getting the length)
     pub fn len2(self) -> f32 {
        self.x * self.x + self.y * self.y
@@ -152,6 +156,34 @@ impl MulAssign<f32> for Vector {
     }
 }
 
+impl Div<i32> for Vector {
+    type Output = Vector;
+
+    fn div(self, rhs: i32) -> Vector {
+        Vector::new(self.x / rhs as f32, self.y / rhs as f32)
+    }
+}
+
+impl DivAssign<i32> for Vector {
+    fn div_assign(&mut self, rhs: i32) -> () {
+        *self = *self / rhs;
+    }
+}
+
+impl Mul<i32> for Vector {
+    type Output = Vector;
+
+    fn mul(self, rhs: i32) -> Vector {
+        Vector::new(self.x * rhs as f32, self.y * rhs as f32)
+    }
+}
+
+impl MulAssign<i32> for Vector {
+    fn mul_assign(&mut self, rhs: i32) -> () {
+        *self = *self * rhs;
+    }
+}
+
 impl PartialEq for Vector {
     fn eq(&self, other: &Vector) -> bool {
         (self.x - other.x).abs() < FLOAT_LIMIT && (self.y - other.y).abs() < FLOAT_LIMIT
@@ -172,21 +204,21 @@ mod tests {
 
     #[test]
     fn arithmetic() {
-        let a = Vector::new(5f32, 10f32);
-        let b = Vector::new(1f32, -2f32);
+        let a = Vector::newi(5, 10);
+        let b = Vector::newi(1, -2);
         assert!((a + b).x == 6f32);
         assert!((a - b).y == 12f32);
     }
 
     #[test]
     fn equality() {
-        assert_eq!(Vector::new(5f32, 5f32), Vector::new(5f32, 5f32));
-        assert_ne!(Vector::new(0f32, 5f32), Vector::new(5f32, 5f32));
+        assert_eq!(Vector::newi(5, 5), Vector::newi(5, 5));
+        assert_ne!(Vector::newi(0, 5), Vector::newi(5, 5));
     }
 
     #[test]
     fn inverse() {
-        let vec = Vector::new(3f32, 5f32);
+        let vec = Vector::newi(3, 5);
         let inverse = vec.recip();
         assert!((inverse.x - vec.x.recip()).abs() < FLOAT_LIMIT &&
                 (inverse.y - vec.y.recip()).abs() < FLOAT_LIMIT);
@@ -194,39 +226,39 @@ mod tests {
 
     #[test]
     fn length() {
-        let vec = Vector::new(5f32, 0f32);
+        let vec = Vector::x() * 5;
         assert!((vec.len2() - 25f32).abs() < FLOAT_LIMIT);
         assert!((vec.len() - 5f32).abs() < FLOAT_LIMIT);
     }
 
     #[test]
     fn scale() {
-        let vec = Vector::new(1f32, 1f32);
-        let doubled = Vector::new(2f32, 2f32);
-        assert_eq!(vec * 2f32, doubled);
-        let halved = Vector::new(0.5f32, 0.5f32);
-        assert_eq!(vec / 2f32, halved);
+        let vec = Vector::newi(1, 1);
+        let doubled = Vector::newi(2, 2);
+        assert_eq!(vec * 2, doubled);
+        let halved = Vector::new(0.5, 0.5);
+        assert_eq!(vec / 2, halved);
     }
 
     #[test]
     fn clamp() {
-        let min = Vector::new(-10f32, -2f32);
-        let max = Vector::new(5f32, 6f32);
-        let vec = Vector::new(-11f32, 3f32);
+        let min = Vector::newi(-10, -2);
+        let max = Vector::newi(5, 6);
+        let vec = Vector::newi(-11, 3);
         let clamped = vec.clamp(min, max);
-        let expected = Vector::new(-10f32, 3f32);
+        let expected = Vector::newi(-10, 3);
         assert_eq!(clamped, expected);
     }
 
     #[test]
     fn dot() {
-        assert!((Vector::new(6f32, 5f32).dot(Vector::new(2f32, -8f32)) - 28f32) <= FLOAT_LIMIT);
+        assert!((Vector::newi(6, 5).dot(Vector::newi(2, -8)) - 28f32) <= FLOAT_LIMIT);
     }
 
     #[test]
     fn times() {
-        let vec = Vector::new(3f32, -2f32);
-        let two = Vector::one() * 2f32;
-        assert_eq!(vec.times(two), vec * 2f32);
+        let vec = Vector::newi(3, -2);
+        let two = Vector::one() * 2;
+        assert_eq!(vec.times(two), vec * 2);
     }
 }
