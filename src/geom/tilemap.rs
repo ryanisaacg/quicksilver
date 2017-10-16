@@ -107,7 +107,6 @@ impl<T: Clone> Tilemap<T> {
             //If the remainder cannot be moved
             if !self.region_empty(bounds.translate(attempt)) {
                 if attempt.x > 0f32 {
-                    println!("{}", bounds.x + bounds.width);
                     bounds.x = ((bounds.x + bounds.width) / self.tile_width).ceil() * self.tile_width - bounds.width - 1f32;
                 } else {
                     bounds.x = (bounds.x / self.tile_width).floor() * self.tile_width;
@@ -167,7 +166,9 @@ mod tests {
             (Rectangle::newi(10, 5, 5, 5), Vector::newi(2, 2),
                 Vector::newi(12, 7), Vector::newi(2, 2)),
             (Rectangle::newi(5, 5, 10, 10), Vector::x() * -7.2,
-                Vector::newi(0, 5), Vector::zero())];
+                Vector::newi(0, 5), Vector::zero()),
+            (Rectangle::newi(0, 0, 30, 30), Vector::x() * 2,
+                Vector::newi(2, 0), Vector::x() * 2)];
         for case in test_cases.iter() {
             let (region, speed, expected_tl, expected_speed) = *case;
             let (region_new, speed_new) = map.move_until_contact(region, speed);
