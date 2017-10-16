@@ -1,23 +1,23 @@
 extern crate glutin;
 
-use input::State;
+use input::ButtonState;
 
 use geom::Vector;
 
 pub struct Mouse {
     pub pos: Vector,
-    pub left: State,
-    pub right: State,
-    pub middle: State
+    pub left: ButtonState,
+    pub right: ButtonState,
+    pub middle: ButtonState
 }
 
 impl Mouse {
     pub fn new() -> Mouse {
         Mouse {
             pos: Vector::newi(0, 0),
-            left: State::NotPressed,
-            right: State::NotPressed,
-            middle: State::NotPressed
+            left: ButtonState::NotPressed,
+            right: ButtonState::NotPressed,
+            middle: ButtonState::NotPressed
         }
     }
 
@@ -28,8 +28,8 @@ impl Mouse {
 
     pub fn process_button(&mut self, state: glutin::ElementState, button: glutin::MouseButton) {
         let value = match state {
-            glutin::ElementState::Pressed => State::Pressed,
-            glutin::ElementState::Released => State::Released
+            glutin::ElementState::Pressed => ButtonState::Pressed,
+            glutin::ElementState::Released => ButtonState::Released
         };
         match button {
             glutin::MouseButton::Left => self.left = value,

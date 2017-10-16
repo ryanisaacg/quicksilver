@@ -1,18 +1,18 @@
 #[derive(Clone, Copy)]
-pub enum State {
+pub enum ButtonState {
     Pressed,
     Held,
     Released,
     NotPressed
 }
 
-impl State {
+impl ButtonState {
     pub fn is_down(&self) -> bool {
         match *self {
-            State::Pressed => true,
-            State::Held => true,
-            State::Released => false,
-            State::NotPressed => false,
+            ButtonState::Pressed => true,
+            ButtonState::Held => true,
+            ButtonState::Released => false,
+            ButtonState::NotPressed => false,
         }
     }
 }
