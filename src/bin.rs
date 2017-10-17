@@ -45,7 +45,6 @@ impl State for Screen {
             self.player.speed.x = 2f32;
         }
         self.player.step(&self.map);
-        println!("{}", self.player.speed);
         Duration::from_millis(10)
     }
 
