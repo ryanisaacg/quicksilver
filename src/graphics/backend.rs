@@ -9,7 +9,17 @@ use std::os::raw::c_void;
 use std::ptr::null;
 use std::str::from_utf8;
 
-pub struct Backend {
+pub trait Backend {
+     fn clear(&mut self, color: Color);
+     fn flush(&mut self);
+     fn flip(&mut self);
+     fn add(&mut self, texture: GLuint, vertices: &[Vertex], indices: &[GLuint]);
+     fn add_vertex(&mut self, vertex: &Vertex);
+     fn add_index(&mut self, index: GLuint);
+     fn num_vertices(&self) -> usize;
+}
+
+pub struct GLBackend {
     texture: GLuint,
     vertices: Vec<f32>,
     indices: Vec<GLuint>,
@@ -50,21 +60,8 @@ void main() {
 	outColor = Color * tex_color;
 }"#;
 
-impl Drop for Backend {
-    fn drop(&mut self) {
-        unsafe {
-            gl::DeleteProgram(self.shader);
-            gl::DeleteShader(self.fragment);
-            gl::DeleteShader(self.vertex);
-            gl::DeleteBuffers(1, &self.vbo as *const GLuint);
-            gl::DeleteBuffers(1, &self.ebo as *const GLuint);
-            gl::DeleteVertexArrays(1, &self.vao as *const GLuint);
-        }
-    }
-}
-
-impl Backend {
-    pub fn new() -> Backend {
+impl GLBackend {
+    pub fn new() -> GLBackend {
         unsafe {
             let mut vao: u32 = 0;
             gl::GenVertexArrays(1, &mut vao as *mut GLuint);
@@ -75,7 +72,7 @@ impl Backend {
             gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
             gl::GenBuffers(1, &mut ebo as *mut GLuint);
             gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, ebo);
-            let mut backend = Backend {
+            let mut backend = GLBackend {
                 texture: 0,
                 vertices: Vec::with_capacity(1024),
                 indices: Vec::with_capacity(1024),
@@ -172,10 +169,31 @@ impl Backend {
         CString::from_raw(color_string);
         CString::from_raw(tex_string);
         CString::from_raw(use_texture_string);
-
     }
 
-    pub fn clear(&mut self, col: Color) {
+    fn switch_texture(&mut self, texture: GLuint) {
+        if self.texture != 0 && self.texture != texture {
+            self.flush();
+        }
+        self.texture = texture;
+    }
+}
+
+impl Drop for GLBackend {
+    fn drop(&mut self) {
+        unsafe {
+            gl::DeleteProgram(self.shader);
+            gl::DeleteShader(self.fragment);
+            gl::DeleteShader(self.vertex);
+            gl::DeleteBuffers(1, &self.vbo as *const GLuint);
+            gl::DeleteBuffers(1, &self.ebo as *const GLuint);
+            gl::DeleteVertexArrays(1, &self.vao as *const GLuint);
+        }
+    }
+}
+
+impl Backend for GLBackend {
+     fn clear(&mut self, col: Color) {
         unsafe {
             gl::ClearColor(col.r, col.g, col.b, col.a);
             gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
@@ -184,7 +202,7 @@ impl Backend {
         self.indices.clear();
     }
 
-    pub fn flush(&mut self) {
+     fn flush(&mut self) {
         unsafe {
             //Check to see if the GL buffers can hold the data
             let mut vbo_size: GLint = 0;
@@ -212,22 +230,15 @@ impl Backend {
         self.texture = 0;
     }
 
-    pub fn flip(&mut self) {
+     fn flip(&mut self) {
         self.flush();
     }
 
-    pub fn switch_texture(&mut self, texture: GLuint) {
-        if self.texture != 0 && self.texture != texture {
-            self.flush();
-        }
-        self.texture = texture;
-    }
-
-    pub fn num_vertices(&self) -> usize {
+     fn num_vertices(&self) -> usize {
         self.vertices.len() / VERTEX_SIZE
     }
 
-    pub fn add_vertex(&mut self, vertex: &Vertex) {
+     fn add_vertex(&mut self, vertex: &Vertex) {
         self.vertices.push(vertex.pos.x);
         self.vertices.push(vertex.pos.y);
         self.vertices.push(vertex.tex_pos.x);
@@ -239,11 +250,11 @@ impl Backend {
         self.vertices.push(if vertex.use_texture { 1f32 } else { 0f32 } );
     }
 
-    pub fn add_index(&mut self, index: GLuint) {
+     fn add_index(&mut self, index: GLuint) {
         self.indices.push(index);
     }
 
-    pub fn add(&mut self, texture: GLuint, vertices: &[Vertex], indices: &[GLuint]) {
+     fn add(&mut self, texture: GLuint, vertices: &[Vertex], indices: &[GLuint]) {
         self.switch_texture(texture);
         let offset = self.vertices.len() / VERTEX_SIZE;
         for vertex in vertices {

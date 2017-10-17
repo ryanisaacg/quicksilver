@@ -15,14 +15,14 @@ use std::time::Duration;
 
 pub trait State {
     fn new(&mut AssetManager) -> Self;
-    fn tick(&mut self, frontend: &mut Frontend, keyboard: &Keyboard, mouse: &Mouse) -> ();
-    fn get_tick_delay(&self) -> Duration;
+    fn tick(&mut self, keyboard: &Keyboard, mouse: &Mouse) -> Duration;
+    fn draw(&mut self, frontend: &mut Frontend);
 }
 
 pub fn run<T: State + Send + 'static>(title: &str, width: u32, height: u32) {
     use AssetManager;
-    use geom::Rectangle;
-    use graphics::{Backend, Bridge, Camera, Frontend};
+    use geom::*;
+    use graphics::*;
     use std::sync::{Arc, Mutex};
     use std::thread;
 
@@ -40,31 +40,30 @@ pub fn run<T: State + Send + 'static>(title: &str, width: u32, height: u32) {
         gl::load_with(|symbol| gl_window.get_proc_address(symbol) as *const _);
     }
 
-    let bridge = Arc::new(Mutex::new(Bridge::new()));
-    let mut backend = Backend::new();
+    let mut backend = GLBackend::new();
     let rect = Rectangle::new_sized(width as f32, height as f32);
-    let mut frontend = Frontend::new(bridge.clone(), Camera::new(rect, rect));
+    let mut frontend = Frontend::new(&mut backend, &gl_window, Camera::new(rect, rect));
     let mut assets = AssetManager::new();
-    let mut state = T::new(&mut assets);
-    let running = Arc::new(Mutex::new(true));
+    let state = Arc::new(Mutex::new(T::new(&mut assets)));
     let keyboard = Arc::new(Mutex::new(Keyboard::new()));
     let mouse = Arc::new(Mutex::new(Mouse::new()));
     let update_keyboard = keyboard.clone();
     let update_mouse = mouse.clone();
+    let update_state = state.clone();
     thread::spawn(move || {
         let keyboard = update_keyboard;
         let mouse = update_mouse;
+        let state = update_state;
         loop {
-            {
-                state.tick(&mut frontend, &keyboard.lock().unwrap(), &mouse.lock().unwrap());
-            }
-            thread::sleep(state.get_tick_delay());
+            let delay = {
+                state.lock().unwrap().tick(&keyboard.lock().unwrap(), &mouse.lock().unwrap())
+            };
+            thread::sleep(delay);
         }
     });
-    let events_running = running.clone();
-    thread::spawn(move || {
-        let running = events_running;
-        events_loop.run_forever(|event| {
+    let mut running = true;
+    while running {
+        events_loop.poll_events(|event| {
             match event {
                 glutin::Event::WindowEvent{ event, .. } => match event {
                     glutin::WindowEvent::KeyboardInput { device_id: _, input: event } => {
@@ -77,19 +76,14 @@ pub fn run<T: State + Send + 'static>(title: &str, width: u32, height: u32) {
                         mouse.lock().unwrap().process_button(state, button);
                     },
                     glutin::WindowEvent::Closed => {
-                        *(running.lock().unwrap()) = false;
+                        running = false;
                     },
                     _ => ()
                 },
                 _ => ()
             }
-            glutin::ControlFlow::Continue
         });
-    });
-    loop {
-        bridge.lock().unwrap().process_drawable(&mut backend, &gl_window);
-        if !(*running.lock().unwrap()) {
-            break;
-        }
+        state.lock().unwrap().draw(&mut frontend);
+        thread::sleep(Duration::from_millis(1));
     }
 }

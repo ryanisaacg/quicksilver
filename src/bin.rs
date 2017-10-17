@@ -36,8 +36,7 @@ impl State for Screen {
         }
     }
 
-    fn tick(&mut self, draw: &mut Frontend, keys: &Keyboard, mouse: &Mouse) {
-        draw.clear(WHITE);
+    fn tick(&mut self, keys: &Keyboard, _: &Mouse) -> Duration {
         self.player.speed += Vector::y() * 0.5;
         self.player.speed.x = 0f32;
         if keys[Key::A].is_down() {
@@ -46,12 +45,14 @@ impl State for Screen {
             self.player.speed.x = 2f32;
         }
         self.player.step(&self.map);
-        draw.draw_rect(self.player.bounds, Transform::identity(), BLUE);
-        draw.present();
+        println!("{}", self.player.speed);
+        Duration::from_millis(10)
     }
 
-    fn get_tick_delay(&self) -> Duration {
-        Duration::from_millis(10)
+    fn draw(&mut self, draw: &mut Frontend) {
+        draw.clear(WHITE);
+        draw.draw_rect(self.player.bounds, Transform::identity(), BLUE);
+        draw.present();
     }
 }
 
