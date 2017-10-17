@@ -89,9 +89,12 @@ impl<T: Clone> Tilemap<T> {
             }
             x += self.tile_width;
         }
-        self.point_empty(area.top_left() + area.size().x_comp()) &&
-            self.point_empty(area.top_left() + area.size().y_comp()) &&
-            self.point_empty(area.top_left() + area.size())
+        let left_aligned = (area.x + area.width) % self.tile_width == 0f32;
+        let right_aligned = (area.y + area.height) % self.tile_height == 0f32;
+        println!("{}:{}", left_aligned, right_aligned);
+        (self.point_empty(area.top_left() + area.size().x_comp()) || left_aligned)
+            && (self.point_empty(area.top_left() + area.size().y_comp()) || left_aligned || right_aligned)
+            && (self.point_empty(area.top_left() + area.size()) || right_aligned)
     }
 
     pub fn move_until_contact(&self, bounds: Rectangle, speed: Vector) -> (Rectangle, Vector) {
@@ -107,7 +110,7 @@ impl<T: Clone> Tilemap<T> {
             //If the remainder cannot be moved
             if !self.region_empty(bounds.translate(attempt)) {
                 if attempt.x > 0f32 {
-                    bounds.x = ((bounds.x + bounds.width) / self.tile_width).ceil() * self.tile_width - bounds.width - 1f32;
+                    bounds.x = ((bounds.x + bounds.width) / self.tile_width).ceil() * self.tile_width - bounds.width;
                 } else {
                     bounds.x = (bounds.x / self.tile_width).floor() * self.tile_width;
                 }
@@ -121,7 +124,7 @@ impl<T: Clone> Tilemap<T> {
             //If the remainder cannot be moved
             if !self.region_empty(bounds.translate(attempt)) {
                 if attempt.y > 0f32 {
-                    bounds.y = ((bounds.y + bounds.height) / self.tile_height).ceil() * self.tile_height - bounds.height - 1f32;
+                    bounds.y = ((bounds.y + bounds.height) / self.tile_height).ceil() * self.tile_height - bounds.height;
                 } else {
                     bounds.y = (bounds.y / self.tile_height).floor() * self.tile_height;
                 }
