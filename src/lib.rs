@@ -78,6 +78,22 @@ pub fn run<T: State + Send + 'static>(title: &str, width: u32, height: u32) {
                     glutin::WindowEvent::Closed => {
                         running = false;
                     },
+                    glutin::WindowEvent::Resized(new_width, new_height) => {
+                        let target_ratio = width as f32 / height as f32;
+                        let window_ratio = new_width as f32 / new_height as f32;
+                        let (w, h) = if window_ratio > target_ratio {
+                            ((target_ratio * new_height as f32) as i32, new_height as i32)
+                        } else if window_ratio < target_ratio {
+                            (new_width as i32, (new_width as f32 / target_ratio) as i32)
+                        } else {
+                            (new_width as i32, new_height as i32)
+                        };
+                        let offset_x = (new_width as i32 - w) / 2;
+                        let offset_y = (new_height as i32 - h) / 2;
+                        unsafe {
+                            gl::Viewport(offset_x, offset_y, w, h);
+                        }
+                    },
                     _ => ()
                 },
                 _ => ()
