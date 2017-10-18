@@ -89,11 +89,11 @@ impl<T: Clone> Tilemap<T> {
             }
             x += self.tile_width;
         }
-        let left_aligned = (area.x + area.width) % self.tile_width == 0f32;
-        let right_aligned = (area.y + area.height) % self.tile_height == 0f32;
-        (self.point_empty(area.top_left() + area.size().x_comp()) || left_aligned)
-            && (self.point_empty(area.top_left() + area.size().y_comp()) || left_aligned || right_aligned)
-            && (self.point_empty(area.top_left() + area.size()) || right_aligned)
+        let x_aligned = (area.x + area.width) % self.tile_width == 0f32;
+        let y_aligned = (area.y + area.height) % self.tile_height == 0f32;
+        (self.point_empty(area.top_left() + area.size().x_comp()) || x_aligned)
+            && (self.point_empty(area.top_left() + area.size().y_comp()) || y_aligned)
+            && (self.point_empty(area.top_left() + area.size()) || x_aligned || y_aligned)
     }
 
     pub fn move_until_contact(&self, bounds: Rectangle, speed: Vector) -> (Rectangle, Vector) {
@@ -164,7 +164,7 @@ mod tests {
             (Rectangle::newi(80, 10, 16, 16), Vector::newi(1, -20),
                 Vector::newi(81, 0), Vector::newi(1, 0)),
             (Rectangle::newi(600, 10, 30, 10), Vector::newi(15, 10),
-                Vector::newi(609, 20), Vector::newi(0, 10)),
+                Vector::newi(610, 20), Vector::newi(0, 10)),
             (Rectangle::newi(10, 5, 5, 5), Vector::newi(2, 2),
                 Vector::newi(12, 7), Vector::newi(2, 2)),
             (Rectangle::newi(5, 5, 10, 10), Vector::x() * -7.2,
