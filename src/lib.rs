@@ -56,7 +56,12 @@ pub fn run<T: State + Send + 'static>(title: &str, width: u32, height: u32) {
         let state = update_state;
         loop {
             let delay = {
-                state.lock().unwrap().tick(&keyboard.lock().unwrap(), &mouse.lock().unwrap())
+                let mut keyboard = keyboard.lock().unwrap();
+                let mut mouse = mouse.lock().unwrap();
+                let delay = state.lock().unwrap().tick(&keyboard, &mouse);
+                keyboard.clear_temporary_states();
+                mouse.clear_temporary_states();
+                delay
             };
             thread::sleep(delay);
         }

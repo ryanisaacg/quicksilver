@@ -15,4 +15,8 @@ impl ButtonState {
             ButtonState::NotPressed => false,
         }
     }
+
+    pub fn clear_temporary(&self) -> ButtonState {
+        if self.is_down() { ButtonState::Held } else { ButtonState::NotPressed }
+    }
 }
