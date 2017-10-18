@@ -3,7 +3,7 @@ extern crate glutin;
 use geom::{Circle, Rectangle, Transform, Vector};
 use graphics::{Backend, Camera, Color, TextureRegion, Vertex};
 
-pub struct Frontend<'a> {
+pub struct Graphics<'a> {
     backend: &'a mut Backend,
     window: &'a glutin::GlContext,
     cam: Camera,
@@ -12,9 +12,9 @@ pub struct Frontend<'a> {
 
 const CIRCLE_POINTS: usize = 32; //the number of points in the poly to simulate the circle
 
-impl<'a> Frontend<'a> {
-    pub fn new(backend: &'a mut Backend, window: &'a glutin::GlContext, cam: Camera) -> Frontend<'a> {
-        Frontend {
+impl<'a> Graphics<'a> {
+    pub fn new(backend: &'a mut Backend, window: &'a glutin::GlContext, cam: Camera) -> Graphics<'a> {
+        Graphics {
             backend: backend,
             window: window,
             cam: cam,

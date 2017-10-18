@@ -68,7 +68,7 @@ impl State for Screen {
         Duration::from_millis(10)
     }
 
-    fn draw(&mut self, draw: &mut Frontend) {
+    fn draw(&mut self, draw: &mut Graphics) {
         draw.clear(WHITE);
         draw.draw_rect(self.player.bounds, Transform::identity(), BLUE);
         draw.present();

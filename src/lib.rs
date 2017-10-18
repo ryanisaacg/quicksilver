@@ -10,13 +10,13 @@ mod manager;
 pub use manager::AssetManager;
 
 use input::{Keyboard, Mouse};
-use graphics::Frontend;
+use graphics::Graphics;
 use std::time::Duration;
 
 pub trait State {
     fn new(&mut AssetManager) -> Self;
     fn tick(&mut self, keyboard: &Keyboard, mouse: &Mouse) -> Duration;
-    fn draw(&mut self, frontend: &mut Frontend);
+    fn draw(&mut self, frontend: &mut Graphics);
 }
 
 pub fn run<T: State + Send + 'static>(title: &str, width: u32, height: u32) {
@@ -42,7 +42,7 @@ pub fn run<T: State + Send + 'static>(title: &str, width: u32, height: u32) {
 
     let mut backend = GLBackend::new();
     let rect = Rectangle::new_sized(width as f32, height as f32);
-    let mut frontend = Frontend::new(&mut backend, &gl_window, Camera::new(rect, rect));
+    let mut frontend = Graphics::new(&mut backend, &gl_window, Camera::new(rect, rect));
     let mut assets = AssetManager::new();
     let state = Arc::new(Mutex::new(T::new(&mut assets)));
     let keyboard = Arc::new(Mutex::new(Keyboard::new()));

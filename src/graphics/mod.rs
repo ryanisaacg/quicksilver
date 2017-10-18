@@ -9,6 +9,6 @@ pub use self::animation::*;
 pub use self::backend::*;
 pub use self::camera::Camera;
 pub use self::color::*;
-pub use self::frontend::Frontend;
+pub use self::frontend::Graphics;
 pub use self::vertex::Vertex;
 pub use self::texture::*;
