@@ -37,6 +37,11 @@ impl Rectangle {
         Vector::new(self.width, self.height)
     }
 
+    ///Get the centerpoint on the rectangle
+    pub fn center(self) -> Vector {
+        self.top_left() + self.size() / 2
+    }
+
     ///Checks if a point falls within the rectangle
     pub fn contains(self, v: Vector) -> bool {
         v.x >= self.x && v.y >= self.y && v.x < self.x + self.width && v.y < self.y + self.height
