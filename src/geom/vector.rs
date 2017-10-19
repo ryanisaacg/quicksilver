@@ -90,6 +90,11 @@ impl Vector {
     pub fn times(self, other: Vector) -> Vector {
        Vector::new(self.x * other.x, self.y * other.y)
     }
+
+    ///Get the angle a vector forms with the positive x-axis, counter clockwise
+    pub fn angle(self) -> f32 {
+        self.y.atan2(self.x).to_degrees()
+    }
 }
 
 impl Neg for Vector {
@@ -260,5 +265,15 @@ mod tests {
         let vec = Vector::newi(3, -2);
         let two = Vector::one() * 2;
         assert_eq!(vec.times(two), vec * 2);
+    }
+
+    #[test]
+    fn angle() {
+        let a = Vector::x();
+        let b = Vector::y();
+        let c = a + b;
+        assert_eq!(a.angle(), 0.0);
+        assert_eq!(b.angle(), 90.0);
+        assert_eq!(c.angle(), 45.0);
     }
 }
