@@ -30,11 +30,7 @@ impl Keyboard {
 
     pub fn clear_temporary_states(&mut self) {
         for index in 0..self.keys.len() {
-            self.keys[index] = match self.keys[index] {
-                ButtonState::Pressed => ButtonState::Held,
-                ButtonState::Released => ButtonState::NotPressed,
-                _ => self.keys[index]
-            };
+            self.keys[index] = self.keys[index].clear_temporary();
         }
     }
 }

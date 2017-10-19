@@ -38,4 +38,10 @@ impl Mouse {
             _ => ()
         }
     }
+
+    pub fn clear_temporary_states(&mut self) {
+        self.left = self.left.clear_temporary();
+        self.right = self.right.clear_temporary();
+        self.middle = self.middle.clear_temporary();
+    }
 }
