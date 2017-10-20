@@ -103,9 +103,18 @@ impl<T: Clone> Tilemap<T> {
             let mut bounds = bounds;
             let mut attempt = speed.x_comp();
             //Move tile-wise along the x component
-            while attempt.x > self.tile_width && self.region_empty(bounds.translate(attempt)) {
-                attempt.x -= self.tile_width;
+            let mut success = Vector::zero();
+            while attempt.x.abs() > self.tile_width {
+                let chunk = Vector::x() * attempt.x.signum() * self.tile_width;
+                if !self.region_empty(bounds.translate(success + chunk)) {
+                    attempt.x %= self.tile_width;
+                    success = Vector::zero();
+                } else {
+                    attempt -= chunk;
+                    success += chunk;
+                }
             }
+            attempt += success;
             //If the remainder cannot be moved
             if !self.region_empty(bounds.translate(attempt)) {
                 if attempt.x > 0f32 {
@@ -117,9 +126,18 @@ impl<T: Clone> Tilemap<T> {
             }
             attempt += speed.y_comp();
             //Move tile-wise along the y component
-            while attempt.y > self.tile_height && self.region_empty(bounds.translate(attempt)) {
-                attempt.y -= self.tile_height;
+            success = Vector::zero();
+            while attempt.y.abs() > self.tile_height {
+                let chunk = Vector::y() * attempt.y.signum() * self.tile_height;
+                if !self.region_empty(bounds.translate(success + chunk)) {
+                    attempt.y %= self.tile_height;
+                    success = Vector::zero();
+                } else {
+                    attempt -= chunk;
+                    success += chunk;
+                }
             }
+            attempt += success;
             //If the remainder cannot be moved
             if !self.region_empty(bounds.translate(attempt)) {
                 if attempt.y > 0f32 {
@@ -129,6 +147,7 @@ impl<T: Clone> Tilemap<T> {
                 }
                 attempt.y = 0f32;
             }
+            println!("{}:{}", bounds.top_left(), attempt);
             (bounds.translate(attempt), attempt)
         }
     }
@@ -170,7 +189,11 @@ mod tests {
             (Rectangle::newi(5, 5, 10, 10), Vector::x() * -7.2,
                 Vector::newi(0, 5), Vector::zero()),
             (Rectangle::newi(0, 0, 30, 30), Vector::x() * 2,
-                Vector::newi(2, 0), Vector::x() * 2)];
+                Vector::newi(2, 0), Vector::x() * 2),
+            (Rectangle::newi(0, 0, 30, 30), Vector::x() * 100,
+                Vector::x() * 100, Vector::x() * 100),
+            (Rectangle::newi(0, 0, 30, 30), Vector::y() * 100,
+                Vector::y() * 100, Vector::y() * 100)];
         for case in test_cases.iter() {
             let (region, speed, expected_tl, expected_speed) = *case;
             let (region_new, speed_new) = map.move_until_contact(region, speed);
