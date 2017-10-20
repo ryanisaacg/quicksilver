@@ -21,9 +21,9 @@ impl Mouse {
         }
     }
 
-    pub fn set_position(&mut self, pos: (f64, f64)) {
+    pub fn set_position(&mut self, pos: (f64, f64), scale: f32) {
         let (x, y) = pos;
-        self.pos = Vector::new(x as f32, y as f32);
+        self.pos = Vector::new(x as f32 / scale, y as f32 / scale);
     }
 
     pub fn process_button(&mut self, state: glutin::ElementState, button: glutin::MouseButton) {

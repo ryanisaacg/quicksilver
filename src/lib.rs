@@ -75,7 +75,7 @@ pub fn run<T: State + Send + 'static>(title: &str, width: u32, height: u32) {
                         keyboard.lock().unwrap().process_event(&event);
                     },
                     glutin::WindowEvent::MouseMoved { position, .. } => {
-                        mouse.lock().unwrap().set_position(position);
+                        mouse.lock().unwrap().set_position(position, gl_window.hidpi_factor());
                     },
                     glutin::WindowEvent::MouseInput { state, button, .. } => {
                         mouse.lock().unwrap().process_button(state, button);
