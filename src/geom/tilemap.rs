@@ -125,7 +125,7 @@ impl<T: Clone> Tilemap<T> {
                 } else {
                     bounds.x = (bounds.x / self.tile_width).floor() * self.tile_width;
                 }
-                speed.x -= speed.x % self.tile_width;
+                speed.x = 0f32;
             }
             i = 1;
             // Find the largest number of tiles that can be moved
@@ -143,11 +143,12 @@ impl<T: Clone> Tilemap<T> {
             //If the remainder cannot be moved
             if incomplete || !self.region_empty(bounds.translate(speed)) {
                 if speed.y > 0f32 {
+                    let piece = ((bounds.y + bounds.height) / self.tile_height).ceil();
                     bounds.y = ((bounds.y + bounds.height) / self.tile_height).ceil() * self.tile_height - bounds.height;
                 } else {
                     bounds.y = (bounds.y / self.tile_height).floor() * self.tile_height;
                 }
-                speed.y -= speed.y % self.tile_height;
+                speed.y = 0f32;
             }
             (bounds.translate(speed), speed)
         }
@@ -199,6 +200,15 @@ mod tests {
                 Vector::x() * 50, Vector::x() * -100),
             (Rectangle::newi(0, 150, 30, 30), Vector::y() * -200,
                 Vector::zero(), Vector::zero())];
+        for case in test_cases.iter() {
+            let (region, speed, expected_tl, expected_speed) = *case;
+            let (region_new, speed_new) = map.move_until_contact(region, speed);
+            assert_eq!(region_new.top_left(), expected_tl);
+            assert_eq!(speed_new, expected_speed);
+        }
+        let map: Tilemap<i32> = Tilemap::new(1600f32, 900f32, 20f32, 20f32);
+        let test_cases = [(Rectangle::newi(0, 850, 32, 32), Vector::newi(0, 20),
+            Vector::newi(0, 868), Vector::zero())];
         for case in test_cases.iter() {
             let (region, speed, expected_tl, expected_speed) = *case;
             let (region_new, speed_new) = map.move_until_contact(region, speed);
