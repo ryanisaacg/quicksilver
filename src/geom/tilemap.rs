@@ -37,6 +37,22 @@ impl<T: Clone> Tilemap<T> {
         }
     }
 
+    pub fn width(&self) -> f32 {
+        self.width
+    }
+
+    pub fn height(&self) -> f32 {
+        self.height
+    }
+    
+    pub fn tile_width(&self) -> f32 {
+        self.tile_width
+    }
+    
+    pub fn tile_height(&self) -> f32 {
+        self.tile_height
+    }
+    
     pub fn valid(&self, index: Vector) -> bool {
         index.x >= 0f32 && index.y >= 0f32 && index.x < self.width && index.y < self.height
     }
@@ -143,7 +159,6 @@ impl<T: Clone> Tilemap<T> {
             //If the remainder cannot be moved
             if incomplete || !self.region_empty(bounds.translate(speed)) {
                 if speed.y > 0f32 {
-                    let piece = ((bounds.y + bounds.height) / self.tile_height).ceil();
                     bounds.y = ((bounds.y + bounds.height) / self.tile_height).ceil() * self.tile_height - bounds.height;
                 } else {
                     bounds.y = (bounds.y / self.tile_height).floor() * self.tile_height;
