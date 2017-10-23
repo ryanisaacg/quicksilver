@@ -100,55 +100,56 @@ impl<T: Clone> Tilemap<T> {
         if !self.region_empty(bounds) {
             (bounds, Vector::zero())
         } else {
+            //  If it is less than the total speed, mod the total speed by the tile size
+            // Find how far can be moved beyond the last tile
+            //  If it less than the remainder of the speed, set the total speed to zero
+            let mut speed = speed;
             let mut bounds = bounds;
-            let mut attempt = speed.x_comp();
-            //Move tile-wise along the x component
-            let mut success = Vector::zero();
-            while attempt.x.abs() > self.tile_width {
-                let chunk = Vector::x() * attempt.x.signum() * self.tile_width;
-                if !self.region_empty(bounds.translate(success + chunk)) {
-                    attempt.x %= self.tile_width;
-                    success = Vector::zero();
-                } else {
-                    attempt -= chunk;
-                    success += chunk;
-                }
+            let mut i = 1;
+            // Find the largest number of tiles that can be moved
+            let chunk = Vector::x() * speed.x.signum() * self.tile_width;
+            while (chunk * (i + 1)).x.abs() < speed.x.abs() && self.region_empty(bounds.translate(chunk * (i + 1))) {
+                i += 1;
             }
-            attempt += success;
+            let incomplete = if (chunk * (i + 1)).x.abs() <= speed.x.abs() {
+                bounds = bounds.translate(chunk * i);
+                speed.x %= self.tile_width;
+                true
+            } else {
+                false
+            };
             //If the remainder cannot be moved
-            if !self.region_empty(bounds.translate(attempt)) {
-                if attempt.x > 0f32 {
+            if incomplete || !self.region_empty(bounds.translate(speed.x_comp())) {
+                if speed.x > 0f32 {
                     bounds.x = ((bounds.x + bounds.width) / self.tile_width).ceil() * self.tile_width - bounds.width;
                 } else {
                     bounds.x = (bounds.x / self.tile_width).floor() * self.tile_width;
                 }
-                attempt.x = 0f32;
+                speed.x -= speed.x % self.tile_width;
             }
-            attempt += speed.y_comp();
-            //Move tile-wise along the y component
-            success = Vector::zero();
-            while attempt.y.abs() > self.tile_height {
-                let chunk = Vector::y() * attempt.y.signum() * self.tile_height;
-                if !self.region_empty(bounds.translate(success + chunk)) {
-                    attempt.y %= self.tile_height;
-                    success = Vector::zero();
-                } else {
-                    attempt -= chunk;
-                    success += chunk;
-                }
+            i = 1;
+            // Find the largest number of tiles that can be moved
+            let chunk = Vector::y() * speed.y.signum() * self.tile_height;
+            while (chunk * (i + 1)).y.abs() < speed.y.abs() && self.region_empty(bounds.translate(chunk * (i + 1))) {
+                i += 1;
             }
-            attempt += success;
+            let incomplete = if (chunk * (i + 1)).y.abs() <= speed.y.abs() {
+                bounds = bounds.translate(chunk * i);
+                speed.y %= self.tile_height;
+                true
+            } else {
+                false
+            };
             //If the remainder cannot be moved
-            if !self.region_empty(bounds.translate(attempt)) {
-                if attempt.y > 0f32 {
+            if incomplete || !self.region_empty(bounds.translate(speed)) {
+                if speed.y > 0f32 {
                     bounds.y = ((bounds.y + bounds.height) / self.tile_height).ceil() * self.tile_height - bounds.height;
                 } else {
                     bounds.y = (bounds.y / self.tile_height).floor() * self.tile_height;
                 }
-                attempt.y = 0f32;
+                speed.y -= speed.y % self.tile_height;
             }
-            println!("{}:{}", bounds.top_left(), attempt);
-            (bounds.translate(attempt), attempt)
+            (bounds.translate(speed), speed)
         }
     }
 }
@@ -193,7 +194,11 @@ mod tests {
             (Rectangle::newi(0, 0, 30, 30), Vector::x() * 100,
                 Vector::x() * 100, Vector::x() * 100),
             (Rectangle::newi(0, 0, 30, 30), Vector::y() * 100,
-                Vector::y() * 100, Vector::y() * 100)];
+                Vector::y() * 100, Vector::y() * 100),
+            (Rectangle::newi(150, 0, 30, 30), Vector::x() * -100,
+                Vector::x() * 50, Vector::x() * -100),
+            (Rectangle::newi(0, 150, 30, 30), Vector::y() * -200,
+                Vector::zero(), Vector::zero())];
         for case in test_cases.iter() {
             let (region, speed, expected_tl, expected_speed) = *case;
             let (region_new, speed_new) = map.move_until_contact(region, speed);
