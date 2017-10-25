@@ -9,7 +9,7 @@ use std::os::raw::c_void;
 use std::ptr::null;
 use std::str::from_utf8;
 
-pub trait Backend {
+pub trait Backend: Send {
      fn clear(&mut self, color: Color);
      fn flush(&mut self);
      fn flip(&mut self);
