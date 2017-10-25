@@ -3,19 +3,19 @@ extern crate glutin;
 use geom::{Circle, Rectangle, Transform, Vector};
 use graphics::{Backend, Camera, Color, TextureRegion, Vertex};
 
-pub struct Graphics<'a> {
-    backend: &'a mut Backend,
+pub struct Graphics {
+    backend: Box<Backend>,
     cam: Camera,
     ui_mode: bool
 }
 
 const CIRCLE_POINTS: usize = 32; //the number of points in the poly to simulate the circle
 
-impl<'a> Graphics<'a> {
-    pub fn new(backend: &'a mut Backend, cam: Camera) -> Graphics<'a> {
+impl Graphics {
+    pub fn new(backend: Box<Backend>, cam: Camera) -> Graphics {
         Graphics {
-            backend: backend,
-            cam: cam,
+            backend,
+            cam,
             ui_mode: false
         }
     }
