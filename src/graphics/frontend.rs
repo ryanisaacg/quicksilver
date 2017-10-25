@@ -1,7 +1,7 @@
 extern crate glutin;
 
 use geom::{Circle, Rectangle, Transform, Vector};
-use graphics::{BLACK, Backend, Camera, Color, TextureRegion, Vertex};
+use graphics::{Backend, Camera, Color, Colors, TextureRegion, Vertex};
 
 pub struct Graphics {
     backend: Box<Backend>,
@@ -18,7 +18,7 @@ impl Graphics {
             backend,
             cam,
             ui_mode: false,
-            clear_color: BLACK
+            clear_color: Colors::BLACK
         }
     }
 
