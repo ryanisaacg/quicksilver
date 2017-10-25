@@ -42,7 +42,7 @@ pub fn run<T: State + Send + 'static>(title: &str, width: u32, height: u32) {
 
     let mut backend = GLBackend::new();
     let rect = Rectangle::new_sized(width as f32, height as f32);
-    let mut frontend = Graphics::new(&mut backend, &gl_window, Camera::new(rect, rect));
+    let mut frontend = Graphics::new(&mut backend, Camera::new(rect, rect));
     let mut assets = AssetManager::new();
     let state = Arc::new(Mutex::new(T::new(&mut assets)));
     let keyboard = Arc::new(Mutex::new(Keyboard::new()));
@@ -105,6 +105,7 @@ pub fn run<T: State + Send + 'static>(title: &str, width: u32, height: u32) {
             }
         });
         state.lock().unwrap().draw(&mut frontend);
+        frontend.present(&gl_window);
         thread::sleep(Duration::from_millis(1));
     }
 }

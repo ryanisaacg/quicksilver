@@ -5,7 +5,6 @@ use graphics::{Backend, Camera, Color, TextureRegion, Vertex};
 
 pub struct Graphics<'a> {
     backend: &'a mut Backend,
-    window: &'a glutin::GlContext,
     cam: Camera,
     ui_mode: bool
 }
@@ -13,10 +12,9 @@ pub struct Graphics<'a> {
 const CIRCLE_POINTS: usize = 32; //the number of points in the poly to simulate the circle
 
 impl<'a> Graphics<'a> {
-    pub fn new(backend: &'a mut Backend, window: &'a glutin::GlContext, cam: Camera) -> Graphics<'a> {
+    pub fn new(backend: &'a mut Backend, cam: Camera) -> Graphics<'a> {
         Graphics {
             backend: backend,
-            window: window,
             cam: cam,
             ui_mode: false
         }
@@ -42,9 +40,9 @@ impl<'a> Graphics<'a> {
         self.backend.clear(color);
     }
 
-    pub fn present(&mut self) {
+    pub fn present(&mut self, ctx: &glutin::GlContext) {
         self.backend.flip();
-        self.window.swap_buffers().unwrap();
+        ctx.swap_buffers().unwrap();
     }
 
     pub fn draw_image(&mut self, image: TextureRegion, area: Rectangle, trans: Transform, col: Color) {
@@ -114,4 +112,3 @@ impl<'a> Graphics<'a> {
         }
     }
 }
-
