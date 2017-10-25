@@ -69,7 +69,7 @@ impl State for Screen {
     }
 
     fn draw(&mut self, draw: &mut Graphics) {
-        draw.clear(WHITE);
+        draw.set_clear_color(WHITE);
         draw.draw_rect(self.player.bounds, Transform::identity(), BLUE);
         draw.draw_rect(self.player.bounds, Transform::translate(self.player.bounds.center()) * Transform::rotate(45.0) * Transform::translate(-self.player.bounds.center()), BLUE);
     }

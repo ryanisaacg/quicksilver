@@ -1,12 +1,13 @@
 extern crate glutin;
 
 use geom::{Circle, Rectangle, Transform, Vector};
-use graphics::{Backend, Camera, Color, TextureRegion, Vertex};
+use graphics::{BLACK, Backend, Camera, Color, TextureRegion, Vertex};
 
 pub struct Graphics {
     backend: Box<Backend>,
     cam: Camera,
-    ui_mode: bool
+    ui_mode: bool,
+    clear_color: Color
 }
 
 const CIRCLE_POINTS: usize = 32; //the number of points in the poly to simulate the circle
@@ -16,7 +17,8 @@ impl Graphics {
         Graphics {
             backend,
             cam,
-            ui_mode: false
+            ui_mode: false,
+            clear_color: BLACK
         }
     }
 
@@ -36,11 +38,16 @@ impl Graphics {
         self.cam.opengl
     }
 
-    pub fn clear(&mut self, color: Color) {
-        self.backend.clear(color);
+    pub fn clear_color(&self) -> Color {
+        self.clear_color
+    }
+
+    pub fn set_clear_color(&mut self, col: Color) {
+        self.clear_color = col;
     }
 
     pub fn present(&mut self, ctx: &glutin::GlContext) {
+        self.backend.clear(self.clear_color);
         self.backend.flip();
         ctx.swap_buffers().unwrap();
     }
