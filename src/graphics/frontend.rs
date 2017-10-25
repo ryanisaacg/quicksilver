@@ -47,8 +47,7 @@ impl Graphics {
     }
 
     pub fn present(&mut self, ctx: &glutin::GlContext) {
-        self.backend.clear(self.clear_color);
-        self.backend.flip();
+        self.backend.display(self.clear_color);
         ctx.swap_buffers().unwrap();
     }
 

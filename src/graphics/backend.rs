@@ -10,9 +10,7 @@ use std::ptr::null;
 use std::str::from_utf8;
 
 pub trait Backend: Send {
-    fn clear(&mut self, color: Color);
-    fn flush(&mut self);
-    fn flip(&mut self);
+    fn display(&mut self, clear_color: Color);
     fn add(&mut self, texture: GLuint, vertices: &[Vertex], indices: &[GLuint]);
     fn add_vertex(&mut self, vertex: &Vertex);
     fn add_index(&mut self, index: GLuint);
@@ -177,32 +175,7 @@ impl GLBackend {
         }
         self.texture = texture;
     }
-}
-
-impl Drop for GLBackend {
-    fn drop(&mut self) {
-        unsafe {
-            gl::DeleteProgram(self.shader);
-            gl::DeleteShader(self.fragment);
-            gl::DeleteShader(self.vertex);
-            gl::DeleteBuffers(1, &self.vbo as *const GLuint);
-            gl::DeleteBuffers(1, &self.ebo as *const GLuint);
-            gl::DeleteVertexArrays(1, &self.vao as *const GLuint);
-        }
-    }
-}
-
-impl Backend for GLBackend {
-
-    fn clear(&mut self, col: Color) {
-        unsafe {
-            gl::ClearColor(col.r, col.g, col.b, col.a);
-            gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
-        }
-        self.vertices.clear();
-        self.indices.clear();
-    }
-
+    
     fn flush(&mut self) {
         unsafe {
             //Check to see if the GL buffers can hold the data
@@ -230,8 +203,27 @@ impl Backend for GLBackend {
         self.indices.clear();
         self.texture = 0;
     }
+}
 
-    fn flip(&mut self) {
+impl Drop for GLBackend {
+    fn drop(&mut self) {
+        unsafe {
+            gl::DeleteProgram(self.shader);
+            gl::DeleteShader(self.fragment);
+            gl::DeleteShader(self.vertex);
+            gl::DeleteBuffers(1, &self.vbo as *const GLuint);
+            gl::DeleteBuffers(1, &self.ebo as *const GLuint);
+            gl::DeleteVertexArrays(1, &self.vao as *const GLuint);
+        }
+    }
+}
+
+impl Backend for GLBackend {
+    fn display(&mut self, col: Color) {
+        unsafe {
+            gl::ClearColor(col.r, col.g, col.b, col.a);
+            gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
+        }
         self.flush();
     }
 
