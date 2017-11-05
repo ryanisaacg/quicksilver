@@ -19,6 +19,10 @@ impl Rectangle {
         }
     }
 
+    pub fn newv(pos: Vector, size: Vector) -> Rectangle {
+        Rectangle::new(pos.x, pos.y, size.x, size.y)
+    }
+
     pub fn newi(x: i32, y: i32, width: i32, height: i32) -> Rectangle {
         Rectangle::new(x as f32, y as f32, width as f32, height as f32)
     }
@@ -30,6 +34,10 @@ impl Rectangle {
 
     pub fn newi_sized(width: i32, height: i32) -> Rectangle {
         Rectangle::newi(0, 0, width, height)
+    }
+
+    pub fn newv_sized(size: Vector) -> Rectangle {
+        Rectangle::newv(Vector::zero(), size)
     }
 
     ///Get the top left coordinate of the Rectangle
@@ -157,7 +165,7 @@ mod tests {
         let line2 = Line::new(Vector::newi(0, 32), Vector::newi(32, 0));
         let line3 = Line::new(Vector::newi(32, 32), Vector::newi(64, 64));
         let line4 = Line::new(Vector::newi(100, 100), Vector::newi(1000, 1000));
-        let rect = Rectangle::newi_sized(32, 32);
+        let rect = Rectangle::newv_sized(Vector::newi(32, 32));
         assert!(rect.intersects(line1));
         assert!(rect.intersects(line2));
         assert!(rect.intersects(line3));

@@ -1,4 +1,4 @@
-use geom::{Rectangle, Vector};
+use super::{Rectangle, Vector};
 
 #[derive(Clone)]
 pub struct Tile<T: Clone> {
@@ -40,8 +40,8 @@ impl<T: Clone> Tilemap<T> {
             ],
             width: map_width,
             height: map_height,
-            tile_width: tile_width,
-            tile_height: tile_height,
+            tile_width,
+            tile_height,
         }
     }
 
@@ -53,12 +53,24 @@ impl<T: Clone> Tilemap<T> {
         self.height
     }
 
+    pub fn size(&self) -> Vector {
+        Vector::new(self.width, self.height)
+    }
+
+    pub fn region(&self) -> Rectangle {
+        Rectangle::new_sized(self.width, self.height)
+    }
+
     pub fn tile_width(&self) -> f32 {
         self.tile_width
     }
 
     pub fn tile_height(&self) -> f32 {
         self.tile_height
+    }
+
+    pub fn tile_size(&self) -> Vector {
+        Vector::new(self.tile_width, self.tile_height)
     }
 
     pub fn valid(&self, index: Vector) -> bool {

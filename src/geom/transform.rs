@@ -50,53 +50,26 @@ impl Transform {
             ],
         }
     }
-
-    fn submatrix(&self, x: usize, y: usize) -> [f32; 4] {
-        let mut matrix = [0f32, 0f32, 0f32, 0f32];
-        let mut index = 0;
-        for i in 0..3 {
-            for j in 0..3 {
-                if i != x && j != y {
-                    matrix[index] = self.index(i, j);
-                    index += 1;
-                }
-            }
-        }
-        matrix
-    }
-
-    fn sub_determinant(&self, x: usize, y: usize) -> f32 {
-        let sub = self.submatrix(x, y);
-        sub[0] * sub[3] - sub[1] * sub[2]
-    }
-
-    fn determinant(&self) -> f32 {
-        let mut sum = 0f32;
-        for i in 0..3 {
-            sum += self.index(i, 0) * self.sub_determinant(i, 0);
-        }
-        sum
-    }
-
+    
     pub fn inverse(&self) -> Transform {
-        let mut other = *self;
-        //Find the matrix of minors
-        for i in 0..3 {
-            for j in 0..3 {
-                *other.index_mut(i, j) = self.sub_determinant(i, j);
-            }
-        }
-        //Find the matrix of cofactors
-        for i in 0..3 {
-            for j in 0..3 {
-                if i != j && !(i == 0 && j == 2) && !(i == 2 && j == 0) {
-                    *other.index_mut(i, j) = -other.index(i, j);
-                }
-            }
-        }
-        //Find the adjutant
-        other = other.transpose();
-        other * (1f32 / self.determinant())
+        let det = 
+            self.index(0, 0) * (self.index(1, 1) * self.index(2, 2) - self.index(2, 1) * self.index(1, 2))
+            - self.index(0, 1) * (self.index(1, 0) * self.index(2, 2) - self.index(1, 2) * self.index(2, 0))
+            + self.index(0, 2) * (self.index(1, 0) * self.index(2, 1) - self.index(1, 1) * self.index(2, 0));
+
+        let inv_det = det.recip();
+
+        let mut inverse = Transform::identity();
+        *inverse.index_mut(0, 0) = self.index(1, 1) * self.index(2, 2) - self.index(2, 1) * self.index(1, 2);
+        *inverse.index_mut(0, 1) = self.index(0, 2) * self.index(2, 1) - self.index(0, 1) * self.index(2, 2);
+        *inverse.index_mut(0, 2) = self.index(0, 1) * self.index(1, 2) - self.index(0, 2) * self.index(1, 1);
+        *inverse.index_mut(1, 0) = self.index(1, 2) * self.index(2, 0) - self.index(1, 0) * self.index(2, 2);
+        *inverse.index_mut(1, 1) = self.index(0, 0) * self.index(2, 2) - self.index(0, 2) * self.index(2, 0);
+        *inverse.index_mut(1, 2) = self.index(1, 0) * self.index(0, 2) - self.index(0, 0) * self.index(1, 2);
+        *inverse.index_mut(2, 0) = self.index(1, 0) * self.index(2, 1) - self.index(2, 0) * self.index(1, 1);
+        *inverse.index_mut(2, 1) = self.index(2, 0) * self.index(0, 1) - self.index(0, 0) * self.index(2, 1);
+        *inverse.index_mut(2, 2) = self.index(0, 0) * self.index(1, 1) - self.index(1, 0) * self.index(0, 1);
+        inverse * inv_det
     }
 
     pub fn get_array(&self) -> &[f32] {
@@ -205,4 +178,15 @@ mod tests {
         let vec = Vector::newi(15, 12);
         assert_eq!(vec, trans * vec);
     }
+
+    #[test]
+    fn complex_inverse() {
+        let a = Transform::rotate(5f32) * Transform::scale(Vector::new(0.2, 1.23)) *
+            Transform::translate(Vector::one() * 100f32);
+        let a_inv = a.inverse();
+        let vec = Vector::new(120f32, 151f32);
+        assert_eq!(vec, a * a_inv * vec);
+        assert_eq!(vec, a_inv * a * vec);
+    }
+
 }

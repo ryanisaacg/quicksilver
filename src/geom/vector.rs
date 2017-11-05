@@ -2,7 +2,7 @@ use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssi
 use std::cmp::{Eq, PartialEq};
 use std::fmt;
 
-pub const FLOAT_LIMIT: f32 = 0.000001f32;
+pub const FLOAT_LIMIT: f32 = 0.0001f32;
 
 #[derive(Debug, Copy, Clone)]
 ///A 2D vector with an arbitrary numeric type
