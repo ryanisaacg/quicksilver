@@ -17,7 +17,7 @@ use std::time::Duration;
 
 pub trait State {
     fn new(&mut AssetManager) -> Self;
-    fn tick(&mut self, keyboard: &Keyboard, mouse: &Mouse) -> Duration;
+    fn tick(&mut self, keyboard: &Keyboard, mouse: &Mouse, builder: &ViewportBuilder) -> Duration;
     fn draw(&mut self, frontend: &mut Graphics);
 }
 
@@ -41,25 +41,30 @@ pub fn run<T: State + Send + 'static>(title: &str, width: u32, height: u32) {
         gl::load_with(|symbol| gl_window.get_proc_address(symbol) as *const _);
     }
 
-    let rect = Rectangle::new_sized(width as f32, height as f32);
-    let mut frontend = Graphics::new(Box::new(GLBackend::new()), Camera::new(rect, rect));
+    let screen_size = Vector::new(width as f32, height as f32);
+    let camera = Camera::new(Rectangle::newv_sized(screen_size));
+    let mut frontend = Graphics::new(Box::new(GLBackend::new()), camera);
     let mut assets = AssetManager::new();
     let state = Arc::new(Mutex::new(T::new(&mut assets)));
     let keyboard = Arc::new(Mutex::new(Keyboard::new()));
     let mouse = Arc::new(Mutex::new(Mouse::new()));
+    let screen_size = Arc::new(Mutex::new(screen_size));
     let update_keyboard = keyboard.clone();
     let update_mouse = mouse.clone();
     let update_state = state.clone();
+    let update_size = screen_size.clone();
     let mut offset = Vector::zero();
     thread::spawn(move || {
         let keyboard = update_keyboard;
         let mouse = update_mouse;
         let state = update_state;
+        let screen_size = update_size;
         loop {
             let delay = {
                 let mut keyboard = keyboard.lock().unwrap();
                 let mut mouse = mouse.lock().unwrap();
-                let delay = state.lock().unwrap().tick(&keyboard, &mouse);
+                let builder = ViewportBuilder::new(*screen_size.lock().unwrap());
+                let delay = state.lock().unwrap().tick(&keyboard, &mouse, &builder);
                 keyboard.clear_temporary_states();
                 mouse.clear_temporary_states();
                 delay
@@ -103,6 +108,9 @@ pub fn run<T: State + Send + 'static>(title: &str, width: u32, height: u32) {
                         };
                         let offset_x = (new_width as i32 - w) / 2;
                         let offset_y = (new_height as i32 - h) / 2;
+                        {
+                            *screen_size.lock().unwrap() = Vector::new(w as f32, h as f32);
+                        }
                         offset = Vector::newi(offset_x, offset_y);
                         unsafe {
                             gl::Viewport(offset_x, offset_y, w, h);

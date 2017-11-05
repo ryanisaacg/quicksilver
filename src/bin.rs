@@ -39,7 +39,7 @@ impl State for Screen {
         }
     }
 
-    fn tick(&mut self, keys: &Keyboard, _: &Mouse) -> Duration {
+    fn tick(&mut self, keys: &Keyboard, _: &Mouse, _: &ViewportBuilder) -> Duration {
         self.player.speed += Vector::y() * 0.5;
         if self.player.speed.x.abs() < 0.3 {
             self.player.speed.x = 0.0;
