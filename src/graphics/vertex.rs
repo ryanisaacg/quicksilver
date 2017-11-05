@@ -6,5 +6,5 @@ pub struct Vertex {
     pub pos: Vector,
     pub tex_pos: Vector,
     pub col: Color,
-    pub use_texture: bool
+    pub use_texture: bool,
 }

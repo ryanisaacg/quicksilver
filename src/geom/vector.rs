@@ -8,7 +8,7 @@ pub const FLOAT_LIMIT: f32 = 0.000001f32;
 ///A 2D vector with an arbitrary numeric type
 pub struct Vector {
     pub x: f32,
-    pub y: f32
+    pub y: f32,
 }
 
 impl Vector {
@@ -29,11 +29,11 @@ impl Vector {
 
     ///A vector with x = 1f32, y = 1f32
     pub fn one() -> Vector {
-        Vector { x: 1f32, y : 1f32 }
+        Vector { x: 1f32, y: 1f32 }
     }
-   
+
     pub fn new(x: f32, y: f32) -> Vector {
-       Vector { x: x, y: y }
+        Vector { x: x, y: y }
     }
 
     pub fn newi(x: i32, y: i32) -> Vector {
@@ -42,53 +42,55 @@ impl Vector {
 
     ///Get the squared length of the vector (faster than getting the length)
     pub fn len2(self) -> f32 {
-       self.x * self.x + self.y * self.y
+        self.x * self.x + self.y * self.y
     }
 
     ///Get the length of the vector
     pub fn len(self) -> f32 {
-       self.len2().sqrt()
+        self.len2().sqrt()
     }
 
     ///Clamp a vector somewhere between a minimum and a maximum
     pub fn clamp(self, min_bound: Vector, max_bound: Vector) -> Vector {
-       Vector::new(max_bound.x.min(min_bound.x.max(self.x)),
-           max_bound.y.min(min_bound.y.max(self.y)))
+        Vector::new(
+            max_bound.x.min(min_bound.x.max(self.x)),
+            max_bound.y.min(min_bound.y.max(self.y)),
+        )
     }
 
     ///Get the cross product of a vector
     pub fn cross(self, other: Vector) -> f32 {
-       self.x * other.y - self.y * other.x
+        self.x * other.y - self.y * other.x
     }
 
     ///Get the dot product of a vector
     pub fn dot(self, other: Vector) -> f32 {
-       self.x * other.x + self.y * other.y
+        self.x * other.x + self.y * other.y
     }
 
     ///Normalize the vector's length from [0, 1]
     pub fn normalize(self) -> Vector {
-       self / self.len()
+        self / self.len()
     }
 
     ///Get only the X component of the Vector, represented as a vector
     pub fn x_comp(self) -> Vector {
-       Vector::new(self.x, 0f32)
+        Vector::new(self.x, 0f32)
     }
 
     ///Get only the Y component of the Vector, represented as a vector
     pub fn y_comp(self) -> Vector {
-       Vector::new(0f32, self.y)
+        Vector::new(0f32, self.y)
     }
 
     ///Get the vector equal to Vector(1 / x, 1 / y)
     pub fn recip(self) -> Vector {
-       Vector::new(self.x.recip(), self.y.recip())
+        Vector::new(self.x.recip(), self.y.recip())
     }
 
     ///Multiply the components in the matching places
     pub fn times(self, other: Vector) -> Vector {
-       Vector::new(self.x * other.x, self.y * other.y)
+        Vector::new(self.x * other.x, self.y * other.y)
     }
 
     ///Get the angle a vector forms with the positive x-axis, counter clockwise
@@ -225,8 +227,10 @@ mod tests {
     fn inverse() {
         let vec = Vector::newi(3, 5);
         let inverse = vec.recip();
-        assert!((inverse.x - vec.x.recip()).abs() < FLOAT_LIMIT &&
-                (inverse.y - vec.y.recip()).abs() < FLOAT_LIMIT);
+        assert!(
+            (inverse.x - vec.x.recip()).abs() < FLOAT_LIMIT &&
+                (inverse.y - vec.y.recip()).abs() < FLOAT_LIMIT
+        );
     }
 
     #[test]

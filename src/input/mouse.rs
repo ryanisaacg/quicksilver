@@ -8,7 +8,7 @@ pub struct Mouse {
     pub pos: Vector,
     pub left: ButtonState,
     pub right: ButtonState,
-    pub middle: ButtonState
+    pub middle: ButtonState,
 }
 
 impl Mouse {
@@ -17,7 +17,7 @@ impl Mouse {
             pos: Vector::newi(0, 0),
             left: ButtonState::NotPressed,
             right: ButtonState::NotPressed,
-            middle: ButtonState::NotPressed
+            middle: ButtonState::NotPressed,
         }
     }
 
@@ -29,13 +29,13 @@ impl Mouse {
     pub fn process_button(&mut self, state: glutin::ElementState, button: glutin::MouseButton) {
         let value = match state {
             glutin::ElementState::Pressed => ButtonState::Pressed,
-            glutin::ElementState::Released => ButtonState::Released
+            glutin::ElementState::Released => ButtonState::Released,
         };
         match button {
             glutin::MouseButton::Left => self.left = value,
             glutin::MouseButton::Right => self.right = value,
             glutin::MouseButton::Middle => self.middle = value,
-            _ => ()
+            _ => (),
         }
     }
 

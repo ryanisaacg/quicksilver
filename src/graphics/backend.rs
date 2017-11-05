@@ -89,35 +89,58 @@ impl GLBackend {
 
     pub fn set_shader(&mut self, vertex_shader: &str, fragment_shader: &str) {
         unsafe {
-            if self.shader !=0 { gl::DeleteProgram(self.shader); }
-            if self.vertex != 0 { gl::DeleteShader(self.vertex); }
-            if self.fragment != 0 { gl::DeleteShader(self.fragment); }
+            if self.shader != 0 {
+                gl::DeleteProgram(self.shader);
+            }
+            if self.vertex != 0 {
+                gl::DeleteShader(self.vertex);
+            }
+            if self.fragment != 0 {
+                gl::DeleteShader(self.fragment);
+            }
             self.vertex = gl::CreateShader(gl::VERTEX_SHADER);
             let vertex_text = CString::new(vertex_shader).unwrap().into_raw();
-            gl::ShaderSource(self.vertex, 1, 
-                             &(vertex_text as *const GLchar) as *const *const GLchar, null());
+            gl::ShaderSource(
+                self.vertex,
+                1,
+                &(vertex_text as *const GLchar) as *const *const GLchar,
+                null(),
+            );
             gl::CompileShader(self.vertex);
-            let mut status : GLint = 0;
+            let mut status: GLint = 0;
             gl::GetShaderiv(self.vertex, gl::COMPILE_STATUS, &mut status as *mut GLint);
             if status as u8 != gl::TRUE {
                 println!("Vertex shader compilation failed.");
                 let buffer: [u8; 512] = [0; 512];
                 let mut length = 0;
-                gl::GetShaderInfoLog(self.vertex, 512, &mut length as *mut GLsizei, 
-                                     buffer.as_ptr() as *mut GLchar);
+                gl::GetShaderInfoLog(
+                    self.vertex,
+                    512,
+                    &mut length as *mut GLsizei,
+                    buffer.as_ptr() as *mut GLchar,
+                );
                 println!("Error: {}", from_utf8(&buffer).unwrap());
             }
             self.fragment = gl::CreateShader(gl::FRAGMENT_SHADER);
             let fragment_text = CString::new(fragment_shader).unwrap().into_raw();
-            gl::ShaderSource(self.fragment, 1, 
-                             &(fragment_text as *const GLchar) as *const *const GLchar, null());
+            gl::ShaderSource(
+                self.fragment,
+                1,
+                &(fragment_text as *const GLchar) as *const *const GLchar,
+                null(),
+            );
             gl::CompileShader(self.fragment);
             gl::GetShaderiv(self.fragment, gl::COMPILE_STATUS, &mut status as *mut GLint);
             if status as u8 != gl::TRUE {
                 println!("Fragment shader compilation failed.");
                 let buffer: [u8; 512] = [0; 512];
                 let mut length = 0;
-                gl::GetShaderInfoLog(self.fragment, 512, &mut length as *mut GLsizei, buffer.as_ptr() as *mut GLchar);
+                gl::GetShaderInfoLog(
+                    self.fragment,
+                    512,
+                    &mut length as *mut GLsizei,
+                    buffer.as_ptr() as *mut GLchar,
+                );
                 println!("Error: {}", from_utf8(&buffer).unwrap());
             }
             self.shader = gl::CreateProgram();
@@ -140,26 +163,57 @@ impl GLBackend {
         let color_string = CString::new("color").unwrap().into_raw();
         let tex_string = CString::new("tex").unwrap().into_raw();
         let use_texture_string = CString::new("uses_texture").unwrap().into_raw();
-        gl::BufferData(gl::ARRAY_BUFFER, vbo_size * size_of::<GLfloat>() as isize, null(), gl::STREAM_DRAW);
+        gl::BufferData(
+            gl::ARRAY_BUFFER,
+            vbo_size * size_of::<GLfloat>() as isize,
+            null(),
+            gl::STREAM_DRAW,
+        );
         //Bind the index data
-        gl::BufferData(gl::ELEMENT_ARRAY_BUFFER, ebo_size * size_of::<GLuint>() as isize, null(), gl::STREAM_DRAW);
+        gl::BufferData(
+            gl::ELEMENT_ARRAY_BUFFER,
+            ebo_size * size_of::<GLuint>() as isize,
+            null(),
+            gl::STREAM_DRAW,
+        );
         let stride_distance = (VERTEX_SIZE * size_of::<GLfloat>()) as i32;
         //Set up the vertex attributes
-        let pos_attrib = gl::GetAttribLocation(self.shader, position_string as *const GLchar) as u32;
+        let pos_attrib = gl::GetAttribLocation(self.shader, position_string as *const GLchar) as
+            u32;
         gl::EnableVertexAttribArray(pos_attrib);
         gl::VertexAttribPointer(pos_attrib, 2, gl::FLOAT, gl::FALSE, stride_distance, null());
-        let tex_attrib = gl::GetAttribLocation(self.shader, tex_coord_string as *const GLchar) as u32;
+        let tex_attrib = gl::GetAttribLocation(self.shader, tex_coord_string as *const GLchar) as
+            u32;
         gl::EnableVertexAttribArray(tex_attrib);
-        gl::VertexAttribPointer(tex_attrib, 2, gl::FLOAT, gl::FALSE, stride_distance, 
-                                (2 * size_of::<GLfloat>()) as *const c_void);
+        gl::VertexAttribPointer(
+            tex_attrib,
+            2,
+            gl::FLOAT,
+            gl::FALSE,
+            stride_distance,
+            (2 * size_of::<GLfloat>()) as *const c_void,
+        );
         let col_attrib = gl::GetAttribLocation(self.shader, color_string as *const GLchar) as u32;
         gl::EnableVertexAttribArray(col_attrib);
-        gl::VertexAttribPointer(col_attrib, 4, gl::FLOAT, gl::FALSE, stride_distance, 
-                                (4 * size_of::<GLfloat>()) as *const c_void);
-        let use_texture_attrib = gl::GetAttribLocation(self.shader, use_texture_string as *const GLchar) as u32;
+        gl::VertexAttribPointer(
+            col_attrib,
+            4,
+            gl::FLOAT,
+            gl::FALSE,
+            stride_distance,
+            (4 * size_of::<GLfloat>()) as *const c_void,
+        );
+        let use_texture_attrib =
+            gl::GetAttribLocation(self.shader, use_texture_string as *const GLchar) as u32;
         gl::EnableVertexAttribArray(use_texture_attrib);
-        gl::VertexAttribPointer(use_texture_attrib, 1, gl::FLOAT, gl::FALSE, stride_distance, 
-                                (8 * size_of::<GLfloat>()) as *const c_void);
+        gl::VertexAttribPointer(
+            use_texture_attrib,
+            1,
+            gl::FLOAT,
+            gl::FALSE,
+            stride_distance,
+            (8 * size_of::<GLfloat>()) as *const c_void,
+        );
         self.texture_location = gl::GetUniformLocation(self.shader, tex_string as *const GLchar);
         //Make sure to deallocate the attribute strings
         CString::from_raw(position_string);
@@ -175,29 +229,53 @@ impl GLBackend {
         }
         self.texture = texture;
     }
-    
+
     fn flush(&mut self) {
         unsafe {
             //Check to see if the GL buffers can hold the data
             let mut vbo_size: GLint = 0;
-            gl::GetBufferParameteriv(gl::ARRAY_BUFFER, gl::BUFFER_SIZE, &mut vbo_size as *mut GLint);
+            gl::GetBufferParameteriv(
+                gl::ARRAY_BUFFER,
+                gl::BUFFER_SIZE,
+                &mut vbo_size as *mut GLint,
+            );
             let mut ebo_size: GLint = 0;
-            gl::GetBufferParameteriv(gl::ELEMENT_ARRAY_BUFFER, gl::BUFFER_SIZE, &mut ebo_size as *mut GLint);
-            if self.vertices.len() > (vbo_size as usize / VERTEX_SIZE) as usize 
-                || self.indices.len() > ebo_size as usize {
-                    let vertex_capacity = self.vertices.capacity() as isize * 2;
-                    let index_capacity = self.indices.capacity() as isize* 2;
-                    self.create_buffers(vertex_capacity, index_capacity);
-                }
+            gl::GetBufferParameteriv(
+                gl::ELEMENT_ARRAY_BUFFER,
+                gl::BUFFER_SIZE,
+                &mut ebo_size as *mut GLint,
+            );
+            if self.vertices.len() > (vbo_size as usize / VERTEX_SIZE) as usize ||
+                self.indices.len() > ebo_size as usize
+            {
+                let vertex_capacity = self.vertices.capacity() as isize * 2;
+                let index_capacity = self.indices.capacity() as isize * 2;
+                self.create_buffers(vertex_capacity, index_capacity);
+            }
             //Bind the vertex data
-            gl::BufferSubData(gl::ARRAY_BUFFER, 0, (size_of::<GLfloat>() * self.vertices.len()) as isize, self.vertices.as_ptr() as *const c_void);
-            gl::BufferSubData(gl::ELEMENT_ARRAY_BUFFER, 0, (size_of::<GLuint>() * self.indices.len()) as isize, self.indices.as_ptr() as *const c_void);
+            gl::BufferSubData(
+                gl::ARRAY_BUFFER,
+                0,
+                (size_of::<GLfloat>() * self.vertices.len()) as isize,
+                self.vertices.as_ptr() as *const c_void,
+            );
+            gl::BufferSubData(
+                gl::ELEMENT_ARRAY_BUFFER,
+                0,
+                (size_of::<GLuint>() * self.indices.len()) as isize,
+                self.indices.as_ptr() as *const c_void,
+            );
             //Upload the texture to the GPU
             gl::ActiveTexture(gl::TEXTURE0);
             gl::BindTexture(gl::TEXTURE_2D, self.texture);
             gl::Uniform1i(self.texture_location, 0);
             //Draw the triangles
-            gl::DrawElements(gl::TRIANGLES, self.indices.len() as i32, gl::UNSIGNED_INT, null());
+            gl::DrawElements(
+                gl::TRIANGLES,
+                self.indices.len() as i32,
+                gl::UNSIGNED_INT,
+                null(),
+            );
         }
         self.vertices.clear();
         self.indices.clear();
@@ -240,7 +318,9 @@ impl Backend for GLBackend {
         self.vertices.push(vertex.col.g);
         self.vertices.push(vertex.col.b);
         self.vertices.push(vertex.col.a);
-        self.vertices.push(if vertex.use_texture { 1f32 } else { 0f32 } );
+        self.vertices.push(
+            if vertex.use_texture { 1f32 } else { 0f32 },
+        );
     }
 
     fn add_index(&mut self, index: GLuint) {

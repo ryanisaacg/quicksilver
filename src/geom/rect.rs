@@ -5,13 +5,18 @@ pub struct Rectangle {
     pub x: f32,
     pub y: f32,
     pub width: f32,
-    pub height: f32
+    pub height: f32,
 }
 
 impl Rectangle {
     ///Create a positioned rectangle with dimensions
     pub fn new(x: f32, y: f32, width: f32, height: f32) -> Rectangle {
-        Rectangle { x: x, y: y, width: width, height: height }
+        Rectangle {
+            x: x,
+            y: y,
+            width: width,
+            height: height,
+        }
     }
 
     pub fn newi(x: i32, y: i32, width: i32, height: i32) -> Rectangle {
@@ -22,7 +27,7 @@ impl Rectangle {
     pub fn new_sized(width: f32, height: f32) -> Rectangle {
         Rectangle::new(0f32, 0f32, width, height)
     }
-    
+
     pub fn newi_sized(width: i32, height: i32) -> Rectangle {
         Rectangle::newi(0, 0, width, height)
     }
@@ -49,26 +54,38 @@ impl Rectangle {
 
     ///Check if any of the area bounded by this rectangle is bounded by another
     pub fn overlaps_rect(self, b: Rectangle) -> bool {
-        self.x < b.x + b.width && self.x + self.width > b.x 
-            && self.y < b.y + b.height && self.y + self.height > b.y
+        self.x < b.x + b.width && self.x + self.width > b.x && self.y < b.y + b.height &&
+            self.y + self.height > b.y
     }
 
     ///Check if any of the area bounded by this rectangle is bounded by a circle
     pub fn overlaps_circ(self, c: Circle) -> bool {
         let closest = Vector::new(
-            if c.x < self.x { self.x }
-            else if c.x > self.x + self.width { self.x + self.width }
-            else { c.x },
-            if c.y < self.y { self.y }
-            else if c.y > self.y + self.height { self.y + self.height }
-            else { c.y });
+            if c.x < self.x {
+                self.x
+            } else if c.x > self.x + self.width {
+                self.x + self.width
+            } else {
+                c.x
+            },
+            if c.y < self.y {
+                self.y
+            } else if c.y > self.y + self.height {
+                self.y + self.height
+            } else {
+                c.y
+            },
+        );
         let closest = closest - c.center();
         closest.x.powi(2) + closest.y.powi(2) < c.radius.powi(2)
     }
 
     ///Move the rectangle so it is entirely contained with another
     pub fn constrain(self, outer: Rectangle) -> Rectangle {
-        let top_left = self.top_left().clamp(outer.top_left(), outer.top_left() + outer.size() - self.size());
+        let top_left = self.top_left().clamp(
+            outer.top_left(),
+            outer.top_left() + outer.size() - self.size(),
+        );
         Rectangle::new(top_left.x, top_left.y, self.width, self.height)
     }
 
@@ -79,11 +96,17 @@ impl Rectangle {
 
     ///Check if a line segment intersects a rectangle
     pub fn intersects(self, l: Line) -> bool {
-        self.contains(l.start) || self.contains(l.end)
-            || Line::new(self.top_left(), self.top_left() + self.size().x_comp()).intersects(l)
-            || Line::new(self.top_left(), self.top_left() + self.size().y_comp()).intersects(l)
-            || Line::new(self.top_left() + self.size().x_comp(), self.top_left() + self.size()).intersects(l)
-            || Line::new(self.top_left() + self.size().y_comp(), self.top_left() + self.size()).intersects(l)
+        self.contains(l.start) || self.contains(l.end) ||
+            Line::new(self.top_left(), self.top_left() + self.size().x_comp()).intersects(l) ||
+            Line::new(self.top_left(), self.top_left() + self.size().y_comp()).intersects(l) ||
+            Line::new(
+                self.top_left() + self.size().x_comp(),
+                self.top_left() + self.size(),
+            ).intersects(l) ||
+            Line::new(
+                self.top_left() + self.size().y_comp(),
+                self.top_left() + self.size(),
+            ).intersects(l)
     }
 }
 
@@ -141,5 +164,3 @@ mod tests {
         assert!(!rect.intersects(line4));
     }
 }
-
-

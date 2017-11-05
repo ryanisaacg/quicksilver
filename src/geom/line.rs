@@ -4,12 +4,15 @@ use super::Vector;
 ///Represents a 2D line segment
 pub struct Line {
     pub start: Vector,
-    pub end: Vector
+    pub end: Vector,
 }
 
 impl Line {
     pub fn new(start: Vector, end: Vector) -> Line {
-        Line { start: start, end: end }
+        Line {
+            start: start,
+            end: end,
+        }
     }
 
     ///Check if two line segments interact
@@ -30,8 +33,8 @@ impl Line {
             } else {
                 let t0 = (q - p).dot(r) / r.dot(r);
                 let t1 = t0 + s.dot(r) / r.dot(r);
-                (t0 >= 0f32 && t0 <= 1f32) || (t1 >= 0f32 && t1 <= 1f32) 
-                    || (t0.signum() == t1.signum()) || t0 == 0f32 && t1 == 0f32
+                (t0 >= 0f32 && t0 <= 1f32) || (t1 >= 0f32 && t1 <= 1f32) ||
+                    (t0.signum() == t1.signum()) || t0 == 0f32 && t1 == 0f32
             }
         } else {
             let u = u_numerator / denominator;

@@ -3,7 +3,7 @@ pub enum ButtonState {
     Pressed,
     Held,
     Released,
-    NotPressed
+    NotPressed,
 }
 
 impl ButtonState {
@@ -17,6 +17,10 @@ impl ButtonState {
     }
 
     pub fn clear_temporary(&self) -> ButtonState {
-        if self.is_down() { ButtonState::Held } else { ButtonState::NotPressed }
+        if self.is_down() {
+            ButtonState::Held
+        } else {
+            ButtonState::NotPressed
+        }
     }
 }

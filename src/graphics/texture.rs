@@ -11,13 +11,13 @@ pub enum PixelFormat {
     RGB = gl::RGB as isize,
     RGBA = gl::RGBA as isize,
     BGR = gl::BGR as isize,
-    BGRA = gl::BGRA as isize 
+    BGRA = gl::BGRA as isize,
 }
 
 pub struct Texture {
     id: u32,
     width: i32,
-    height: i32
+    height: i32,
 }
 
 impl Texture {
@@ -26,12 +26,29 @@ impl Texture {
             let mut texture = 0;
             gl::GenTextures(1, &mut texture as *mut GLuint);
             gl::BindTexture(gl::TEXTURE_2D, texture);
-            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_S, gl::CLAMP_TO_EDGE as GLint);
-            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_T, gl::CLAMP_TO_EDGE as GLint);
+            gl::TexParameteri(
+                gl::TEXTURE_2D,
+                gl::TEXTURE_WRAP_S,
+                gl::CLAMP_TO_EDGE as GLint,
+            );
+            gl::TexParameteri(
+                gl::TEXTURE_2D,
+                gl::TEXTURE_WRAP_T,
+                gl::CLAMP_TO_EDGE as GLint,
+            );
             gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::LINEAR as GLint);
             gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::LINEAR as GLint);
-            gl::TexImage2D(gl::TEXTURE_2D, 0, gl::RGBA as GLint, w, h, 0, format as u32, 
-                           gl::UNSIGNED_BYTE, data.as_ptr() as *const c_void);
+            gl::TexImage2D(
+                gl::TEXTURE_2D,
+                0,
+                gl::RGBA as GLint,
+                w,
+                h,
+                0,
+                format as u32,
+                gl::UNSIGNED_BYTE,
+                data.as_ptr() as *const c_void,
+            );
             gl::GenerateMipmap(gl::TEXTURE_2D);
             Texture {
                 id: texture,
@@ -48,15 +65,22 @@ impl Texture {
             imagefmt::ColFmt::RGBA => Result::Ok(PixelFormat::RGBA),
             imagefmt::ColFmt::BGR => Result::Ok(PixelFormat::BGR),
             imagefmt::ColFmt::BGRA => Result::Ok(PixelFormat::BGRA),
-            _ => Result::Err(imagefmt::Error::Unsupported("Unsupported color format of loaded image"))
+            _ => Result::Err(imagefmt::Error::Unsupported(
+                "Unsupported color format of loaded image",
+            )),
         };
-        Result::Ok(Texture::from_raw(data.buf.as_slice(), data.w as i32, data.h as i32, format?))
+        Result::Ok(Texture::from_raw(
+            data.buf.as_slice(),
+            data.w as i32,
+            data.h as i32,
+            format?,
+        ))
     }
 
     pub fn region(&self) -> TextureRegion {
         TextureRegion {
             source: self,
-            region: Rectangle::newi_sized(self.width, self.height)
+            region: Rectangle::newi_sized(self.width, self.height),
         }
     }
 }
@@ -72,7 +96,7 @@ impl Drop for Texture {
 #[derive(Clone, Copy)]
 pub struct TextureRegion<'a> {
     source: &'a Texture,
-    region: Rectangle
+    region: Rectangle,
 }
 
 impl<'a> TextureRegion<'a> {
@@ -99,8 +123,12 @@ impl<'a> TextureRegion<'a> {
     pub fn subregion(&self, rect: Rectangle) -> TextureRegion {
         TextureRegion {
             source: self.source,
-            region: Rectangle::new(self.region.x + rect.x, self.region.y + rect.y,
-                                   rect.width, rect.height)
+            region: Rectangle::new(
+                self.region.x + rect.x,
+                self.region.y + rect.y,
+                rect.width,
+                rect.height,
+            ),
         }
     }
 }

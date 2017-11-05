@@ -5,12 +5,16 @@ use super::{Line, Rectangle, Vector};
 pub struct Circle {
     pub x: f32,
     pub y: f32,
-    pub radius: f32
+    pub radius: f32,
 }
 
 impl Circle {
     pub fn new(x: f32, y: f32, radius: f32) -> Circle {
-        Circle { x: x, y: y, radius: radius }
+        Circle {
+            x: x,
+            y: y,
+            radius: radius,
+        }
     }
 
     pub fn newi(x: i32, y: i32, radius: i32) -> Circle {
@@ -19,7 +23,10 @@ impl Circle {
 
     ///Get the center of a circle as a vector
     pub fn center(self) -> Vector {
-        Vector { x: self.x, y: self.y }
+        Vector {
+            x: self.x,
+            y: self.y,
+        }
     }
 
     ///Check to see if a circle contains a point
@@ -34,9 +41,13 @@ impl Circle {
         let dist = center - l.start;
         let nor_line = line.normalize();
         let product = dist.dot(nor_line);
-        let check_point = if product <= 0f32 { l.start }
-            else if product >= 1f32 { l.end }
-            else { l.start + nor_line * product };
+        let check_point = if product <= 0f32 {
+            l.start
+        } else if product >= 1f32 {
+            l.end
+        } else {
+            l.start + nor_line * product
+        };
         (center - check_point).len2() < self.radius.powi(2)
     }
 

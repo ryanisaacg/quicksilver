@@ -32,8 +32,7 @@ pub fn run<T: State + Send + 'static>(title: &str, width: u32, height: u32) {
     let window = glutin::WindowBuilder::new()
         .with_title(title)
         .with_dimensions(width, height);
-    let context = glutin::ContextBuilder::new()
-        .with_vsync(true);
+    let context = glutin::ContextBuilder::new().with_vsync(true);
     let gl_window = glutin::GlWindow::new(window, context, &events_loop).unwrap();
     unsafe {
         gl_window.make_current().unwrap();
@@ -67,21 +66,27 @@ pub fn run<T: State + Send + 'static>(title: &str, width: u32, height: u32) {
     });
     let mut running = true;
     while running {
-        events_loop.poll_events(|event| {
-            match event {
-                glutin::Event::WindowEvent{ event, .. } => match event {
-                    glutin::WindowEvent::KeyboardInput { device_id: _, input: event } => {
+        events_loop.poll_events(|event| match event {
+            glutin::Event::WindowEvent { event, .. } => {
+                match event {
+                    glutin::WindowEvent::KeyboardInput {
+                        device_id: _,
+                        input: event,
+                    } => {
                         keyboard.lock().unwrap().process_event(&event);
-                    },
+                    }
                     glutin::WindowEvent::MouseMoved { position, .. } => {
-                        mouse.lock().unwrap().set_position(position, gl_window.hidpi_factor());
-                    },
+                        mouse.lock().unwrap().set_position(
+                            position,
+                            gl_window.hidpi_factor(),
+                        );
+                    }
                     glutin::WindowEvent::MouseInput { state, button, .. } => {
                         mouse.lock().unwrap().process_button(state, button);
-                    },
+                    }
                     glutin::WindowEvent::Closed => {
                         running = false;
-                    },
+                    }
                     glutin::WindowEvent::Resized(new_width, new_height) => {
                         let target_ratio = width as f32 / height as f32;
                         let window_ratio = new_width as f32 / new_height as f32;
@@ -97,11 +102,11 @@ pub fn run<T: State + Send + 'static>(title: &str, width: u32, height: u32) {
                         unsafe {
                             gl::Viewport(offset_x, offset_y, w, h);
                         }
-                    },
-                    _ => ()
-                },
-                _ => ()
+                    }
+                    _ => (),
+                }
             }
+            _ => (),
         });
         state.lock().unwrap().draw(&mut frontend);
         frontend.present(&gl_window);
