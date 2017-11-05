@@ -2,15 +2,17 @@ extern crate gl;
 extern crate imagefmt;
 extern crate glutin;
 
-pub mod geom;
-pub mod graphics;
-pub mod input;
+mod geom;
+mod graphics;
+mod input;
+
+pub use geom::*;
+pub use graphics::*;
+pub use input::*;
 
 mod manager;
 pub use manager::AssetManager;
 
-use input::{Keyboard, Mouse};
-use graphics::Graphics;
 use std::time::Duration;
 
 pub trait State {
@@ -48,6 +50,7 @@ pub fn run<T: State + Send + 'static>(title: &str, width: u32, height: u32) {
     let update_keyboard = keyboard.clone();
     let update_mouse = mouse.clone();
     let update_state = state.clone();
+    let mut offset = Vector::zero();
     thread::spawn(move || {
         let keyboard = update_keyboard;
         let mouse = update_mouse;
@@ -76,8 +79,9 @@ pub fn run<T: State + Send + 'static>(title: &str, width: u32, height: u32) {
                         keyboard.lock().unwrap().process_event(&event);
                     }
                     glutin::WindowEvent::MouseMoved { position, .. } => {
+                        let (x, y) = position;
                         mouse.lock().unwrap().set_position(
-                            position,
+                            Vector::new(x as f32, y as f32) - offset,
                             gl_window.hidpi_factor(),
                         );
                     }
@@ -99,6 +103,7 @@ pub fn run<T: State + Send + 'static>(title: &str, width: u32, height: u32) {
                         };
                         let offset_x = (new_width as i32 - w) / 2;
                         let offset_y = (new_height as i32 - h) / 2;
+                        offset = Vector::newi(offset_x, offset_y);
                         unsafe {
                             gl::Viewport(offset_x, offset_y, w, h);
                         }

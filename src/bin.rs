@@ -2,9 +2,6 @@ extern crate qs;
 extern crate gl;
 
 use qs::*;
-use qs::geom::*;
-use qs::graphics::*;
-use qs::input::*;
 use std::time::Duration;
 
 struct Entity {
