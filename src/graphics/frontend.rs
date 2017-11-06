@@ -51,7 +51,15 @@ impl Graphics {
         ctx.swap_buffers().unwrap();
     }
 
-    pub fn draw_image(&mut self, image: TextureRegion, area: Rectangle, trans: Transform, col: Color) {
+    pub fn draw_image(&mut self, image: TextureRegion, area: Rectangle) {
+        self.draw_image_blend(image, area, Colors::WHITE);
+    }
+
+    pub fn draw_image_blend(&mut self, image: TextureRegion, area: Rectangle, col: Color) {
+        self.draw_image_trans(image, area, col, Transform::identity());
+    }
+
+    pub fn draw_image_trans(&mut self, image: TextureRegion, area: Rectangle, col: Color, trans: Transform) {
         let trans = self.camera() * Transform::translate(area.top_left()) * trans *
             Transform::scale(area.size());
         let recip_size = image.source_size().recip();
@@ -77,12 +85,20 @@ impl Graphics {
         );
     }
 
-    pub fn draw_rect(&mut self, rect: Rectangle, trans: Transform, col: Color) {
+    pub fn draw_rect(&mut self, rect: Rectangle, col: Color) {
+        self.draw_rect_trans(rect, col, Transform::identity());
+    }
+
+    pub fn draw_rect_trans(&mut self, rect: Rectangle, col: Color, trans: Transform) {
         self.draw_polygon(&[rect.top_left(), rect.top_left() + rect.size().x_comp(), 
                 rect.top_left() + rect.size(), rect.top_left() + rect.size().y_comp()], trans, col);
     }
 
-    pub fn draw_circle(&mut self, circ: Circle, trans: Transform, col: Color) {
+    pub fn draw_circle(&mut self, circ: Circle, col: Color) {
+        self.draw_circle_trans(circ, col, Transform::identity());
+    }
+
+    pub fn draw_circle_trans(&mut self, circ: Circle, col: Color, trans: Transform) {
         let mut points = [Vector::zero(); CIRCLE_POINTS];
         let rotation = Transform::rotate(360f32 / CIRCLE_POINTS as f32);
         let mut arrow = Vector::new(0f32, -circ.radius);
