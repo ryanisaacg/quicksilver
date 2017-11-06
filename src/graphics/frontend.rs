@@ -97,8 +97,7 @@ impl Graphics {
     }
 
     pub fn draw_rect_trans(&mut self, rect: Rectangle, col: Color, trans: Transform) {
-        self.draw_polygon_trans(&[rect.top_left(), rect.top_left() + rect.size().x_comp(), 
-                rect.top_left() + rect.size(), rect.top_left() + rect.size().y_comp()], col, trans);
+        self.draw_polygon_trans(&[Vector::zero(), rect.size().x_comp(), rect.size(), rect.size().y_comp()], col, Transform::translate(rect.top_left()) * trans);
     }
 
     pub fn draw_circle(&mut self, circ: Circle, col: Color) {
@@ -110,10 +109,10 @@ impl Graphics {
         let rotation = Transform::rotate(360f32 / CIRCLE_POINTS as f32);
         let mut arrow = Vector::new(0f32, -circ.radius);
         for i in 0..CIRCLE_POINTS {
-            points[i] = circ.center() + arrow;
+            points[i] = arrow;
             arrow = rotation * arrow;
         }
-        self.draw_polygon_trans(&points, col, trans);
+        self.draw_polygon_trans(&points, col, Transform::translate(circ.center()) * trans);
     }
 
     pub fn draw_polygon(&mut self, vertices: &[Vector], col: Color) {
@@ -148,7 +147,7 @@ impl Graphics {
     }
 
     pub fn draw_line_trans(&mut self, line: Line, col: Color, trans: Transform) {
-        self.draw_polygon_trans(&[line.start, line.start, line.end], col, trans);
+        self.draw_polygon_trans(&[Vector::zero(), Vector::zero(), line.end - line.start], col, Transform::translate(line.start) * trans);
     }
 
     pub fn draw_point(&mut self, vec: Vector, col: Color) {

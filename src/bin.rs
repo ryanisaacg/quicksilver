@@ -11,9 +11,9 @@ struct Entity {
 }
 
 impl Entity {
-    pub fn new(bounds: Circle) -> Entity {
+    pub fn new(bounds: Rectangle) -> Entity {
         Entity {
-            bounds: Shape::Circ(bounds),
+            bounds: Shape::Rect(bounds),
             speed: Vector::zero(),
             facing: Vector::zero(),
         }
@@ -36,7 +36,7 @@ impl State for Screen {
         g.set_show_cursor(false);
         g.set_clear_color(Colors::WHITE);
         Screen {
-            player: Entity::new(Circle::newi(16, 16, 16)),
+            player: Entity::new(Rectangle::newi(16, 16, 32, 32)),
             map: Tilemap::new(800f32, 600f32, 40f32, 40f32),
         }
     }
@@ -69,9 +69,9 @@ impl State for Screen {
 
     fn draw(&mut self, draw: &mut Graphics) {
         draw.draw_shape(self.player.bounds, Colors::BLUE);
-        draw.draw_shape_trans(self.player.bounds, Colors::BLUE, Transform::translate(self.player.bounds.center()) 
+        draw.draw_shape_trans(self.player.bounds, Colors::BLUE, Transform::translate(Vector::one() * 16) 
                 * Transform::rotate(45.0) 
-                * Transform::translate(-self.player.bounds.center()));
+                * Transform::translate(Vector::one() * -16));
     }
 }
 
