@@ -6,7 +6,6 @@ pub struct Line {
     pub start: Vector,
     pub end: Vector,
 }
-
 impl Line {
     pub fn new(start: Vector, end: Vector) -> Line {
         Line {
@@ -42,6 +41,14 @@ impl Line {
             t >= 0f32 && t <= 1f32 && u >= 0f32 && u <= 1f32
         }
     }
+
+    pub fn contains(self, other: Vector) -> bool {
+        self.start == other || self.end == other || self.start + (other - self.start).normalize() * (self.end - self.start).len() == self.end
+    }
+
+    pub fn translate(self, other: Vector) -> Line {
+        Line::new(self.start + other, self.end + other)
+    }
 }
 
 #[cfg(test)]
@@ -59,5 +66,14 @@ mod tests {
         assert!(!line1.intersects(line4));
         assert!(!line2.intersects(line4));
         assert!(!line3.intersects(line4));
+    }
+
+    #[test]
+    fn contains() {
+        let line1 = Line::new(Vector::newi(0, 0), Vector::newi(32, 32));
+        let line2 = Line::new(Vector::newi(0, 32), Vector::newi(32, 0));
+        assert!(line1.contains(Vector::newi(5, 5)));
+        assert!(!line1.contains(Vector::newi(6, 5)));
+        assert!(line2.contains(Vector::newi(0, 32)));
     }
 }
