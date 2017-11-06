@@ -16,7 +16,7 @@ pub use manager::AssetManager;
 use std::time::Duration;
 
 pub trait State {
-    fn new(&mut AssetManager) -> Self;
+    fn new(&mut AssetManager, frontend: &mut Graphics) -> Self;
     fn tick(&mut self, keyboard: &Keyboard, mouse: &Mouse, builder: &ViewportBuilder) -> Duration;
     fn draw(&mut self, frontend: &mut Graphics);
 }
@@ -45,7 +45,7 @@ pub fn run<T: State + Send + 'static>(title: &str, width: u32, height: u32) {
     let camera = Camera::new(Rectangle::newv_sized(screen_size));
     let mut frontend = Graphics::new(Box::new(GLBackend::new()), camera);
     let mut assets = AssetManager::new();
-    let state = Arc::new(Mutex::new(T::new(&mut assets)));
+    let state = Arc::new(Mutex::new(T::new(&mut assets, &mut frontend)));
     let keyboard = Arc::new(Mutex::new(Keyboard::new()));
     let mouse = Arc::new(Mutex::new(Mouse::new()));
     let screen_size = Arc::new(Mutex::new(screen_size));

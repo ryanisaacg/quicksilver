@@ -8,6 +8,7 @@ pub struct Graphics {
     cam: Camera,
     ui_mode: bool,
     clear_color: Color,
+    show_cursor: bool
 }
 
 const CIRCLE_POINTS: usize = 32; //the number of points in the poly to simulate the circle
@@ -19,6 +20,7 @@ impl Graphics {
             cam,
             ui_mode: false,
             clear_color: Colors::BLACK,
+            show_cursor: true
         }
     }
 
@@ -34,6 +36,10 @@ impl Graphics {
         self.ui_mode = ui_mode;
     }
 
+    pub fn set_show_cursor(&mut self, show_cursor: bool) {
+        self.show_cursor = show_cursor;
+    }
+
     fn camera(&self) -> Transform {
         self.cam.transform()
     }
@@ -46,9 +52,10 @@ impl Graphics {
         self.clear_color = col;
     }
 
-    pub fn present(&mut self, ctx: &glutin::GlContext) {
+    pub fn present(&mut self, window: &glutin::GlWindow) {
+        window.set_cursor_state(if self.show_cursor { glutin::CursorState::Normal } else { glutin::CursorState::Hide });
         self.backend.display(self.clear_color);
-        ctx.swap_buffers().unwrap();
+        glutin::GlContext::swap_buffers(window).unwrap();
     }
 
     pub fn draw_image(&mut self, image: TextureRegion, area: Rectangle) {

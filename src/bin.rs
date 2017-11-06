@@ -32,7 +32,9 @@ struct Screen {
 }
 
 impl State for Screen {
-    fn new(_: &mut AssetManager) -> Screen {
+    fn new(_: &mut AssetManager, g: &mut Graphics) -> Screen {
+        g.set_show_cursor(false);
+        g.set_clear_color(Colors::WHITE);
         Screen {
             player: Entity::new(Circle::newi(16, 16, 16)),
             map: Tilemap::new(800f32, 600f32, 40f32, 40f32),
@@ -66,7 +68,6 @@ impl State for Screen {
     }
 
     fn draw(&mut self, draw: &mut Graphics) {
-        draw.set_clear_color(Colors::WHITE);
         draw.draw_shape(self.player.bounds, Colors::BLUE);
         draw.draw_shape_trans(self.player.bounds, Colors::BLUE, Transform::translate(self.player.bounds.center()) 
                 * Transform::rotate(45.0) 
