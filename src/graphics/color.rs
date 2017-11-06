@@ -6,6 +6,7 @@ pub struct Color {
     pub a: f32,
 }
 
+#[allow(non_snake_case)]
 pub mod Colors {
     use super::Color;
     pub const WHITE: Color = Color {
