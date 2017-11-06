@@ -53,7 +53,7 @@ impl Graphics {
     }
 
     pub fn present(&mut self, window: &glutin::GlWindow) {
-        window.set_cursor_state(if self.show_cursor { glutin::CursorState::Normal } else { glutin::CursorState::Hide });
+        window.set_cursor_state(if self.show_cursor { glutin::CursorState::Normal } else { glutin::CursorState::Hide }).unwrap();
         self.backend.display(self.clear_color);
         glutin::GlContext::swap_buffers(window).unwrap();
     }
