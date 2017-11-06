@@ -12,6 +12,6 @@ name = "example"
 path = "src/bin.rs"
 
 [dependencies]
-gl = "*"
-imagefmt = "*"
-glutin = "*"
+gl = "~0.6"
+imagefmt = "~4"
+glutin = "~0.10"
