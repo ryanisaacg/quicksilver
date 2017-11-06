@@ -334,24 +334,14 @@ mod tests {
         ];
         for case in test_cases.iter() {
             let (region, speed, expected_tl, expected_speed) = *case;
-            let (region_new, speed_new) = map.move_until_contact(region, speed);
-            assert_eq!(region_new.top_left(), expected_tl);
-            assert_eq!(speed_new, expected_speed);
-        }
-        let map: Tilemap<i32> = Tilemap::new(1600f32, 900f32, 20f32, 20f32);
-        let test_cases = [
-            (
-                Rectangle::newi(0, 850, 32, 32),
-                Vector::newi(0, 20),
-                Vector::newi(0, 868),
-                Vector::zero(),
-            ),
-        ];
-        for case in test_cases.iter() {
-            let (region, speed, expected_tl, expected_speed) = *case;
-            let (region_new, speed_new) = map.move_until_contact(region, speed);
-            assert_eq!(region_new.top_left(), expected_tl);
-            assert_eq!(speed_new, expected_speed);
+            let (region_new, speed_new) = map.move_until_contact(Shape::Rect(region), speed);
+            match region_new {
+                Shape::Rect(region_new) => {
+                    assert_eq!(region_new.top_left(), expected_tl);
+                    assert_eq!(speed_new, expected_speed);
+                },
+                _ => ()
+            }
         }
     }
 }
