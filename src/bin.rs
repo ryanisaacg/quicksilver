@@ -5,15 +5,15 @@ use qs::*;
 use std::time::Duration;
 
 struct Entity {
-    pub bounds: Rectangle,
+    pub bounds: Shape,
     pub speed: Vector,
     pub facing: Vector,
 }
 
 impl Entity {
-    pub fn new(bounds: Rectangle) -> Entity {
+    pub fn new(bounds: Circle) -> Entity {
         Entity {
-            bounds: bounds,
+            bounds: Shape::Circ(bounds),
             speed: Vector::zero(),
             facing: Vector::zero(),
         }
@@ -34,7 +34,7 @@ struct Screen {
 impl State for Screen {
     fn new(_: &mut AssetManager) -> Screen {
         Screen {
-            player: Entity::new(Rectangle::newi(0, 0, 32, 32)),
+            player: Entity::new(Circle::newi(16, 16, 16)),
             map: Tilemap::new(800f32, 600f32, 40f32, 40f32),
         }
     }
@@ -54,15 +54,9 @@ impl State for Screen {
             self.player.facing = Vector::x();
         }
         if keys[Key::Space].is_down() {
-            if !self.map.region_empty(
-                self.player.bounds.translate(Vector::y()),
-            )
-            {
+            if !self.map.shape_empty(self.player.bounds.translate(Vector::y())) {
                 self.player.speed.y = -8f32;
-            } else if !self.map.region_empty(
-                self.player.bounds.translate(self.player.facing),
-            )
-            {
+            } else if !self.map.shape_empty(self.player.bounds.translate(self.player.facing)) {
                 self.player.speed.y = -8f32;
                 self.player.speed += -self.player.facing * 8;
             }
@@ -73,8 +67,8 @@ impl State for Screen {
 
     fn draw(&mut self, draw: &mut Graphics) {
         draw.set_clear_color(Colors::WHITE);
-        draw.draw_rect(self.player.bounds, Colors::BLUE);
-        draw.draw_rect_trans(self.player.bounds, Colors::BLUE, Transform::translate(self.player.bounds.center()) 
+        draw.draw_shape(self.player.bounds, Colors::BLUE);
+        draw.draw_shape_trans(self.player.bounds, Colors::BLUE, Transform::translate(self.player.bounds.center()) 
                 * Transform::rotate(45.0) 
                 * Transform::translate(-self.player.bounds.center()));
     }

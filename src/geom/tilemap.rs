@@ -1,4 +1,4 @@
-use super::{Rectangle, Vector};
+use super::{Rectangle, Vector, Shape};
 
 #[derive(Clone)]
 pub struct Tile<T: Clone> {
@@ -132,8 +132,52 @@ impl<T: Clone> Tilemap<T> {
             (self.point_empty(area.top_left() + area.size()) || x_aligned || y_aligned)
     }
 
-    pub fn move_until_contact(&self, bounds: Rectangle, speed: Vector) -> (Rectangle, Vector) {
-        if !self.region_empty(bounds) {
+    pub fn shape_empty(&self, shape: Shape) -> bool {
+        let bounds = shape.bounding_box();
+        if self.region_empty(bounds) {
+            true
+        } else {
+            match shape {
+                //Rectangles and vectors are perfectly represented by their bounds
+                Shape::Rect(_) => false,
+                Shape::Vect(_) => false,
+                Shape::Circ(_) | Shape::Line(_) => {
+                    let x_start = (self.align_left(bounds.x) / self.tile_width) as i32;
+                    let y_start = (self.align_top(bounds.y) / self.tile_height) as i32;
+                    let x_end = (self.align_right(bounds.x + bounds.width) / self.tile_width) as i32;
+                    let y_end = (self.align_right(bounds.y + bounds.height) / self.tile_height) as i32;
+                    for x in x_start..x_end {
+                        for y in y_start..y_end {
+                            let point = Vector::newi(x, y).times(self.tile_size());
+                            if !self.point_empty(point) && shape.overlaps_rect(Rectangle::newv(point, self.tile_size())) {
+                                return false;
+                            }
+                        }
+                    }
+                    true
+                }
+            }
+        }
+    }
+
+    pub fn align_left(&self, x: f32) -> f32 {
+        (x / self.tile_width).floor() * self.tile_width
+    }
+
+    pub fn align_right(&self, x: f32) -> f32 {
+        (x / self.tile_width).ceil() * self.tile_width
+    }
+
+    pub fn align_top(&self, y: f32) -> f32 {
+        (y / self.tile_height).floor() * self.tile_height
+    }
+
+    pub fn align_bottom(&self, y: f32) -> f32 {
+        (y / self.tile_height).ceil() * self.tile_height
+    }
+
+    pub fn move_until_contact(&self, bounds: Shape, speed: Vector) -> (Shape, Vector) {
+        if !self.shape_empty(bounds) {
             (bounds, Vector::zero())
         } else {
             //  If it is less than the total speed, mod the total speed by the tile size
@@ -145,7 +189,7 @@ impl<T: Clone> Tilemap<T> {
             // Find the largest number of tiles that can be moved
             let chunk = Vector::x() * speed.x.signum() * self.tile_width;
             while (chunk * (i + 1)).x.abs() < speed.x.abs() &&
-                self.region_empty(bounds.translate(chunk * (i + 1)))
+                self.shape_empty(bounds.translate(chunk * (i + 1)))
             {
                 i += 1;
             }
@@ -157,20 +201,21 @@ impl<T: Clone> Tilemap<T> {
                 false
             };
             //If the remainder cannot be moved
-            if incomplete || !self.region_empty(bounds.translate(speed.x_comp())) {
+            if incomplete || !self.shape_empty(bounds.translate(speed.x_comp())) {
+                let mut bbox = bounds.bounding_box();
                 if speed.x > 0f32 {
-                    bounds.x = ((bounds.x + bounds.width) / self.tile_width).ceil() *
-                        self.tile_width - bounds.width;
+                    bbox.x = self.align_right(bbox.x + bbox.width) - bbox.width;
                 } else {
-                    bounds.x = (bounds.x / self.tile_width).floor() * self.tile_width;
+                    bbox.x = self.align_left(bbox.x);
                 }
+                bounds = bounds.with_center(bbox.center());
                 speed.x = 0f32;
             }
             i = 1;
             // Find the largest number of tiles that can be moved
             let chunk = Vector::y() * speed.y.signum() * self.tile_height;
             while (chunk * (i + 1)).y.abs() < speed.y.abs() &&
-                self.region_empty(bounds.translate(chunk * (i + 1)))
+                self.shape_empty(bounds.translate(chunk * (i + 1)))
             {
                 i += 1;
             }
@@ -182,13 +227,14 @@ impl<T: Clone> Tilemap<T> {
                 false
             };
             //If the remainder cannot be moved
-            if incomplete || !self.region_empty(bounds.translate(speed)) {
+            if incomplete || !self.shape_empty(bounds.translate(speed)) {
+                let mut bbox = bounds.bounding_box();
                 if speed.y > 0f32 {
-                    bounds.y = ((bounds.y + bounds.height) / self.tile_height).ceil() *
-                        self.tile_height - bounds.height;
+                    bbox.y = self.align_bottom(bbox.y + bbox.height) - bbox.height;
                 } else {
-                    bounds.y = (bounds.y / self.tile_height).floor() * self.tile_height;
+                    bbox.y = self.align_top(bbox.y);
                 }
+                bounds = bounds.with_center(bbox.center());
                 speed.y = 0f32;
             }
             (bounds.translate(speed), speed)

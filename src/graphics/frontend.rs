@@ -1,6 +1,6 @@
 extern crate glutin;
 
-use geom::{Circle, Rectangle, Transform, Vector};
+use geom::{Circle, Line, Rectangle, Shape, Transform, Vector};
 use graphics::{Backend, Camera, Color, Colors, TextureRegion, Vertex};
 
 pub struct Graphics {
@@ -90,8 +90,8 @@ impl Graphics {
     }
 
     pub fn draw_rect_trans(&mut self, rect: Rectangle, col: Color, trans: Transform) {
-        self.draw_polygon(&[rect.top_left(), rect.top_left() + rect.size().x_comp(), 
-                rect.top_left() + rect.size(), rect.top_left() + rect.size().y_comp()], trans, col);
+        self.draw_polygon_trans(&[rect.top_left(), rect.top_left() + rect.size().x_comp(), 
+                rect.top_left() + rect.size(), rect.top_left() + rect.size().y_comp()], col, trans);
     }
 
     pub fn draw_circle(&mut self, circ: Circle, col: Color) {
@@ -106,10 +106,14 @@ impl Graphics {
             points[i] = circ.center() + arrow;
             arrow = rotation * arrow;
         }
-        self.draw_polygon(&points, trans, col);
+        self.draw_polygon_trans(&points, col, trans);
     }
 
-    pub fn draw_polygon(&mut self, vertices: &[Vector], trans: Transform, col: Color) {
+    pub fn draw_polygon(&mut self, vertices: &[Vector], col: Color) {
+        self.draw_polygon_trans(vertices, col, Transform::identity());
+    }
+
+    pub fn draw_polygon_trans(&mut self, vertices: &[Vector], col: Color, trans: Transform) {
         let first_index = self.backend.num_vertices() as u32;
         let trans = self.camera() * trans;
         for vertex in vertices {
@@ -129,6 +133,31 @@ impl Graphics {
             self.backend.add_index(first_index + current + 1);
             current += 1;
             i += 3;
+        }
+    }
+
+    pub fn draw_line(&mut self, line: Line, col: Color) {
+        self.draw_line_trans(line, col, Transform::identity());
+    }
+
+    pub fn draw_line_trans(&mut self, line: Line, col: Color, trans: Transform) {
+        self.draw_polygon_trans(&[line.start, line.start, line.end], col, trans);
+    }
+
+    pub fn draw_point(&mut self, vec: Vector, col: Color) {
+        self.draw_polygon_trans(&[vec, vec, vec], col, Transform::identity());
+    }
+
+    pub fn draw_shape(&mut self, shape: Shape, col: Color) {
+        self.draw_shape_trans(shape, col, Transform::identity());
+    }
+
+    pub fn draw_shape_trans(&mut self, shape: Shape, col: Color, trans: Transform) {
+        match shape {
+            Shape::Rect(r) => self.draw_rect_trans(r, col, trans),
+            Shape::Circ(c) => self.draw_circle_trans(c, col, trans),
+            Shape::Line(l) => self.draw_line_trans(l, col, trans),
+            Shape::Vect(v) => self.draw_point(trans * v, col)
         }
     }
 }
