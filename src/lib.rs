@@ -49,21 +49,24 @@ pub fn run<T: State + Send + 'static>(title: &str, width: u32, height: u32) {
     let keyboard = Arc::new(Mutex::new(Keyboard::new()));
     let mouse = Arc::new(Mutex::new(Mouse::new()));
     let screen_size = Arc::new(Mutex::new(screen_size));
+    let scale_factor = Arc::new(Mutex::new(gl_window.hidpi_factor()));
     let update_keyboard = keyboard.clone();
     let update_mouse = mouse.clone();
     let update_state = state.clone();
     let update_size = screen_size.clone();
+    let update_factor = scale_factor.clone();
     let mut offset = Vector::zero();
     thread::spawn(move || {
         let keyboard = update_keyboard;
         let mouse = update_mouse;
         let state = update_state;
         let screen_size = update_size;
+        let scale_factor = update_factor;
         loop {
             let delay = {
                 let mut keyboard = keyboard.lock().unwrap();
                 let mut mouse = mouse.lock().unwrap();
-                let builder = ViewportBuilder::new(*screen_size.lock().unwrap());
+                let builder = ViewportBuilder::new(*screen_size.lock().unwrap() / *scale_factor.lock().unwrap());
                 let delay = state.lock().unwrap().tick(&keyboard, &mouse, &builder);
                 keyboard.clear_temporary_states();
                 mouse.clear_temporary_states();
@@ -85,9 +88,12 @@ pub fn run<T: State + Send + 'static>(title: &str, width: u32, height: u32) {
                     }
                     glutin::WindowEvent::MouseMoved { position, .. } => {
                         let (x, y) = position;
-                        mouse.lock().unwrap().set_position(
+                        let mut mouse = mouse.lock().unwrap();
+                        let mut scale_factor = scale_factor.lock().unwrap();
+                        *scale_factor = gl_window.hidpi_factor();
+                        mouse.set_position(
                             Vector::new(x as f32, y as f32) - offset,
-                            gl_window.hidpi_factor(),
+                           *scale_factor 
                         );
                     }
                     glutin::WindowEvent::MouseInput { state, button, .. } => {
