@@ -61,7 +61,12 @@ impl Shape {
     }
 
     pub fn with_center(&self, vec: Vector) -> Shape {
-        self.translate(vec - self.center())
+        match *self {
+            Shape::Circ(this) => Shape::Circ(Circle::new(vec.x, vec.y, this.radius)),
+            Shape::Line(this) => { let midlength = (this.end - this.start) / 2; Shape::Line(Line::new(vec - midlength, vec + midlength)) },
+            Shape::Rect(this) => Shape::Rect(Rectangle::new(vec.x - this.width / 2.0, vec.y - this.height / 2.0, this.width, this.height)),
+            Shape::Vect(_) => Shape::Vect(vec)
+        }
     }
 
     pub fn bounding_box(&self) -> Rectangle {
