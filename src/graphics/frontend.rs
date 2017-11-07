@@ -147,11 +147,20 @@ impl Graphics {
     }
 
     pub fn draw_line_trans(&mut self, line: Line, col: Color, trans: Transform) {
-        self.draw_polygon_trans(&[Vector::zero(), Vector::zero(), line.end - line.start], col, Transform::translate(line.start) * trans);
+        let start = Vector::zero();
+        let end = line.end - line.start;
+        if (end - start).normalize() == Vector::x() {
+            self.draw_polygon_trans(&[start, start + Vector::y(), end + Vector::y(), end], col, 
+                                Transform::translate(line.start) * trans);
+        } else {
+            self.draw_polygon_trans(&[start, start + Vector::x(), end + Vector::y(), end], col, 
+                                    Transform::translate(line.start) * trans);
+        }
     }
 
     pub fn draw_point(&mut self, vec: Vector, col: Color) {
-        self.draw_polygon_trans(&[vec, vec, vec], col, Transform::identity());
+        self.draw_polygon_trans(&[vec, vec + Vector::x(), vec + Vector::one(), vec + Vector::y()], 
+                                col, Transform::identity());
     }
 
     pub fn draw_shape(&mut self, shape: Shape, col: Color) {
