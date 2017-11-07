@@ -68,6 +68,7 @@ impl State for Screen {
     }
 
     fn draw(&mut self, draw: &mut Graphics) {
+        draw.draw_line(Line::new(Vector::zero(), Vector::one() * 100), Colors::BLACK);
         draw.draw_shape(self.player.bounds, Colors::BLUE);
         draw.draw_shape_trans(self.player.bounds, Colors::BLUE, Transform::translate(Vector::one() * 16) 
                 * Transform::rotate(45.0) 
