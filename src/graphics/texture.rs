@@ -79,7 +79,9 @@ impl Texture {
 
     pub fn region(&self) -> TextureRegion {
         TextureRegion {
-            source: self,
+            id: self.id,
+            width: self.width,
+            height: self.height,
             region: Rectangle::newi_sized(self.width, self.height),
         }
     }
@@ -94,22 +96,24 @@ impl Drop for Texture {
 }
 
 #[derive(Clone, Copy)]
-pub struct TextureRegion<'a> {
-    source: &'a Texture,
+pub struct TextureRegion {
+    id: u32,
+    width: i32,
+    height: i32,
     region: Rectangle,
 }
 
-impl<'a> TextureRegion<'a> {
+impl TextureRegion {
     pub fn get_id(&self) -> u32 {
-        self.source.id
+        self.id
     }
 
     pub fn source_width(&self) -> i32 {
-        self.source.width
+        self.width
     }
 
     pub fn source_height(&self) -> i32 {
-        self.source.height
+        self.height
     }
 
     pub fn source_size(&self) -> Vector {
@@ -122,7 +126,9 @@ impl<'a> TextureRegion<'a> {
 
     pub fn subregion(&self, rect: Rectangle) -> TextureRegion {
         TextureRegion {
-            source: self.source,
+            id: self.id,
+            width: self.width,
+            height: self.height,
             region: Rectangle::new(
                 self.region.x + rect.x,
                 self.region.y + rect.y,

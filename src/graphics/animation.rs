@@ -1,12 +1,12 @@
 use graphics::TextureRegion;
 
-pub struct Frame<'a> {
-    pub image: TextureRegion<'a>,
+pub struct Frame {
+    pub image: TextureRegion,
     pub delay: usize,
 }
 
-impl<'a> Frame<'a> {
-    pub fn new(image: TextureRegion<'a>, delay: usize) -> Frame<'a> {
+impl Frame {
+    pub fn new(image: TextureRegion, delay: usize) -> Frame {
         Frame {
             image: image,
             delay: delay,
@@ -15,7 +15,7 @@ impl<'a> Frame<'a> {
 }
 
 pub struct Animation<'a> {
-    frames: &'a [Frame<'a>],
+    frames: &'a [Frame],
     current_frame: usize,
     current_time: usize,
 }
