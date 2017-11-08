@@ -67,8 +67,12 @@ impl Graphics {
     }
 
     pub fn draw_image_trans(&mut self, image: TextureRegion, area: Rectangle, col: Color, trans: Transform) {
-        let trans = self.camera() * Transform::translate(area.top_left()) * trans *
-            Transform::scale(area.size());
+        let trans = self.camera() 
+            * Transform::translate(area.top_left()) 
+            * Transform::translate(area.size() / 2) 
+            * trans 
+            * Transform::translate(-area.size() / 2)
+            * Transform::scale(area.size());
         let recip_size = image.source_size().recip();
         let normalized_pos = image.get_region().top_left().times(recip_size);
         let normalized_size = image.get_region().size().times(recip_size);
