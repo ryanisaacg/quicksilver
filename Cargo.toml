@@ -9,7 +9,7 @@ path = "src/lib.rs"
 
 [[bin]]
 name = "example"
-path = "src/bin.rs"
+path = "example/example.rs"
 
 [dependencies]
 gl = "~0.6"
