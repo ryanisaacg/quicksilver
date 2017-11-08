@@ -58,7 +58,7 @@ impl Texture {
         }
     }
 
-    pub fn load(path: &Path) -> Result<Texture, imagefmt::Error> {
+    pub(crate) fn load(path: &Path) -> Result<Texture, imagefmt::Error> {
         let data = imagefmt::read(path, imagefmt::ColFmt::RGBA)?;
         let format = match data.fmt {
             imagefmt::ColFmt::RGB => Result::Ok(PixelFormat::RGB),
