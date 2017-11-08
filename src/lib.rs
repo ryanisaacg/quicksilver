@@ -2,16 +2,15 @@ extern crate gl;
 extern crate imagefmt;
 extern crate glutin;
 
+mod assets;
 mod geom;
 mod graphics;
 mod input;
 
+pub use assets::*;
 pub use geom::*;
 pub use graphics::*;
 pub use input::*;
-
-mod manager;
-pub use manager::AssetManager;
 
 use std::time::Duration;
 
