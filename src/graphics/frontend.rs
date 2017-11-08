@@ -70,8 +70,8 @@ impl Graphics {
         let trans = self.camera() * Transform::translate(area.top_left()) * trans *
             Transform::scale(area.size());
         let recip_size = image.source_size().recip();
-        let normalized_pos = area.top_left().times(recip_size);
-        let normalized_size = area.size().times(recip_size);
+        let normalized_pos = image.get_region().top_left().times(recip_size);
+        let normalized_size = image.get_region().size().times(recip_size);
         let get_vertex = |v: Vector| {
             Vertex {
                 pos: trans * v,
