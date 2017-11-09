@@ -33,16 +33,12 @@ pub struct Tilemap<T: Clone> {
 
 impl<T: Clone> Tilemap<T> {
     pub fn new(map_width: f32, map_height: f32, tile_width: f32, tile_height: f32) -> Tilemap<T> {
-        Tilemap {
-            data: vec![
-                Tile::empty(None);
-                (map_width / tile_width * map_height / tile_height) as usize
-            ],
-            width: map_width,
-            height: map_height,
-            tile_width,
-            tile_height,
-        }
+        Tilemap::with_data(vec![Tile::empty(None);(map_width / tile_width * map_height / tile_height) as usize],
+            map_width, map_height, tile_width, tile_height)
+    }
+
+    pub fn with_data(data: Vec<Tile<T>>, width: f32, height: f32, tile_width: f32, tile_height: f32) -> Tilemap<T> {
+        Tilemap { data, width, height, tile_width, tile_height }
     }
 
     pub fn width(&self) -> f32 {
