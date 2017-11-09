@@ -1,6 +1,7 @@
 extern crate gl;
 extern crate imagefmt;
 extern crate glutin;
+extern crate tiled;
 
 mod assets;
 mod geom;
