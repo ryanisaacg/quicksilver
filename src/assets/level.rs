@@ -7,6 +7,7 @@ use geom::{Rectangle, Tile, Tilemap, Vector};
 use graphics::{Color, TextureRegion};
 
 use std::path::Path;
+use std::env;
 
 pub struct Object {
     pub id: u32,
@@ -49,6 +50,8 @@ fn convert_col_opt(col: Option<tiled::Colour>, a: f32) -> Option<Color> {
 
 impl Level {
     pub fn load(path: &Path, assets: &mut AssetManager) -> Result<Level, TiledError> {
+        let previous_dir = env::current_dir().unwrap();
+        env::set_current_dir(path.parent().unwrap()).unwrap();
         let tiled_map = tiled::parse_file(path)?;
         let mut textures: Vec<Option<TextureRegion>> = Vec::new();
         for tileset in tiled_map.tilesets.iter() {
@@ -64,7 +67,7 @@ impl Level {
                         while textures.len() <= current {
                             textures.push(None);
                         }
-                        let texture = assets.load_texture(path.join(Path::new(&image.source)).to_str().unwrap());
+                        let texture = assets.load_texture(&image.source);
                         let region =  Rectangle::newi(x, y, tile_width, tile_height);
                         textures[current] = Some(texture.region().subregion(region));
                         current += 1;
@@ -74,6 +77,7 @@ impl Level {
                 }
             }
         }
+        env::set_current_dir(previous_dir);
         Ok(Level {
             object_groups: tiled_map.object_groups.iter()
                 .map(|group| ObjectGroup {
