@@ -107,7 +107,7 @@ impl Level {
                     map: Tilemap::with_data(layer.tiles.iter()
                         .map(|vec| vec.iter().map(|n| if *n == 0 { Tile::empty(None) } else { Tile::solid(textures[*n as usize]) }).collect())
                         .fold(Vec::new(), |mut a, mut b| { a.append(&mut b); a }),
-                        tiled_map.width as f32, tiled_map.height as f32, tiled_map.tile_width as f32, tiled_map.tile_height as f32)
+                        (tiled_map.width * tiled_map.tile_width) as f32, (tiled_map.height * tiled_map.tile_height) as f32, tiled_map.tile_width as f32, tiled_map.tile_height as f32)
                 }).collect(),
             properties: tiled_map.properties,
             background_color: convert_col_opt(tiled_map.background_colour, 1.0)
