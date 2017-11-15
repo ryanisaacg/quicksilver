@@ -227,7 +227,7 @@ mod tests {
     fn inverse() {
         let vec = Vector::newi(3, 5);
         let inverse = vec.recip();
-        assert_eq!(Vector::newf(1.0 / 3.0, 1.0 / 5.0), inverse);
+        assert_eq!(Vector::new(1.0 / 3.0, 1.0 / 5.0), inverse);
     }
 
     #[test]
