@@ -31,24 +31,20 @@ impl Circle {
 
     ///Check to see if a circle contains a point
     pub fn contains(self, v: Vector) -> bool {
-        (v - self.center()).len2() < self.radius * self.radius
+        (v - self.center()).len2() < self.radius.powi(2)
     }
 
     ///Check to see if a circle intersects a line
     pub fn intersects(self, l: Line) -> bool {
-        let center = self.center();
-        let line = l.end - l.start;
-        let dist = center - l.start;
-        let nor_line = line.normalize();
-        let product = dist.dot(nor_line);
-        let check_point = if product <= 0f32 {
-            l.start
-        } else if product >= 1f32 {
-            l.end
-        } else {
-            l.start + nor_line * product
-        };
-        (center - check_point).len2() < self.radius.powi(2)
+        let line_direction = (l.end - l.start).normalize();
+        //Check if the circle contains the closest point
+        //The dot product of the distance to the start and the direction yields
+        //the normalized distance along the line
+        self.contains(match (self.center() - l.start).dot(line_direction) {
+            x if x <= 0f32 => l.start,
+            x if x >= 1f32 => l.end,
+            x => l.start + line_direction * x
+        })
     }
 
     ///Check if a circle overlaps a rectangle
@@ -58,10 +54,7 @@ impl Circle {
 
     ///Check if two circles overlap
     pub fn overlaps_circ(self, c: Circle) -> bool {
-        let x_diff = self.x - c.x;
-        let y_diff = self.y - c.y;
-        let radius = self.radius + c.radius;
-        x_diff.powi(2) + y_diff.powi(2) < radius.powi(2)
+        (self.center() - c.center()).len2() < (self.radius + c.radius).powi(2)
     }
 
     ///Translate a circle by a given vector
