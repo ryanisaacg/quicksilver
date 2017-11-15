@@ -68,33 +68,14 @@ impl Rectangle {
 
     ///Check if any of the area bounded by this rectangle is bounded by a circle
     pub fn overlaps_circ(self, c: Circle) -> bool {
-        let closest = Vector::new(
-            if c.x < self.x {
-                self.x
-            } else if c.x > self.x + self.width {
-                self.x + self.width
-            } else {
-                c.x
-            },
-            if c.y < self.y {
-                self.y
-            } else if c.y > self.y + self.height {
-                self.y + self.height
-            } else {
-                c.y
-            },
-        );
-        let closest = closest - c.center();
-        closest.x.powi(2) + closest.y.powi(2) < c.radius.powi(2)
+        (c.center().clamp(self.top_left(), self.top_left() + self.size()) - c.center()).len2() < c.radius.powi(2)
     }
 
     ///Move the rectangle so it is entirely contained with another
     pub fn constrain(self, outer: Rectangle) -> Rectangle {
-        let top_left = self.top_left().clamp(
-            outer.top_left(),
-            outer.top_left() + outer.size() - self.size(),
-        );
-        Rectangle::new(top_left.x, top_left.y, self.width, self.height)
+        Rectangle::newv(self.top_left().clamp(
+            outer.top_left(), outer.top_left() + outer.size() - self.size()
+        ), self.size())
     }
 
     ///Translate the rectangle by a given vector
@@ -102,19 +83,29 @@ impl Rectangle {
         Rectangle::new(self.x + v.x, self.y + v.y, self.width, self.height)
     }
 
+    ///Get the top of the rectangle
+    pub fn top(self) -> Line {
+        Line::new(self.top_left(), self.top_left() + self.size().x_comp())
+    }
+
+    ///Get the left of the rectangle
+    pub fn left(self) -> Line {
+        Line::new(self.top_left(), self.top_left() + self.size().y_comp())
+    }
+     
+    ///Get the bottom of the rectangle
+    pub fn bottom(self) -> Line {
+        Line::new(self.top_left() + self.size().y_comp(), self.top_left() + self.size())
+    }
+    
+    ///Get the right of the rectangle
+    pub fn right(self) -> Line {
+        Line::new(self.top_left() + self.size().x_comp(), self.top_left() + self.size())
+    }
     ///Check if a line segment intersects a rectangle
     pub fn intersects(self, l: Line) -> bool {
-        self.contains(l.start) || self.contains(l.end) ||
-            Line::new(self.top_left(), self.top_left() + self.size().x_comp()).intersects(l) ||
-            Line::new(self.top_left(), self.top_left() + self.size().y_comp()).intersects(l) ||
-            Line::new(
-                self.top_left() + self.size().x_comp(),
-                self.top_left() + self.size(),
-            ).intersects(l) ||
-            Line::new(
-                self.top_left() + self.size().y_comp(),
-                self.top_left() + self.size(),
-            ).intersects(l)
+        self.contains(l.start) || self.contains(l.end) || self.top().intersects(l) || 
+            self.left().intersects(l) || self.right().intersects(l) || self.bottom().intersects(l)
     }
 }
 
