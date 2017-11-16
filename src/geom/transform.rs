@@ -4,51 +4,47 @@ use std::f32::consts::PI;
 use std::fmt;
 
 #[derive(Debug, Clone, Copy)]
-pub struct Transform {
-    data: [f32; 9],
-}
+pub struct Transform([[f32; 3]; 3]);
 
 impl Transform {
     pub fn identity() -> Transform {
-        Transform { data: [1f32, 0f32, 0f32, 0f32, 1f32, 0f32, 0f32, 0f32, 1f32] }
+        Transform([[1f32, 0f32, 0f32],
+                  [0f32, 1f32, 0f32],
+                  [0f32, 0f32, 1f32]])
     }
 
     pub fn rotate(angle: f32) -> Transform {
         let c = (angle * PI / 180f32).cos();
         let s = (angle * PI / 180f32).sin();
-        Transform { data: [c, -s, 0f32, s, c, 0f32, 0f32, 0f32, 1f32] }
+        Transform([[c, -s, 0f32],
+                  [s, c, 0f32],
+                  [0f32, 0f32, 1f32]])
     }
 
     pub fn translate(vec: Vector) -> Transform {
-        Transform { data: [1f32, 0f32, vec.x, 0f32, 1f32, vec.y, 0f32, 0f32, 1f32] }
+        Transform([[1f32, 0f32, vec.x],
+                  [0f32, 1f32, vec.y],
+                  [0f32, 0f32, 1f32]])
     }
 
     pub fn scale(vec: Vector) -> Transform {
-        Transform { data: [vec.x, 0f32, 0f32, 0f32, vec.y, 0f32, 0f32, 0f32, 1f32] }
+        Transform([[vec.x, 0f32, 0f32],
+                  [0f32, vec.y, 0f32],
+                  [0f32, 0f32, 1f32]])
     }
 
     fn index(&self, x: usize, y: usize) -> f32 {
-        self.data[x * 3 + y]
+        self.0[x][y]
     }
 
     fn index_mut(&mut self, x: usize, y: usize) -> &mut f32 {
-        &mut self.data[x * 3 + y]
+        &mut self.0[x][y]
     }
 
     pub fn transpose(&self) -> Transform {
-        Transform {
-            data: [
-                self.index(0, 0),
-                self.index(0, 1),
-                self.index(0, 2),
-                self.index(1, 0),
-                self.index(1, 1),
-                self.index(1, 2),
-                self.index(2, 0),
-                self.index(2, 1),
-                self.index(2, 2),
-            ],
-        }
+        Transform([[self.0[0][0], self.0[1][0], self.0[2][0]],
+                  [self.0[0][1], self.0[1][1], self.0[2][1]],
+                  [self.0[0][2], self.0[1][2], self.0[2][2]]])
     }
     
     pub fn inverse(&self) -> Transform {
@@ -70,10 +66,6 @@ impl Transform {
         *inverse.index_mut(2, 1) = self.index(2, 0) * self.index(0, 1) - self.index(0, 0) * self.index(2, 1);
         *inverse.index_mut(2, 2) = self.index(0, 0) * self.index(1, 1) - self.index(1, 0) * self.index(0, 1);
         inverse * inv_det
-    }
-
-    pub fn get_array(&self) -> &[f32] {
-        &self.data
     }
 }
 
