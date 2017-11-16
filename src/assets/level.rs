@@ -99,15 +99,25 @@ impl Level {
                         }).collect()
                 }).collect(),
             layers: tiled_map.layers.iter()
-                .map(|layer| Layer {
-                    name: layer.name.clone(),
-                    opacity: layer.opacity,
-                    visible: layer.visible,
-                    properties: layer.properties.clone(),
-                    map: Tilemap::with_data(layer.tiles.iter()
-                        .map(|vec| vec.iter().map(|n| if *n == 0 { Tile::empty(None) } else { Tile::solid(textures[*n as usize]) }).collect())
-                        .fold(Vec::new(), |mut a, mut b| { a.append(&mut b); a }),
-                        (tiled_map.width * tiled_map.tile_width) as f32, (tiled_map.height * tiled_map.tile_height) as f32, tiled_map.tile_width as f32, tiled_map.tile_height as f32)
+                .map(|layer| {
+                    let tile_width = tiled_map.tile_width as f32;
+                    let tile_height = tiled_map.tile_height as f32;
+                    let mut map: Tilemap<TextureRegion> = Tilemap::new((tiled_map.width * tiled_map.tile_width) as f32, (tiled_map.height * tiled_map.tile_height) as f32, 
+                                               tile_width, tile_height);
+                    for y in 0..layer.tiles.len() {
+                        for x in 0..layer.tiles[y].len() {
+                            let tile = layer.tiles[y][x];
+                            let tile: Tile<TextureRegion> = if tile == 0 { Tile::empty(None) } else { Tile::solid(textures[tile as usize]) };
+                            map.set(Vector::new(x as f32 * tile_width, y as f32 * tile_height), tile);
+                        }
+                    }
+                    Layer {
+                        name: layer.name.clone(),
+                        opacity: layer.opacity,
+                        visible: layer.visible,
+                        properties: layer.properties.clone(),
+                        map
+                    }
                 }).collect(),
             properties: tiled_map.properties,
             background_color: convert_col_opt(tiled_map.background_colour, 1.0)
