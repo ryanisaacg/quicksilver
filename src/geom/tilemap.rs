@@ -108,50 +108,26 @@ impl<T: Clone> Tilemap<T> {
             None => false,
         }
     }
-
-    pub fn region_empty(&self, area: Rectangle) -> bool {
-        let mut x = area.x;
-        let mut y = area.y;
-        while x < area.x + area.width {
-            while y < area.y + area.height {
-                if !self.point_empty(Vector::new(x, y)) {
-                    return false;
-                }
-                y += self.tile_height;
-            }
-            x += self.tile_width;
-        }
-        let x_aligned = (area.x + area.width) % self.tile_width == 0f32;
-        let y_aligned = (area.y + area.height) % self.tile_height == 0f32;
-        (self.point_empty(area.top_left() + area.size().x_comp()) || x_aligned) &&
-            (self.point_empty(area.top_left() + area.size().y_comp()) || y_aligned) &&
-            (self.point_empty(area.top_left() + area.size()) || x_aligned || y_aligned)
-    }
-
+    
     pub fn shape_empty(&self, shape: Shape) -> bool {
-        let bounds = shape.bounding_box();
-        if self.region_empty(bounds) {
-            true
-        } else {
-            match shape {
-                //Rectangles and vectors are perfectly represented by their bounds
-                Shape::Rect(_) => false,
-                Shape::Vect(_) => false,
-                Shape::Circ(_) | Shape::Line(_) => {
-                    let x_start = (self.align_left(bounds.x) / self.tile_width) as i32;
-                    let y_start = (self.align_top(bounds.y) / self.tile_height) as i32;
-                    let x_end = (self.align_right(bounds.x + bounds.width) / self.tile_width) as i32;
-                    let y_end = (self.align_right(bounds.y + bounds.height) / self.tile_height) as i32;
-                    for x in x_start..x_end {
-                        for y in y_start..y_end {
-                            let point = Vector::newi(x, y).times(self.tile_size());
-                            if !self.point_empty(point) && shape.overlaps_rect(Rectangle::newv(point, self.tile_size())) {
-                                return false;
-                            }
+        let bounds = shape.bounding_box(); 
+        match shape {
+            //Rectangles and vectors are perfectly represented by their bounds
+            Shape::Vect(_) => self.point_empty(shape.center()),
+            Shape::Rect(_) | Shape::Circ(_) | Shape::Line(_) => {
+                let x_start = (self.align_left(bounds.x) / self.tile_width) as i32;
+                let y_start = (self.align_top(bounds.y) / self.tile_height) as i32;
+                let x_end = (self.align_right(bounds.x + bounds.width) / self.tile_width) as i32;
+                let y_end = (self.align_right(bounds.y + bounds.height) / self.tile_height) as i32;
+                for x in x_start..x_end {
+                    for y in y_start..y_end {
+                        let point = Vector::newi(x, y).times(self.tile_size());
+                        if !self.point_empty(point) && shape.overlaps_rect(Rectangle::newv(point, self.tile_size())) {
+                            return false;
                         }
                     }
-                    true
                 }
+                true
             }
         }
     }
