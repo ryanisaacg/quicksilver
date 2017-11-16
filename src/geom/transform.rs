@@ -49,22 +49,22 @@ impl Transform {
     
     pub fn inverse(&self) -> Transform {
         let det = 
-            self.index(0, 0) * (self.index(1, 1) * self.index(2, 2) - self.index(2, 1) * self.index(1, 2))
-            - self.index(0, 1) * (self.index(1, 0) * self.index(2, 2) - self.index(1, 2) * self.index(2, 0))
-            + self.index(0, 2) * (self.index(1, 0) * self.index(2, 1) - self.index(1, 1) * self.index(2, 0));
+            self.0[0][0] * (self.0[1][1] * self.0[2][2] - self.0[2][1] * self.0[1][2])
+            - self.0[0][1] * (self.0[1][0] * self.0[2][2] - self.0[1][2] * self.0[2][0])
+            + self.0[0][2] * (self.0[1][0] * self.0[2][1] - self.0[1][1] * self.0[2][0]);
 
         let inv_det = det.recip();
 
         let mut inverse = Transform::identity();
-        *inverse.index_mut(0, 0) = self.index(1, 1) * self.index(2, 2) - self.index(2, 1) * self.index(1, 2);
-        *inverse.index_mut(0, 1) = self.index(0, 2) * self.index(2, 1) - self.index(0, 1) * self.index(2, 2);
-        *inverse.index_mut(0, 2) = self.index(0, 1) * self.index(1, 2) - self.index(0, 2) * self.index(1, 1);
-        *inverse.index_mut(1, 0) = self.index(1, 2) * self.index(2, 0) - self.index(1, 0) * self.index(2, 2);
-        *inverse.index_mut(1, 1) = self.index(0, 0) * self.index(2, 2) - self.index(0, 2) * self.index(2, 0);
-        *inverse.index_mut(1, 2) = self.index(1, 0) * self.index(0, 2) - self.index(0, 0) * self.index(1, 2);
-        *inverse.index_mut(2, 0) = self.index(1, 0) * self.index(2, 1) - self.index(2, 0) * self.index(1, 1);
-        *inverse.index_mut(2, 1) = self.index(2, 0) * self.index(0, 1) - self.index(0, 0) * self.index(2, 1);
-        *inverse.index_mut(2, 2) = self.index(0, 0) * self.index(1, 1) - self.index(1, 0) * self.index(0, 1);
+        inverse.0[0][0] = self.0[1][1] * self.0[2][2] - self.0[2][1] * self.0[1][2];
+        inverse.0[0][1] = self.0[0][2] * self.0[2][1] - self.0[0][1] * self.0[2][2];
+        inverse.0[0][2] = self.0[0][1] * self.0[1][2] - self.0[0][2] * self.0[1][1];
+        inverse.0[1][0] = self.0[1][2] * self.0[2][0] - self.0[1][0] * self.0[2][2];
+        inverse.0[1][1] = self.0[0][0] * self.0[2][2] - self.0[0][2] * self.0[2][0];
+        inverse.0[1][2] = self.0[1][0] * self.0[0][2] - self.0[0][0] * self.0[1][2];
+        inverse.0[2][0] = self.0[1][0] * self.0[2][1] - self.0[2][0] * self.0[1][1];
+        inverse.0[2][1] = self.0[2][0] * self.0[0][1] - self.0[0][0] * self.0[2][1];
+        inverse.0[2][2] = self.0[0][0] * self.0[1][1] - self.0[1][0] * self.0[0][1];
         inverse * inv_det
     }
 }
@@ -76,9 +76,9 @@ impl Mul<Transform> for Transform {
         let mut returnval = Transform::identity();
         for i in 0..3 {
             for j in 0..3 {
-                *returnval.index_mut(i, j) = 0f32;
+                returnval.0[i][j] = 0f32;
                 for k in 0..3 {
-                    *returnval.index_mut(i, j) += other.index(k, j) * self.index(i, k);
+                    returnval.0[i][j] += other.0[k][j] * self.0[i][k];
                 }
             }
         }
@@ -91,8 +91,8 @@ impl Mul<Vector> for Transform {
 
     fn mul(self, other: Vector) -> Vector {
         Vector::new(
-            other.x * self.index(0, 0) + other.y * self.index(0, 1) + self.index(0, 2),
-            other.x * self.index(1, 0) + other.y * self.index(1, 1) + self.index(1, 2),
+            other.x * self.0[0][0] + other.y * self.0[0][1] + self.0[0][2],
+            other.x * self.0[1][0] + other.y * self.0[1][1] + self.0[1][2],
         )
     }
 }
@@ -104,7 +104,7 @@ impl Mul<f32> for Transform {
         let mut ret = Transform::identity();
         for i in 0..3 {
             for j in 0..3 {
-                *ret.index_mut(i, j) = self.index(i, j) * other;
+                ret.0[i][j] = self.0[i][j] * other;
             }
         }
         ret
@@ -116,7 +116,7 @@ impl fmt::Display for Transform {
         write!(f, "[")?;
         for i in 0..3 {
             for j in 0..3 {
-                write!(f, "{},", self.index(i, j))?;
+                write!(f, "{},", self.0[i][j])?;
             }
             write!(f, "\n")?;
         }
