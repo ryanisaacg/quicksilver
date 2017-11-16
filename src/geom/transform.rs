@@ -127,12 +127,6 @@ mod tests {
         let inverse = translate.inverse();
         let transformed = inverse * vec;
         let expected = vec * 2;
-        for i in 0..3 {
-            for j in 0..3 {
-                print!("{},", inverse.index(i, j));
-            }
-            print!("\n");
-        }
         assert_eq!(transformed, expected);
     }
 
