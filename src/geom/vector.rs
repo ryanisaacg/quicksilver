@@ -227,10 +227,7 @@ mod tests {
     fn inverse() {
         let vec = Vector::newi(3, 5);
         let inverse = vec.recip();
-        assert!(
-            (inverse.x - vec.x.recip()).abs() < FLOAT_LIMIT &&
-                (inverse.y - vec.y.recip()).abs() < FLOAT_LIMIT
-        );
+        assert_eq!(Vector::new(1.0 / 3.0, 1.0 / 5.0), inverse);
     }
 
     #[test]
