@@ -33,14 +33,6 @@ impl Transform {
                   [0f32, 0f32, 1f32]])
     }
 
-    fn index(&self, x: usize, y: usize) -> f32 {
-        self.0[x][y]
-    }
-
-    fn index_mut(&mut self, x: usize, y: usize) -> &mut f32 {
-        &mut self.0[x][y]
-    }
-
     pub fn transpose(&self) -> Transform {
         Transform([[self.0[0][0], self.0[1][0], self.0[2][0]],
                   [self.0[0][1], self.0[1][1], self.0[2][1]],
