@@ -1,0 +1,1 @@
+The OpenGL Backend should not be flushing mid-frame, it should store completed draw calls somehow
