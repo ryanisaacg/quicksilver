@@ -11,8 +11,6 @@ addons:
       - gcc
       - binutils-dev
       - libiberty-dev
-before_script:
-  - export RUSTFLAGS="-C link-dead-code"
 rust:
   - stable
   - beta
@@ -20,6 +18,8 @@ rust:
 after_success:
   - |
       if [[ "$TRAVIS_OS_NAME" == "linux" && "$TRAVIS_RUST_VERSION" == "stable" ]]; then
+        export RUSTFLAGS="-C link-dead-code"
+        TEST_FILES=$(cargo test 2>&1 >/dev/null | awk '/^     Running target\/debug\// { print $2 }')
         wget https://github.com/SimonKagstrom/kcov/archive/master.tar.gz &&
         tar xzf master.tar.gz &&
         cd kcov-master &&
@@ -30,7 +30,7 @@ after_success:
         make install DESTDIR=../../kcov-build &&
         cd ../.. &&
         rm -rf kcov-master &&
-        for file in target/debug/qs-*[^\.d]; do mkdir -p "target/cov/$(basename $file)"; ./kcov-build/usr/local/bin/kcov --exclude-pattern=/.cargo,/usr/lib --verify "target/cov/$(basename $file)" "$file"; done &&
+        for file in $TEST_FILES; do mkdir -p "target/cov/$(basename $file)"; ./kcov-build/usr/local/bin/kcov --exclude-pattern=/.cargo,/usr/lib --verify "target/cov/$(basename $file)" "$file"; done &&
         bash <(curl -s https://codecov.io/bash) &&
         echo "Uploaded code coverage"
       fi
