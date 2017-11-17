@@ -119,6 +119,7 @@ mod tests {
         assert!(circ.intersects(line2));
         assert!(!circ.intersects(line3));
         assert!(!circ.intersects(line4));
+        assert!(circ.intersects(line5));
     }
 
     #[test]
