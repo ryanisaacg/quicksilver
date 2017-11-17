@@ -11,6 +11,8 @@ addons:
       - gcc
       - binutils-dev
       - libiberty-dev
+before_script:
+  - export RUSTFLAGS="-C link-dead-code"
 rust:
   - stable
   - beta
