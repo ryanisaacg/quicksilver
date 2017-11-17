@@ -1,8 +1,5 @@
 language: rust
 before_install:
-  - echo "$TRAVIS_OS_NAME" == "linux" && "$TRAVIS_RUST_VERSION" == "stable"
-  - echo "$TRAVIS_OS_NAME" == "linux"
-  - echo "$TRAVIS_RUST_VERSION" == "stable"
   - sudo apt-get update
 addons:
   apt:
@@ -20,6 +17,7 @@ rust:
 after_success:
   - |
       if [[ "$TRAVIS_OS_NAME" == "linux" && "$TRAVIS_RUST_VERSION" == "stable" ]]; then
+        echo "attempt to upload"
         wget https://github.com/SimonKagstrom/kcov/archive/master.tar.gz &&
         tar xzf master.tar.gz &&
         cd kcov-master &&
