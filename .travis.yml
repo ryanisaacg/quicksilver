@@ -1,5 +1,8 @@
 language: rust
 before_install:
+  - echo "$TRAVIS_OS_NAME" == "linux" && "$TRAVIS_RUST_VERSION" == "stable"
+  - echo "$TRAVIS_OS_NAME" == "linux"
+  - echo "$TRAVIS_RUST_VERSION" == "stable"
   - sudo apt-get update
 addons:
   apt:
