@@ -41,21 +41,21 @@ impl State for Screen {
         }
     }
 
-    fn tick(&mut self, keys: &Keyboard, _: &Mouse, _: &ViewportBuilder) -> Duration {
+    fn tick(&mut self, UpdateInformation { keyboard, .. }: UpdateInformation) -> Duration {
         self.player.speed += Vector::y() * 0.5;
         if self.player.speed.x.abs() < 0.3 {
             self.player.speed.x = 0.0;
         } else {
             self.player.speed.x *= 0.9;
         }
-        if keys[Key::A].is_down() {
+        if keyboard[Key::A].is_down() {
             self.player.speed.x -= 0.4;
             self.player.facing = -Vector::x();
-        } else if keys[Key::D].is_down() {
+        } else if keyboard[Key::D].is_down() {
             self.player.speed.x += 0.4;
             self.player.facing = Vector::x();
         }
-        if keys[Key::Space].is_down() {
+        if keyboard[Key::Space].is_down() {
             if !self.map.shape_empty(self.player.bounds.translate(Vector::y())) {
                 self.player.speed.y = -8f32;
             } else if !self.map.shape_empty(self.player.bounds.translate(self.player.facing)) {

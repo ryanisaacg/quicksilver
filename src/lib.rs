@@ -17,8 +17,14 @@ use std::time::Duration;
 
 pub trait State {
     fn new(&mut AssetManager, frontend: &mut Graphics) -> Self;
-    fn tick(&mut self, keyboard: &Keyboard, mouse: &Mouse, builder: &ViewportBuilder) -> Duration;
+    fn tick(&mut self, info: UpdateInformation) -> Duration;
     fn draw(&mut self, frontend: &mut Graphics);
+}
+
+pub struct UpdateInformation<'a> {
+    pub keyboard: &'a Keyboard,
+    pub mouse: &'a Mouse,
+    pub builder: &'a ViewportBuilder
 }
 
 pub fn run<T: State + Send + 'static>(title: &str, width: u32, height: u32) {
@@ -66,8 +72,8 @@ pub fn run<T: State + Send + 'static>(title: &str, width: u32, height: u32) {
             let delay = {
                 let mut keyboard = keyboard.lock().unwrap();
                 let mut mouse = mouse.lock().unwrap();
-                let builder = ViewportBuilder::new(*screen_size.lock().unwrap() / *scale_factor.lock().unwrap());
-                let delay = state.lock().unwrap().tick(&keyboard, &mouse, &builder);
+                let builder = &ViewportBuilder::new(*screen_size.lock().unwrap() / *scale_factor.lock().unwrap());
+                let delay = state.lock().unwrap().tick(UpdateInformation { keyboard: &keyboard, mouse: &mouse, builder });
                 keyboard.clear_temporary_states();
                 mouse.clear_temporary_states();
                 delay
