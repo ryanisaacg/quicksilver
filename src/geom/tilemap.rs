@@ -73,6 +73,11 @@ impl<T: Clone> Tilemap<T> {
         index.x >= 0f32 && index.y >= 0f32 && index.x < self.width && index.y < self.height
     }
 
+    pub fn shape_valid(&self, shape: Shape) -> bool {
+        let bbox = shape.bounding_box();
+        self.valid(bbox.top_left()) && self.valid(bbox.top_left() + bbox.size())
+    }
+
     fn array_index(&self, index: Vector) -> usize {
         ((index.x / self.tile_width).trunc() * (self.height / self.tile_height).trunc() +
              (index.y / self.tile_height).trunc()) as usize
