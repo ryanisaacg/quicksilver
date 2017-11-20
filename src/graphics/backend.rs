@@ -70,6 +70,8 @@ impl GLBackend {
             gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
             gl::GenBuffers(1, &mut ebo as *mut GLuint);
             gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, ebo);
+            gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
+            gl::Enable( gl::BLEND );
             let mut backend = GLBackend {
                 texture: 0,
                 vertices: Vec::with_capacity(1024),
