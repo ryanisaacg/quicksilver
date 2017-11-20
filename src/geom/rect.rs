@@ -83,6 +83,11 @@ impl Rectangle {
         Rectangle::new(self.x + v.x, self.y + v.y, self.width, self.height)
     }
 
+    ///Create a rectangle with the same size at a given center
+    pub fn with_center(self, v: Vector) -> Rectangle {
+        self.translate(v - self.center())
+    }
+
     ///Get the top of the rectangle
     pub fn top(self) -> Line {
         Line::new(self.top_left(), self.top_left() + self.size().x_comp())
