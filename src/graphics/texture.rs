@@ -1,5 +1,5 @@
 extern crate gl;
-extern crate imagefmt;
+extern crate image;
 
 use gl::types::*;
 use geom::{Rectangle, Vector};
@@ -58,23 +58,11 @@ impl Texture {
         }
     }
 
-    pub(crate) fn load(path: &Path) -> Result<Texture, imagefmt::Error> {
-        let data = imagefmt::read(path, imagefmt::ColFmt::RGBA)?;
-        let format = match data.fmt {
-            imagefmt::ColFmt::RGB => Result::Ok(PixelFormat::RGB),
-            imagefmt::ColFmt::RGBA => Result::Ok(PixelFormat::RGBA),
-            imagefmt::ColFmt::BGR => Result::Ok(PixelFormat::BGR),
-            imagefmt::ColFmt::BGRA => Result::Ok(PixelFormat::BGRA),
-            _ => Result::Err(imagefmt::Error::Unsupported(
-                "Unsupported color format of loaded image",
-            )),
-        };
-        Result::Ok(Texture::from_raw(
-            data.buf.as_slice(),
-            data.w as i32,
-            data.h as i32,
-            format?,
-        ))
+    pub(crate) fn load(path: &Path) -> Result<Texture, image::ImageError> {
+        let img = image::open(path)?.to_rgba();
+        let width = img.width() as i32;
+        let height = img.height() as i32;
+        Result::Ok(Texture::from_raw(img.into_raw().as_slice(), width, height, PixelFormat::RGBA))
     }
 
     pub fn region(&self) -> TextureRegion {

@@ -1,5 +1,5 @@
 extern crate gl;
-extern crate imagefmt;
+extern crate image;
 extern crate glutin;
 extern crate tiled;
 

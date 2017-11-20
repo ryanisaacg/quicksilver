@@ -14,5 +14,5 @@ path = "example/example.rs"
 [dependencies]
 gl = "~0.6"
 glutin = "~0.10"
-imagefmt = "~4"
+image = "~0.17"
 tiled = "~0.7"
