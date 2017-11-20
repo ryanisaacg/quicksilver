@@ -1,6 +1,6 @@
 extern crate tiled;
 
-pub use tiled::{Properties, TiledError};
+pub use tiled::{Properties, PropertyValue, TiledError};
 
 use assets::AssetManager;
 use geom::{Rectangle, Tile, Tilemap, Vector};
