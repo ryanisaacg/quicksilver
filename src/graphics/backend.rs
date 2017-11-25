@@ -10,7 +10,8 @@ use std::ptr::null;
 use std::str::from_utf8;
 
 pub trait Backend: Send {
-    fn display(&mut self, clear_color: Color);
+    fn clear(&mut self, col: Color);
+    fn display(&mut self);
     fn add(&mut self, texture: GLuint, vertices: &[Vertex], indices: &[GLuint]);
     fn add_vertex(&mut self, vertex: &Vertex);
     fn add_index(&mut self, index: GLuint);
@@ -299,11 +300,14 @@ impl Drop for GLBackend {
 }
 
 impl Backend for GLBackend {
-    fn display(&mut self, col: Color) {
+    fn clear(&mut self, col: Color) {
         unsafe {
             gl::ClearColor(col.r, col.g, col.b, col.a);
             gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
         }
+    }
+
+    fn display(&mut self) {
         self.flush();
     }
 

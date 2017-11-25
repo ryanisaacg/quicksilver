@@ -54,8 +54,9 @@ impl Graphics {
 
     pub fn present(&mut self, window: &glutin::GlWindow) {
         window.set_cursor_state(if self.show_cursor { glutin::CursorState::Normal } else { glutin::CursorState::Hide }).unwrap();
-        self.backend.display(self.clear_color);
+        self.backend.display();
         glutin::GlContext::swap_buffers(window).unwrap();
+        self.backend.clear(self.clear_color);
     }
 
     pub fn draw_image(&mut self, image: TextureRegion, area: Rectangle) {
