@@ -6,7 +6,6 @@ use graphics::{Backend, Camera, Color, Colors, TextureRegion, Vertex};
 pub struct Graphics {
     backend: Box<Backend>,
     cam: Camera,
-    ui_mode: bool,
     clear_color: Color,
     show_cursor: bool
 }
@@ -18,7 +17,6 @@ impl Graphics {
         Graphics {
             backend,
             cam,
-            ui_mode: false,
             clear_color: Colors::BLACK,
             show_cursor: true
         }
@@ -26,14 +24,6 @@ impl Graphics {
 
     pub fn set_camera(&mut self, cam: Camera) {
         self.cam = cam;
-    }
-
-    pub fn get_ui_mode(&self) -> bool {
-        self.ui_mode
-    }
-
-    pub fn set_ui_mode(&mut self, ui_mode: bool) {
-        self.ui_mode = ui_mode;
     }
 
     pub fn set_show_cursor(&mut self, show_cursor: bool) {
