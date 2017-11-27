@@ -3,10 +3,15 @@ extern crate gl;
 use gl::types::*;
 use graphics::{Color, Vertex};
 use std::vec::Vec;
+#[cfg(not(test))]
 use std::ffi::CString;
+#[cfg(not(test))]
 use std::mem::size_of;
+#[cfg(not(test))]
 use std::os::raw::c_void;
+#[cfg(not(test))]
 use std::ptr::null;
+#[cfg(not(test))]
 use std::str::from_utf8;
 
 pub trait Backend: Send {
@@ -22,17 +27,25 @@ pub struct GLBackend {
     texture: GLuint,
     vertices: Vec<f32>,
     indices: Vec<GLuint>,
+    #[cfg(not(test))]
     shader: GLuint,
+    #[cfg(not(test))]
     fragment: GLuint,
+    #[cfg(not(test))]
     vertex: GLuint,
+    #[cfg(not(test))]
     vbo: GLuint,
+    #[cfg(not(test))]
     ebo: GLuint,
+    #[cfg(not(test))]
     vao: GLuint,
+    #[cfg(not(test))]
     texture_location: GLint,
 }
 
 const VERTEX_SIZE: usize = 9; // the number of floats in a vertex
 
+#[cfg(not(test))]
 const DEFAULT_VERTEX_SHADER: &str = r#"#version 150
 in vec2 position;
 in vec2 tex_coord;
@@ -48,6 +61,7 @@ void main() {
     gl_Position = vec4(position, 0, 1);
 }"#;
 
+#[cfg(not(test))]
 const DEFAULT_FRAGMENT_SHADER: &str = r#"#version 150
 in vec4 Color;
 in vec2 Tex_coord;
@@ -61,35 +75,50 @@ void main() {
 
 impl GLBackend {
     pub fn new() -> GLBackend {
-        unsafe {
+        #[cfg(not(test))]
+        let (vao, vbo, ebo) = unsafe {
             let mut vao: u32 = 0;
-            gl::GenVertexArrays(1, &mut vao as *mut GLuint);
-            gl::BindVertexArray(vao);
             let mut vbo: u32 = 0;
             let mut ebo: u32 = 0;
+            gl::GenVertexArrays(1, &mut vao as *mut GLuint);
+            gl::BindVertexArray(vao);
             gl::GenBuffers(1, &mut vbo as *mut GLuint);
             gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
             gl::GenBuffers(1, &mut ebo as *mut GLuint);
             gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, ebo);
             gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
             gl::Enable( gl::BLEND );
-            let mut backend = GLBackend {
-                texture: 0,
-                vertices: Vec::with_capacity(1024),
-                indices: Vec::with_capacity(1024),
-                shader: 0,
-                fragment: 0,
-                vertex: 0,
-                vbo: vbo,
-                ebo: ebo,
-                vao: vao,
-                texture_location: 0,
-            };
+            (vao, vbo, ebo)
+        };
+        let backend = GLBackend {
+            texture: 0,
+            vertices: Vec::with_capacity(1024),
+            indices: Vec::with_capacity(1024),
+            #[cfg(not(test))]
+            shader: 0,
+            #[cfg(not(test))]
+            fragment: 0,
+            #[cfg(not(test))]
+            vertex: 0,
+            #[cfg(not(test))]
+            vbo,
+            #[cfg(not(test))]
+            ebo,
+            #[cfg(not(test))]
+            vao,
+            #[cfg(not(test))]
+            texture_location: 0,
+        };
+        #[cfg(not(test))]
+        {
+            let mut backend = backend;
             backend.set_shader(DEFAULT_VERTEX_SHADER, DEFAULT_FRAGMENT_SHADER);
-            backend
+            return backend;
         }
+        backend
     }
 
+    #[cfg(not(test))]
     pub fn set_shader(&mut self, vertex_shader: &str, fragment_shader: &str) {
         unsafe {
             if self.shader != 0 {
@@ -159,6 +188,7 @@ impl GLBackend {
         }
     }
 
+    #[cfg(not(test))]
     unsafe fn create_buffers(&mut self, vbo_size: isize, ebo_size: isize) {
         //Create strings for all of the shader attributes
         let position_string = CString::new("position").unwrap().into_raw();
@@ -233,6 +263,7 @@ impl GLBackend {
         self.texture = texture;
     }
 
+    #[cfg(not(test))]
     unsafe fn set_buffer(&mut self, buffer_type: GLenum, length: usize, data: *const c_void) {
         gl::BufferSubData(buffer_type, 0, length as isize, data); 
         if gl::GetError() == gl::INVALID_VALUE {
@@ -244,6 +275,7 @@ impl GLBackend {
     }
 
     fn flush(&mut self) {
+        #[cfg(not(test))]
         unsafe {
             //Bind the vertex data
             let length = size_of::<GLfloat>() * self.vertices.len();
@@ -272,6 +304,7 @@ impl GLBackend {
 
 impl Drop for GLBackend {
     fn drop(&mut self) {
+        #[cfg(not(test))]
         unsafe {
             gl::DeleteProgram(self.shader);
             gl::DeleteShader(self.fragment);
@@ -284,12 +317,16 @@ impl Drop for GLBackend {
 }
 
 impl Backend for GLBackend {
+    #[cfg(not(test))]
     fn clear(&mut self, col: Color) {
         unsafe {
             gl::ClearColor(col.r, col.g, col.b, col.a);
             gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
         }
     }
+
+    #[cfg(test)]
+    fn clear(&mut self, _: Color) {}
 
     fn display(&mut self) {
         self.flush();
@@ -332,14 +369,12 @@ impl Backend for GLBackend {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use headless_context;
 
     use geom::Vector;
     use graphics::Colors;
 
     #[test]
     fn test_backend() {
-        headless_context();
         let mut backend = GLBackend::new();
         backend.add(1, &[Vertex {
             pos: Vector::newi(0, 0),
