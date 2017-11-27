@@ -233,41 +233,25 @@ impl GLBackend {
         self.texture = texture;
     }
 
+    unsafe fn set_buffer(&mut self, buffer_type: GLenum, length: usize, data: *const c_void) {
+        gl::BufferSubData(buffer_type, 0, length as isize, data); 
+        if gl::GetError() == gl::INVALID_VALUE {
+            let vertex_capacity = self.vertices.capacity() as isize * 2;
+            let index_capacity = self.indices.capacity() as isize * 2;
+            self.create_buffers(vertex_capacity, index_capacity);
+            self.set_buffer(buffer_type, length, data);
+        }
+    }
+
     fn flush(&mut self) {
         unsafe {
-            //Check to see if the GL buffers can hold the data
-            let mut vbo_size: GLint = 0;
-            gl::GetBufferParameteriv(
-                gl::ARRAY_BUFFER,
-                gl::BUFFER_SIZE,
-                &mut vbo_size as *mut GLint,
-            );
-            let mut ebo_size: GLint = 0;
-            gl::GetBufferParameteriv(
-                gl::ELEMENT_ARRAY_BUFFER,
-                gl::BUFFER_SIZE,
-                &mut ebo_size as *mut GLint,
-            );
-            if self.vertices.len() > (vbo_size as usize / VERTEX_SIZE) as usize ||
-                self.indices.len() > ebo_size as usize
-            {
-                let vertex_capacity = self.vertices.capacity() as isize * 2;
-                let index_capacity = self.indices.capacity() as isize * 2;
-                self.create_buffers(vertex_capacity, index_capacity);
-            }
             //Bind the vertex data
-            gl::BufferSubData(
-                gl::ARRAY_BUFFER,
-                0,
-                (size_of::<GLfloat>() * self.vertices.len()) as isize,
-                self.vertices.as_ptr() as *const c_void,
-            );
-            gl::BufferSubData(
-                gl::ELEMENT_ARRAY_BUFFER,
-                0,
-                (size_of::<GLuint>() * self.indices.len()) as isize,
-                self.indices.as_ptr() as *const c_void,
-            );
+            let length = size_of::<GLfloat>() * self.vertices.len();
+            let data = self.vertices.as_ptr() as *const c_void;
+            self.set_buffer(gl::ARRAY_BUFFER, length, data);
+            let length = size_of::<GLuint>() * self.indices.len();
+            let data = self.indices.as_ptr() as *const c_void;
+            self.set_buffer(gl::ELEMENT_ARRAY_BUFFER, length, data);
             //Upload the texture to the GPU
             gl::ActiveTexture(gl::TEXTURE0);
             gl::BindTexture(gl::TEXTURE_2D, self.texture);
