@@ -114,4 +114,18 @@ mod tests {
             }
         }
     }
+
+    #[test]
+    fn with_center() {
+        for a in get_shapes().iter() {
+            assert_eq!(a.with_center(Vector::newi(50, 40)).center(), Vector::newi(50, 40));
+        }
+    }
+
+    #[test]
+    fn translate() {
+        for a in get_shapes().iter() {
+            assert_eq!(a.translate(Vector::newi(10, 5)).center(), a.center() + Vector::newi(10, 5));
+        }
+    }
 }
