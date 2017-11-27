@@ -48,3 +48,28 @@ impl Mouse {
         self.middle = self.middle.clear_temporary();
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn with_position() {
+        assert_eq!(Mouse::new().with_position(Vector::newi(15, 3)).pos, Vector::newi(15, 3));
+    }
+
+    #[test]
+    fn button_presses() {
+        let mut mouse = Mouse::new();
+        for button in [glutin::MouseButton::Left, glutin::MouseButton::Right, glutin::MouseButton::Middle].iter() {
+            for state in [glutin::ElementState::Pressed, glutin::ElementState::Released].iter() {
+                mouse.process_button(state.clone(), button.clone());
+            }
+        }
+        mouse.clear_temporary_states();
+        assert_eq!(mouse.left, ButtonState::NotPressed);
+        assert_eq!(mouse.right, ButtonState::NotPressed);
+        assert_eq!(mouse.middle, ButtonState::NotPressed);
+    }
+}
+
