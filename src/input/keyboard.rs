@@ -56,3 +56,62 @@ impl Index<Key> for Keyboard {
         &self.keys[index as usize]
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn keypress() {
+        let mut keyboard = Keyboard::new();
+        keyboard.process_event(&glutin::KeyboardInput {
+            scancode: 0,
+            state: glutin::ElementState::Pressed,
+            virtual_keycode: Some(Key::A),
+            modifiers: glutin::ModifiersState::default()
+        });
+        assert_eq!(keyboard[Key::A], ButtonState::Pressed);
+        keyboard.process_event(&glutin::KeyboardInput {
+            scancode: 0,
+            state: glutin::ElementState::Pressed,
+            virtual_keycode: Some(Key::A),
+            modifiers: glutin::ModifiersState::default()
+        });
+        assert_eq!(keyboard[Key::A], ButtonState::Held);
+        keyboard.process_event(&glutin::KeyboardInput {
+            scancode: 0,
+            state: glutin::ElementState::Released,
+            virtual_keycode: Some(Key::A),
+            modifiers: glutin::ModifiersState::default()
+        });
+        assert_eq!(keyboard[Key::A], ButtonState::Released);
+        keyboard.process_event(&glutin::KeyboardInput {
+            scancode: 0,
+            state: glutin::ElementState::Released,
+            virtual_keycode: Some(Key::A),
+            modifiers: glutin::ModifiersState::default()
+        });
+        assert_eq!(keyboard[Key::A], ButtonState::NotPressed);
+    }
+
+    #[test]
+    fn clear_states() {
+        let mut keyboard = Keyboard::new().clone();
+        keyboard.process_event(&glutin::KeyboardInput {
+            scancode: 0,
+            state: glutin::ElementState::Pressed,
+            virtual_keycode: Some(Key::A),
+            modifiers: glutin::ModifiersState::default()
+        });
+        keyboard.clear_temporary_states();
+        assert_eq!(keyboard[Key::A], ButtonState::Held);
+        keyboard.process_event(&glutin::KeyboardInput {
+            scancode: 0,
+            state: glutin::ElementState::Released,
+            virtual_keycode: Some(Key::A),
+            modifiers: glutin::ModifiersState::default()
+        });
+        keyboard.clear_temporary_states();
+        assert_eq!(keyboard[Key::A], ButtonState::NotPressed);
+    }
+}
