@@ -356,7 +356,7 @@ impl Backend for GLBackend {
 
     fn add(&mut self, texture: GLuint, vertices: &[Vertex], indices: &[GLuint]) {
         self.switch_texture(texture);
-        let offset = self.vertices.len() / VERTEX_SIZE;
+        let offset = self.num_vertices();;
         for vertex in vertices {
             self.add_vertex(vertex);
         }
