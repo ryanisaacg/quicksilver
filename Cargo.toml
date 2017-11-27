@@ -1,15 +1,9 @@
 [package]
 name = "quicksilver"
+description = "A simple game framework for 2D games in pure Rust"
 version = "0.1.0"
 authors = ["Ryan Goldstein <ryanisaacg@gmail.com>"]
-
-[lib]
-name = "qs"
-path = "src/lib.rs"
-
-[[bin]]
-name = "example"
-path = "example/example.rs"
+repository = "https://github.com/ryanisaacg/quicksilver"
 
 [dependencies]
 gl = "~0.6"

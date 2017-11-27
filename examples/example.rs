@@ -1,7 +1,6 @@
-extern crate qs;
-extern crate gl;
+extern crate quicksilver;
 
-use qs::*;
+use quicksilver::*;
 use std::time::Duration;
 
 struct Entity {
@@ -41,7 +40,8 @@ impl State for Screen {
         }
     }
 
-    fn tick(&mut self, UpdateInformation { keyboard, .. }: UpdateInformation) -> Duration {
+    fn tick(&mut self, input: InputBuilder) -> Duration {
+        let (keyboard, _, _) = input.build(Rectangle::new_sized(800f32, 600f32));
         self.player.speed += Vector::y() * 0.5;
         if self.player.speed.x.abs() < 0.3 {
             self.player.speed.x = 0.0;
