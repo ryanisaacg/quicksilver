@@ -24,3 +24,16 @@ impl ButtonState {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn clear_temporary() {
+        for button in [ButtonState::Pressed, ButtonState::Held, ButtonState::Released, ButtonState::NotPressed].iter() {
+            assert_eq!(button.is_down(), button.clear_temporary().is_down());
+        }
+    }
+}
+
