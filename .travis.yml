@@ -16,7 +16,8 @@ addons:
       - libgl1-mesa-dri
       - libgl1-mesa-glx
 before_script:
-  - Xvfb :0 -screen 0 1600x1200x16&
+  - "export DISPLAY=:99.0"
+  - "sh -e /etc/init.d/xvfb start"
 rust:
   - stable
   - beta
