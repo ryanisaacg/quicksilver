@@ -12,6 +12,11 @@ addons:
       - binutils-dev
       - libiberty-dev
       - libosmesa-dev
+      - xvfb
+      - libgl1-mesa-dri
+      - libgl1-mesa-glx
+before_script:
+  - Xvfb :0 -screen 0 1600x1200x16&
 rust:
   - stable
   - beta
