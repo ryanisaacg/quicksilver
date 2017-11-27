@@ -16,29 +16,33 @@ impl Line {
 
     ///Check if two line segments interact
     pub fn intersects(self, other: Line) -> bool {
-        //See https://stackoverflow.com/a/565282 for algorithm
-        let p = self.start;
-        let q = other.start;
-        let r = self.end - self.start;
-        let s = other.end - other.start;
-        //t = (q - p) x s / (r x s)
-        //u = (q - p) x r / (r x s)
-        let u_numerator = (q - p).cross(r);
-        let t_numerator = (q - p).cross(s);
-        let denominator = r.cross(s);
-        if denominator == 0f32 {
-            if u_numerator == 0f32 {
-                false
-            } else {
-                let t0 = (q - p).dot(r) / r.dot(r);
-                let t1 = t0 + s.dot(r) / r.dot(r);
-                (t0 >= 0f32 && t0 <= 1f32) || (t1 >= 0f32 && t1 <= 1f32) ||
-                    (t0.signum() == t1.signum()) || t0 == 0f32 && t1 == 0f32
-            }
+        if self.start == other.start || self.end == other.end {
+            true
         } else {
-            let u = u_numerator / denominator;
-            let t = t_numerator / denominator;
-            t >= 0f32 && t <= 1f32 && u >= 0f32 && u <= 1f32
+            //See https://stackoverflow.com/a/565282 for algorithm
+            let p = self.start;
+            let q = other.start;
+            let r = self.end - self.start;
+            let s = other.end - other.start;
+            //t = (q - p) x s / (r x s)
+            //u = (q - p) x r / (r x s)
+            let u_numerator = (q - p).cross(r);
+            let t_numerator = (q - p).cross(s);
+            let denominator = r.cross(s);
+            if denominator == 0f32 {
+                if u_numerator == 0f32 {
+                    false
+                } else {
+                    let t0 = (q - p).dot(r) / r.dot(r);
+                    let t1 = t0 + s.dot(r) / r.dot(r);
+                    (t0 >= 0f32 && t0 <= 1f32) || (t1 >= 0f32 && t1 <= 1f32) ||
+                        (t0.signum() == t1.signum()) || t0 == 0f32 && t1 == 0f32
+                }
+            } else {
+                let u = u_numerator / denominator;
+                let t = t_numerator / denominator;
+                t >= 0f32 && t <= 1f32 && u >= 0f32 && u <= 1f32
+            }
         }
     }
 

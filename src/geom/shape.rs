@@ -1,6 +1,6 @@
 use super::{Circle, Line, Rectangle, Vector};
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub enum Shape {
     Circ(Circle), Line(Line), Rect(Rectangle), Vect(Vector)
 }
@@ -88,6 +88,30 @@ impl Shape {
             Shape::Line(this) => (this.start + this.end) / 2,
             Shape::Rect(this) => this.center(),
             Shape::Vect(this) => this
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn get_shapes() -> [Shape; 4] {
+        [
+            Shape::Circ(Circle::newi(0, 0, 32)),
+            Shape::Line(Line::new(Vector::newi(0, 0), Vector::newi(32, 32))),
+            Shape::Rect(Rectangle::newi(0, 0, 32, 32)),
+            Shape::Vect(Vector::newi(0, 0))
+        ]
+    }
+
+    #[test]
+    fn overlaps() {
+        for a in get_shapes().iter() {
+            for b in get_shapes().iter() {
+                println!("{:?}, {:?}", a, b);
+                assert!(a.overlaps(*b));
+            }
         }
     }
 }
