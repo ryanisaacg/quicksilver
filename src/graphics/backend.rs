@@ -339,7 +339,7 @@ mod tests {
 
     #[test]
     fn test_backend() {
-        let context = headless_context();
+        headless_context();
         let mut backend = GLBackend::new();
         backend.add(1, &[Vertex {
             pos: Vector::newi(0, 0),
