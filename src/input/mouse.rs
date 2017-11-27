@@ -4,6 +4,7 @@ use input::ButtonState;
 
 use geom::Vector;
 
+#[derive(Clone)]
 pub struct Mouse {
     pub pos: Vector,
     pub left: ButtonState,
@@ -21,12 +22,14 @@ impl Mouse {
         }
     }
 
-    pub fn set_position(&mut self, pos: Vector, scale: f32) {
-        let pos = pos / scale;
-        self.pos = Vector::new(pos.x, pos.y);
+    pub(crate) fn with_position(&self, pos: Vector) -> Mouse {
+        Mouse {
+            pos,
+            ..self.clone()
+        }
     }
 
-    pub fn process_button(&mut self, state: glutin::ElementState, button: glutin::MouseButton) {
+    pub(crate) fn process_button(&mut self, state: glutin::ElementState, button: glutin::MouseButton) {
         let value = match state {
             glutin::ElementState::Pressed => ButtonState::Pressed,
             glutin::ElementState::Released => ButtonState::Released,
@@ -39,7 +42,7 @@ impl Mouse {
         }
     }
 
-    pub fn clear_temporary_states(&mut self) {
+    pub(crate) fn clear_temporary_states(&mut self) {
         self.left = self.left.clear_temporary();
         self.right = self.right.clear_temporary();
         self.middle = self.middle.clear_temporary();

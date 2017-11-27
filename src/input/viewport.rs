@@ -1,25 +1,31 @@
 use geom::{Rectangle, Transform, Vector};
 
 pub struct ViewportBuilder {
-    screen_size: Vector
+    screen_size: Vector,
+    transform: Transform
 }
 
 impl ViewportBuilder {
-    pub fn new(screen_size: Vector) -> ViewportBuilder {
-        ViewportBuilder { screen_size }
+    pub(crate) fn new(screen_size: Vector) -> ViewportBuilder {
+        ViewportBuilder { 
+            screen_size,
+            transform: Transform::identity()
+        }
     }
 
-    pub fn get_viewport(&self, world: Rectangle) -> Viewport {
-        self.get_viewport_transformed(world, Transform::identity())
+    pub fn transform(&self, transform: Transform) -> ViewportBuilder {
+        ViewportBuilder {
+            screen_size: self.screen_size,
+            transform: transform * self.transform
+        }
     }
 
-    pub fn get_viewport_transformed(&self, world: Rectangle, transform: Transform) -> Viewport {
+    pub fn build(&self, world: Rectangle) -> Viewport {
         let unproject = Transform::scale(self.screen_size.times(world.size().recip())) *
-            Transform::translate(-world.top_left()) * transform;
+            Transform::translate(-world.top_left()) * self.transform;
         let project = unproject.inverse();
         Viewport { project, unproject }
     }
-
 }
 
 pub struct Viewport {

@@ -17,7 +17,7 @@ use std::time::Duration;
 
 pub trait State {
     fn new(&mut AssetManager, frontend: &mut Graphics) -> Self;
-    fn tick(&mut self, info: UpdateInformation) -> Duration;
+    fn tick(&mut self, input: InputBuilder) -> Duration;
     fn draw(&mut self, frontend: &mut Graphics);
 }
 
@@ -72,8 +72,15 @@ pub fn run<T: State + Send + 'static>(title: &str, width: u32, height: u32) {
             let delay = {
                 let mut keyboard = keyboard.lock().unwrap();
                 let mut mouse = mouse.lock().unwrap();
-                let builder = &ViewportBuilder::new(*screen_size.lock().unwrap() / *scale_factor.lock().unwrap());
-                let delay = state.lock().unwrap().tick(UpdateInformation { keyboard: &keyboard, mouse: &mouse, builder });
+                let viewport = ViewportBuilder::new(*screen_size.lock().unwrap() / *scale_factor.lock().unwrap());
+                let delay = {
+                    let input_builder = InputBuilder {
+                        keyboard: &keyboard,
+                        mouse: mouse.clone(),
+                        viewport
+                    };   
+                    state.lock().unwrap().tick(input_builder)
+                };
                 keyboard.clear_temporary_states();
                 mouse.clear_temporary_states();
                 delay
@@ -97,10 +104,7 @@ pub fn run<T: State + Send + 'static>(title: &str, width: u32, height: u32) {
                         let mut mouse = mouse.lock().unwrap();
                         let mut scale_factor = scale_factor.lock().unwrap();
                         *scale_factor = gl_window.hidpi_factor();
-                        mouse.set_position(
-                            Vector::new(x as f32, y as f32) - offset,
-                           *scale_factor 
-                        );
+                        *mouse = mouse.with_position((Vector::new(x as f32, y as f32) - offset) / *scale_factor);
                     }
                     glutin::WindowEvent::MouseInput { state, button, .. } => {
                         mouse.lock().unwrap().process_button(state, button);
