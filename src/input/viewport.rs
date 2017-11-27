@@ -49,8 +49,8 @@ mod tests {
 
     #[test]
     fn projection() {
-        let builder = ViewportBuilder::new(Vector::newi(100, 100));
-        let viewport = builder.get_viewport(Rectangle::newi_sized(50, 50));
+        let viewport = ViewportBuilder::new(Vector::newi(100, 100))
+                        .build(Rectangle::newi_sized(50, 50));
         let screen_bottom = Vector::y() * 100;
         let world_bottom = Vector::y() * 50;
         assert_eq!(viewport.project() * screen_bottom, world_bottom);
@@ -60,8 +60,9 @@ mod tests {
     #[test]
     fn custom_transform() {
         let rect = Rectangle::newi_sized(10, 10);
-        let builder = ViewportBuilder::new(rect.size());
-        let viewport = builder.get_viewport_transformed(rect, Transform::rotate(-90f32));
+        let viewport = ViewportBuilder::new(rect.size())
+                        .transform(Transform::rotate(-90f32))
+                        .build(rect);
         let point = Vector::x() * 5;
         let expected = Vector::y() * 5;
         assert_eq!(viewport.project() * point, expected);
