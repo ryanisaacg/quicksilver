@@ -328,3 +328,43 @@ impl Backend for GLBackend {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use headless_context;
+
+    use geom::Vector;
+    use graphics::Colors;
+
+    #[test]
+    fn test_backend() {
+        let context = headless_context();
+        let mut backend = GLBackend::new();
+        backend.add(1, &[Vertex {
+            pos: Vector::newi(0, 0),
+            tex_pos: Vector::newi(2, 2),
+            col: Colors::WHITE,
+            use_texture: false
+        }], &[0, 0]);
+        for i in 0..2 { assert_eq!(backend.vertices[i], 0f32); }
+        for i in 2..4 { assert_eq!(backend.vertices[i], 2f32); }
+        for i in 4..8 { assert_eq!(backend.vertices[i], 1f32); }
+        assert_eq!(backend.vertices[8], 0f32);
+        backend.add(1, &[Vertex {
+            pos: Vector::newi(0, 0),
+            tex_pos: Vector::newi(2, 2),
+            col: Colors::WHITE,
+            use_texture: false
+        }], &[0, 0]);
+        for i in 0..2 { assert_eq!(backend.indices[i], 0); }
+        for i in 2..4 { assert_eq!(backend.indices[i], 1); }
+        backend.add(2, &[Vertex {
+            pos: Vector::newi(0, 0),
+            tex_pos: Vector::newi(2, 2),
+            col: Colors::WHITE,
+            use_texture: false
+        }], &[0, 0]);
+        assert_eq!(backend.indices.len(), 2);
+    }
+}

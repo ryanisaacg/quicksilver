@@ -113,3 +113,17 @@ pub fn run<T: State + Send + 'static>(title: &str, width: u32, height: u32) {
         frontend.present(&gl_window);
     }
 }
+
+#[cfg(test)]
+fn headless_context() -> glutin::HeadlessContext {
+    use glutin::GlContext;
+    let context = glutin::HeadlessRendererBuilder::new(640, 480).build().unwrap();
+    unsafe {
+        context.make_current().unwrap();
+        gl::load_with(|symbol| context.get_proc_address(symbol) as *const _);
+    }
+    context
+}
+
+
+
