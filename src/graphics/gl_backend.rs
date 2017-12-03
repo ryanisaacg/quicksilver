@@ -1,6 +1,5 @@
 extern crate gl;
 
-use gl::types::*;
 use graphics::{Backend, Color, Vertex, VERTEX_SIZE};
 use std::vec::Vec;
 //Not used in mock, so #[cfg]'ed to avoid code warnings when testing
@@ -16,23 +15,23 @@ use std::ptr::null;
 use std::str::from_utf8;
 
 pub struct GLBackend {
-    texture: GLuint,
+    texture: u32,
     vertices: Vec<f32>,
-    indices: Vec<GLuint>,
+    indices: Vec<u32>,
     #[cfg(not(test))]
-    shader: GLuint,
+    shader: u32,
     #[cfg(not(test))]
-    fragment: GLuint,
+    fragment: u32,
     #[cfg(not(test))]
-    vertex: GLuint,
+    vertex: u32,
     #[cfg(not(test))]
-    vbo: GLuint,
+    vbo: u32,
     #[cfg(not(test))]
-    ebo: GLuint,
+    ebo: u32,
     #[cfg(not(test))]
-    vao: GLuint,
+    vao: u32,
     #[cfg(not(test))]
-    texture_location: GLint,
+    texture_location: i32,
 }
 
 #[cfg(not(test))]
@@ -70,11 +69,11 @@ impl GLBackend {
             let mut vao: u32 = 0;
             let mut vbo: u32 = 0;
             let mut ebo: u32 = 0;
-            gl::GenVertexArrays(1, &mut vao as *mut GLuint);
+            gl::GenVertexArrays(1, &mut vao as *mut u32);
             gl::BindVertexArray(vao);
-            gl::GenBuffers(1, &mut vbo as *mut GLuint);
+            gl::GenBuffers(1, &mut vbo as *mut u32);
             gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
-            gl::GenBuffers(1, &mut ebo as *mut GLuint);
+            gl::GenBuffers(1, &mut ebo as *mut u32);
             gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, ebo);
             gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
             gl::Enable( gl::BLEND );
@@ -126,12 +125,12 @@ impl GLBackend {
             gl::ShaderSource(
                 self.vertex,
                 1,
-                &(vertex_text as *const GLchar) as *const *const GLchar,
+                &(vertex_text as *const i8) as *const *const i8,
                 null(),
             );
             gl::CompileShader(self.vertex);
-            let mut status: GLint = 0;
-            gl::GetShaderiv(self.vertex, gl::COMPILE_STATUS, &mut status as *mut GLint);
+            let mut status: i32 = 0;
+            gl::GetShaderiv(self.vertex, gl::COMPILE_STATUS, &mut status as *mut i32);
             if status as u8 != gl::TRUE {
                 println!("Vertex shader compilation failed.");
                 let buffer: [u8; 512] = [0; 512];
@@ -139,8 +138,8 @@ impl GLBackend {
                 gl::GetShaderInfoLog(
                     self.vertex,
                     512,
-                    &mut length as *mut GLsizei,
-                    buffer.as_ptr() as *mut GLchar,
+                    &mut length as *mut i32,
+                    buffer.as_ptr() as *mut i8,
                 );
                 println!("Error: {}", from_utf8(&buffer).unwrap());
             }
@@ -149,11 +148,11 @@ impl GLBackend {
             gl::ShaderSource(
                 self.fragment,
                 1,
-                &(fragment_text as *const GLchar) as *const *const GLchar,
+                &(fragment_text as *const i8) as *const *const i8,
                 null(),
             );
             gl::CompileShader(self.fragment);
-            gl::GetShaderiv(self.fragment, gl::COMPILE_STATUS, &mut status as *mut GLint);
+            gl::GetShaderiv(self.fragment, gl::COMPILE_STATUS, &mut status as *mut i32);
             if status as u8 != gl::TRUE {
                 println!("Fragment shader compilation failed.");
                 let buffer: [u8; 512] = [0; 512];
@@ -161,8 +160,8 @@ impl GLBackend {
                 gl::GetShaderInfoLog(
                     self.fragment,
                     512,
-                    &mut length as *mut GLsizei,
-                    buffer.as_ptr() as *mut GLchar,
+                    &mut length as *mut i32,
+                    buffer.as_ptr() as *mut i8,
                 );
                 println!("Error: {}", from_utf8(&buffer).unwrap());
             }
@@ -170,7 +169,7 @@ impl GLBackend {
             gl::AttachShader(self.shader, self.vertex);
             gl::AttachShader(self.shader, self.fragment);
             let raw = CString::new("out_color").unwrap().into_raw();
-            gl::BindFragDataLocation(self.shader, 0, raw as *mut GLchar);
+            gl::BindFragDataLocation(self.shader, 0, raw as *mut i8);
             gl::LinkProgram(self.shader);
             gl::UseProgram(self.shader);
             CString::from_raw(vertex_text);
@@ -189,24 +188,24 @@ impl GLBackend {
         let use_texture_string = CString::new("uses_texture").unwrap().into_raw();
         gl::BufferData(
             gl::ARRAY_BUFFER,
-            vbo_size * size_of::<GLfloat>() as isize,
+            vbo_size * size_of::<f32>() as isize,
             null(),
             gl::STREAM_DRAW,
         );
         //Bind the index data
         gl::BufferData(
             gl::ELEMENT_ARRAY_BUFFER,
-            ebo_size * size_of::<GLuint>() as isize,
+            ebo_size * size_of::<u32>() as isize,
             null(),
             gl::STREAM_DRAW,
         );
-        let stride_distance = (VERTEX_SIZE * size_of::<GLfloat>()) as i32;
+        let stride_distance = (VERTEX_SIZE * size_of::<f32>()) as i32;
         //Set up the vertex attributes
-        let pos_attrib = gl::GetAttribLocation(self.shader, position_string as *const GLchar) as
+        let pos_attrib = gl::GetAttribLocation(self.shader, position_string as *const i8) as
             u32;
         gl::EnableVertexAttribArray(pos_attrib);
         gl::VertexAttribPointer(pos_attrib, 2, gl::FLOAT, gl::FALSE, stride_distance, null());
-        let tex_attrib = gl::GetAttribLocation(self.shader, tex_coord_string as *const GLchar) as
+        let tex_attrib = gl::GetAttribLocation(self.shader, tex_coord_string as *const i8) as
             u32;
         gl::EnableVertexAttribArray(tex_attrib);
         gl::VertexAttribPointer(
@@ -215,9 +214,9 @@ impl GLBackend {
             gl::FLOAT,
             gl::FALSE,
             stride_distance,
-            (2 * size_of::<GLfloat>()) as *const c_void,
+            (2 * size_of::<f32>()) as *const c_void,
         );
-        let col_attrib = gl::GetAttribLocation(self.shader, color_string as *const GLchar) as u32;
+        let col_attrib = gl::GetAttribLocation(self.shader, color_string as *const i8) as u32;
         gl::EnableVertexAttribArray(col_attrib);
         gl::VertexAttribPointer(
             col_attrib,
@@ -225,10 +224,10 @@ impl GLBackend {
             gl::FLOAT,
             gl::FALSE,
             stride_distance,
-            (4 * size_of::<GLfloat>()) as *const c_void,
+            (4 * size_of::<f32>()) as *const c_void,
         );
         let use_texture_attrib =
-            gl::GetAttribLocation(self.shader, use_texture_string as *const GLchar) as u32;
+            gl::GetAttribLocation(self.shader, use_texture_string as *const i8) as u32;
         gl::EnableVertexAttribArray(use_texture_attrib);
         gl::VertexAttribPointer(
             use_texture_attrib,
@@ -236,9 +235,9 @@ impl GLBackend {
             gl::FLOAT,
             gl::FALSE,
             stride_distance,
-            (8 * size_of::<GLfloat>()) as *const c_void,
+            (8 * size_of::<f32>()) as *const c_void,
         );
-        self.texture_location = gl::GetUniformLocation(self.shader, tex_string as *const GLchar);
+        self.texture_location = gl::GetUniformLocation(self.shader, tex_string as *const i8);
         //Make sure to deallocate the attribute strings
         CString::from_raw(position_string);
         CString::from_raw(tex_coord_string);
@@ -247,7 +246,7 @@ impl GLBackend {
         CString::from_raw(use_texture_string);
     }
 
-    fn switch_texture(&mut self, texture: GLuint) {
+    fn switch_texture(&mut self, texture: u32) {
         if self.texture != 0 && self.texture != texture {
             self.flush();
         }
@@ -255,7 +254,7 @@ impl GLBackend {
     }
 
     #[cfg(not(test))]
-    unsafe fn set_buffer(&mut self, buffer_type: GLenum, length: usize, data: *const c_void) {
+    unsafe fn set_buffer(&mut self, buffer_type: u32, length: usize, data: *const c_void) {
         gl::BufferSubData(buffer_type, 0, length as isize, data); 
         if gl::GetError() == gl::INVALID_VALUE {
             let vertex_capacity = self.vertices.capacity() as isize * 2;
@@ -269,10 +268,10 @@ impl GLBackend {
         #[cfg(not(test))]
         unsafe {
             //Bind the vertex data
-            let length = size_of::<GLfloat>() * self.vertices.len();
+            let length = size_of::<f32>() * self.vertices.len();
             let data = self.vertices.as_ptr() as *const c_void;
             self.set_buffer(gl::ARRAY_BUFFER, length, data);
-            let length = size_of::<GLuint>() * self.indices.len();
+            let length = size_of::<u32>() * self.indices.len();
             let data = self.indices.as_ptr() as *const c_void;
             self.set_buffer(gl::ELEMENT_ARRAY_BUFFER, length, data);
             //Upload the texture to the GPU
@@ -300,9 +299,9 @@ impl Drop for GLBackend {
             gl::DeleteProgram(self.shader);
             gl::DeleteShader(self.fragment);
             gl::DeleteShader(self.vertex);
-            gl::DeleteBuffers(1, &self.vbo as *const GLuint);
-            gl::DeleteBuffers(1, &self.ebo as *const GLuint);
-            gl::DeleteVertexArrays(1, &self.vao as *const GLuint);
+            gl::DeleteBuffers(1, &self.vbo as *const u32);
+            gl::DeleteBuffers(1, &self.ebo as *const u32);
+            gl::DeleteVertexArrays(1, &self.vao as *const u32);
         }
     }
 }
@@ -341,11 +340,11 @@ impl Backend for GLBackend {
         );
     }
 
-    fn add_index(&mut self, index: GLuint) {
+    fn add_index(&mut self, index: u32) {
         self.indices.push(index);
     }
 
-    fn add(&mut self, texture: GLuint, vertices: &[Vertex], indices: &[GLuint]) {
+    fn add(&mut self, texture: u32, vertices: &[Vertex], indices: &[u32]) {
         self.switch_texture(texture);
         let offset = self.num_vertices();;
         for vertex in vertices {
@@ -354,6 +353,15 @@ impl Backend for GLBackend {
         for index in indices {
             self.add_index(index + offset as u32);
         }
+    }
+    
+    fn vertices(&self) -> &Vec<f32> {
+        &self.vertices
+    }
+
+
+    fn indices(&self) -> &Vec<u32> {
+        &self.indices
     }
 }
 
