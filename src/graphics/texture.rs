@@ -1,7 +1,7 @@
-extern crate gl;
+#[cfg(not(target_arch="wasm32"))]
 extern crate image;
 
-use gl::types::*;
+use gl;
 use geom::{Rectangle, Vector};
 use std::os::raw::c_void;
 use std::ops::Drop;
@@ -24,24 +24,24 @@ impl Texture {
     pub fn from_raw(data: &[u8], w: i32, h: i32, format: PixelFormat) -> Texture {
         unsafe {
             let mut texture = 0;
-            gl::GenTextures(1, &mut texture as *mut GLuint);
+            gl::GenTextures(1, &mut texture as *mut u32);
             gl::BindTexture(gl::TEXTURE_2D, texture);
             gl::TexParameteri(
                 gl::TEXTURE_2D,
                 gl::TEXTURE_WRAP_S,
-                gl::CLAMP_TO_EDGE as GLint,
+                gl::CLAMP_TO_EDGE as i32,
             );
             gl::TexParameteri(
                 gl::TEXTURE_2D,
                 gl::TEXTURE_WRAP_T,
-                gl::CLAMP_TO_EDGE as GLint,
+                gl::CLAMP_TO_EDGE as i32,
             );
-            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::LINEAR as GLint);
-            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::LINEAR as GLint);
+            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::LINEAR as i32);
+            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::LINEAR as i32);
             gl::TexImage2D(
                 gl::TEXTURE_2D,
                 0,
-                gl::RGBA as GLint,
+                gl::RGBA as i32,
                 w,
                 h,
                 0,

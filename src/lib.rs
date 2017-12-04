@@ -1,10 +1,13 @@
-extern crate gl;
+#[cfg(not(target_arch="wasm32"))]
 extern crate image;
+#[cfg(not(target_arch="wasm32"))]
 extern crate glutin;
+#[cfg(not(target_arch="wasm32"))]
 extern crate tiled;
 
 mod assets;
 mod geom;
+mod gl;
 mod graphics;
 mod input;
 
@@ -27,6 +30,7 @@ pub struct UpdateInformation<'a> {
     pub builder: &'a ViewportBuilder
 }
 
+#[cfg(not(target_arch="wasm32"))]
 pub fn run<T: State + Send + 'static>(title: &str, width: u32, height: u32) {
     use AssetManager;
     use geom::*;

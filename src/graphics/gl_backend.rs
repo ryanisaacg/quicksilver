@@ -1,5 +1,4 @@
-extern crate gl;
-
+use gl;
 use graphics::{Backend, Color, Vertex, VERTEX_SIZE};
 use std::vec::Vec;
 //Not used in mock, so #[cfg]'ed to avoid code warnings when testing
