@@ -5,7 +5,7 @@ version = "0.1.0"
 authors = ["Ryan Goldstein <ryanisaacg@gmail.com>"]
 repository = "https://github.com/ryanisaacg/quicksilver"
 
-[dependencies]
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 gl = "~0.6"
 glutin = "~0.10"
 image = "~0.17"
