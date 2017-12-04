@@ -5,25 +5,31 @@ extern crate glutin;
 #[cfg(not(target_arch="wasm32"))]
 extern crate tiled;
 
+#[cfg(not(target_arch="wasm32"))]
 mod assets;
 mod geom;
 mod gl;
 mod graphics;
+#[cfg(not(target_arch="wasm32"))]
 mod input;
 
+#[cfg(not(target_arch="wasm32"))]
 pub use assets::*;
 pub use geom::*;
 pub use graphics::*;
+#[cfg(not(target_arch="wasm32"))]
 pub use input::*;
 
 use std::time::Duration;
 
+#[cfg(not(target_arch="wasm32"))]
 pub trait State {
     fn new(&mut AssetManager, frontend: &mut Graphics) -> Self;
     fn tick(&mut self, input: InputBuilder) -> Duration;
     fn draw(&mut self, frontend: &mut Graphics);
 }
 
+#[cfg(not(target_arch="wasm32"))]
 pub struct UpdateInformation<'a> {
     pub keyboard: &'a Keyboard,
     pub mouse: &'a Mouse,
@@ -113,8 +119,9 @@ pub fn run<T: State + Send + 'static>(title: &str, width: u32, height: u32) {
         }
         keyboard.clear_temporary_states();
         mouse.clear_temporary_states(); 
+        frontend.clear();
         state.draw(&mut frontend);
-        frontend.present(&gl_window);
+        frontend.present_window(&gl_window);
     }
 }
 

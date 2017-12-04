@@ -58,6 +58,7 @@ impl Texture {
         }
     }
 
+    #[cfg(not(target_arch="wasm32"))]
     pub(crate) fn load(path: &Path) -> Result<Texture, image::ImageError> {
         let img = image::open(path)?.to_rgba();
         let width = img.width() as i32;

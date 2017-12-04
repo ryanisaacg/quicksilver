@@ -1,3 +1,4 @@
+#[cfg(not(target_arch="wasm32"))]
 extern crate glutin;
 
 mod builder;
@@ -6,6 +7,7 @@ mod mouse;
 mod state;
 mod viewport;
 
+#[cfg(not(target_arch="wasm32"))]
 pub use glutin::VirtualKeyCode as Key;
 
 pub use self::builder::InputBuilder;

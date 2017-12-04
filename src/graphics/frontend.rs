@@ -1,3 +1,4 @@
+#[cfg(not(target_arch="wasm32"))]
 extern crate glutin;
 
 use geom::{Circle, Line, Rectangle, Shape, Transform, Vector};
@@ -42,11 +43,19 @@ impl Graphics {
         self.clear_color = col;
     }
 
-    pub fn present(&mut self, window: &glutin::GlWindow) {
-        window.set_cursor_state(if self.show_cursor { glutin::CursorState::Normal } else { glutin::CursorState::Hide }).unwrap();
-        self.backend.display();
-        glutin::GlContext::swap_buffers(window).unwrap();
+    pub(crate) fn clear(&mut self) {
         self.backend.clear(self.clear_color);
+    }
+
+    #[cfg(not(target_arch="wasm32"))]
+    pub(crate) fn present_window(&mut self, window: &glutin::GlWindow) {
+        window.set_cursor_state(if self.show_cursor { glutin::CursorState::Normal } else { glutin::CursorState::Hide }).unwrap();
+        self.present();
+        glutin::GlContext::swap_buffers(window).unwrap();
+    }
+
+    pub(crate) fn present(&mut self) {
+        self.backend.display();
     }
 
     pub fn draw_image(&mut self, image: TextureRegion, area: Rectangle) {

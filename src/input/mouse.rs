@@ -1,3 +1,4 @@
+#[cfg(not(target_arch="wasm32"))]
 extern crate glutin;
 
 use input::ButtonState;
