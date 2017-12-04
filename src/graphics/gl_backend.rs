@@ -1,7 +1,8 @@
-use gl;
 use graphics::{Backend, Color, Vertex, VERTEX_SIZE};
 use std::vec::Vec;
 //Not used in mock, so #[cfg]'ed to avoid code warnings when testing
+#[cfg(not(test))]
+use gl;
 #[cfg(not(test))]
 use std::ffi::CString;
 #[cfg(not(test))]
@@ -13,24 +14,25 @@ use std::ptr::null;
 #[cfg(not(test))]
 use std::str::from_utf8;
 
+#[cfg(not(test))]
 pub struct GLBackend {
     texture: u32,
     vertices: Vec<f32>,
     indices: Vec<u32>,
-    #[cfg(not(test))]
     shader: u32,
-    #[cfg(not(test))]
     fragment: u32,
-    #[cfg(not(test))]
     vertex: u32,
-    #[cfg(not(test))]
     vbo: u32,
-    #[cfg(not(test))]
     ebo: u32,
-    #[cfg(not(test))]
     vao: u32,
-    #[cfg(not(test))]
     texture_location: i32,
+}
+
+#[cfg(test)]
+pub struct GLBackend {
+    texture: u32,
+    vertices: Vec<f32>,
+    indices: Vec<u32>,
 }
 
 #[cfg(not(test))]
