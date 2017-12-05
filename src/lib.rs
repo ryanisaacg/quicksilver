@@ -14,6 +14,7 @@ pub use graphics::*;
 pub use input::*;
 
 use std::time::Duration;
+use std::time::Instant;
 
 pub trait State {
     fn new(&mut AssetManager, frontend: &mut Graphics) -> Self;
@@ -54,6 +55,8 @@ pub fn run<T: State + Send + 'static>(title: &str, width: u32, height: u32) {
     let mut scale_factor = gl_window.hidpi_factor();
     let mut offset = Vector::zero();
     let mut running = true;
+    let mut previous_update = Instant::now();
+    let mut wait = Duration::from_millis(0);
     while running {
         events_loop.poll_events(|event| match event {
             glutin::Event::WindowEvent { event, .. } => {
@@ -104,8 +107,12 @@ pub fn run<T: State + Send + 'static>(title: &str, width: u32, height: u32) {
                 keyboard: &keyboard,
                 mouse: mouse.clone(),
                 viewport
-            };   
-            state.tick(input_builder);
+            };
+            let current = previous_update.elapsed();
+            if current >= wait { 
+                wait = state.tick(input_builder);
+                previous_update = Instant::now();
+            }
         }
         keyboard.clear_temporary_states();
         mouse.clear_temporary_states(); 
