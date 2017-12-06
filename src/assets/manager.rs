@@ -1,26 +1,23 @@
 use graphics::Texture;
 use std::collections::HashMap;
 use std::path::Path;
+use super::AssetList;
 
-pub struct AssetManager {
+pub struct Assets {
     loaded: HashMap<String, Texture>,
 }
 
-impl AssetManager {
-    pub fn new() -> AssetManager {
-        AssetManager { loaded: HashMap::new() }
+impl Assets {
+    pub(crate) fn new<'a>(list: AssetList<'a>) -> Assets {
+        let prefix = Path::new(list.texture_prefix);
+        Assets {
+            loaded: list.textures.iter()
+                .map(|path| (path.to_string(), Texture::load(&prefix.join(Path::new(path))).unwrap()))
+                .collect()
+        }
     }
 
-    pub fn load_texture(&mut self, path: &str) -> &Texture {
-        if self.loaded.contains_key(path) {
-            match self.loaded.get(path) {
-                Some(tex) => &tex,
-                None => panic!("Failed to retrieve texture"),
-            }
-        } else {
-            let texture = Texture::load(Path::new(path)).unwrap();
-            self.loaded.insert(path.to_string(), texture);
-            self.load_texture(&path)
-        }
+    pub fn get_texture<'a>(&'a self, path: &'a str) -> Option<&'a Texture> {
+        self.loaded.get(path)
     }
 }

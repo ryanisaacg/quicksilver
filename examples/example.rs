@@ -31,9 +31,17 @@ struct Screen {
 }
 
 impl State for Screen {
-    fn new(_: &mut AssetManager, g: &mut Graphics) -> Screen {
-        g.set_show_cursor(false);
-        g.set_clear_color(Colors::WHITE);
+    fn prepare_assets<'a>() -> AssetList<'a> {
+        AssetList::new()
+    }
+
+    fn configure(builder: GraphicsBuilder) -> GraphicsBuilder {
+        builder
+            .with_show_cursor(false)
+            .with_clear_color(Colors::WHITE)
+    }
+
+    fn new(_: Assets) -> Screen {
         Screen {
             player: Entity::new(Rectangle::newi(16, 16, 32, 32)),
             map: Tilemap::new(800f32, 600f32, 40f32, 40f32),

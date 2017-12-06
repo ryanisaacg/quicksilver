@@ -8,5 +8,5 @@ pub use self::backend::{Backend, Vertex, VERTEX_SIZE};
 pub use self::gl_backend::GLBackend;
 pub use self::camera::Camera;
 pub use self::color::{Color, Colors};
-pub use self::frontend::Graphics;
+pub use self::frontend::{Graphics, GraphicsBuilder};
 pub use self::texture::*;

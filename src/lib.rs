@@ -13,13 +13,15 @@ pub use geom::*;
 pub use graphics::*;
 pub use input::*;
 
-use std::time::Duration;
+pub use std::time::Duration;
 use std::time::Instant;
 
 pub trait State {
-    fn new(&mut AssetManager, frontend: &mut Graphics) -> Self;
-    fn tick(&mut self, input: InputBuilder) -> Duration;
-    fn draw(&mut self, frontend: &mut Graphics);
+    fn prepare_assets<'a>() -> AssetList<'a>;
+    fn configure(GraphicsBuilder) -> GraphicsBuilder;
+    fn new(Assets) -> Self;
+    fn tick(&mut self, InputBuilder) -> Duration;
+    fn draw(&mut self, &mut Graphics);
 }
 
 pub struct UpdateInformation<'a> {
@@ -29,7 +31,6 @@ pub struct UpdateInformation<'a> {
 }
 
 pub fn run<T: State + Send + 'static>(title: &str, width: u32, height: u32) {
-    use AssetManager;
     use geom::*;
     use graphics::*;
 
@@ -47,9 +48,9 @@ pub fn run<T: State + Send + 'static>(title: &str, width: u32, height: u32) {
     }
 
     let mut screen_size = Vector::new(width as f32, height as f32);
-    let mut frontend = Graphics::new(Box::new(GLBackend::new()), Camera::new(Rectangle::newv_sized(screen_size)));
-    let mut assets = AssetManager::new();
-    let mut state = T::new(&mut assets, &mut frontend);
+    let graphics_config = T::configure(GraphicsBuilder::new(Camera::new(Rectangle::newv_sized(screen_size))));
+    let mut frontend = Graphics::new(Box::new(GLBackend::new()), graphics_config);
+    let mut state = T::new(Assets::new(T::prepare_assets()));
     let mut keyboard = Keyboard::new();
     let mut mouse = Mouse::new();
     let mut scale_factor = gl_window.hidpi_factor();

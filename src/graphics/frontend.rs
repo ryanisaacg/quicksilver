@@ -3,6 +3,43 @@ extern crate glutin;
 use geom::{Circle, Line, Rectangle, Shape, Transform, Vector};
 use graphics::{Backend, Camera, Color, Colors, TextureRegion, Vertex};
 
+pub struct GraphicsBuilder {
+    cam: Camera,
+    clear_color: Color,
+    show_cursor: bool
+}
+
+impl GraphicsBuilder {
+    pub(crate) fn new(cam: Camera) -> GraphicsBuilder {
+        GraphicsBuilder {
+            cam,
+            clear_color: Colors::BLACK,
+            show_cursor: true
+        }
+    }
+
+    pub fn with_camera(self, cam: Camera) -> GraphicsBuilder {
+        GraphicsBuilder {
+            cam,
+            ..self
+        }
+    }
+
+    pub fn with_show_cursor(self, show_cursor: bool) -> GraphicsBuilder {
+        GraphicsBuilder {
+            show_cursor,
+            ..self
+        }
+    }
+
+    pub fn with_clear_color(self, clear_color: Color) -> GraphicsBuilder {
+        GraphicsBuilder {
+            clear_color,
+            ..self
+        }
+    }
+}
+
 pub struct Graphics {
     backend: Box<Backend>,
     cam: Camera,
@@ -13,12 +50,12 @@ pub struct Graphics {
 const CIRCLE_POINTS: usize = 32; //the number of points in the poly to simulate the circle
 
 impl Graphics {
-    pub fn new(backend: Box<Backend>, cam: Camera) -> Graphics {
+    pub(crate) fn new(backend: Box<Backend>, builder: GraphicsBuilder) -> Graphics {
         Graphics {
             backend,
-            cam,
-            clear_color: Colors::BLACK,
-            show_cursor: true
+            cam: builder.cam,
+            clear_color: builder.clear_color,
+            show_cursor: builder.show_cursor
         }
     }
 
@@ -180,7 +217,7 @@ mod tests {
 
     #[test]
     fn test_backend() {
-        let mut frontend = Graphics::new(Box::new(GLBackend::new()), Camera::new(Rectangle::newi(-1, -1, 2, 2)));
+        let mut frontend = Graphics::new(Box::new(GLBackend::new()), GraphicsBuilder::new(Camera::new(Rectangle::newi(-1, -1, 2, 2))));
         frontend.draw_shape(Shape::Rect(Rectangle::newi(-1, -1, 0, 0)), Colors::WHITE);
         let expected_vertices = &[-1f32, 1f32, 0f32, 0f32, 1f32, 1f32, 1f32, 1f32, 0f32, -1f32, 
             1f32, 0f32, 0f32, 1f32, 1f32, 1f32, 1f32, 0f32, -1f32, 1f32, 0f32, 0f32, 1f32, 1f32, 

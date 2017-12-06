@@ -2,7 +2,7 @@ extern crate tiled;
 
 pub use tiled::{Properties, PropertyValue, TiledError};
 
-use assets::AssetManager;
+use assets::Assets;
 use geom::{Rectangle, Tile, Tilemap, Vector};
 use graphics::{Color, TextureRegion};
 
@@ -49,7 +49,7 @@ fn convert_col_opt(col: Option<tiled::Colour>, a: f32) -> Option<Color> {
 }
 
 impl Level {
-    pub fn load(path: &Path, assets: &mut AssetManager) -> Result<Level, TiledError> {
+    pub fn load(path: &Path, assets: &Assets) -> Result<Level, TiledError> {
         let current_dir = env::current_dir().unwrap();
         let tiled_map = tiled::parse_file(path)?;
         let mut search_dir = PathBuf::new();
@@ -70,7 +70,7 @@ impl Level {
                         while textures.len() <= current {
                             textures.push(None);
                         }
-                        let texture = assets.load_texture(&image.source);
+                        let texture = assets.get_texture(&image.source).unwrap();
                         let region =  Rectangle::newi(x, y, tile_width, tile_height);
                         textures[current] = Some(texture.region().subregion(region));
                         current += 1;
