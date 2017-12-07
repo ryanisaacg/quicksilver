@@ -94,17 +94,14 @@ pub fn run<T: State + Send + 'static>(title: &str, width: u32, height: u32) {
             _ => (),
         });
         let viewport = ViewportBuilder::new(screen_size / scale_factor);
-        {
-            let input_builder = InputBuilder {
+        let current = previous_update.elapsed();
+        if current >= wait { 
+            wait = state.tick(InputBuilder {
                 keyboard: &keyboard,
                 mouse: mouse.clone(),
                 viewport
-            };
-            let current = previous_update.elapsed();
-            if current >= wait { 
-                wait = state.tick(input_builder);
-                previous_update = Instant::now();
-            }
+            });
+            previous_update = Instant::now();
         }
         keyboard.clear_temporary_states();
         mouse.clear_temporary_states(); 
