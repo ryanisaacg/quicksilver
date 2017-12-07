@@ -3,12 +3,10 @@ extern crate image;
 extern crate glutin;
 extern crate tiled;
 
-mod assets;
 mod geom;
 mod graphics;
 mod input;
 
-pub use assets::*;
 pub use geom::*;
 pub use graphics::*;
 pub use input::*;
@@ -17,9 +15,8 @@ pub use std::time::Duration;
 use std::time::Instant;
 
 pub trait State {
-    fn prepare_assets<'a>() -> AssetList<'a>;
     fn configure(GraphicsBuilder) -> GraphicsBuilder;
-    fn new(Assets) -> Self;
+    fn new() -> Self;
     fn tick(&mut self, InputBuilder) -> Duration;
     fn draw(&mut self, &mut Graphics);
 }
@@ -50,7 +47,7 @@ pub fn run<T: State + Send + 'static>(title: &str, width: u32, height: u32) {
     let mut screen_size = Vector::new(width as f32, height as f32);
     let graphics_config = T::configure(GraphicsBuilder::new(Camera::new(Rectangle::newv_sized(screen_size))));
     let mut frontend = Graphics::new(Box::new(GLBackend::new()), graphics_config);
-    let mut state = T::new(Assets::new(T::prepare_assets()));
+    let mut state = T::new();
     let mut keyboard = Keyboard::new();
     let mut mouse = Mouse::new();
     let mut scale_factor = gl_window.hidpi_factor();

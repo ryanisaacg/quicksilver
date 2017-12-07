@@ -1,12 +1,12 @@
 mod backend;
-mod gl_backend;
 mod camera;
 mod color;
 mod frontend;
-mod texture;
+mod gl_backend;
+mod image;
 pub use self::backend::{Backend, Vertex, VERTEX_SIZE};
-pub use self::gl_backend::GLBackend;
 pub use self::camera::Camera;
 pub use self::color::{Color, Colors};
 pub use self::frontend::{Graphics, GraphicsBuilder};
-pub use self::texture::*;
+pub use self::gl_backend::GLBackend;
+pub use self::image::{Image, ImageData};

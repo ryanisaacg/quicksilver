@@ -1,7 +1,7 @@
 extern crate glutin;
 
 use geom::{Circle, Line, Rectangle, Shape, Transform, Vector};
-use graphics::{Backend, Camera, Color, Colors, TextureRegion, Vertex};
+use graphics::{Backend, Camera, Color, Colors, Image, Vertex};
 
 pub struct GraphicsBuilder {
     cam: Camera,
@@ -86,15 +86,15 @@ impl Graphics {
         self.backend.clear(self.clear_color);
     }
 
-    pub fn draw_image(&mut self, image: TextureRegion, area: Rectangle) {
+    pub fn draw_image(&mut self, image: Image, area: Rectangle) {
         self.draw_image_blend(image, area, Colors::WHITE);
     }
 
-    pub fn draw_image_blend(&mut self, image: TextureRegion, area: Rectangle, col: Color) {
+    pub fn draw_image_blend(&mut self, image: Image, area: Rectangle, col: Color) {
         self.draw_image_trans(image, area, col, Transform::identity());
     }
 
-    pub fn draw_image_trans(&mut self, image: TextureRegion, area: Rectangle, col: Color, trans: Transform) {
+    pub fn draw_image_trans(&mut self, image: Image, area: Rectangle, col: Color, trans: Transform) {
         let trans = self.camera() 
             * Transform::translate(area.top_left()) 
             * Transform::translate(area.size() / 2) 
@@ -102,8 +102,8 @@ impl Graphics {
             * Transform::translate(-area.size() / 2)
             * Transform::scale(area.size());
         let recip_size = image.source_size().recip();
-        let normalized_pos = image.get_region().top_left().times(recip_size);
-        let normalized_size = image.get_region().size().times(recip_size);
+        let normalized_pos = image.area().top_left().times(recip_size);
+        let normalized_size = image.area().size().times(recip_size);
         let get_vertex = |v: Vector| {
             Vertex {
                 pos: trans * v,

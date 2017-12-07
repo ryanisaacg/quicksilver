@@ -6,6 +6,7 @@ use geom::{Rectangle, Vector};
 use std::os::raw::c_void;
 use std::ops::Drop;
 use std::path::Path;
+use std::rc::Rc;
 
 pub enum PixelFormat {
     RGB = gl::RGB as isize,
@@ -14,14 +15,14 @@ pub enum PixelFormat {
     BGRA = gl::BGRA as isize,
 }
 
-pub struct Texture {
+pub struct ImageData {
     id: u32,
     width: i32,
     height: i32,
 }
 
-impl Texture {
-    pub fn from_raw(data: &[u8], w: i32, h: i32, format: PixelFormat) -> Texture {
+impl ImageData {
+    pub fn from_raw(data: &[u8], w: i32, h: i32, format: PixelFormat) -> ImageData {
         unsafe {
             let mut texture = 0;
             gl::GenTextures(1, &mut texture as *mut GLuint);
@@ -50,7 +51,7 @@ impl Texture {
                 data.as_ptr() as *const c_void,
             );
             gl::GenerateMipmap(gl::TEXTURE_2D);
-            Texture {
+            ImageData {
                 id: texture,
                 width: w,
                 height: h,
@@ -58,24 +59,23 @@ impl Texture {
         }
     }
 
-    pub(crate) fn load(path: &Path) -> Result<Texture, image::ImageError> {
+    pub fn load(path: &Path) -> Result<ImageData, image::ImageError> {
         let img = image::open(path)?.to_rgba();
         let width = img.width() as i32;
         let height = img.height() as i32;
-        Result::Ok(Texture::from_raw(img.into_raw().as_slice(), width, height, PixelFormat::RGBA))
+        Result::Ok(ImageData::from_raw(img.into_raw().as_slice(), width, height, PixelFormat::RGBA))
     }
 
-    pub fn region(&self) -> TextureRegion {
-        TextureRegion {
-            id: self.id,
-            width: self.width,
-            height: self.height,
-            region: Rectangle::newi_sized(self.width, self.height),
+    pub fn image(self) -> Image {
+        let region = Rectangle::newi_sized(self.width, self.height);
+        Image {
+            source: Rc::new(self),
+            region
         }
     }
 }
 
-impl Drop for Texture {
+impl Drop for ImageData {
     fn drop(&mut self) {
         unsafe {
             gl::DeleteTextures(1, &self.id as *const u32);
@@ -83,40 +83,36 @@ impl Drop for Texture {
     }
 }
 
-#[derive(Clone, Copy)]
-pub struct TextureRegion {
-    id: u32,
-    width: i32,
-    height: i32,
+#[derive(Clone)]
+pub struct Image {
+    source: Rc<ImageData>,
     region: Rectangle,
 }
 
-impl TextureRegion {
-    pub fn get_id(&self) -> u32 {
-        self.id
+impl Image {
+    pub(crate) fn get_id(&self) -> u32 {
+        self.source.id
     }
 
-    pub fn source_width(&self) -> i32 {
-        self.width
+    pub(crate) fn source_width(&self) -> i32 {
+        self.source.width
     }
 
-    pub fn source_height(&self) -> i32 {
-        self.height
+    pub(crate) fn source_height(&self) -> i32 {
+        self.source.height
     }
 
-    pub fn source_size(&self) -> Vector {
+    pub(crate) fn source_size(&self) -> Vector {
         Vector::newi(self.source_width(), self.source_height())
     }
 
-    pub fn get_region(&self) -> Rectangle {
+    pub fn area(&self) -> Rectangle {
         self.region
     }
 
-    pub fn subregion(&self, rect: Rectangle) -> TextureRegion {
-        TextureRegion {
-            id: self.id,
-            width: self.width,
-            height: self.height,
+    pub fn subimage(&self, rect: Rectangle) -> Image {
+        Image {
+            source: self.source.clone(),
             region: Rectangle::new(
                 self.region.x + rect.x,
                 self.region.y + rect.y,
