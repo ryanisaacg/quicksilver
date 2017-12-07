@@ -21,12 +21,6 @@ pub trait State {
     fn draw(&mut self, &mut Graphics);
 }
 
-pub struct UpdateInformation<'a> {
-    pub keyboard: &'a Keyboard,
-    pub mouse: &'a Mouse,
-    pub builder: &'a ViewportBuilder
-}
-
 pub fn run<T: State + Send + 'static>(title: &str, width: u32, height: u32) {
     use geom::*;
     use graphics::*;
