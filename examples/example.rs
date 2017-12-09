@@ -31,7 +31,7 @@ struct Screen {
 }
 
 impl State for Screen {
-    fn configure(builder: GraphicsBuilder) -> GraphicsBuilder {
+    fn configure(builder: WindowBuilder) -> WindowBuilder {
         builder
             .with_show_cursor(false)
             .with_clear_color(Colors::WHITE)
@@ -71,7 +71,7 @@ impl State for Screen {
         Duration::from_millis(10)
     }
 
-    fn draw(&mut self, draw: &mut Graphics) {
+    fn draw(&mut self, draw: &mut Window) {
         draw.draw_line(Line::new(Vector::zero(), Vector::one() * 100), Colors::BLACK);
         draw.draw_shape(self.player.bounds, Colors::BLUE);
         draw.draw_shape_trans(self.player.bounds, Colors::BLUE, Transform::translate(Vector::one() * 16) 
