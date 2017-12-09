@@ -7,27 +7,18 @@ use graphics::{Backend, GLBackend, Camera, Color, Colors, Image, Vertex};
 use input::{Keyboard, Mouse, ViewportBuilder };
 
 pub struct WindowBuilder {
-    cam: Camera,
     clear_color: Color,
     show_cursor: bool
 }
 
 impl WindowBuilder {
-    pub(crate) fn new(cam: Camera) -> WindowBuilder {
+    pub(crate) fn new() -> WindowBuilder {
         WindowBuilder {
-            cam,
             clear_color: Colors::BLACK,
             show_cursor: true
         }
     }
-
-    pub fn with_camera(self, cam: Camera) -> WindowBuilder {
-        WindowBuilder {
-            cam,
-            ..self
-        }
-    }
-
+    
     pub fn with_show_cursor(self, show_cursor: bool) -> WindowBuilder {
         WindowBuilder {
             show_cursor,
@@ -75,10 +66,11 @@ impl Window {
             gl::load_with(|symbol| gl_window.get_proc_address(symbol) as *const _);
         }
         let scale_factor = gl_window.hidpi_factor();
+        let screen_size = Vector::new(width as f32, height as f32);
 
         Window {
             backend: Box::new(GLBackend::new()),
-            cam: builder.cam,
+            cam: Camera::new(Rectangle::newv_sized(screen_size)),
             clear_color: builder.clear_color,
             show_cursor: builder.show_cursor,
             events,
@@ -86,11 +78,13 @@ impl Window {
             running: true,
             scale_factor,
             offset: Vector::zero(),
-            screen_size: Vector::new(width as f32, height as f32)
+            screen_size
         }
     }
 
     pub fn poll_events(&mut self, keyboard: &mut Keyboard, mouse: &mut Mouse) {
+        keyboard.clear_temporary_states();
+        mouse.clear_temporary_states();
         self.scale_factor = self.gl_window.hidpi_factor();
         let scale_factor = self.scale_factor;
         let mut running = true;

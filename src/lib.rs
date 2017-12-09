@@ -22,8 +22,7 @@ pub trait State {
 }
 
 pub fn run<T: State>(title: &str, width: u32, height: u32) {
-    let screen_size = Vector::new(width as f32, height as f32);
-    let window_builder = T::configure(WindowBuilder::new(Camera::new(Rectangle::newv_sized(screen_size))));
+    let window_builder = T::configure(WindowBuilder::new());
     let mut window = Window::new(window_builder, title, width, height);
     let mut state = T::new();
     let mut keyboard = Keyboard::new();
@@ -41,8 +40,6 @@ pub fn run<T: State>(title: &str, width: u32, height: u32) {
             });
             previous_update = Instant::now();
         }
-        keyboard.clear_temporary_states();
-        mouse.clear_temporary_states(); 
         state.draw(&mut window);
         window.present();
     }
