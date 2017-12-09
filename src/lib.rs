@@ -21,10 +21,7 @@ pub trait State {
     fn draw(&mut self, &mut Graphics);
 }
 
-pub fn run<T: State + Send + 'static>(title: &str, width: u32, height: u32) {
-    use geom::*;
-    use graphics::*;
-
+pub fn run<T: State>(title: &str, width: u32, height: u32) {
     use glutin::GlContext;
 
     let mut events_loop = glutin::EventsLoop::new();
