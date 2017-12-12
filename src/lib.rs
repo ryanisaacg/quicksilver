@@ -6,13 +6,13 @@ extern crate tiled;
 mod geom;
 mod graphics;
 mod input;
+mod timer;
 
 pub use geom::*;
 pub use graphics::*;
 pub use input::*;
-
+pub use timer::Timer;
 pub use std::time::Duration;
-use std::time::Instant;
 
 pub trait State {
     fn configure(WindowBuilder) -> WindowBuilder;
@@ -27,19 +27,15 @@ pub fn run<T: State>(title: &str, width: u32, height: u32) {
     let mut state = T::new();
     let mut keyboard = Keyboard::new();
     let mut mouse = Mouse::new();
-    let mut previous_update = Instant::now();
-    let mut wait = Duration::from_millis(0);
+    let mut timer = Timer::new();
     while window.running() {
         window.poll_events(&mut keyboard, &mut mouse);
-        let current = previous_update.elapsed();
-        if current >= wait { 
-            wait = state.tick(InputBuilder {
-                keyboard: &keyboard,
-                mouse: mouse.clone(),
-                viewport: window.viewport()
-            });
-            previous_update = Instant::now();
-        }
+        let input = InputBuilder {
+            keyboard: &keyboard,
+            mouse: mouse.clone(),
+            viewport: window.viewport()
+        };
+        timer.tick(|| state.tick(input));
         state.draw(&mut window);
         window.present();
     }
