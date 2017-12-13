@@ -30,12 +30,7 @@ pub fn run<T: State>(title: &str, width: u32, height: u32) {
     let mut timer = Timer::new();
     while window.running() {
         window.poll_events(&mut keyboard, &mut mouse);
-        let input = InputBuilder {
-            keyboard: &keyboard,
-            mouse: mouse.clone(),
-            viewport: window.viewport()
-        };
-        timer.tick(|| state.tick(input));
+        timer.tick(|| state.tick(InputBuilder { keyboard: &keyboard, mouse: mouse.clone(), viewport: window.viewport() }));
         state.draw(&mut window);
         window.present();
     }

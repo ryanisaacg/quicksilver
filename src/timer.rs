@@ -13,10 +13,16 @@ impl Timer {
         }
     }
 
-    pub fn tick<F>(&mut self, action: F) where F: FnOnce() -> Duration {
-        if self.previous_tick.elapsed() >= self.wait_time {
+    pub fn tick<F>(&mut self, mut action: F) where F: FnMut() -> Duration {
+        if self.wait_time.subsec_nanos() == 0 {
             self.wait_time = action();
             self.previous_tick = Instant::now();
+        } else {
+            let iterations = self.previous_tick.elapsed().subsec_nanos() / self.wait_time.subsec_nanos();
+            for _ in 0..iterations {
+                self.wait_time = action();
+                self.previous_tick = Instant::now();
+            }
         }
     }
 }
