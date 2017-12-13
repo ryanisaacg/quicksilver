@@ -1,62 +1,153 @@
+extern crate gl;
 extern crate glutin;
 
 use geom::{Circle, Line, Rectangle, Shape, Transform, Vector};
-use graphics::{Backend, Camera, Color, Colors, Image, Vertex};
+use glutin::{EventsLoop, GlContext};
+use graphics::{Backend, GLBackend, Camera, Color, Colors, Image, Vertex};
+use input::{Keyboard, Mouse, ViewportBuilder };
 
-pub struct GraphicsBuilder {
-    cam: Camera,
+pub struct WindowBuilder {
     clear_color: Color,
     show_cursor: bool
 }
 
-impl GraphicsBuilder {
-    pub(crate) fn new(cam: Camera) -> GraphicsBuilder {
-        GraphicsBuilder {
-            cam,
+impl WindowBuilder {
+    pub(crate) fn new() -> WindowBuilder {
+        WindowBuilder {
             clear_color: Colors::BLACK,
             show_cursor: true
         }
     }
-
-    pub fn with_camera(self, cam: Camera) -> GraphicsBuilder {
-        GraphicsBuilder {
-            cam,
-            ..self
-        }
-    }
-
-    pub fn with_show_cursor(self, show_cursor: bool) -> GraphicsBuilder {
-        GraphicsBuilder {
+    
+    pub fn with_show_cursor(self, show_cursor: bool) -> WindowBuilder {
+        WindowBuilder {
             show_cursor,
             ..self
         }
     }
 
-    pub fn with_clear_color(self, clear_color: Color) -> GraphicsBuilder {
-        GraphicsBuilder {
+    pub fn with_clear_color(self, clear_color: Color) -> WindowBuilder {
+        WindowBuilder {
             clear_color,
             ..self
         }
     }
+
+    pub fn build(self, title: &str, width: u32, height: u32) -> Window {
+        Window::new(self, title, width, height)
+    }
 }
 
-pub struct Graphics {
+pub struct Window {
     backend: Box<Backend>,
     cam: Camera,
     clear_color: Color,
-    show_cursor: bool
+    show_cursor: bool,
+    events: EventsLoop,
+    gl_window: glutin::GlWindow,
+    running: bool,
+    scale_factor: f32,
+    offset: Vector,
+    screen_size: Vector
 }
 
 const CIRCLE_POINTS: usize = 32; //the number of points in the poly to simulate the circle
 
-impl Graphics {
-    pub(crate) fn new(backend: Box<Backend>, builder: GraphicsBuilder) -> Graphics {
-        Graphics {
-            backend,
-            cam: builder.cam,
-            clear_color: builder.clear_color,
-            show_cursor: builder.show_cursor
+impl Window {
+    pub(crate) fn new(builder: WindowBuilder, title: &str, width: u32, height: u32) -> Window {
+        let events = glutin::EventsLoop::new();
+        let window = glutin::WindowBuilder::new()
+            .with_title(title)
+            .with_dimensions(width, height);
+        let context = glutin::ContextBuilder::new().with_vsync(true);
+        let gl_window = glutin::GlWindow::new(window, context, &events).unwrap();
+        unsafe {
+            gl_window.make_current().unwrap();
+            gl::load_with(|symbol| gl_window.get_proc_address(symbol) as *const _);
         }
+        let scale_factor = gl_window.hidpi_factor();
+        let screen_size = Vector::new(width as f32, height as f32);
+
+        Window {
+            backend: Box::new(GLBackend::new()),
+            cam: Camera::new(Rectangle::newv_sized(screen_size)),
+            clear_color: builder.clear_color,
+            show_cursor: builder.show_cursor,
+            events,
+            gl_window,
+            running: true,
+            scale_factor,
+            offset: Vector::zero(),
+            screen_size
+        }
+    }
+
+    pub fn poll_events(&mut self, keyboard: &mut Keyboard, mouse: &mut Mouse) {
+        keyboard.clear_temporary_states();
+        mouse.clear_temporary_states();
+        self.scale_factor = self.gl_window.hidpi_factor();
+        let scale_factor = self.scale_factor;
+        let mut running = true;
+        let mut screen_size = self.screen_size;
+        let mut offset = self.offset;
+        let target_ratio = self.screen_size.x / self.screen_size.y;
+        self.events.poll_events(|event| match event {
+            glutin::Event::WindowEvent { event, .. } => {
+                match event {
+                    glutin::WindowEvent::KeyboardInput {
+                        device_id: _,
+                        input: event,
+                    } => {
+                        keyboard.process_event(&event);
+                    }
+                    glutin::WindowEvent::MouseMoved { position, .. } => {
+                        let (x, y) = position;
+                        *mouse = mouse.with_position(
+                            (Vector::new(x as f32, y as f32) - offset) / scale_factor);
+                    }
+                    glutin::WindowEvent::MouseInput { state, button, .. } => {
+                        mouse.process_button(state, button);
+                    }
+                    glutin::WindowEvent::Closed => {
+                        running = false;
+                    }
+                    glutin::WindowEvent::Resized(new_width, new_height) => {
+                        let window_ratio = new_width as f32 / new_height as f32;
+                        let (w, h) = if window_ratio > target_ratio {
+                            ((target_ratio * new_height as f32) as i32, new_height as i32)
+                        } else if window_ratio < target_ratio {
+                            (new_width as i32, (new_width as f32 / target_ratio) as i32)
+                        } else {
+                            (new_width as i32, new_height as i32)
+                        };
+                        let offset_x = (new_width as i32 - w) / 2;
+                        let offset_y = (new_height as i32 - h) / 2;
+                        screen_size = Vector::new(w as f32, h as f32);
+                        offset = Vector::newi(offset_x, offset_y);
+                        unsafe {
+                            gl::Viewport(offset_x, offset_y, w, h);
+                        }
+                    }
+                    _ => (),
+                }
+            }
+            _ => (),
+        });
+        self.running = running;
+        self.screen_size = screen_size;
+        self.offset = offset;
+    }
+
+    pub fn viewport(&self) -> ViewportBuilder {
+        ViewportBuilder::new(self.screen_size / self.scale_factor)
+    }
+
+    pub fn screen_size(&self) -> Vector {
+        self.screen_size
+    }
+
+    pub fn running(&self) -> bool {
+        self.running
     }
 
     pub fn set_camera(&mut self, cam: Camera) {
@@ -79,10 +170,10 @@ impl Graphics {
         self.clear_color = col;
     }
 
-    pub fn present(&mut self, window: &glutin::GlWindow) {
-        window.set_cursor_state(if self.show_cursor { glutin::CursorState::Normal } else { glutin::CursorState::Hide }).unwrap();
+    pub fn present(&mut self) {
+        self.gl_window.set_cursor_state(if self.show_cursor { glutin::CursorState::Normal } else { glutin::CursorState::Hide }).unwrap();
         self.backend.display();
-        glutin::GlContext::swap_buffers(window).unwrap();
+        self.gl_window.swap_buffers().unwrap();
         self.backend.clear(self.clear_color);
     }
 
@@ -206,24 +297,5 @@ impl Graphics {
             Shape::Line(l) => self.draw_line_trans(l, col, trans),
             Shape::Vect(v) => self.draw_point(trans * v, col)
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    use graphics::{GLBackend, Colors};
-
-    #[test]
-    fn test_backend() {
-        let mut frontend = Graphics::new(Box::new(GLBackend::new()), GraphicsBuilder::new(Camera::new(Rectangle::newi(-1, -1, 2, 2))));
-        frontend.draw_shape(Shape::Rect(Rectangle::newi(-1, -1, 0, 0)), Colors::WHITE);
-        let expected_vertices = &[-1f32, 1f32, 0f32, 0f32, 1f32, 1f32, 1f32, 1f32, 0f32, -1f32, 
-            1f32, 0f32, 0f32, 1f32, 1f32, 1f32, 1f32, 0f32, -1f32, 1f32, 0f32, 0f32, 1f32, 1f32, 
-            1f32, 1f32, 0f32, -1f32, 1f32, 0f32, 0f32, 1f32, 1f32, 1f32, 1f32, 0f32];
-        let expected_indices = &[0, 1, 2, 0, 2, 3];
-        assert!(frontend.backend.vertices().as_slice() == &expected_vertices[..]);
-        assert!(frontend.backend.indices().as_slice() == &expected_indices[..]);
     }
 }

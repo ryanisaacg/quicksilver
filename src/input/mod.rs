@@ -13,4 +13,3 @@ pub use self::keyboard::Keyboard;
 pub use self::mouse::Mouse;
 pub use self::state::ButtonState;
 pub use self::viewport::*;
-
