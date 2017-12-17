@@ -11,6 +11,7 @@ addons:
       - gcc
       - binutils-dev
       - libiberty-dev
+      - alsa-lib
 rust:
   - stable
   - beta
