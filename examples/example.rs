@@ -25,61 +25,46 @@ impl Entity {
     }
 }
 
-struct Screen {
-    player: Entity,
-    map: Tilemap<i32>,
-}
-
-impl State for Screen {
-    fn configure(builder: WindowBuilder) -> WindowBuilder {
-        builder
-            .with_show_cursor(false)
-            .with_clear_color(Colors::WHITE)
-    }
-
-    fn new() -> Screen {
-        Screen {
-            player: Entity::new(Rectangle::newi(16, 16, 32, 32)),
-            map: Tilemap::new(800f32, 600f32, 40f32, 40f32),
-        }
-    }
-
-    fn tick(&mut self, input: InputBuilder) -> Duration {
-        let (keyboard, _, _) = input.build(Rectangle::new_sized(800f32, 600f32));
-        self.player.speed += Vector::y() * 0.5;
-        if self.player.speed.x.abs() < 0.3 {
-            self.player.speed.x = 0.0;
-        } else {
-            self.player.speed.x *= 0.9;
-        }
-        if keyboard[Key::A].is_down() {
-            self.player.speed.x -= 0.4;
-            self.player.facing = -Vector::x();
-        } else if keyboard[Key::D].is_down() {
-            self.player.speed.x += 0.4;
-            self.player.facing = Vector::x();
-        }
-        if keyboard[Key::Space].is_down() {
-            if !self.map.shape_empty(self.player.bounds.translate(Vector::y())) {
-                self.player.speed.y = -8f32;
-            } else if !self.map.shape_empty(self.player.bounds.translate(self.player.facing)) {
-                self.player.speed.y = -8f32;
-                self.player.speed += -self.player.facing * 8;
+fn main() {
+    let (mut window, mut canvas) = WindowBuilder::new()
+        .with_show_cursor(false)
+        .with_clear_color(Colors::WHITE)
+        .build("Window", 800, 600);
+    let mut player = Entity::new(Rectangle::newi(16, 16, 32, 32));
+    let map: Tilemap<u8> = Tilemap::new(800f32, 600f32, 40f32, 40f32);
+    let mut timer = Timer::new();
+    while window.poll_events() {
+        timer.tick(|| {
+            let keyboard = window.keyboard();
+            player.speed += Vector::y() * 0.5;
+            if player.speed.x.abs() < 0.3 {
+                player.speed.x = 0.0;
+            } else {
+                player.speed.x *= 0.9;
             }
-        }
-        self.player.step(&self.map);
-        Duration::from_millis(10)
-    }
-
-    fn draw(&mut self, draw: &mut Window) {
-        draw.draw_line(Line::new(Vector::zero(), Vector::one() * 100), Colors::BLACK);
-        draw.draw_shape(self.player.bounds, Colors::BLUE);
-        draw.draw_shape_trans(self.player.bounds, Colors::BLUE, Transform::translate(Vector::one() * 16) 
+            if keyboard[Key::A].is_down() {
+                player.speed.x -= 0.4;
+                player.facing = -Vector::x();
+            } else if keyboard[Key::D].is_down() {
+                player.speed.x += 0.4;
+                player.facing = Vector::x();
+            }
+            if keyboard[Key::Space].is_down() {
+                if !map.shape_empty(player.bounds.translate(Vector::y())) {
+                    player.speed.y = -8f32;
+                } else if !map.shape_empty(player.bounds.translate(player.facing)) {
+                    player.speed.y = -8f32;
+                    player.speed += -player.facing * 8;
+                }
+            }
+            player.step(&map);
+            Duration::from_millis(10)
+        });
+        canvas.draw_line(Line::new(Vector::zero(), Vector::one() * 100), Colors::BLACK);
+        canvas.draw_shape(player.bounds, Colors::BLUE);
+        canvas.draw_shape_trans(player.bounds, Colors::BLUE, Transform::translate(Vector::one() * 16) 
                 * Transform::rotate(45.0) 
                 * Transform::translate(Vector::one() * -16));
+        canvas.present();
     }
-}
-
-fn main() {
-    run::<Screen>("Window", 800, 600);
 }
