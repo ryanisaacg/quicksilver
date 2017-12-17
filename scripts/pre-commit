@@ -1,2 +1,2 @@
 #!/bin/sh
-cargo test && cargo check --example example
+cargo test && cargo check --example platformer
