@@ -11,7 +11,7 @@ addons:
       - gcc
       - binutils-dev
       - libiberty-dev
-      - alsa-lib
+      - libasound2-dev
 rust:
   - stable
   - beta
