@@ -4,7 +4,6 @@ use geom::{ Rectangle, Vector};
 use glutin::{EventsLoop, GlContext};
 use graphics::{GLBackend, Camera, Canvas, Color, Colors};
 use input::{Keyboard, Mouse, MouseBuilder, ViewportBuilder };
-use std::sync::Arc;
 
 pub struct WindowBuilder {
     clear_color: Color,
@@ -48,28 +47,26 @@ impl WindowBuilder {
             glutin::CursorState::Normal } else { glutin::CursorState::Hide }).unwrap();
         let scale_factor = gl_window.hidpi_factor();
         let screen_size = Vector::new(width as f32, height as f32);
-        let window = Arc::new(gl_window);
-        let canvas = Canvas {
-            backend: Box::new(GLBackend::new()),
-            clear_color: self.clear_color,
-            cam: Camera::new(Rectangle::newv_sized(screen_size)),
-            window: window.clone()
-        };
         let window = Window {
+            gl_window,
             events,
             scale_factor,
             offset: Vector::zero(),
             screen_size,
             keyboard: Keyboard::new(),
             mouse: Mouse::new(),
-            window
+        };
+        let canvas = Canvas {
+            backend: Box::new(GLBackend::new()),
+            clear_color: self.clear_color,
+            cam: Camera::new(Rectangle::newv_sized(screen_size)),
         };
         (window, canvas)
     }
 }
 
 pub struct Window {
-    window: Arc<glutin::GlWindow>,
+    pub(crate) gl_window: glutin::GlWindow,
     events: EventsLoop,
     scale_factor: f32,
     offset: Vector,
@@ -82,7 +79,7 @@ impl Window {
     pub fn poll_events(&mut self) -> bool {
         self.keyboard.clear_temporary_states();
         self.mouse.clear_temporary_states();
-        let scale_factor = self.window.hidpi_factor();
+        let scale_factor = self.gl_window.hidpi_factor();
         let mut running = true;
         let mut screen_size = self.screen_size;
         let mut offset = self.offset;

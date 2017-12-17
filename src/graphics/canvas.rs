@@ -1,13 +1,11 @@
 use geom::{Circle, Line, Rectangle, Shape, Transform, Vector};
-use glutin::{GlContext, GlWindow};
-use graphics::{Backend, Camera, Color, Colors, Image, Vertex};
-use std::sync::Arc;
+use glutin::{GlContext};
+use graphics::{Backend, Camera, Color, Colors, Image, Window, Vertex};
 
 pub struct Canvas {
     pub(crate) backend: Box<Backend>,
     pub(crate) cam: Camera,
     pub(crate) clear_color: Color,
-    pub(crate) window: Arc<GlWindow>
 }
 
 const CIRCLE_POINTS: usize = 32; //the number of points in the poly to simulate the circle
@@ -29,9 +27,9 @@ impl Canvas {
         self.clear_color = col;
     }
 
-    pub fn present(&mut self) {
+    pub fn present(&mut self, window: &Window) {
         self.backend.display();
-        self.window.swap_buffers().unwrap();
+        window.gl_window.swap_buffers().unwrap();
         self.backend.clear(self.clear_color);
     }
 
