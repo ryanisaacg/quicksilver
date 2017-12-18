@@ -1,4 +1,3 @@
-extern crate cpal;
 extern crate gl;
 extern crate image;
 extern crate glutin;

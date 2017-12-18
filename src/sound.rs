@@ -1,12 +1,13 @@
 extern crate rodio;
-extern crate cpal;
 
 use rodio::{Decoder, Sink, Source};
+use rodio::decoder::DecoderError;
 use rodio::source::{SamplesConverter, Amplify};
 use std::fs::File;
 use std::path::Path;
-use std::io::{BufReader, Cursor, Read};
+use std::io::{BufReader, Cursor, Error as IOError, Read};
 use std::sync::Arc;
+
 
 #[derive(Clone)]
 pub struct Sound {
@@ -15,14 +16,16 @@ pub struct Sound {
 }
 
 impl Sound {
-    pub fn load<P: AsRef<Path>>(path: P) -> Sound {
+    pub fn load<P: AsRef<Path>>(path: P) -> Result<Sound, SoundError> {
         let mut bytes = Vec::new();
-        BufReader::new(File::open(path).unwrap()).read_to_end(&mut bytes).unwrap();
+        BufReader::new(File::open(path)?).read_to_end(&mut bytes)?;
         let val = Arc::new(bytes);
-        Sound {
+        let sound = Sound {
             val,
             volume: 1f32
-        }
+        };
+        Decoder::new(Cursor::new(sound.clone()))?;
+        Ok(sound)
     }
 
     pub fn volume(&self) -> f32 {
@@ -39,7 +42,7 @@ impl Sound {
 
 
     pub fn play(&self) {
-        let endpoint = cpal::default_endpoint().unwrap();
+        let endpoint = rodio::get_default_endpoint().unwrap();
         rodio::play_raw(&endpoint, self.get_source());
     }
 }
@@ -59,7 +62,7 @@ impl MusicPlayer {
     pub fn new() -> MusicPlayer {
         MusicPlayer {
             tracks: Vec::new(),
-            sink: Sink::new(&cpal::default_endpoint().unwrap())
+            sink: Sink::new(&rodio::get_default_endpoint().unwrap())
         }
     }
 
@@ -91,3 +94,22 @@ impl MusicPlayer {
     }
 }
 
+#[derive(Debug)]
+pub enum SoundError {
+     UnrecognizedFormat,
+     IOError(IOError)
+}
+
+impl From<DecoderError> for SoundError {
+    fn from(err: DecoderError) -> SoundError {
+        match err {
+            DecoderError::UnrecognizedFormat => SoundError::UnrecognizedFormat
+        }
+    }
+}
+
+impl From<IOError> for SoundError {
+    fn from(err: IOError) -> SoundError {
+        SoundError::IOError(err)
+    }
+}
