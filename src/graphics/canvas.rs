@@ -1,6 +1,12 @@
+#[cfg(not(target_arch="wasm32"))]
+extern crate glutin;
+
 use geom::{Circle, Line, Rectangle, Shape, Transform, Vector};
+#[cfg(not(target_arch="wasm32"))]
 use glutin::{GlContext};
-use graphics::{Backend, Camera, Color, Colors, Image, Window, Vertex};
+#[cfg(not(target_arch="wasm32"))]
+use graphics::Window;
+use graphics::{Backend, Camera, Color, Colors, Image, Vertex};
 
 pub struct Canvas {
     pub(crate) backend: Box<Backend>,
@@ -27,14 +33,14 @@ impl Canvas {
         self.clear_color = col;
     }
 
-    pub(crate) fn clear(&mut self) {
+    pub fn clear(&mut self) {
         self.backend.clear(self.clear_color);
     }
 
+    #[cfg(not(target_arch="wasm32"))]
     pub fn present(&mut self, window: &Window) {
         self.backend.display();
         window.gl_window.swap_buffers().unwrap();
-        self.backend.clear(self.clear_color);
     }
 
     pub fn draw_image(&mut self, image: &Image, area: Rectangle) {

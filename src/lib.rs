@@ -7,6 +7,8 @@ extern crate rodio;
 #[cfg(not(target_arch="wasm32"))]
 extern crate tiled;
 
+#[cfg(target_arch="wasm32")]
+mod bridge;
 mod geom;
 mod gl;
 mod graphics;

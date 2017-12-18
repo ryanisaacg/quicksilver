@@ -1,5 +1,7 @@
 #[cfg(not(target_arch="wasm32"))]
 extern crate image;
+#[cfg(target_arch="wasm32")]
+use bridge;
 
 use gl;
 use geom::{Rectangle, Vector};
@@ -64,14 +66,38 @@ impl Image {
         }
     }
 
+    #[cfg(not(target_arch="wasm32"))]
     pub fn load<P: AsRef<Path>>(path: P) -> Result<Image, image::ImageError> {
         let img = image::open(path)?.to_rgba();
         let width = img.width() as i32;
         let height = img.height() as i32;
         Ok(Image::from_raw(img.into_raw().as_slice(), width, height, PixelFormat::RGBA))
     }
-
-
+    
+    #[cfg(target_arch="wasm32")]
+    //TODO: create an image error that works across wasm and native
+    pub fn load<P: AsRef<Path>>(path: P) -> Image {
+        unsafe {
+            bridge::start_image_load();
+            let string = path.as_ref().to_str().unwrap();
+            for c in string.chars() {
+                bridge::add_image_path_char(c);
+            }
+            bridge::end_image_load();
+        }
+        let id = unsafe { bridge::get_image_id() };
+        let width = unsafe { bridge::get_image_width() } ;
+        let height = unsafe { bridge::get_image_height() };
+        Image { 
+            source: Rc::new(ImageData {
+                id,
+                width,
+                height
+            }),
+            region: Rectangle::newi_sized(width, height)
+        }
+    }
+        
     pub(crate) fn get_id(&self) -> u32 {
         self.source.id
     }
