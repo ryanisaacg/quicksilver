@@ -33,15 +33,15 @@ impl Canvas {
         self.backend.clear(self.clear_color);
     }
 
-    pub fn draw_image(&mut self, image: Image, area: Rectangle) {
+    pub fn draw_image(&mut self, image: &Image, area: Rectangle) {
         self.draw_image_blend(image, area, Colors::WHITE);
     }
 
-    pub fn draw_image_blend(&mut self, image: Image, area: Rectangle, col: Color) {
+    pub fn draw_image_blend(&mut self, image: &Image, area: Rectangle, col: Color) {
         self.draw_image_trans(image, area, col, Transform::identity());
     }
 
-    pub fn draw_image_trans(&mut self, image: Image, area: Rectangle, col: Color, trans: Transform) {
+    pub fn draw_image_trans(&mut self, image: &Image, area: Rectangle, col: Color, trans: Transform) {
         let trans = self.camera() 
             * Transform::translate(area.top_left()) 
             * Transform::translate(area.size() / 2) 
