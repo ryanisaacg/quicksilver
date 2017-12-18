@@ -15,64 +15,10 @@ pub enum PixelFormat {
     BGRA = gl::BGRA as isize,
 }
 
-pub struct ImageData {
+struct ImageData {
     id: u32,
     width: i32,
     height: i32,
-}
-
-impl ImageData {
-    pub fn from_raw(data: &[u8], w: i32, h: i32, format: PixelFormat) -> ImageData {
-        unsafe {
-            let mut texture = 0;
-            gl::GenTextures(1, &mut texture as *mut GLuint);
-            gl::BindTexture(gl::TEXTURE_2D, texture);
-            gl::TexParameteri(
-                gl::TEXTURE_2D,
-                gl::TEXTURE_WRAP_S,
-                gl::CLAMP_TO_EDGE as GLint,
-            );
-            gl::TexParameteri(
-                gl::TEXTURE_2D,
-                gl::TEXTURE_WRAP_T,
-                gl::CLAMP_TO_EDGE as GLint,
-            );
-            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::LINEAR as GLint);
-            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::LINEAR as GLint);
-            gl::TexImage2D(
-                gl::TEXTURE_2D,
-                0,
-                gl::RGBA as GLint,
-                w,
-                h,
-                0,
-                format as u32,
-                gl::UNSIGNED_BYTE,
-                data.as_ptr() as *const c_void,
-            );
-            gl::GenerateMipmap(gl::TEXTURE_2D);
-            ImageData {
-                id: texture,
-                width: w,
-                height: h,
-            }
-        }
-    }
-
-    pub fn load(path: &Path) -> Result<ImageData, image::ImageError> {
-        let img = image::open(path)?.to_rgba();
-        let width = img.width() as i32;
-        let height = img.height() as i32;
-        Result::Ok(ImageData::from_raw(img.into_raw().as_slice(), width, height, PixelFormat::RGBA))
-    }
-
-    pub fn image(self) -> Image {
-        let region = Rectangle::newi_sized(self.width, self.height);
-        Image {
-            source: Rc::new(self),
-            region
-        }
-    }
 }
 
 impl Drop for ImageData {
@@ -90,6 +36,42 @@ pub struct Image {
 }
 
 impl Image {
+    pub fn from_raw(data: &[u8], width: i32, height: i32, format: PixelFormat) -> Image {
+        let id = unsafe {
+            let mut texture = 0;
+            gl::GenTextures(1, &mut texture as *mut GLuint);
+            gl::BindTexture(gl::TEXTURE_2D, texture);
+            gl::TexParameteri(
+                gl::TEXTURE_2D,
+                gl::TEXTURE_WRAP_S,
+                gl::CLAMP_TO_EDGE as GLint,
+            );
+            gl::TexParameteri(
+                gl::TEXTURE_2D,
+                gl::TEXTURE_WRAP_T,
+                gl::CLAMP_TO_EDGE as GLint,
+            );
+            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::LINEAR as GLint);
+            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::LINEAR as GLint);
+            gl::TexImage2D(gl::TEXTURE_2D, 0, gl::RGBA as GLint, width, height, 0, format as u32, 
+                           gl::UNSIGNED_BYTE, data.as_ptr() as *const c_void);
+            gl::GenerateMipmap(gl::TEXTURE_2D);
+            texture
+        };
+        Image {
+            source: Rc::new(ImageData { id, width, height }),
+            region: Rectangle::newi_sized(width, height)
+        }
+    }
+
+    pub fn load<P: AsRef<Path>>(path: P) -> Result<Image, image::ImageError> {
+        let img = image::open(path)?.to_rgba();
+        let width = img.width() as i32;
+        let height = img.height() as i32;
+        Ok(Image::from_raw(img.into_raw().as_slice(), width, height, PixelFormat::RGBA))
+    }
+
+
     pub(crate) fn get_id(&self) -> u32 {
         self.source.id
     }

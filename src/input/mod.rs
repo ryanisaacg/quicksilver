@@ -8,7 +8,7 @@ mod viewport;
 
 pub use glutin::VirtualKeyCode as Key;
 
-pub use self::builder::InputBuilder;
+pub use self::builder::MouseBuilder;
 pub use self::keyboard::Keyboard;
 pub use self::mouse::Mouse;
 pub use self::state::ButtonState;

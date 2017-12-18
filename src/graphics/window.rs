@@ -1,10 +1,9 @@
-extern crate gl;
-extern crate glutin;
-
-use geom::{Circle, Line, Rectangle, Shape, Transform, Vector};
+use gl;
+use glutin;
+use geom::{ Rectangle, Vector};
 use glutin::{EventsLoop, GlContext};
-use graphics::{Backend, GLBackend, Camera, Color, Colors, Image, Vertex};
-use input::{Keyboard, Mouse, ViewportBuilder };
+use graphics::{GLBackend, Camera, Canvas, Color, Colors};
+use input::{Keyboard, Mouse, MouseBuilder, ViewportBuilder };
 
 pub struct WindowBuilder {
     clear_color: Color,
@@ -12,7 +11,7 @@ pub struct WindowBuilder {
 }
 
 impl WindowBuilder {
-    pub(crate) fn new() -> WindowBuilder {
+    pub fn new() -> WindowBuilder {
         WindowBuilder {
             clear_color: Colors::BLACK,
             show_cursor: true
@@ -33,28 +32,7 @@ impl WindowBuilder {
         }
     }
 
-    pub fn build(self, title: &str, width: u32, height: u32) -> Window {
-        Window::new(self, title, width, height)
-    }
-}
-
-pub struct Window {
-    backend: Box<Backend>,
-    cam: Camera,
-    clear_color: Color,
-    show_cursor: bool,
-    events: EventsLoop,
-    gl_window: glutin::GlWindow,
-    running: bool,
-    scale_factor: f32,
-    offset: Vector,
-    screen_size: Vector
-}
-
-const CIRCLE_POINTS: usize = 32; //the number of points in the poly to simulate the circle
-
-impl Window {
-    pub(crate) fn new(builder: WindowBuilder, title: &str, width: u32, height: u32) -> Window {
+    pub fn build(self, title: &str, width: u32, height: u32) -> (Window, Canvas) {
         let events = glutin::EventsLoop::new();
         let window = glutin::WindowBuilder::new()
             .with_title(title)
@@ -65,32 +43,49 @@ impl Window {
             gl_window.make_current().unwrap();
             gl::load_with(|symbol| gl_window.get_proc_address(symbol) as *const _);
         }
+        gl_window.set_cursor_state(if self.show_cursor { 
+            glutin::CursorState::Normal } else { glutin::CursorState::Hide }).unwrap();
         let scale_factor = gl_window.hidpi_factor();
         let screen_size = Vector::new(width as f32, height as f32);
-
-        Window {
-            backend: Box::new(GLBackend::new()),
-            cam: Camera::new(Rectangle::newv_sized(screen_size)),
-            clear_color: builder.clear_color,
-            show_cursor: builder.show_cursor,
-            events,
+        let window = Window {
             gl_window,
-            running: true,
+            events,
             scale_factor,
             offset: Vector::zero(),
-            screen_size
-        }
+            screen_size,
+            keyboard: Keyboard::new(),
+            mouse: Mouse::new(),
+        };
+        let canvas = Canvas {
+            backend: Box::new(GLBackend::new()),
+            clear_color: self.clear_color,
+            cam: Camera::new(Rectangle::newv_sized(screen_size)),
+        };
+        (window, canvas)
     }
+}
 
-    pub fn poll_events(&mut self, keyboard: &mut Keyboard, mouse: &mut Mouse) {
-        keyboard.clear_temporary_states();
-        mouse.clear_temporary_states();
-        self.scale_factor = self.gl_window.hidpi_factor();
-        let scale_factor = self.scale_factor;
+pub struct Window {
+    pub(crate) gl_window: glutin::GlWindow,
+    events: EventsLoop,
+    scale_factor: f32,
+    offset: Vector,
+    screen_size: Vector,
+    keyboard: Keyboard,
+    mouse: Mouse,
+}
+
+impl Window {
+    pub fn poll_events(&mut self) -> bool {
+        self.keyboard.clear_temporary_states();
+        self.mouse.clear_temporary_states();
+        let scale_factor = self.gl_window.hidpi_factor();
         let mut running = true;
         let mut screen_size = self.screen_size;
         let mut offset = self.offset;
         let target_ratio = self.screen_size.x / self.screen_size.y;
+        let mut keyboard = self.keyboard.clone();
+        let mut mouse = self.mouse.clone();
         self.events.poll_events(|event| match event {
             glutin::Event::WindowEvent { event, .. } => {
                 match event {
@@ -102,7 +97,7 @@ impl Window {
                     }
                     glutin::WindowEvent::MouseMoved { position, .. } => {
                         let (x, y) = position;
-                        *mouse = mouse.with_position(
+                        mouse = mouse.with_position(
                             (Vector::new(x as f32, y as f32) - offset) / scale_factor);
                     }
                     glutin::WindowEvent::MouseInput { state, button, .. } => {
@@ -133,9 +128,11 @@ impl Window {
             }
             _ => (),
         });
-        self.running = running;
         self.screen_size = screen_size;
         self.offset = offset;
+        self.keyboard = keyboard;
+        self.mouse = mouse;
+        running
     }
 
     pub fn viewport(&self) -> ViewportBuilder {
@@ -146,156 +143,15 @@ impl Window {
         self.screen_size
     }
 
-    pub fn running(&self) -> bool {
-        self.running
+    pub fn keyboard(&self) -> &Keyboard {
+        &self.keyboard
     }
 
-    pub fn set_camera(&mut self, cam: Camera) {
-        self.cam = cam;
-    }
-
-    pub fn set_show_cursor(&mut self, show_cursor: bool) {
-        self.show_cursor = show_cursor;
-    }
-
-    fn camera(&self) -> Transform {
-        self.cam.transform()
-    }
-
-    pub fn clear_color(&self) -> Color {
-        self.clear_color
-    }
-
-    pub fn set_clear_color(&mut self, col: Color) {
-        self.clear_color = col;
-    }
-
-    pub fn present(&mut self) {
-        self.gl_window.set_cursor_state(if self.show_cursor { glutin::CursorState::Normal } else { glutin::CursorState::Hide }).unwrap();
-        self.backend.display();
-        self.gl_window.swap_buffers().unwrap();
-        self.backend.clear(self.clear_color);
-    }
-
-    pub fn draw_image(&mut self, image: Image, area: Rectangle) {
-        self.draw_image_blend(image, area, Colors::WHITE);
-    }
-
-    pub fn draw_image_blend(&mut self, image: Image, area: Rectangle, col: Color) {
-        self.draw_image_trans(image, area, col, Transform::identity());
-    }
-
-    pub fn draw_image_trans(&mut self, image: Image, area: Rectangle, col: Color, trans: Transform) {
-        let trans = self.camera() 
-            * Transform::translate(area.top_left()) 
-            * Transform::translate(area.size() / 2) 
-            * trans 
-            * Transform::translate(-area.size() / 2)
-            * Transform::scale(area.size());
-        let recip_size = image.source_size().recip();
-        let normalized_pos = image.area().top_left().times(recip_size);
-        let normalized_size = image.area().size().times(recip_size);
-        let get_vertex = |v: Vector| {
-            Vertex {
-                pos: trans * v,
-                tex_pos: normalized_pos + v.times(normalized_size),
-                col: col,
-                use_texture: true,
-            }
-        };
-        self.backend.add(
-            image.get_id(),
-            &[
-                get_vertex(Vector::zero()),
-                get_vertex(Vector::zero() + Vector::x()),
-                get_vertex(Vector::zero() + Vector::one()),
-                get_vertex(Vector::zero() + Vector::y()),
-            ],
-            &[0, 1, 2, 2, 3, 0],
-        );
-    }
-
-    pub fn draw_rect(&mut self, rect: Rectangle, col: Color) {
-        self.draw_rect_trans(rect, col, Transform::identity());
-    }
-
-    pub fn draw_rect_trans(&mut self, rect: Rectangle, col: Color, trans: Transform) {
-        self.draw_polygon_trans(&[Vector::zero(), rect.size().x_comp(), rect.size(), rect.size().y_comp()], col, Transform::translate(rect.top_left()) * trans);
-    }
-
-    pub fn draw_circle(&mut self, circ: Circle, col: Color) {
-        self.draw_circle_trans(circ, col, Transform::identity());
-    }
-
-    pub fn draw_circle_trans(&mut self, circ: Circle, col: Color, trans: Transform) {
-        let mut points = [Vector::zero(); CIRCLE_POINTS];
-        let rotation = Transform::rotate(360f32 / CIRCLE_POINTS as f32);
-        let mut arrow = Vector::new(0f32, -circ.radius);
-        for i in 0..CIRCLE_POINTS {
-            points[i] = arrow;
-            arrow = rotation * arrow;
-        }
-        self.draw_polygon_trans(&points, col, Transform::translate(circ.center()) * trans);
-    }
-
-    pub fn draw_polygon(&mut self, vertices: &[Vector], col: Color) {
-        self.draw_polygon_trans(vertices, col, Transform::identity());
-    }
-
-    pub fn draw_polygon_trans(&mut self, vertices: &[Vector], col: Color, trans: Transform) {
-        let first_index = self.backend.num_vertices() as u32;
-        let trans = self.camera() * trans;
-        for vertex in vertices {
-            self.backend.add_vertex(&Vertex {
-                pos: trans * vertex.clone(),
-                tex_pos: Vector::zero(),
-                col: col,
-                use_texture: false
-            });
-        }
-        let mut current = 1;
-        let mut i = 0;
-        let indices = (vertices.len() - 2) * 3;
-        while i < indices {
-            self.backend.add_index(first_index);
-            self.backend.add_index(first_index + current);
-            self.backend.add_index(first_index + current + 1);
-            current += 1;
-            i += 3;
+    pub fn mouse(&self) -> MouseBuilder {
+        MouseBuilder {
+            mouse: self.mouse.clone(),
+            viewport: self.viewport()
         }
     }
 
-    pub fn draw_line(&mut self, line: Line, col: Color) {
-        self.draw_line_trans(line, col, Transform::identity());
-    }
-
-    pub fn draw_line_trans(&mut self, line: Line, col: Color, trans: Transform) {
-        let start = Vector::zero();
-        let end = line.end - line.start;
-        if (end - start).normalize() == Vector::x() {
-            self.draw_polygon_trans(&[start, start + Vector::y(), end + Vector::y(), end], col, 
-                                Transform::translate(line.start) * trans);
-        } else {
-            self.draw_polygon_trans(&[start, start + Vector::x(), end + Vector::y(), end], col, 
-                                    Transform::translate(line.start) * trans);
-        }
-    }
-
-    pub fn draw_point(&mut self, vec: Vector, col: Color) {
-        self.draw_polygon_trans(&[vec, vec + Vector::x(), vec + Vector::one(), vec + Vector::y()], 
-                                col, Transform::identity());
-    }
-
-    pub fn draw_shape(&mut self, shape: Shape, col: Color) {
-        self.draw_shape_trans(shape, col, Transform::identity());
-    }
-
-    pub fn draw_shape_trans(&mut self, shape: Shape, col: Color, trans: Transform) {
-        match shape {
-            Shape::Rect(r) => self.draw_rect_trans(r, col, trans),
-            Shape::Circ(c) => self.draw_circle_trans(c, col, trans),
-            Shape::Line(l) => self.draw_line_trans(l, col, trans),
-            Shape::Vect(v) => self.draw_point(trans * v, col)
-        }
-    }
 }
