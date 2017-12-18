@@ -7,9 +7,10 @@ repository = "https://github.com/ryanisaacg/quicksilver"
 
 
 [dependencies]
-gl = "~0.6"
+gl = "0.6"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-glutin = "~0.10"
-image = "~0.17"
-tiled = "~0.7"
+glutin = "0.10"
+image = "0.17"
+rodio = "0.5"
+tiled = "0.7"
