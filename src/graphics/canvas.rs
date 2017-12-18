@@ -1,34 +1,18 @@
-#[cfg(not(target_arch="wasm32"))]
-extern crate glutin;
-
 use geom::{Circle, Line, Rectangle, Shape, Transform, Vector};
-use graphics::{Backend, Camera, Color, Colors, TextureRegion, Vertex};
+use glutin::{GlContext};
+use graphics::{Backend, Camera, Color, Colors, Image, Window, Vertex};
 
-pub struct Graphics {
-    backend: Box<Backend>,
-    cam: Camera,
-    clear_color: Color,
-    show_cursor: bool
+pub struct Canvas {
+    pub(crate) backend: Box<Backend>,
+    pub(crate) cam: Camera,
+    pub(crate) clear_color: Color,
 }
 
 const CIRCLE_POINTS: usize = 32; //the number of points in the poly to simulate the circle
 
-impl Graphics {
-    pub fn new(backend: Box<Backend>, cam: Camera) -> Graphics {
-        Graphics {
-            backend,
-            cam,
-            clear_color: Colors::BLACK,
-            show_cursor: true
-        }
-    }
-
+impl Canvas {
     pub fn set_camera(&mut self, cam: Camera) {
         self.cam = cam;
-    }
-
-    pub fn set_show_cursor(&mut self, show_cursor: bool) {
-        self.show_cursor = show_cursor;
     }
 
     fn camera(&self) -> Transform {
@@ -47,26 +31,21 @@ impl Graphics {
         self.backend.clear(self.clear_color);
     }
 
-    #[cfg(not(target_arch="wasm32"))]
-    pub(crate) fn present_window(&mut self, window: &glutin::GlWindow) {
-        window.set_cursor_state(if self.show_cursor { glutin::CursorState::Normal } else { glutin::CursorState::Hide }).unwrap();
-        self.present();
-        glutin::GlContext::swap_buffers(window).unwrap();
-    }
-
-    pub(crate) fn present(&mut self) {
+    pub fn present(&mut self, window: &Window) {
         self.backend.display();
+        window.gl_window.swap_buffers().unwrap();
+        self.backend.clear(self.clear_color);
     }
 
-    pub fn draw_image(&mut self, image: TextureRegion, area: Rectangle) {
+    pub fn draw_image(&mut self, image: &Image, area: Rectangle) {
         self.draw_image_blend(image, area, Colors::WHITE);
     }
 
-    pub fn draw_image_blend(&mut self, image: TextureRegion, area: Rectangle, col: Color) {
+    pub fn draw_image_blend(&mut self, image: &Image, area: Rectangle, col: Color) {
         self.draw_image_trans(image, area, col, Transform::identity());
     }
 
-    pub fn draw_image_trans(&mut self, image: TextureRegion, area: Rectangle, col: Color, trans: Transform) {
+    pub fn draw_image_trans(&mut self, image: &Image, area: Rectangle, col: Color, trans: Transform) {
         let trans = self.camera() 
             * Transform::translate(area.top_left()) 
             * Transform::translate(area.size() / 2) 
@@ -74,8 +53,8 @@ impl Graphics {
             * Transform::translate(-area.size() / 2)
             * Transform::scale(area.size());
         let recip_size = image.source_size().recip();
-        let normalized_pos = image.get_region().top_left().times(recip_size);
-        let normalized_size = image.get_region().size().times(recip_size);
+        let normalized_pos = image.area().top_left().times(recip_size);
+        let normalized_size = image.area().size().times(recip_size);
         let get_vertex = |v: Vector| {
             Vertex {
                 pos: trans * v,
@@ -178,24 +157,5 @@ impl Graphics {
             Shape::Line(l) => self.draw_line_trans(l, col, trans),
             Shape::Vect(v) => self.draw_point(trans * v, col)
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    use graphics::{GLBackend, Colors};
-
-    #[test]
-    fn test_backend() {
-        let mut frontend = Graphics::new(Box::new(GLBackend::new()), Camera::new(Rectangle::newi(-1, -1, 2, 2)));
-        frontend.draw_shape(Shape::Rect(Rectangle::newi(-1, -1, 0, 0)), Colors::WHITE);
-        let expected_vertices = &[-1f32, 1f32, 0f32, 0f32, 1f32, 1f32, 1f32, 1f32, 0f32, -1f32, 
-            1f32, 0f32, 0f32, 1f32, 1f32, 1f32, 1f32, 0f32, -1f32, 1f32, 0f32, 0f32, 1f32, 1f32, 
-            1f32, 1f32, 0f32, -1f32, 1f32, 0f32, 0f32, 1f32, 1f32, 1f32, 1f32, 0f32];
-        let expected_indices = &[0, 1, 2, 0, 2, 3];
-        assert!(frontend.backend.vertices().as_slice() == &expected_vertices[..]);
-        assert!(frontend.backend.indices().as_slice() == &expected_indices[..]);
     }
 }
