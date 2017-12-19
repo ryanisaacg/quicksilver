@@ -30,6 +30,7 @@ impl Mouse {
         }
     }
 
+    #[cfg(not(target_arch="wasm32"))]
     pub(crate) fn process_button(&mut self, state: glutin::ElementState, button: glutin::MouseButton) {
         let value = match state {
             glutin::ElementState::Pressed => ButtonState::Pressed,

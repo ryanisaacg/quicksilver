@@ -1,7 +1,7 @@
 #[cfg(not(target_arch="wasm32"))]
 extern crate glutin;
 
-use input::{ButtonState, Key};
+use input::{ButtonState};
 use std::ops::Index;
 
 #[derive(Copy)]
@@ -14,6 +14,7 @@ impl Keyboard {
         Keyboard { keys: [ButtonState::NotPressed; 256] }
     }
 
+    #[cfg(not(target_arch="wasm32"))]
     pub fn process_event(&mut self, event: &glutin::KeyboardInput) {
         if let Some(keycode) = event.virtual_keycode {
             let index = keycode as usize;
@@ -50,7 +51,8 @@ impl Clone for Keyboard {
     }
 }
 
-impl Index<Key> for Keyboard {
+#[cfg(not(target_arch="wasm32"))]
+impl Index<glutin::Key> for Keyboard {
     type Output = ButtonState;
 
     fn index(&self, index: Key) -> &ButtonState {

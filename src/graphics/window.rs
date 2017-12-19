@@ -1,7 +1,11 @@
+use bridge;
+#[cfg(not(target_arch="wasm32"))]
 use gl;
+#[cfg(not(target_arch="wasm32"))]
 use glutin;
-use geom::{ Rectangle, Vector};
+#[cfg(not(target_arch="wasm32"))]
 use glutin::{EventsLoop, GlContext};
+use geom::{ Rectangle, Vector};
 use graphics::{GLBackend, Camera, Canvas, Color, Colors};
 use input::{Keyboard, Mouse, MouseBuilder, ViewportBuilder };
 
@@ -32,6 +36,7 @@ impl WindowBuilder {
         }
     }
 
+    #[cfg(not(target_arch="wasm32"))]
     pub fn build(self, title: &str, width: u32, height: u32) -> (Window, Canvas) {
         let events = glutin::EventsLoop::new();
         let window = glutin::WindowBuilder::new()
@@ -63,8 +68,26 @@ impl WindowBuilder {
         };
         (window, canvas)
     }
+    
+    #[cfg(target_arch="wasm32")]
+    pub fn build(self, _: &str, width: u32, height: u32) -> (Window, Canvas) {
+        unsafe { bridge::create_context(width, height) };
+        let screen_size = Vector::new(width as f32, height as f32);
+        let window = Window {
+            screen_size,
+            keyboard: Keyboard::new(),
+            mouse: Mouse::new(),
+        };
+        let canvas = Canvas {
+            backend: Box::new(GLBackend::new()),
+            clear_color: self.clear_color,
+            cam: Camera::new(Rectangle::newv_sized(screen_size)),
+        };
+        (window, canvas)
+    }
 }
 
+#[cfg(not(target_arch="wasm32"))]
 pub struct Window {
     pub(crate) gl_window: glutin::GlWindow,
     events: EventsLoop,
@@ -75,7 +98,15 @@ pub struct Window {
     mouse: Mouse,
 }
 
+#[cfg(target_arch="wasm32")]
+pub struct Window {
+    screen_size: Vector,
+    keyboard: Keyboard,
+    mouse: Mouse
+}
+
 impl Window {
+    #[cfg(not(target_arch="wasm32"))]
     pub fn poll_events(&mut self) -> bool {
         self.keyboard.clear_temporary_states();
         self.mouse.clear_temporary_states();
@@ -134,9 +165,20 @@ impl Window {
         self.mouse = mouse;
         running
     }
+    
+    #[cfg(target_arch="wasm32")]
+    pub fn poll_events(&mut self) -> bool {
+        true
+    }
 
+    #[cfg(not(target_arch="wasm32"))]
     pub fn viewport(&self) -> ViewportBuilder {
         ViewportBuilder::new(self.screen_size / self.scale_factor)
+    }
+    
+    #[cfg(target_arch="wasm32")]
+    pub fn viewport(&self) -> ViewportBuilder {
+        ViewportBuilder::new(self.screen_size)
     }
 
     pub fn screen_size(&self) -> Vector {

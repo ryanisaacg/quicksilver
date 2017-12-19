@@ -52,6 +52,7 @@ void main() {
 }"#;
 
 #[cfg(not(test))]
+#[cfg(not(target_arch="wasm32"))]
 const DEFAULT_FRAGMENT_SHADER: &str = r#"#version 150
 in vec4 Color;
 in vec2 Tex_coord;
@@ -63,18 +64,27 @@ void main() {
     outColor = Color * tex_color;
 }"#;
 
+#[cfg(not(test))]
+#[cfg(target_arch="wasm32")]
+const DEFAULT_FRAGMENT_SHADER: &str = r#"#version 150
+in vec4 Color;
+in vec2 Tex_coord;
+in float Uses_texture;
+uniform sampler2D tex;
+void main() {
+    vec4 tex_color = (Uses_texture != 0) ? texture(tex, Tex_coord) : vec4(1, 1, 1, 1);
+    gl_FragColor = Color * tex_color;
+}"#;
+
 impl GLBackend {
     pub fn new() -> GLBackend {
         #[cfg(not(test))]
         let (vao, vbo, ebo) = unsafe {
-            let mut vao: u32 = 0;
-            let mut vbo: u32 = 0;
-            let mut ebo: u32 = 0;
-            gl::GenVertexArrays(1, &mut vao as *mut u32);
+            let vao = gl::GenVertexArray();
             gl::BindVertexArray(vao);
-            gl::GenBuffers(1, &mut vbo as *mut u32);
+            let vbo = gl::GenBuffer();
             gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
-            gl::GenBuffers(1, &mut ebo as *mut u32);
+            let ebo = gl::GenBuffer();
             gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, ebo);
             gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
             gl::Enable( gl::BLEND );
@@ -169,13 +179,16 @@ impl GLBackend {
             self.shader = gl::CreateProgram();
             gl::AttachShader(self.shader, self.vertex);
             gl::AttachShader(self.shader, self.fragment);
-            let raw = CString::new("out_color").unwrap().into_raw();
-            gl::BindFragDataLocation(self.shader, 0, raw as *mut i8);
+            #[cfg(not(target_arch="wasm32"))]
+            {
+                let raw = CString::new("out_color").unwrap().into_raw();
+                gl::BindFragDataLocation(self.shader, 0, raw as *mut i8);
+                CString::from_raw(raw);
+            }
             gl::LinkProgram(self.shader);
             gl::UseProgram(self.shader);
             CString::from_raw(vertex_text);
             CString::from_raw(fragment_text);
-            CString::from_raw(raw);
         }
     }
 
@@ -300,9 +313,9 @@ impl Drop for GLBackend {
             gl::DeleteProgram(self.shader);
             gl::DeleteShader(self.fragment);
             gl::DeleteShader(self.vertex);
-            gl::DeleteBuffers(1, &self.vbo as *const u32);
-            gl::DeleteBuffers(1, &self.ebo as *const u32);
-            gl::DeleteVertexArrays(1, &self.vao as *const u32);
+            gl::DeleteBuffer(self.vbo);
+            gl::DeleteBuffer(self.ebo);
+            gl::DeleteVertexArray(self.vao);
         }
     }
 }
