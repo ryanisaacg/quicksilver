@@ -6,8 +6,8 @@ authors = ["Ryan Goldstein <ryanisaacg@gmail.com>"]
 repository = "https://github.com/ryanisaacg/quicksilver"
 
 [dependencies]
-gl = "0.6"
-glutin = "0.10"
-image = "0.17"
+gl = "0.7"
+glutin = "0.11"
+image = "0.18"
 rodio = "0.5"
 tiled = "0.7"

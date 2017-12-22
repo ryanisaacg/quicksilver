@@ -95,7 +95,7 @@ impl Window {
                     } => {
                         keyboard.process_event(&event);
                     }
-                    glutin::WindowEvent::MouseMoved { position, .. } => {
+                    glutin::WindowEvent::CursorMoved { position, .. } => {
                         let (x, y) = position;
                         mouse = mouse.with_position(
                             (Vector::new(x as f32, y as f32) - offset) / scale_factor);
