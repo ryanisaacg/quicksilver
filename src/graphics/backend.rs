@@ -1,7 +1,7 @@
 use graphics::Color;
 use geom::Vector;
 
-pub trait Backend: Send {
+pub(crate) trait Backend {
     fn clear(&mut self, col: Color);
     fn display(&mut self);
     fn add(&mut self, texture: u32, vertices: &[Vertex], indices: &[u32]);
@@ -12,10 +12,10 @@ pub trait Backend: Send {
     fn indices(&self) -> &Vec<u32>;
 }
 
-pub const VERTEX_SIZE: usize = 9; // the number of floats in a vertex
+pub(crate) const VERTEX_SIZE: usize = 9; // the number of floats in a vertex
 
 #[derive(Clone, Copy)]
-pub struct Vertex {
+pub(crate) struct Vertex {
     pub pos: Vector,
     pub tex_pos: Vector,
     pub col: Color,

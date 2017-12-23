@@ -1,5 +1,6 @@
 use std::time::{Duration, Instant};
 
+#[derive(Clone, Copy, Debug)] 
 pub struct Timer {
     previous_tick: Instant,
     wait_time: Duration

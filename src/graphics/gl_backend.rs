@@ -14,7 +14,7 @@ use std::ptr::null;
 #[cfg(not(test))]
 use std::str::from_utf8;
 
-pub struct GLBackend {
+pub(crate) struct GLBackend {
     texture: u32,
     vertices: Vec<f32>,
     indices: Vec<u32>,
