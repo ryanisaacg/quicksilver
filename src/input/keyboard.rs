@@ -13,7 +13,7 @@ impl Keyboard {
         Keyboard { keys: [ButtonState::NotPressed; 256] }
     }
 
-    pub fn process_event(&mut self, event: &glutin::KeyboardInput) {
+    pub(crate) fn process_event(&mut self, event: &glutin::KeyboardInput) {
         if let Some(keycode) = event.virtual_keycode {
             let index = keycode as usize;
             let previous_state = self.keys[index];
@@ -36,7 +36,7 @@ impl Keyboard {
         }
     }
 
-    pub fn clear_temporary_states(&mut self) {
+    pub(crate) fn clear_temporary_states(&mut self) {
         for index in 0..self.keys.len() {
             self.keys[index] = self.keys[index].clear_temporary();
         }

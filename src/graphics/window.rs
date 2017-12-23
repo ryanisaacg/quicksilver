@@ -97,8 +97,10 @@ impl Window {
                     }
                     glutin::WindowEvent::CursorMoved { position, .. } => {
                         let (x, y) = position;
-                        mouse = mouse.with_position(
-                            (Vector::new(x as f32, y as f32) - offset) / scale_factor);
+                        mouse = Mouse {
+                            pos: (Vector::new(x as f32, y as f32) - offset) / scale_factor,
+                            ..mouse
+                        };
                     }
                     glutin::WindowEvent::MouseInput { state, button, .. } => {
                         mouse.process_button(state, button);

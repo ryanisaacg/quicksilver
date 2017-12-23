@@ -1,5 +1,6 @@
 use geom::{Rectangle, Transform, Vector};
 
+#[derive(Clone)]
 pub struct ViewportBuilder {
     screen_size: Vector,
     transform: Transform

@@ -3,23 +3,26 @@ extern crate glutin;
 use geom::{Rectangle, Transform, Vector};
 use input::{ButtonState, Viewport, ViewportBuilder};
 
-
+#[derive(Clone)]
 pub struct MouseBuilder {
     pub(crate) mouse: Mouse,
     pub(crate) viewport: ViewportBuilder
 }
 
 impl MouseBuilder {
-    pub fn transform(self, trans: Transform) -> MouseBuilder {
+    pub fn transform(&self, trans: Transform) -> MouseBuilder {
         MouseBuilder {
             viewport: self.viewport.transform(trans),
-            ..self
+            ..self.clone()
         }
     }
 
     pub fn build(&self, area: Rectangle) -> (Mouse, Viewport) {
         let viewport = self.viewport.build(area);
-        let mouse = self.mouse.with_position(viewport.project() * self.mouse.pos);
+        let mouse = Mouse {
+            pos: viewport.project() * self.mouse.pos,
+            ..self.mouse
+        };
         (mouse, viewport)
     }
 }
@@ -40,13 +43,6 @@ impl Mouse {
             left: ButtonState::NotPressed,
             right: ButtonState::NotPressed,
             middle: ButtonState::NotPressed,
-        }
-    }
-
-    pub(crate) fn with_position(&self, pos: Vector) -> Mouse {
-        Mouse {
-            pos,
-            ..self.clone()
         }
     }
 
@@ -73,11 +69,6 @@ impl Mouse {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn with_position() {
-        assert_eq!(Mouse::new().with_position(Vector::newi(15, 3)).pos, Vector::newi(15, 3));
-    }
 
     #[test]
     fn button_presses() {
