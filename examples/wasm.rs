@@ -23,3 +23,5 @@ pub unsafe extern "C" fn draw() {
         None => ()
     }
 }
+
+fn main() {}

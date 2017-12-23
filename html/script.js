@@ -1,5 +1,6 @@
 var canvas = document.getElementById('canvas');
-var gl = canvas.getContext('webgl');
+var gl = canvas.getContext('webgl2');
+console.log(gl);
 var loaded_image = {}
 var env = {
     create_context: function(width, height) {
@@ -61,14 +62,14 @@ var env = {
     DrawElements: gl.drawElements, // likely to cause problems
     Enable: gl.enable,
     EnableVertexAttribArray: gl.enableVertexAttribArray,
-    GenBuffer: gl.genBuffer,
+    GenBuffer: gl.createBuffer,
     GenerateMipmap: gl.generateMipmap,
-    GenTexture: gl.genTexture,
-    GenVertexArray: gl.genVertexArray,
+    GenTexture: gl.createTexture,
+    GenVertexArray: gl.createVertexArray,
     GetAttribLocation: gl.getAttribLocation,
     GetError: gl.getError,
     GetShaderInfoLog: gl.getShaderInfoLog,
-    GetShaderiv: gl.getShaderiv,
+    GetShaderiv: gl.getShaderParameter,
     GetUniformLocation: gl.getUniformLocation,
     LinkProgram: gl.linkProgram,
     ShaderSource: gl.shaderSource,
@@ -78,9 +79,20 @@ var env = {
     VertexAttribPointer: gl.vertexAttribPointer,
     Viewport: gl.viewport
 }
+
 fetch("wasm.wasm")
     .then(response => response.arrayBuffer())
-    .then(bytes => WebAssembly.instantiate(bytes, { env } ))
+    .then(bytes =>  {
+    console.log(bytes);
+        var memory = new ArrayBuffer(bytes.byteLength);
+        for(var i = 0; i < bytes.byteLength; i++) {
+            memory[i] = bytes[i];
+            console.log(memory[i]);
+            console.log(bytes[i]);
+        }
+        console.log(memory[0]);
+        return WebAssembly.instantiate(memory, { env } );
+    })
     .then(results => {
         var init = results.instance.exports.init;
         var draw = results.instance.exports.draw;
