@@ -3,7 +3,7 @@ use glutin::{GlContext};
 use graphics::{Backend, Camera, Color, Colors, Image, Window, Vertex};
 
 pub struct Canvas {
-    pub(crate) backend: Box<Backend>,
+    pub(crate) backend: Backend,
     pub(crate) cam: Camera,
     pub(crate) clear_color: Color,
 }
@@ -160,12 +160,12 @@ impl Canvas {
 mod tests {
     use super::*;
 
-    use graphics::{GLBackend, Colors};
+    use graphics::{Backend, Colors};
 
     #[test]
     fn test_backend() {
         let mut canvas = Canvas {
-            backend: Box::new(GLBackend::new()),
+            backend: Backend::new(),
             cam: Camera::new(Rectangle::newi(-1, -1, 2, 2)),
             clear_color: Colors::BLACK
         };

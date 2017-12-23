@@ -2,7 +2,7 @@ use gl;
 use glutin;
 use geom::{ Rectangle, Vector};
 use glutin::{EventsLoop, GlContext};
-use graphics::{GLBackend, Camera, Canvas, Color, Colors};
+use graphics::{Backend, Camera, Canvas, Color, Colors};
 use input::{Keyboard, Mouse, MouseBuilder, ViewportBuilder };
 
 pub struct WindowBuilder {
@@ -57,7 +57,7 @@ impl WindowBuilder {
             mouse: Mouse::new(),
         };
         let canvas = Canvas {
-            backend: Box::new(GLBackend::new()),
+            backend: Backend::new(),
             clear_color: self.clear_color,
             cam: Camera::new(Rectangle::newv_sized(screen_size)),
         };
