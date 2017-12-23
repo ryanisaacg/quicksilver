@@ -1,6 +1,6 @@
 use super::{Circle, Line, Rectangle, Vector};
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Shape {
     Circ(Circle), Line(Line), Rect(Rectangle), Vect(Vector)
 }

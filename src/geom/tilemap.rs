@@ -22,7 +22,7 @@ impl<T: Clone> Tile<T> {
     }
 }
 
-
+#[derive(Clone)]
 pub struct Tilemap<T: Clone> {
     data: Vec<Tile<T>>,
     width: f32,

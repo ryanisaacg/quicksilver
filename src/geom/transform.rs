@@ -1,9 +1,11 @@
-use super::Vector;
+use super::{FLOAT_LIMIT, Vector};
 use std::ops::Mul;
 use std::f32::consts::PI;
 use std::fmt;
+use std::default::Default;
+use std::cmp::{Eq, PartialEq};
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct Transform([[f32; 3]; 3]);
 
 impl Transform {
@@ -115,6 +117,28 @@ impl fmt::Display for Transform {
         write!(f, "]")
     }
 }
+
+impl Default for Transform {
+    fn default() -> Transform {
+        Transform::identity()
+    }
+}
+
+
+impl PartialEq for Transform {
+    fn eq(&self, other: &Transform) -> bool {
+        for i in 0..3 {
+            for j in 0..3 {
+                if (self.0[i][j] - other.0[i][j]).abs() >= FLOAT_LIMIT {
+                    return false;
+                }
+            }
+        }
+        true
+    }
+}
+
+impl Eq for Transform {}
 
 #[cfg(test)]
 mod tests {

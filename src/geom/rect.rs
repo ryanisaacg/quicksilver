@@ -1,6 +1,7 @@
-use super::{Circle, Line, Vector};
+use super::{Circle, FLOAT_LIMIT, Line, Vector};
+use std::cmp::{Eq, PartialEq};
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Clone, Copy, Default, Debug)]
 pub struct Rectangle {
     pub x: f32,
     pub y: f32,
@@ -113,6 +114,16 @@ impl Rectangle {
             self.left().intersects(l) || self.right().intersects(l) || self.bottom().intersects(l)
     }
 }
+
+impl PartialEq for Rectangle {
+    fn eq(&self, other: &Rectangle) -> bool {
+        (self.x - other.x).abs() < FLOAT_LIMIT && (self.y - other.y).abs() < FLOAT_LIMIT
+            && (self.width - other.width).abs() < FLOAT_LIMIT
+            && (self.height - other.height).abs() < FLOAT_LIMIT
+    }
+}
+
+impl Eq for Rectangle {}
 
 #[cfg(test)]
 mod tests {

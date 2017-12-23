@@ -1,6 +1,7 @@
-use super::{Line, Rectangle, Vector};
+use super::{Line, Rectangle, Vector, FLOAT_LIMIT};
+use std::cmp::{Eq, PartialEq};
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Clone, Copy, Default, Debug)]
 ///A circle with a center and a radius
 pub struct Circle {
     pub x: f32,
@@ -62,6 +63,15 @@ impl Circle {
         Circle::new(self.x + v.x, self.y + v.y, self.radius)
     }
 }
+
+impl PartialEq for Circle {
+    fn eq(&self, other: &Circle) -> bool {
+        (self.x - other.x).abs() < FLOAT_LIMIT && (self.y - other.y).abs() < FLOAT_LIMIT
+            && (self.radius - other.radius).abs() < FLOAT_LIMIT
+    }
+}
+
+impl Eq for Circle {}
 
 #[cfg(test)]
 mod tests {

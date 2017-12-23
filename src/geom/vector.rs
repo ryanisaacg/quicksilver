@@ -4,7 +4,7 @@ use std::fmt;
 
 pub const FLOAT_LIMIT: f32 = 0.0001f32;
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Copy, Clone, Default, Debug)]
 ///A 2D vector with an arbitrary numeric type
 pub struct Vector {
     pub x: f32,
