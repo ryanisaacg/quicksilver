@@ -10,5 +10,5 @@ pub use self::camera::Camera;
 pub use self::canvas::Canvas;
 pub use self::color::{Color, Colors};
 pub(crate) use self::gl_backend::GLBackend;
-pub use self::image::{Image, PixelFormat};
+pub use self::image::{Image, ImageError, PixelFormat};
 pub use self::window::{Window, WindowBuilder};

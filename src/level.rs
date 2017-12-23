@@ -2,16 +2,16 @@ extern crate tiled;
 
 pub use tiled::{Properties, PropertyValue, TiledError};
 
-use assets::Assets;
 use geom::{Rectangle, Tile, Tilemap, Vector};
-use graphics::{Color, TextureRegion};
+use graphics::{Color, Image, ImageError};
 
+use std::io::Error as IOError;
 use std::path::{Path, PathBuf};
 use std::env;
 
 pub struct Object {
     pub id: u32,
-    pub texture: Option<TextureRegion>,
+    pub texture: Option<Image>,
     pub name: String,
     pub obj_type: String,
     pub position: Vector,
@@ -30,7 +30,7 @@ pub struct Layer {
     pub name: String,
     pub opacity: f32,
     pub visible: bool,
-    pub map: Tilemap<TextureRegion>,
+    pub map: Tilemap<Image>,
     pub properties: Properties
 }
 
@@ -49,14 +49,14 @@ fn convert_col_opt(col: Option<tiled::Colour>, a: f32) -> Option<Color> {
 }
 
 impl Level {
-    pub fn load(path: &Path, assets: &Assets) -> Result<Level, TiledError> {
-        let current_dir = env::current_dir().unwrap();
-        let tiled_map = tiled::parse_file(path)?;
+    pub fn load<P: AsRef<Path>>(path: P) -> Result<Level, LevelError> {
+        let current_dir = env::current_dir()?;
+        let tiled_map = tiled::parse_file(path.as_ref())?;
         let mut search_dir = PathBuf::new();
         search_dir.push(current_dir.clone());
         search_dir.push(path);
-        env::set_current_dir(search_dir.as_path().parent().unwrap()).unwrap();
-        let mut textures: Vec<Option<TextureRegion>> = Vec::new();
+        env::set_current_dir(search_dir.as_path().parent().unwrap())?;
+        let mut textures: Vec<Option<Image>> = Vec::new();
         for tileset in tiled_map.tilesets.iter() {
             let mut current = tileset.first_gid as usize;
             for image in tileset.images.iter() {
@@ -70,9 +70,9 @@ impl Level {
                         while textures.len() <= current {
                             textures.push(None);
                         }
-                        let texture = assets.get_texture(&image.source).unwrap();
+                        let texture = Image::load(&image.source)?;
                         let region =  Rectangle::newi(x, y, tile_width, tile_height);
-                        textures[current] = Some(texture.region().subregion(region));
+                        textures[current] = Some(texture.subimage(region));
                         current += 1;
                         y += tile_height + tileset.spacing as i32;
                     }
@@ -80,7 +80,7 @@ impl Level {
                 }
             }
         }
-        env::set_current_dir(current_dir).unwrap();
+        env::set_current_dir(current_dir)?;
         Ok(Level {
             object_groups: tiled_map.object_groups.iter()
                 .map(|group| ObjectGroup {
@@ -90,7 +90,7 @@ impl Level {
                     objects: group.objects.iter()
                         .map(|object| Object {
                             id: object.id,
-                            texture: textures[object.gid as usize],
+                            texture: textures[object.gid as usize].clone(),
                             name: object.name.clone(),
                             obj_type: object.obj_type.clone(),
                             position: Vector::new(object.x, object.y),
@@ -102,12 +102,12 @@ impl Level {
                 .map(|layer| {
                     let tile_width = tiled_map.tile_width as f32;
                     let tile_height = tiled_map.tile_height as f32;
-                    let mut map: Tilemap<TextureRegion> = Tilemap::new((tiled_map.width * tiled_map.tile_width) as f32, (tiled_map.height * tiled_map.tile_height) as f32, 
+                    let mut map: Tilemap<Image> = Tilemap::new((tiled_map.width * tiled_map.tile_width) as f32, (tiled_map.height * tiled_map.tile_height) as f32, 
                                                tile_width, tile_height);
                     for y in 0..layer.tiles.len() {
                         for x in 0..layer.tiles[y].len() {
                             let tile = layer.tiles[y][x];
-                            let tile: Tile<TextureRegion> = if tile == 0 { Tile::empty(None) } else { Tile::solid(textures[tile as usize]) };
+                            let tile: Tile<Image> = if tile == 0 { Tile::empty(None) } else { Tile::solid(textures[tile as usize].clone()) };
                             map.set(Vector::new(x as f32 * tile_width, y as f32 * tile_height), tile);
                         }
                     }
@@ -125,4 +125,26 @@ impl Level {
     }
 }
 
+pub enum LevelError {
+    IOError(IOError),
+    TiledError(TiledError),
+    ImageError(ImageError)
+}
 
+impl From<IOError> for LevelError {
+    fn from(err: IOError) -> LevelError {
+        LevelError::IOError(err)
+    }
+}
+
+impl From<TiledError> for LevelError {
+    fn from(err: TiledError) -> LevelError {
+        LevelError::TiledError(err)
+    }
+}
+
+impl From<ImageError> for LevelError {
+    fn from(err: ImageError) -> LevelError {
+        LevelError::ImageError(err)
+    }
+}

@@ -8,6 +8,8 @@ use std::ops::Drop;
 use std::path::Path;
 use std::rc::Rc;
 
+pub use image::ImageError;
+
 pub enum PixelFormat {
     RGB = gl::RGB as isize,
     RGBA = gl::RGBA as isize,
@@ -64,7 +66,7 @@ impl Image {
         }
     }
 
-    pub fn load<P: AsRef<Path>>(path: P) -> Result<Image, image::ImageError> {
+    pub fn load<P: AsRef<Path>>(path: P) -> Result<Image, ImageError> {
         let img = image::open(path)?.to_rgba();
         let width = img.width() as i32;
         let height = img.height() as i32;
