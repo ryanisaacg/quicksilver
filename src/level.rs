@@ -125,6 +125,7 @@ impl Level {
     }
 }
 
+#[derive(Debug)]
 pub enum LevelError {
     IOError(IOError),
     TiledError(TiledError),
