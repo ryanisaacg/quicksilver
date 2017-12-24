@@ -2,6 +2,7 @@ use super::{Circle, FLOAT_LIMIT, Line, Vector};
 use std::cmp::{Eq, PartialEq};
 
 #[derive(Clone, Copy, Default, Debug)]
+///A rectangle with a top-left position and a size
 pub struct Rectangle {
     pub x: f32,
     pub y: f32,
