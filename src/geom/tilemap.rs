@@ -2,12 +2,16 @@ use super::{Rectangle, Vector, Shape};
 use std::ops::Fn;
 
 #[derive(Clone)]
+///An individual tile
 pub struct Tile<T: Clone> {
+    ///The value stored in this tile
     pub value: Option<T>,
+    ///If the tile is empty from a movement perspective
     pub empty: bool,
 }
 
 impl<T: Clone> Tile<T> {
+    ///Create a solid version of a tile
     pub fn solid(value: Option<T>) -> Tile<T> {
         Tile {
             value: value,
@@ -15,6 +19,7 @@ impl<T: Clone> Tile<T> {
         }
     }
 
+    ///Create a non-solid version of a tile
     pub fn empty(value: Option<T>) -> Tile<T> {
         Tile {
             value: value,
@@ -24,6 +29,7 @@ impl<T: Clone> Tile<T> {
 }
 
 #[derive(Clone)]
+///A grid of Tile values
 pub struct Tilemap<T: Clone> {
     data: Vec<Tile<T>>,
     width: f32,
@@ -33,47 +39,58 @@ pub struct Tilemap<T: Clone> {
 }
 
 impl<T: Clone> Tilemap<T> {
+    ///Create a map full of empty, non-solid tiles of a given size
     pub fn new(map_width: f32, map_height: f32, tile_width: f32, tile_height: f32) -> Tilemap<T> {
         Tilemap::with_data(vec![Tile::empty(None);(map_width / tile_width * map_height / tile_height) as usize],
             map_width, map_height, tile_width, tile_height)
     }
 
+    ///Create a map with pre-filled data
     pub fn with_data(data: Vec<Tile<T>>, width: f32, height: f32, tile_width: f32, tile_height: f32) -> Tilemap<T> {
         Tilemap { data, width, height, tile_width, tile_height }
     }
 
+    ///Get the width of the map
     pub fn width(&self) -> f32 {
         self.width
     }
 
+    ///Get the height of the map
     pub fn height(&self) -> f32 {
         self.height
     }
 
+    ///Get the size of the map
     pub fn size(&self) -> Vector {
         Vector::new(self.width, self.height)
     }
 
+    ///Get the region the map takes up
     pub fn region(&self) -> Rectangle {
         Rectangle::new_sized(self.width, self.height)
     }
 
+    ///Get the width of an individual tile
     pub fn tile_width(&self) -> f32 {
         self.tile_width
     }
 
+    ///Get the height of an individual tile
     pub fn tile_height(&self) -> f32 {
         self.tile_height
     }
 
+    ///Get the size of a tile
     pub fn tile_size(&self) -> Vector {
         Vector::new(self.tile_width, self.tile_height)
     }
 
+    ///Check if a point is within the map bounds
     pub fn valid(&self, index: Vector) -> bool {
-        index.x >= 0f32 && index.y >= 0f32 && index.x < self.width && index.y < self.height
+        self.region().contains(index)
     }
 
+    ///Checks if a shape is valid in its entirety
     pub fn shape_valid(&self, shape: Shape) -> bool {
         let bbox = shape.bounding_box();
         self.valid(bbox.top_left()) && self.valid(bbox.top_left() + bbox.size())
@@ -84,6 +101,7 @@ impl<T: Clone> Tilemap<T> {
              (index.y / self.tile_height).trunc()) as usize
     }
 
+    ///Get the tile found at a given point, if it is valid
     pub fn get(&self, index: Vector) -> Option<&Tile<T>> {
         if self.valid(index) {
             Some(&self.data[self.array_index(index)])
@@ -92,6 +110,7 @@ impl<T: Clone> Tilemap<T> {
         }
     }
 
+    ///Get a mutable reference to a tile at a given point, if it is valid
     pub fn get_mut(&mut self, index: Vector) -> Option<&mut Tile<T>> {
         if self.valid(index) {
             let index = self.array_index(index);
@@ -101,6 +120,7 @@ impl<T: Clone> Tilemap<T> {
         }
     }
 
+    ///Set the value at a given point
     pub fn set(&mut self, index: Vector, value: Tile<T>) {
         match self.get_mut(index) {
             Some(tile) => *tile = value,
@@ -108,17 +128,18 @@ impl<T: Clone> Tilemap<T> {
         }
     }
 
+    ///Find if a point's tile is empty
     pub fn point_empty(&self, index: Vector) -> bool {
         match self.get(index) {
             Some(tile) => tile.empty,
             None => false,
         }
     }
-    
+   
+    ///Finds if the area taken by a shape is empty
     pub fn shape_empty(&self, shape: Shape) -> bool {
         let bounds = shape.bounding_box(); 
         match shape {
-            //Rectangles and vectors are perfectly represented by their bounds
             Shape::Vect(_) => self.point_empty(shape.center()),
             Shape::Rect(_) | Shape::Circ(_) | Shape::Line(_) => {
                 let x_start = (self.align_left(bounds.x) / self.tile_width) as i32;
@@ -138,22 +159,27 @@ impl<T: Clone> Tilemap<T> {
         }
     }
 
+    ///Align a given X value to the leftmost edge of a tile
     pub fn align_left(&self, x: f32) -> f32 {
         (x / self.tile_width).floor() * self.tile_width
     }
 
+    ///Align a given X value to the rightmost edge of a tile
     pub fn align_right(&self, x: f32) -> f32 {
         (x / self.tile_width).ceil() * self.tile_width
     }
 
+    ///Align a given Y value to the topmost edge of a tile
     pub fn align_top(&self, y: f32) -> f32 {
         (y / self.tile_height).floor() * self.tile_height
     }
 
+    ///Align a given Y value to the bottommost edge of a tile
     pub fn align_bottom(&self, y: f32) -> f32 {
         (y / self.tile_height).ceil() * self.tile_height
     }
 
+    ///Find the furthest a shape can move along a vector, and what its future speed should be
     pub fn move_until_contact(&self, bounds: Shape, speed: Vector) -> (Shape, Vector) {
         if !self.shape_empty(bounds) {
             (bounds, Vector::zero())
@@ -219,6 +245,7 @@ impl<T: Clone> Tilemap<T> {
         }
     }
 
+    ///Convert a Tilemap into a map of a different type
     pub fn convert<U, F>(&self, conversion: F) -> Tilemap<U> 
         where U: Clone, F: Fn(&T) -> U {
         Tilemap {
