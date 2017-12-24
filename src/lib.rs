@@ -17,4 +17,3 @@ pub use input::*;
 pub use level::*;
 pub use sound::{Sound, MusicPlayer}; 
 pub use timer::Timer;
-pub use std::time::Duration;
