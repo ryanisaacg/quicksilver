@@ -16,8 +16,8 @@ use std::str::from_utf8;
 
 pub(crate) struct Backend {
     texture: u32,
-    vertices: Vec<f32>,
-    indices: Vec<u32>,
+    pub(crate) vertices: Vec<f32>,
+    pub(crate) indices: Vec<u32>,
     #[cfg(not(test))]
     shader: u32,
     #[cfg(not(test))]
@@ -340,22 +340,13 @@ impl Backend {
 
     pub fn add(&mut self, texture: u32, vertices: &[Vertex], indices: &[u32]) {
         self.switch_texture(texture);
-        let offset = self.num_vertices();;
+        let offset = self.num_vertices();
         for vertex in vertices {
             self.add_vertex(vertex);
         }
         for index in indices {
             self.add_index(index + offset as u32);
         }
-    }
-    
-    pub fn vertices(&self) -> &Vec<f32> {
-        &self.vertices
-    }
-
-
-    pub fn indices(&self) -> &Vec<u32> {
-        &self.indices
     }
 }
 

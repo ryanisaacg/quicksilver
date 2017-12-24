@@ -174,7 +174,7 @@ mod tests {
             1f32, 0f32, 0f32, 1f32, 1f32, 1f32, 1f32, 0f32, -1f32, 1f32, 0f32, 0f32, 1f32, 1f32, 
             1f32, 1f32, 0f32, -1f32, 1f32, 0f32, 0f32, 1f32, 1f32, 1f32, 1f32, 0f32];
         let expected_indices = &[0, 1, 2, 0, 2, 3];
-        assert!(canvas.backend.vertices().as_slice() == &expected_vertices[..]);
-        assert!(canvas.backend.indices().as_slice() == &expected_indices[..]);
+        assert!(canvas.backend.vertices.as_slice() == &expected_vertices[..]);
+        assert!(canvas.backend.indices.as_slice() == &expected_indices[..]);
     }
 }
