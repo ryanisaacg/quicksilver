@@ -1,4 +1,5 @@
 use super::{Rectangle, Vector, Shape};
+use std::ops::Fn;
 
 #[derive(Clone)]
 pub struct Tile<T: Clone> {
@@ -215,6 +216,24 @@ impl<T: Clone> Tilemap<T> {
                 speed.y = 0f32;
             }
             (bounds.translate(speed), speed)
+        }
+    }
+
+    pub fn convert<U, F>(&self, conversion: F) -> Tilemap<U> 
+        where U: Clone, F: Fn(&T) -> U {
+        Tilemap {
+            data: self.data.iter()
+                .map(|tile| Tile {
+                    value: match tile.value {
+                        Some(ref x) => Some(conversion(x)),
+                        None => None
+                    },
+                    empty: tile.empty
+                }).collect(),
+            width: self.width,
+            height: self.height,
+            tile_width: self.tile_width,
+            tile_height: self.tile_height
         }
     }
 }
