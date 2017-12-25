@@ -369,7 +369,6 @@ mod tests {
     use super::*;
 
     use geom::Vector;
-    use graphics::Colors;
 
     #[test]
     fn test_backend() {
@@ -377,7 +376,7 @@ mod tests {
         backend.add(1, &[Vertex {
             pos: Vector::newi(0, 0),
             tex_pos: Vector::newi(2, 2),
-            col: Colors::WHITE,
+            col: Color::white(),
             use_texture: false
         }], &[0, 0]);
         for i in 0..2 { assert_eq!(backend.vertices[i], 0f32); }
@@ -387,7 +386,7 @@ mod tests {
         backend.add(1, &[Vertex {
             pos: Vector::newi(0, 0),
             tex_pos: Vector::newi(2, 2),
-            col: Colors::WHITE,
+            col: Color::white(),
             use_texture: false
         }], &[0, 0]);
         for i in 0..2 { assert_eq!(backend.indices[i], 0); }
@@ -395,7 +394,7 @@ mod tests {
         backend.add(2, &[Vertex {
             pos: Vector::newi(0, 0),
             tex_pos: Vector::newi(2, 2),
-            col: Colors::WHITE,
+            col: Color::white(),
             use_texture: false
         }], &[0, 0]);
         assert_eq!(backend.indices.len(), 2);

@@ -2,22 +2,25 @@ use gl;
 use glutin;
 use geom::{ Rectangle, Vector};
 use glutin::{EventsLoop, GlContext};
-use graphics::{Backend, Camera, Canvas, Color, Colors};
+use graphics::{Backend, Camera, Canvas, Color};
 use input::{Keyboard, Mouse, MouseBuilder, ViewportBuilder };
 
+///A builder that constructs a Window and its Canvas
 pub struct WindowBuilder {
     clear_color: Color,
     show_cursor: bool
 }
 
 impl WindowBuilder {
+    ///Create a default window builder
     pub fn new() -> WindowBuilder {
         WindowBuilder {
-            clear_color: Colors::BLACK,
+            clear_color: Color::black(),
             show_cursor: true
         }
     }
-    
+   
+    ///Set if the window should show its cursor
     pub fn with_show_cursor(self, show_cursor: bool) -> WindowBuilder {
         WindowBuilder {
             show_cursor,
@@ -25,6 +28,7 @@ impl WindowBuilder {
         }
     }
 
+    ///Set the window's default clear color
     pub fn with_clear_color(self, clear_color: Color) -> WindowBuilder {
         WindowBuilder {
             clear_color,
@@ -32,6 +36,7 @@ impl WindowBuilder {
         }
     }
 
+    ///Create a window and canvas with the given configuration
     pub fn build(self, title: &str, width: u32, height: u32) -> (Window, Canvas) {
         let events = glutin::EventsLoop::new();
         let window = glutin::WindowBuilder::new()
@@ -65,6 +70,7 @@ impl WindowBuilder {
     }
 }
 
+///The window currently in use
 pub struct Window {
     pub(crate) gl_window: glutin::GlWindow,
     events: EventsLoop,
@@ -76,6 +82,7 @@ pub struct Window {
 }
 
 impl Window {
+    ///Update the keyboard, mouse, and window state, and return if the window is still open
     pub fn poll_events(&mut self) -> bool {
         self.keyboard.clear_temporary_states();
         self.mouse.clear_temporary_states();
@@ -137,18 +144,24 @@ impl Window {
         running
     }
 
+
+    ///Create a viewport builder
     pub fn viewport(&self) -> ViewportBuilder {
         ViewportBuilder::new(self.screen_size / self.scale_factor)
     }
 
+    ///Get the screen size
     pub fn screen_size(&self) -> Vector {
         self.screen_size
     }
 
+
+    ///Get a reference to the keyboard
     pub fn keyboard(&self) -> &Keyboard {
         &self.keyboard
     }
 
+    ///Create a mouse builder
     pub fn mouse(&self) -> MouseBuilder {
         MouseBuilder {
             mouse: self.mouse.clone(),

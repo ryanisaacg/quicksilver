@@ -10,6 +10,7 @@ use std::rc::Rc;
 
 pub use image::ImageError;
 
+///Pixel formats for use with loading raw images
 pub enum PixelFormat {
     RGB = gl::RGB as isize,
     RGBA = gl::RGBA as isize,
@@ -32,12 +33,14 @@ impl Drop for ImageData {
 }
 
 #[derive(Clone)]
+///An image that can be drawn to the screen
 pub struct Image {
     source: Rc<ImageData>,
     region: Rectangle,
 }
 
 impl Image {
+    ///Load an image from raw bytes
     pub fn from_raw(data: &[u8], width: i32, height: i32, format: PixelFormat) -> Image {
         let id = unsafe {
             let mut texture = 0;
@@ -66,6 +69,7 @@ impl Image {
         }
     }
 
+    ///Load an image from an image file
     pub fn load<P: AsRef<Path>>(path: P) -> Result<Image, ImageError> {
         let img = image::open(path)?.to_rgba();
         let width = img.width() as i32;
@@ -90,10 +94,12 @@ impl Image {
         Vector::newi(self.source_width(), self.source_height())
     }
 
+    ///The area of the source image this subimage takes up
     pub fn area(&self) -> Rectangle {
         self.region
     }
 
+    ///Find a subimage of a larger image
     pub fn subimage(&self, rect: Rectangle) -> Image {
         Image {
             source: self.source.clone(),

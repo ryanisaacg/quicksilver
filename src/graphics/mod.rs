@@ -7,6 +7,6 @@ mod window;
 pub(crate) use self::backend::{Backend, Vertex};
 pub use self::camera::Camera;
 pub use self::canvas::Canvas;
-pub use self::color::{Color, Colors};
+pub use self::color::Color;
 pub use self::image::{Image, ImageError, PixelFormat};
 pub use self::window::{Window, WindowBuilder};

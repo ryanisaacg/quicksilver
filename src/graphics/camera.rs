@@ -1,15 +1,18 @@
 use geom::{Rectangle, Transform, Vector};
 
 #[derive(Clone, Copy)]
+///A Camera that projects drawn items onto the screen
 pub struct Camera {
     opengl: Transform,
 }
 
 impl Camera {
+    ///Create a camera that maps a given area to the screen
     pub fn new(world: Rectangle) -> Camera {
         Camera::new_transformed(world, Transform::identity())
     }
 
+    ///Create a camera that maps a given area to the screen with the given transformation
     pub fn new_transformed(world: Rectangle, transform: Transform) -> Camera {
         Camera {
             opengl: Transform::scale(Vector::x() - Vector::y()) *
@@ -19,7 +22,7 @@ impl Camera {
         }
     }
 
-    pub fn transform(&self) -> Transform {
+    pub(crate) fn transform(&self) -> Transform {
         self.opengl
     }
 }

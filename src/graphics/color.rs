@@ -1,4 +1,5 @@
 #[derive(Clone, Copy, Debug, Default)]
+///An RGBA color represented by normalized floats
 pub struct Color {
     pub r: f32,
     pub g: f32,
@@ -6,67 +7,94 @@ pub struct Color {
     pub a: f32,
 }
 
-#[allow(non_snake_case)]
-pub mod Colors {
-    use super::Color;
-    pub const WHITE: Color = Color {
-        r: 1f32,
-        g: 1f32,
-        b: 1f32,
-        a: 1f32,
-    };
-    pub const BLACK: Color = Color {
-        r: 0f32,
-        g: 0f32,
-        b: 0f32,
-        a: 1f32,
-    };
-    pub const RED: Color = Color {
-        r: 1f32,
-        g: 0f32,
-        b: 0f32,
-        a: 1f32,
-    };
-    pub const ORANGE: Color = Color {
-        r: 1f32,
-        g: 0.5f32,
-        b: 0f32,
-        a: 1f32,
-    };
-    pub const YELLOW: Color = Color {
-        r: 1f32,
-        g: 1f32,
-        b: 0f32,
-        a: 1f32,
-    };
-    pub const GREEN: Color = Color {
-        r: 0f32,
-        g: 1f32,
-        b: 0f32,
-        a: 1f32,
-    };
-    pub const CYAN: Color = Color {
-        r: 0f32,
-        g: 1f32,
-        b: 1f32,
-        a: 1f32,
-    };
-    pub const BLUE: Color = Color {
-        r: 0f32,
-        g: 0f32,
-        b: 1f32,
-        a: 1f32,
-    };
-    pub const PURPLE: Color = Color {
-        r: 1f32,
-        g: 0f32,
-        b: 1f32,
-        a: 1f32,
-    };
-    pub const INDIGO: Color = Color {
-        r: 0.5f32,
-        g: 0f32,
-        b: 1f32,
-        a: 1f32,
-    };
+impl Color {
+    pub fn white() -> Color {
+        Color {
+            r: 1f32,
+            g: 1f32,
+            b: 1f32,
+            a: 1f32,
+        }
+    }
+
+    pub fn black() -> Color {
+        Color {
+            r: 0f32,
+            g: 0f32,
+            b: 0f32,
+            a: 1f32,
+        }
+    }
+
+    pub fn red() -> Color {
+        Color {
+            r: 1f32,
+            g: 0f32,
+            b: 0f32,
+            a: 1f32,
+        }
+    }
+
+    pub fn orange() -> Color {
+        Color {
+            r: 1f32,
+            g: 0.5f32,
+            b: 0f32,
+            a: 1f32,
+        }
+    }
+
+    pub fn yellow() -> Color {
+        Color {
+            r: 1f32,
+            g: 1f32,
+            b: 0f32,
+            a: 1f32,
+        }
+    }
+
+    pub fn green() -> Color {
+        Color {
+            r: 0f32,
+            g: 1f32,
+            b: 0f32,
+            a: 1f32,
+        }
+    }
+
+    pub fn cyan() -> Color {
+        Color {
+            r: 0f32,
+            g: 1f32,
+            b: 1f32,
+            a: 1f32,
+        }
+    }
+
+    pub fn blue() -> Color {
+        Color {
+            r: 0f32,
+            g: 0f32,
+            b: 1f32,
+            a: 1f32,
+        }
+    }
+
+    pub fn purple() -> Color {
+        Color {
+            r: 1f32,
+            g: 0f32,
+            b: 1f32,
+            a: 1f32,
+        }
+    }
+
+    pub fn indigo() -> Color {
+        Color {
+            r: 0.5f32,
+            g: 0f32,
+            b: 1f32,
+            a: 1f32,
+        }
+    }
 }

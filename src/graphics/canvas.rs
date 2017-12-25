@@ -1,7 +1,8 @@
 use geom::{Circle, Line, Rectangle, Shape, Transform, Vector};
 use glutin::{GlContext};
-use graphics::{Backend, Camera, Color, Colors, Image, Window, Vertex};
+use graphics::{Backend, Camera, Color, Image, Window, Vertex};
 
+///The way to draw items to the screen, produced by WindowBuilder
 pub struct Canvas {
     pub(crate) backend: Backend,
     pub(crate) cam: Camera,
@@ -11,6 +12,7 @@ pub struct Canvas {
 const CIRCLE_POINTS: usize = 32; //the number of points in the poly to simulate the circle
 
 impl Canvas {
+    ///Set the camera view for the Canvas
     pub fn set_camera(&mut self, cam: Camera) {
         self.cam = cam;
     }
@@ -19,28 +21,34 @@ impl Canvas {
         self.cam.transform()
     }
 
+    ///Get the color the window is cleared to
     pub fn clear_color(&self) -> Color {
         self.clear_color
     }
 
+    ///Set the color the window is cleared to
     pub fn set_clear_color(&mut self, col: Color) {
         self.clear_color = col;
     }
 
+    ///Draw the changes made to the screen
     pub fn present(&mut self, window: &Window) {
         self.backend.display();
         window.gl_window.swap_buffers().unwrap();
         self.backend.clear(self.clear_color);
     }
 
+    ///Draw an image at a given area
     pub fn draw_image(&mut self, image: &Image, area: Rectangle) {
-        self.draw_image_blend(image, area, Colors::WHITE);
+        self.draw_image_blend(image, area, Color::white());
     }
 
+    ///Draw an image at a given area blended with a given color
     pub fn draw_image_blend(&mut self, image: &Image, area: Rectangle, col: Color) {
         self.draw_image_trans(image, area, col, Transform::identity());
     }
 
+    ///Draw a transform image blended with a given color
     pub fn draw_image_trans(&mut self, image: &Image, area: Rectangle, col: Color, trans: Transform) {
         let trans = self.camera() 
             * Transform::translate(area.top_left()) 
@@ -71,18 +79,22 @@ impl Canvas {
         );
     }
 
+    ///Draw a rectangle filled with a given color
     pub fn draw_rect(&mut self, rect: Rectangle, col: Color) {
         self.draw_rect_trans(rect, col, Transform::identity());
     }
 
+    ///Draw a rectangle filled with a given color with a given transform
     pub fn draw_rect_trans(&mut self, rect: Rectangle, col: Color, trans: Transform) {
         self.draw_polygon_trans(&[Vector::zero(), rect.size().x_comp(), rect.size(), rect.size().y_comp()], col, Transform::translate(rect.top_left()) * trans);
     }
 
+    ///Draw a circled filled with a given color
     pub fn draw_circle(&mut self, circ: Circle, col: Color) {
         self.draw_circle_trans(circ, col, Transform::identity());
     }
 
+    ///Draw a circle filled with a given color with a given transformation
     pub fn draw_circle_trans(&mut self, circ: Circle, col: Color, trans: Transform) {
         let mut points = [Vector::zero(); CIRCLE_POINTS];
         let rotation = Transform::rotate(360f32 / CIRCLE_POINTS as f32);
@@ -94,10 +106,12 @@ impl Canvas {
         self.draw_polygon_trans(&points, col, Transform::translate(circ.center()) * trans);
     }
 
+    ///Draw a polygon filled with a given color
     pub fn draw_polygon(&mut self, vertices: &[Vector], col: Color) {
         self.draw_polygon_trans(vertices, col, Transform::identity());
     }
 
+    ///Draw a polygon filled with a given color with a given transform
     pub fn draw_polygon_trans(&mut self, vertices: &[Vector], col: Color, trans: Transform) {
         let first_index = self.backend.num_vertices() as u32;
         let trans = self.camera() * trans;
@@ -121,10 +135,12 @@ impl Canvas {
         }
     }
 
+    ///Draw a line with a given color
     pub fn draw_line(&mut self, line: Line, col: Color) {
         self.draw_line_trans(line, col, Transform::identity());
     }
 
+    ///Draw a transformed line
     pub fn draw_line_trans(&mut self, line: Line, col: Color, trans: Transform) {
         let start = Vector::zero();
         let end = line.end - line.start;
@@ -137,15 +153,18 @@ impl Canvas {
         }
     }
 
+    ///Draw a point with a color
     pub fn draw_point(&mut self, vec: Vector, col: Color) {
         self.draw_polygon_trans(&[vec, vec + Vector::x(), vec + Vector::one(), vec + Vector::y()], 
                                 col, Transform::identity());
     }
 
+    ///Draw a shape filled with a given color
     pub fn draw_shape(&mut self, shape: Shape, col: Color) {
         self.draw_shape_trans(shape, col, Transform::identity());
     }
 
+    ///Draw a translated shape filled with a given color
     pub fn draw_shape_trans(&mut self, shape: Shape, col: Color, trans: Transform) {
         match shape {
             Shape::Rect(r) => self.draw_rect_trans(r, col, trans),
@@ -160,16 +179,16 @@ impl Canvas {
 mod tests {
     use super::*;
 
-    use graphics::{Backend, Colors};
+    use graphics::Backend;
 
     #[test]
     fn test_backend() {
         let mut canvas = Canvas {
             backend: Backend::new(),
             cam: Camera::new(Rectangle::newi(-1, -1, 2, 2)),
-            clear_color: Colors::BLACK
+            clear_color: Color::black()
         };
-        canvas.draw_shape(Shape::Rect(Rectangle::newi(-1, -1, 0, 0)), Colors::WHITE);
+        canvas.draw_shape(Shape::Rect(Rectangle::newi(-1, -1, 0, 0)), Color::white());
         let expected_vertices = &[-1f32, 1f32, 0f32, 0f32, 1f32, 1f32, 1f32, 1f32, 0f32, -1f32, 
             1f32, 0f32, 0f32, 1f32, 1f32, 1f32, 1f32, 0f32, -1f32, 1f32, 0f32, 0f32, 1f32, 1f32, 
             1f32, 1f32, 0f32, -1f32, 1f32, 0f32, 0f32, 1f32, 1f32, 1f32, 1f32, 0f32];
