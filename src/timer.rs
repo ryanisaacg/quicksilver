@@ -1,12 +1,14 @@
 use std::time::{Duration, Instant};
 
 #[derive(Clone, Copy, Debug)] 
+///A structure that allows accumulation of actions in a loop
 pub struct Timer {
     previous_tick: Instant,
     wait_time: Duration
 }
 
 impl Timer {
+    ///Create a timer that will tick at the first opportunity
     pub fn new() -> Timer {
         Timer {
             previous_tick: Instant::now(),
@@ -14,6 +16,7 @@ impl Timer {
         }
     }
 
+    ///For as many times as appopriate, update
     pub fn tick<F>(&mut self, mut action: F) where F: FnMut() -> Duration {
         if self.wait_time.subsec_nanos() == 0 {
             self.wait_time = action();
