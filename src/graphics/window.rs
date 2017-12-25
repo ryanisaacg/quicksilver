@@ -1,9 +1,9 @@
 use gl;
 use glutin;
-use geom::{ Rectangle, Vector};
+use geom::{ Rectangle, Transform, Vector};
 use glutin::{EventsLoop, GlContext};
 use graphics::{Backend, Camera, Canvas, Color};
-use input::{Keyboard, Mouse, MouseBuilder, ViewportBuilder };
+use input::{ButtonState, Keyboard, Mouse, Viewport, ViewportBuilder };
 
 ///A builder that constructs a Window and its Canvas
 pub struct WindowBuilder {
@@ -58,8 +58,15 @@ impl WindowBuilder {
             scale_factor,
             offset: Vector::zero(),
             screen_size,
-            keyboard: Keyboard::new(),
-            mouse: Mouse::new(),
+            keyboard: Keyboard {
+                keys: [ButtonState::NotPressed; 256]
+            },
+            mouse: Mouse {
+                pos: Vector::zero(),
+                left: ButtonState::NotPressed,
+                middle: ButtonState::NotPressed,
+                right: ButtonState::NotPressed
+            }
         };
         let canvas = Canvas {
             backend: Backend::new(),
@@ -147,7 +154,10 @@ impl Window {
 
     ///Create a viewport builder
     pub fn viewport(&self) -> ViewportBuilder {
-        ViewportBuilder::new(self.screen_size / self.scale_factor)
+        ViewportBuilder {
+            screen_size: self.screen_size / self.scale_factor,
+            transform: Transform::identity()
+        }
     }
 
     ///Get the screen size
@@ -162,10 +172,10 @@ impl Window {
     }
 
     ///Create a mouse builder
-    pub fn mouse(&self) -> MouseBuilder {
-        MouseBuilder {
-            mouse: self.mouse.clone(),
-            viewport: self.viewport()
+    pub fn mouse(&self, viewport: &Viewport) -> Mouse {
+        Mouse {
+            pos: viewport.project() * self.mouse.pos,
+            ..self.mouse.clone()
         }
     }
 

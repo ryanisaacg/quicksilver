@@ -4,15 +4,12 @@ use input::{ButtonState, Key};
 use std::ops::Index;
 
 #[derive(Copy)]
+///A structure that stores each key's state
 pub struct Keyboard {
-    keys: [ButtonState; 256],
+    pub(crate) keys: [ButtonState; 256],
 }
 
 impl Keyboard {
-    pub fn new() -> Keyboard {
-        Keyboard { keys: [ButtonState::NotPressed; 256] }
-    }
-
     pub(crate) fn process_event(&mut self, event: &glutin::KeyboardInput) {
         if let Some(keycode) = event.virtual_keycode {
             let index = keycode as usize;
@@ -63,7 +60,9 @@ mod tests {
 
     #[test]
     fn keypress() {
-        let mut keyboard = Keyboard::new();
+        let mut keyboard = Keyboard {
+            keys: [ButtonState::NotPressed; 256]
+        };
         keyboard.process_event(&glutin::KeyboardInput {
             scancode: 0,
             state: glutin::ElementState::Pressed,
@@ -96,7 +95,9 @@ mod tests {
 
     #[test]
     fn clear_states() {
-        let mut keyboard = Keyboard::new().clone();
+        let mut keyboard = Keyboard {
+            keys: [ButtonState::NotPressed; 256].clone()
+        };
         keyboard.process_event(&glutin::KeyboardInput {
             scancode: 0,
             state: glutin::ElementState::Pressed,
