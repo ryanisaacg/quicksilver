@@ -15,10 +15,12 @@ impl Camera {
     ///Create a camera that maps a given area to the screen with the given transformation
     pub fn new_transformed(world: Rectangle, transform: Transform) -> Camera {
         Camera {
-            opengl: Transform::scale(Vector::x() - Vector::y()) *
-                Transform::translate(-Vector::one()) *
-                Transform::scale(world.size().recip() * 2) *
-                Transform::translate(-world.top_left()) * transform,
+            opengl: Transform::scale(Vector::x() - Vector::y())
+                * Transform::translate(-Vector::one())
+                * Transform::scale(world.size().recip() * 2)
+                * Transform::translate(world.size() / 2)
+                * transform
+                * Transform::translate(-world.top_left() - world.size() / 2)
         }
     }
 
