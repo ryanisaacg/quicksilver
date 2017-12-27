@@ -1,4 +1,4 @@
-#[derive(Clone, Copy, Debug, Default)]
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
 ///An RGBA color represented by normalized floats
 pub struct Color {
     pub r: f32,
@@ -95,6 +95,22 @@ impl Color {
             g: 0f32,
             b: 1f32,
             a: 1f32,
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn colors() {
+        let colors = [Color::white(), Color::black(), Color::red(), Color::orange(), Color::yellow(),
+            Color::green(), Color::cyan(), Color::blue(), Color::purple(), Color::indigo()];
+        for i in 0..colors.len() {
+            for j in 0..colors.len() {
+                assert_eq!(i == j, colors[i].clone() == *&colors[j]);
+            }
         }
     }
 }
