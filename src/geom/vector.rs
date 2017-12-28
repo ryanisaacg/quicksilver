@@ -1,8 +1,7 @@
+use geom::about_equal;
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 use std::cmp::{Eq, PartialEq};
 use std::fmt;
-
-pub const FLOAT_LIMIT: f32 = 0.0001f32;
 
 #[derive(Copy, Clone, Default, Debug)]
 ///A 2D vector with an arbitrary numeric type
@@ -38,6 +37,11 @@ impl Vector {
 
     pub fn newi(x: i32, y: i32) -> Vector {
         Vector::new(x as f32, y as f32)
+    }
+
+    ///Create a unit vector at a given angle
+    pub fn from_angle(angle: f32) -> Vector {
+        Vector::new(angle.to_radians().cos(), angle.to_radians().sin())
     }
 
     ///Get the squared length of the vector (faster than getting the length)
@@ -193,7 +197,7 @@ impl MulAssign<i32> for Vector {
 
 impl PartialEq for Vector {
     fn eq(&self, other: &Vector) -> bool {
-        (self.x - other.x).abs() < FLOAT_LIMIT && (self.y - other.y).abs() < FLOAT_LIMIT
+        about_equal(self.x, other.x) && about_equal(self.y, other.y)
     }
 }
 
@@ -233,8 +237,8 @@ mod tests {
     #[test]
     fn length() {
         let vec = Vector::x() * 5;
-        assert!((vec.len2() - 25f32).abs() < FLOAT_LIMIT);
-        assert!((vec.len() - 5f32).abs() < FLOAT_LIMIT);
+        assert!(about_equal(vec.len2(), 25f32));
+        assert!(about_equal(vec.len(), 5f32));
     }
 
     #[test]
@@ -258,7 +262,7 @@ mod tests {
 
     #[test]
     fn dot() {
-        assert!((Vector::newi(6, 5).dot(Vector::newi(2, -8)) - 28f32) <= FLOAT_LIMIT);
+        assert!(about_equal(Vector::newi(6, 5).dot(Vector::newi(2, -8)), -28f32));
     }
 
     #[test]

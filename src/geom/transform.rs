@@ -1,4 +1,4 @@
-use super::{FLOAT_LIMIT, Vector};
+use super::{about_equal, Vector};
 use std::ops::Mul;
 use std::f32::consts::PI;
 use std::fmt;
@@ -131,7 +131,7 @@ impl PartialEq for Transform {
     fn eq(&self, other: &Transform) -> bool {
         for i in 0..3 {
             for j in 0..3 {
-                if (self.0[i][j] - other.0[i][j]).abs() >= FLOAT_LIMIT {
+                if about_equal(self.0[i][j], other.0[i][j]) {
                     return false;
                 }
             }

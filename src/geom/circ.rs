@@ -1,4 +1,4 @@
-use super::{Line, Rectangle, Vector, FLOAT_LIMIT};
+use super::{about_equal, Line, Rectangle, Vector};
 use std::cmp::{Eq, PartialEq};
 
 #[derive(Clone, Copy, Default, Debug)]
@@ -66,8 +66,7 @@ impl Circle {
 
 impl PartialEq for Circle {
     fn eq(&self, other: &Circle) -> bool {
-        (self.x - other.x).abs() < FLOAT_LIMIT && (self.y - other.y).abs() < FLOAT_LIMIT
-            && (self.radius - other.radius).abs() < FLOAT_LIMIT
+        about_equal(self.x, other.x) && about_equal(self.y, other.y) && about_equal(self.radius, other.radius)
     }
 }
 
