@@ -1,6 +1,10 @@
 extern crate quicksilver;
 
-use quicksilver::*;
+use quicksilver::geom::*;
+use quicksilver::graphics::*;
+use quicksilver::input::Key;
+use quicksilver::Timer;
+
 use std::time::Duration;
 
 struct Entity {

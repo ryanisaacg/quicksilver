@@ -1,6 +1,6 @@
 extern crate quicksilver;
 
-use quicksilver::Sound;
+use quicksilver::sound::Sound;
 use std::time::Duration;
 use std::thread::sleep;
 

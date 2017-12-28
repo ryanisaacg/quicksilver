@@ -1,6 +1,7 @@
 extern crate quicksilver;
 
-use quicksilver::{Color, Image, WindowBuilder, Vector};
+use quicksilver::geom::Vector;
+use quicksilver::graphics::{Color, Image, WindowBuilder};
 
 fn main() {
     let (mut window, mut canvas) = WindowBuilder::new()
