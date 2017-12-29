@@ -22,6 +22,10 @@ impl Circle {
         Circle::new(x as f32, y as f32, radius as f32)
     }
 
+    pub fn newv(position: Vector, radius: f32) -> Circle {
+        Circle::new(position.x, position.y, radius)
+    }
+
     ///Get the center of a circle as a vector
     pub fn center(self) -> Vector {
         Vector {
