@@ -1,4 +1,5 @@
 use geom::about_equal;
+use rand::{Rand, Rng};
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 use std::cmp::{Eq, PartialEq};
 use std::fmt;
@@ -206,6 +207,15 @@ impl Eq for Vector {}
 impl fmt::Display for Vector {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "<{}, {}>", self.x, self.y)
+    }
+}
+
+impl Rand for Vector {
+    fn rand<R: Rng>(rand: &mut R) -> Self {
+        Vector {
+            x: rand.gen(),
+            y: rand.gen()
+        }
     }
 }
 

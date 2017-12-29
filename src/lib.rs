@@ -1,6 +1,7 @@
 extern crate gl;
 extern crate image;
 extern crate glutin;
+extern crate rand;
 extern crate rodio;
 extern crate tiled;
 
