@@ -38,18 +38,19 @@ impl Canvas {
         self.backend.clear(self.clear_color);
     }
 
-    ///Draw an image at a given area
-    pub fn draw_image(&mut self, image: &Image, area: Rectangle) {
-        self.draw_image_blend(image, area, Color::white());
+    ///Draw an image with a given center
+    pub fn draw_image(&mut self, image: &Image, center: Vector) {
+        self.draw_image_blend(image, center, Color::white());
     }
 
-    ///Draw an image at a given area blended with a given color
-    pub fn draw_image_blend(&mut self, image: &Image, area: Rectangle, col: Color) {
-        self.draw_image_trans(image, area, col, Transform::identity());
+    ///Draw an image with a given center blended with a given color
+    pub fn draw_image_blend(&mut self, image: &Image, center: Vector, col: Color) {
+        self.draw_image_trans(image, center, col, Transform::identity());
     }
 
     ///Draw a transform image blended with a given color
-    pub fn draw_image_trans(&mut self, image: &Image, area: Rectangle, col: Color, trans: Transform) {
+    pub fn draw_image_trans(&mut self, image: &Image, center: Vector, col: Color, trans: Transform) {
+        let area = image.area().with_center(center);
         let trans = self.camera() 
             * Transform::translate(area.top_left()) 
             * Transform::translate(area.size() / 2) 
