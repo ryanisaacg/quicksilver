@@ -2,6 +2,7 @@ var canvas = document.getElementById('canvas');
 var gl = canvas.getContext('webgl2');
 console.log(gl);
 var loaded_image = {}
+var gl_objects = [];
 var env = {
     create_context: function(width, height) {
         canvas.width = width;
@@ -43,15 +44,15 @@ var env = {
     },
     log_num: function(x) { console.log(x); },
     ActiveTexture: gl.activeTexture.bind(gl),
-    AttachShader: gl.attachShader.bind(gl),
+    AttachShader: (progindex, shadeindex) => gl.attachShader(gl_objects[progindex], gl_objects[shadeindex]),
     Clear: gl.clear.bind(gl),
     ClearColor: gl.clearColor.bind(gl),
-    CompileShader: gl.compileShader.bind(gl),
-    CreateShader: gl.createShader.bind(gl),
-    CreateProgram: gl.createProgram.bind(gl),
-    BindBuffer: gl.bindBuffer.bind(gl),
-    BindTexture: gl.bindTexture.bind(gl),
-    BindVertexArray: function(x) { console.log(arguments); },//gl.bindVertexArray.bind(gl),
+    CompileShader: (index) => gl.compileShader(gl_objects[index]),
+    CreateShader: (type) => gl_objects.push(gl.createShader(type)) - 1,
+    CreateProgram: () => gl_objects.push(gl.createProgram()) - 1,
+    BindBuffer: (mask, index) => gl.bindBuffer(mask, gl_objects[index]),
+    BindTexture: (index) => gl.bindTexture(gl_objects[index]),
+    BindVertexArray: (index) => gl.bindVertexArray(gl_objects[index]),
     BlendFunc: gl.blendFunc.bind(gl),
     BufferData: gl.bufferData.bind(gl), //likely to cause problems
     BufferSubData: gl.bufferSubData.bind(gl), // likely to cause problems
@@ -63,20 +64,20 @@ var env = {
     DrawElements: gl.drawElements.bind(gl), // likely to cause problems
     Enable: gl.enable.bind(gl),
     EnableVertexAttribArray: gl.enableVertexAttribArray.bind(gl),
-    GenBuffer: gl.createBuffer.bind(gl),
-    GenerateMipmap: gl.generateMipmap.bind(gl),
-    GenTexture: gl.createTexture.bind(gl),
-    GenVertexArray: gl.createVertexArray.bind(gl),
+    GenBuffer: () => gl_objects.push(gl.createBuffer()) - 1,
+    GenerateMipmap: () => gl_objects.push(gl.generateMipmap()) - 1,
+    GenTexture: () => gl_objects.push(gl.createTexture()) - 1,
+    GenVertexArray: () => gl_objects.push(gl.createVertexArray()) - 1,
     GetAttribLocation: gl.getAttribLocation.bind(gl),
     GetError: gl.getError.bind(gl),
-    GetShaderInfoLog: gl.getShaderInfoLog.bind(gl),
-    GetShaderiv: gl.getShaderParameter.bind(gl),
+    GetShaderInfoLog: (index) => { var str = gl.getShaderInfoLog(gl_objects[index]); console.log(str); return str; },
+    GetShaderiv: (index, param) => gl_objects.push(gl.getShaderParameter(gl_objects[index], param)) - 1,
     GetUniformLocation: gl.getUniformLocation.bind(gl),
-    LinkProgram: gl.linkProgram.bind(gl),
-    ShaderSource: gl.shaderSource.bind(gl),
+    LinkProgram: (index) => gl.linkProgram(gl_objects[index]),
+    ShaderSource: (shader, source) => gl.shaderSource(gl_objects[shader], source),
     TexParameteri: gl.texParameteri.bind(gl),
     Uniform1i: gl.uniform1i.bind(gl),
-    UseProgram: gl.useProgram.bind(gl),
+    UseProgram: (index) => gl.useProgram(gl_objects[index]),
     VertexAttribPointer: gl.vertexAttribPointer.bind(gl),
     Viewport: gl.viewport.bind(gl)
 }
