@@ -42,6 +42,11 @@ impl Canvas {
         self.backend.display();
         window.gl_window.swap_buffers().unwrap();
     }
+    
+    #[cfg(target_arch="wasm32")]
+    pub fn present(&mut self) {
+        self.backend.display();
+    }
 
     pub fn draw_image(&mut self, image: &Image, area: Rectangle) {
         self.draw_image_blend(image, area, Colors::WHITE);
