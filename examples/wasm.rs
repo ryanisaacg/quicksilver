@@ -19,7 +19,7 @@ pub unsafe extern "C" fn init() {
 #[no_mangle]
 pub unsafe extern "C" fn draw() {
     match *CANVAS.lock().unwrap() {
-        Some(ref mut canvas) => canvas.draw_rect(Rectangle::newi_sized(100, 100), Colors::WHITE),
+        Some(ref mut canvas) => canvas.draw_rect(Rectangle::newi_sized(100, 100), Colors::GREEN),
         None => ()
     }
 }
