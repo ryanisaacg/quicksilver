@@ -41,58 +41,49 @@ var env = {
     get_image_height: function() {
         return loaded_image.height;
     },
-    ActiveTexture: gl.activeTexture,
-    AttachShader: gl.attachShader,
-    Clear: gl.clear,
-    ClearColor: gl.clearColor,
-    CompileShader: gl.compileShader,
-    CreateShader: gl.createShader,
-    CreateProgram: gl.createProgram,
-    BindBuffer: gl.bindBuffer,
-    BindTexture: gl.bindTexture,
-    BindVertexArray: gl.bindVertexArray,
-    BlendFunc: gl.blendFunc,
-    BufferData: gl.bufferData, //likely to cause problems
-    BufferSubData: gl.bufferSubData, // likely to cause problems
-    DeleteBuffer: gl.deleteBuffer,
-    DeleteProgram: gl.deleteProgram,
-    DeleteShader: gl.deleteShader,
-    DeleteTexture: gl.deleteTexture,
-    DeleteVertexArray: gl.deleteVertexArray,
-    DrawElements: gl.drawElements, // likely to cause problems
-    Enable: gl.enable,
-    EnableVertexAttribArray: gl.enableVertexAttribArray,
-    GenBuffer: gl.createBuffer,
-    GenerateMipmap: gl.generateMipmap,
-    GenTexture: gl.createTexture,
-    GenVertexArray: gl.createVertexArray,
-    GetAttribLocation: gl.getAttribLocation,
-    GetError: gl.getError,
-    GetShaderInfoLog: gl.getShaderInfoLog,
-    GetShaderiv: gl.getShaderParameter,
-    GetUniformLocation: gl.getUniformLocation,
-    LinkProgram: gl.linkProgram,
-    ShaderSource: gl.shaderSource,
-    TexParameteri: gl.texParameteri,
-    Uniform1i: gl.uniform1i,
-    UseProgram: gl.useProgram,
-    VertexAttribPointer: gl.vertexAttribPointer,
-    Viewport: gl.viewport
+    log_num: function(x) { console.log(x); },
+    ActiveTexture: gl.activeTexture.bind(gl),
+    AttachShader: gl.attachShader.bind(gl),
+    Clear: gl.clear.bind(gl),
+    ClearColor: gl.clearColor.bind(gl),
+    CompileShader: gl.compileShader.bind(gl),
+    CreateShader: gl.createShader.bind(gl),
+    CreateProgram: gl.createProgram.bind(gl),
+    BindBuffer: gl.bindBuffer.bind(gl),
+    BindTexture: gl.bindTexture.bind(gl),
+    BindVertexArray: function(x) { console.log(arguments); },//gl.bindVertexArray.bind(gl),
+    BlendFunc: gl.blendFunc.bind(gl),
+    BufferData: gl.bufferData.bind(gl), //likely to cause problems
+    BufferSubData: gl.bufferSubData.bind(gl), // likely to cause problems
+    DeleteBuffer: gl.deleteBuffer.bind(gl),
+    DeleteProgram: gl.deleteProgram.bind(gl),
+    DeleteShader: gl.deleteShader.bind(gl),
+    DeleteTexture: gl.deleteTexture.bind(gl),
+    DeleteVertexArray: gl.deleteVertexArray.bind(gl),
+    DrawElements: gl.drawElements.bind(gl), // likely to cause problems
+    Enable: gl.enable.bind(gl),
+    EnableVertexAttribArray: gl.enableVertexAttribArray.bind(gl),
+    GenBuffer: gl.createBuffer.bind(gl),
+    GenerateMipmap: gl.generateMipmap.bind(gl),
+    GenTexture: gl.createTexture.bind(gl),
+    GenVertexArray: gl.createVertexArray.bind(gl),
+    GetAttribLocation: gl.getAttribLocation.bind(gl),
+    GetError: gl.getError.bind(gl),
+    GetShaderInfoLog: gl.getShaderInfoLog.bind(gl),
+    GetShaderiv: gl.getShaderParameter.bind(gl),
+    GetUniformLocation: gl.getUniformLocation.bind(gl),
+    LinkProgram: gl.linkProgram.bind(gl),
+    ShaderSource: gl.shaderSource.bind(gl),
+    TexParameteri: gl.texParameteri.bind(gl),
+    Uniform1i: gl.uniform1i.bind(gl),
+    UseProgram: gl.useProgram.bind(gl),
+    VertexAttribPointer: gl.vertexAttribPointer.bind(gl),
+    Viewport: gl.viewport.bind(gl)
 }
 
 fetch("wasm.wasm")
     .then(response => response.arrayBuffer())
-    .then(bytes =>  {
-    console.log(bytes);
-        var memory = new ArrayBuffer(bytes.byteLength);
-        for(var i = 0; i < bytes.byteLength; i++) {
-            memory[i] = bytes[i];
-            console.log(memory[i]);
-            console.log(bytes[i]);
-        }
-        console.log(memory[0]);
-        return WebAssembly.instantiate(memory, { env } );
-    })
+    .then(bytes =>  WebAssembly.instantiate(bytes, { env } ))
     .then(results => {
         var init = results.instance.exports.init;
         var draw = results.instance.exports.draw;
