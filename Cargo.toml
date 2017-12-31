@@ -18,6 +18,3 @@ image = "0.17"
 rodio = "0.5"
 tiled = "0.7"
 
-[[example]]
-name = "wasm"
-crate-type = ["staticlib"]
