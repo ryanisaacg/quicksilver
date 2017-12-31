@@ -4,3 +4,4 @@ Cargo.lock
 *.dll
 msvc/
 gnu-mingw/
+*.wasm
