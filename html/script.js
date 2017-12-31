@@ -3,6 +3,26 @@ var gl = canvas.getContext('webgl2');
 console.log(gl);
 var loaded_image = {}
 var gl_objects = [];
+
+const DEFAULT_VERTEX_SHADER = `
+attribute vec2 position;
+varying vec2 tex_coord;
+varying vec4 color;
+varying lowp float uses_texture;
+void main() {
+    gl_Position = vec4(position, 0, 1);
+}`;
+
+const DEFAULT_FRAGMENT_SHADER = `
+varying highp vec4 color;
+varying highp vec2 tex_coord;
+varying lowp float uses_texture;
+uniform sampler2D tex;
+void main() {
+    highp vec4 tex_color = (int(uses_texture) != 0) ? texture2D(tex, tex_coord) : vec4(1, 1, 1, 1);
+    gl_FragColor = color * tex_color;
+}`;
+
 var env = {
     create_context: function(width, height) {
         canvas.width = width;
@@ -42,6 +62,8 @@ var env = {
     get_image_height: function() {
         return loaded_image.height;
     },
+    load_vertex_shader: (index) => gl.shaderSource(gl_objects[index], DEFAULT_VERTEX_SHADER),
+    load_frag_shader: (index) => gl.shaderSource(gl_objects[index], DEFAULT_FRAGMENT_SHADER),
     log_num: function(x) { console.log(x); },
     ActiveTexture: gl.activeTexture.bind(gl),
     AttachShader: (progindex, shadeindex) => gl.attachShader(gl_objects[progindex], gl_objects[shadeindex]),
@@ -71,7 +93,7 @@ var env = {
     GetAttribLocation: gl.getAttribLocation.bind(gl),
     GetError: gl.getError.bind(gl),
     GetShaderInfoLog: (index) => { var str = gl.getShaderInfoLog(gl_objects[index]); console.log(str); return str; },
-    GetShaderiv: (index, param) => gl_objects.push(gl.getShaderParameter(gl_objects[index], param)) - 1,
+    GetShaderiv: (index, param) => gl.getShaderParameter(gl_objects[index], param),
     GetUniformLocation: gl.getUniformLocation.bind(gl),
     LinkProgram: (index) => gl.linkProgram(gl_objects[index]),
     ShaderSource: (shader, source) => gl.shaderSource(gl_objects[shader], source),
