@@ -1,3 +1,5 @@
+#[cfg(target_arch="wasm32")]
+use bridge;
 use graphics::{Backend, Color, Vertex, VERTEX_SIZE};
 use std::vec::Vec;
 //Not used in mock, so #[cfg]'ed to avoid code warnings when testing
@@ -36,6 +38,7 @@ pub struct GLBackend {
 }
 
 #[cfg(not(test))]
+#[cfg(not(target_arch="wasm32"))]
 const DEFAULT_VERTEX_SHADER: &str = r#"#version 150
 in vec2 position;
 in vec2 tex_coord;
@@ -64,22 +67,11 @@ void main() {
     outColor = Color * tex_color;
 }"#;
 
-#[cfg(not(test))]
-#[cfg(target_arch="wasm32")]
-const DEFAULT_FRAGMENT_SHADER: &str = r#"#version 150
-in vec4 Color;
-in vec2 Tex_coord;
-in float Uses_texture;
-uniform sampler2D tex;
-void main() {
-    vec4 tex_color = (Uses_texture != 0) ? texture(tex, Tex_coord) : vec4(1, 1, 1, 1);
-    gl_FragColor = Color * tex_color;
-}"#;
 
 impl GLBackend {
     pub fn new() -> GLBackend {
         #[cfg(not(test))]
-        let (vao, vbo, ebo) = unsafe {
+        let (vao, vbo, ebo, vertex, fragment, shader) = unsafe {
             let vao = gl::GenVertexArray();
             gl::BindVertexArray(vao);
             let vbo = gl::GenBuffer();
@@ -88,18 +80,64 @@ impl GLBackend {
             gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, ebo);
             gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
             gl::Enable( gl::BLEND );
-            (vao, vbo, ebo)
+            let vertex = gl::CreateShader(gl::VERTEX_SHADER);
+            let fragment = gl::CreateShader(gl::FRAGMENT_SHADER);
+            #[cfg(target_arch="wasm32")]
+            {
+                bridge::load_vertex_shader(vertex);
+                bridge::load_frag_shader(fragment);
+            }
+            #[cfg(not(target_arch="wasm32"))]
+            {
+                let vertex_text = CString::new(DEFAULT_VERTEX_SHADER).unwrap().into_raw();
+                gl::ShaderSource(vertex, 1, &(vertex_text as *const i8) as *const *const i8, null());
+                let fragment_text = CString::new(DEFAULT_FRAGMENT_SHADER).unwrap().into_raw();
+                gl::ShaderSource(fragment, 1, &(fragment_text as *const i8) as *const *const i8, null());
+                CString::from_raw(vertex_text);
+                CString::from_raw(fragment_text);
+            }
+            gl::CompileShader(vertex);
+            let mut status: i32 = 0;
+            gl::GetShaderiv(vertex, gl::COMPILE_STATUS, &mut status as *mut i32);
+            if status as u8 != gl::TRUE {
+                println!("Vertex shader compilation failed.");
+                let buffer: [u8; 512] = [0; 512];
+                let mut length = 0;
+                gl::GetShaderInfoLog(vertex, 512, &mut length as *mut i32, buffer.as_ptr() as *mut i8);
+                println!("Error: {}", from_utf8(&buffer).unwrap());
+            }
+            gl::CompileShader(fragment);
+            gl::GetShaderiv(fragment, gl::COMPILE_STATUS, &mut status as *mut i32);
+            if status as u8 != gl::TRUE {
+                println!("Fragment shader compilation failed.");
+                let buffer: [u8; 512] = [0; 512];
+                let mut length = 0;
+                gl::GetShaderInfoLog(fragment, 512, &mut length as *mut i32, buffer.as_ptr() as *mut i8);
+                println!("Error: {}", from_utf8(&buffer).unwrap());
+            }
+            let shader = gl::CreateProgram();
+            gl::AttachShader(shader, vertex);
+            gl::AttachShader(shader, fragment);
+            #[cfg(not(target_arch="wasm32"))]
+            {
+                let raw = CString::new("out_color").unwrap().into_raw();
+                gl::BindFragDataLocation(shader, 0, raw as *mut i8);
+                CString::from_raw(raw);
+            }
+            gl::LinkProgram(shader);
+            gl::UseProgram(shader);
+            (vao, vbo, ebo, vertex, fragment, shader)
         };
-        let backend = GLBackend {
+        GLBackend {
             texture: 0,
             vertices: Vec::with_capacity(1024),
             indices: Vec::with_capacity(1024),
             #[cfg(not(test))]
-            shader: 0,
+            shader,
             #[cfg(not(test))]
-            fragment: 0,
+            fragment,
             #[cfg(not(test))]
-            vertex: 0,
+            vertex,
             #[cfg(not(test))]
             vbo,
             #[cfg(not(test))]
@@ -108,87 +146,6 @@ impl GLBackend {
             vao,
             #[cfg(not(test))]
             texture_location: 0,
-        };
-        #[cfg(not(test))]
-        {
-            let mut backend = backend;
-            backend.set_shader(DEFAULT_VERTEX_SHADER, DEFAULT_FRAGMENT_SHADER);
-            return backend;
-        }
-        #[cfg(test)]
-        backend
-    }
-
-    #[cfg(not(test))]
-    pub fn set_shader(&mut self, vertex_shader: &str, fragment_shader: &str) {
-        unsafe {
-            if self.shader != 0 {
-                gl::DeleteProgram(self.shader);
-            }
-            if self.vertex != 0 {
-                gl::DeleteShader(self.vertex);
-            }
-            if self.fragment != 0 {
-                gl::DeleteShader(self.fragment);
-            }
-            self.vertex = gl::CreateShader(gl::VERTEX_SHADER);
-            let vertex_text = CString::new(vertex_shader).unwrap().into_raw();
-            gl::ShaderSource(
-                self.vertex,
-                1,
-                &(vertex_text as *const i8) as *const *const i8,
-                null(),
-            );
-            gl::CompileShader(self.vertex);
-            let mut status: i32 = 0;
-            gl::GetShaderiv(self.vertex, gl::COMPILE_STATUS, &mut status as *mut i32);
-            if status as u8 != gl::TRUE {
-                println!("Vertex shader compilation failed.");
-                let buffer: [u8; 512] = [0; 512];
-                let mut length = 0;
-                gl::GetShaderInfoLog(
-                    self.vertex,
-                    512,
-                    &mut length as *mut i32,
-                    buffer.as_ptr() as *mut i8,
-                );
-                println!("Error: {}", from_utf8(&buffer).unwrap());
-            }
-            self.fragment = gl::CreateShader(gl::FRAGMENT_SHADER);
-            let fragment_text = CString::new(fragment_shader).unwrap().into_raw();
-            gl::ShaderSource(
-                self.fragment,
-                1,
-                &(fragment_text as *const i8) as *const *const i8,
-                null(),
-            );
-            gl::CompileShader(self.fragment);
-            gl::GetShaderiv(self.fragment, gl::COMPILE_STATUS, &mut status as *mut i32);
-            if status as u8 != gl::TRUE {
-                println!("Fragment shader compilation failed.");
-                let buffer: [u8; 512] = [0; 512];
-                let mut length = 0;
-                gl::GetShaderInfoLog(
-                    self.fragment,
-                    512,
-                    &mut length as *mut i32,
-                    buffer.as_ptr() as *mut i8,
-                );
-                println!("Error: {}", from_utf8(&buffer).unwrap());
-            }
-            self.shader = gl::CreateProgram();
-            gl::AttachShader(self.shader, self.vertex);
-            gl::AttachShader(self.shader, self.fragment);
-            #[cfg(not(target_arch="wasm32"))]
-            {
-                let raw = CString::new("out_color").unwrap().into_raw();
-                gl::BindFragDataLocation(self.shader, 0, raw as *mut i8);
-                CString::from_raw(raw);
-            }
-            gl::LinkProgram(self.shader);
-            gl::UseProgram(self.shader);
-            CString::from_raw(vertex_text);
-            CString::from_raw(fragment_text);
         }
     }
 
