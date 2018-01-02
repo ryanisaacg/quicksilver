@@ -6,10 +6,11 @@ use geom::{Circle, Line, Rectangle, Shape, Transform, Vector};
 use glutin::{GlContext};
 #[cfg(not(target_arch="wasm32"))]
 use graphics::Window;
-use graphics::{Backend, Camera, Color, Colors, Image, Vertex};
+use graphics::{Backend, Camera, Color, Image, Vertex};
 
+///The way to draw items to the screen, produced by WindowBuilder
 pub struct Canvas {
-    pub(crate) backend: Box<Backend>,
+    pub(crate) backend: Backend,
     pub(crate) cam: Camera,
     pub(crate) clear_color: Color,
 }
@@ -17,6 +18,7 @@ pub struct Canvas {
 const CIRCLE_POINTS: usize = 32; //the number of points in the poly to simulate the circle
 
 impl Canvas {
+    ///Set the camera view for the Canvas
     pub fn set_camera(&mut self, cam: Camera) {
         self.cam = cam;
     }
@@ -25,10 +27,12 @@ impl Canvas {
         self.cam.transform()
     }
 
+    ///Get the color the window is cleared to
     pub fn clear_color(&self) -> Color {
         self.clear_color
     }
 
+    ///Set the color the window is cleared to
     pub fn set_clear_color(&mut self, col: Color) {
         self.clear_color = col;
     }
@@ -37,26 +41,31 @@ impl Canvas {
         self.backend.clear(self.clear_color);
     }
 
+    ///Draw the changes made to the screen
     #[cfg(not(target_arch="wasm32"))]
     pub fn present(&mut self, window: &Window) {
-        self.backend.display();
+        self.backend.flush();
         window.gl_window.swap_buffers().unwrap();
     }
     
     #[cfg(target_arch="wasm32")]
     pub fn present(&mut self) {
-        self.backend.display();
+        self.backend.flush();
     }
 
-    pub fn draw_image(&mut self, image: &Image, area: Rectangle) {
-        self.draw_image_blend(image, area, Colors::WHITE);
+    ///Draw an image with a given center
+    pub fn draw_image(&mut self, image: &Image, center: Vector) {
+        self.draw_image_blend(image, center, Color::white());
     }
 
-    pub fn draw_image_blend(&mut self, image: &Image, area: Rectangle, col: Color) {
-        self.draw_image_trans(image, area, col, Transform::identity());
+    ///Draw an image with a given center blended with a given color
+    pub fn draw_image_blend(&mut self, image: &Image, center: Vector, col: Color) {
+        self.draw_image_trans(image, center, col, Transform::identity());
     }
 
-    pub fn draw_image_trans(&mut self, image: &Image, area: Rectangle, col: Color, trans: Transform) {
+    ///Draw a transform image blended with a given color
+    pub fn draw_image_trans(&mut self, image: &Image, center: Vector, col: Color, trans: Transform) {
+        let area = image.area().with_center(center);
         let trans = self.camera() 
             * Transform::translate(area.top_left()) 
             * Transform::translate(area.size() / 2) 
@@ -86,18 +95,22 @@ impl Canvas {
         );
     }
 
+    ///Draw a rectangle filled with a given color
     pub fn draw_rect(&mut self, rect: Rectangle, col: Color) {
         self.draw_rect_trans(rect, col, Transform::identity());
     }
 
+    ///Draw a rectangle filled with a given color with a given transform
     pub fn draw_rect_trans(&mut self, rect: Rectangle, col: Color, trans: Transform) {
         self.draw_polygon_trans(&[Vector::zero(), rect.size().x_comp(), rect.size(), rect.size().y_comp()], col, Transform::translate(rect.top_left()) * trans);
     }
 
+    ///Draw a circled filled with a given color
     pub fn draw_circle(&mut self, circ: Circle, col: Color) {
         self.draw_circle_trans(circ, col, Transform::identity());
     }
 
+    ///Draw a circle filled with a given color with a given transformation
     pub fn draw_circle_trans(&mut self, circ: Circle, col: Color, trans: Transform) {
         let mut points = [Vector::zero(); CIRCLE_POINTS];
         let rotation = Transform::rotate(360f32 / CIRCLE_POINTS as f32);
@@ -109,10 +122,12 @@ impl Canvas {
         self.draw_polygon_trans(&points, col, Transform::translate(circ.center()) * trans);
     }
 
+    ///Draw a polygon filled with a given color
     pub fn draw_polygon(&mut self, vertices: &[Vector], col: Color) {
         self.draw_polygon_trans(vertices, col, Transform::identity());
     }
 
+    ///Draw a polygon filled with a given color with a given transform
     pub fn draw_polygon_trans(&mut self, vertices: &[Vector], col: Color, trans: Transform) {
         let first_index = self.backend.num_vertices() as u32;
         let trans = self.camera() * trans;
@@ -136,10 +151,12 @@ impl Canvas {
         }
     }
 
+    ///Draw a line with a given color
     pub fn draw_line(&mut self, line: Line, col: Color) {
         self.draw_line_trans(line, col, Transform::identity());
     }
 
+    ///Draw a transformed line
     pub fn draw_line_trans(&mut self, line: Line, col: Color, trans: Transform) {
         let start = Vector::zero();
         let end = line.end - line.start;
@@ -152,15 +169,18 @@ impl Canvas {
         }
     }
 
+    ///Draw a point with a color
     pub fn draw_point(&mut self, vec: Vector, col: Color) {
         self.draw_polygon_trans(&[vec, vec + Vector::x(), vec + Vector::one(), vec + Vector::y()], 
                                 col, Transform::identity());
     }
 
+    ///Draw a shape filled with a given color
     pub fn draw_shape(&mut self, shape: Shape, col: Color) {
         self.draw_shape_trans(shape, col, Transform::identity());
     }
 
+    ///Draw a translated shape filled with a given color
     pub fn draw_shape_trans(&mut self, shape: Shape, col: Color, trans: Transform) {
         match shape {
             Shape::Rect(r) => self.draw_rect_trans(r, col, trans),
@@ -168,5 +188,28 @@ impl Canvas {
             Shape::Line(l) => self.draw_line_trans(l, col, trans),
             Shape::Vect(v) => self.draw_point(trans * v, col)
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    use graphics::Backend;
+
+    #[test]
+    fn test_backend() {
+        let mut canvas = Canvas {
+            backend: Backend::new(),
+            cam: Camera::new(Rectangle::newi(-1, -1, 2, 2)),
+            clear_color: Color::black()
+        };
+        canvas.draw_shape(Shape::Rect(Rectangle::newi(-1, -1, 0, 0)), Color::white());
+        let expected_vertices = &[-1f32, 1f32, 0f32, 0f32, 1f32, 1f32, 1f32, 1f32, 0f32, -1f32, 
+            1f32, 0f32, 0f32, 1f32, 1f32, 1f32, 1f32, 0f32, -1f32, 1f32, 0f32, 0f32, 1f32, 1f32, 
+            1f32, 1f32, 0f32, -1f32, 1f32, 0f32, 0f32, 1f32, 1f32, 1f32, 1f32, 0f32];
+        let expected_indices = &[0, 1, 2, 0, 2, 3];
+        assert!(canvas.backend.vertices.as_slice() == &expected_vertices[..]);
+        assert!(canvas.backend.indices.as_slice() == &expected_indices[..]);
     }
 }

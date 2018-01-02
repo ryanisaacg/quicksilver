@@ -1,4 +1,5 @@
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+///The current state of a button
 pub enum ButtonState {
     Pressed,
     Held,

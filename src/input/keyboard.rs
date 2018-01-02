@@ -5,17 +5,14 @@ use input::{ButtonState};
 use std::ops::Index;
 
 #[derive(Copy)]
+///A structure that stores each key's state
 pub struct Keyboard {
-    keys: [ButtonState; 256],
+    pub(crate) keys: [ButtonState; 256],
 }
 
 impl Keyboard {
-    pub fn new() -> Keyboard {
-        Keyboard { keys: [ButtonState::NotPressed; 256] }
-    }
-
     #[cfg(not(target_arch="wasm32"))]
-    pub fn process_event(&mut self, event: &glutin::KeyboardInput) {
+    pub(crate) fn process_event(&mut self, event: &glutin::KeyboardInput) {
         if let Some(keycode) = event.virtual_keycode {
             let index = keycode as usize;
             let previous_state = self.keys[index];
@@ -38,7 +35,7 @@ impl Keyboard {
         }
     }
 
-    pub fn clear_temporary_states(&mut self) {
+    pub(crate) fn clear_temporary_states(&mut self) {
         for index in 0..self.keys.len() {
             self.keys[index] = self.keys[index].clear_temporary();
         }
@@ -50,7 +47,8 @@ impl Clone for Keyboard {
         *self
     }
 }
-
+//TODO: Create some way of indexing the keyboard that works the same on WASM and native
+/*
 #[cfg(not(target_arch="wasm32"))]
 impl Index<glutin::Key> for Keyboard {
     type Output = ButtonState;
@@ -59,6 +57,7 @@ impl Index<glutin::Key> for Keyboard {
         &self.keys[index as usize]
     }
 }
+*/
 
 #[cfg(test)]
 mod tests {
@@ -66,7 +65,9 @@ mod tests {
 
     #[test]
     fn keypress() {
-        let mut keyboard = Keyboard::new();
+        let mut keyboard = Keyboard {
+            keys: [ButtonState::NotPressed; 256]
+        };
         keyboard.process_event(&glutin::KeyboardInput {
             scancode: 0,
             state: glutin::ElementState::Pressed,
@@ -99,7 +100,9 @@ mod tests {
 
     #[test]
     fn clear_states() {
-        let mut keyboard = Keyboard::new().clone();
+        let mut keyboard = Keyboard {
+            keys: [ButtonState::NotPressed; 256].clone()
+        };
         keyboard.process_event(&glutin::KeyboardInput {
             scancode: 0,
             state: glutin::ElementState::Pressed,

@@ -1,6 +1,8 @@
-use super::{Circle, Line, Vector};
+use super::{about_equal, Circle, Line, Vector};
+use std::cmp::{Eq, PartialEq};
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Clone, Copy, Default, Debug)]
+///A rectangle with a top-left position and a size
 pub struct Rectangle {
     pub x: f32,
     pub y: f32,
@@ -113,6 +115,15 @@ impl Rectangle {
             self.left().intersects(l) || self.right().intersects(l) || self.bottom().intersects(l)
     }
 }
+
+impl PartialEq for Rectangle {
+    fn eq(&self, other: &Rectangle) -> bool {
+        about_equal(self.x, other.x) && about_equal(self.y, other.y) && about_equal(self.width, other.width)
+            && about_equal(self.height, other.height)
+    }
+}
+
+impl Eq for Rectangle {}
 
 #[cfg(test)]
 mod tests {

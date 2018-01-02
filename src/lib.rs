@@ -1,26 +1,22 @@
 #[cfg(not(target_arch="wasm32"))]
+extern crate glutin;
+#[cfg(not(target_arch="wasm32"))]
 extern crate image;
 #[cfg(not(target_arch="wasm32"))]
-extern crate glutin;
+extern crate rand;
 #[cfg(not(target_arch="wasm32"))]
 extern crate rodio;
 #[cfg(not(target_arch="wasm32"))]
 extern crate tiled;
 
-#[cfg(target_arch="wasm32")]
-mod bridge;
-mod geom;
 mod gl;
-mod graphics;
-mod input;
+pub mod geom;
+pub mod graphics;
+pub mod input;
 #[cfg(not(target_arch="wasm32"))]
-mod sound;
+pub mod level;
+#[cfg(not(target_arch="wasm32"))]
+pub mod sound;
 mod timer;
 
-pub use geom::*;
-pub use graphics::*;
-pub use input::*;
-#[cfg(not(target_arch="wasm32"))]
-pub use sound::{Sound, MusicPlayer}; 
-pub use timer::Timer;
-pub use std::time::Duration;
+pub use self::timer::Timer;

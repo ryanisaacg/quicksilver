@@ -1,6 +1,7 @@
-use super::{Line, Rectangle, Vector};
+use super::{about_equal, Line, Rectangle, Vector};
+use std::cmp::{Eq, PartialEq};
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Clone, Copy, Default, Debug)]
 ///A circle with a center and a radius
 pub struct Circle {
     pub x: f32,
@@ -19,6 +20,10 @@ impl Circle {
 
     pub fn newi(x: i32, y: i32, radius: i32) -> Circle {
         Circle::new(x as f32, y as f32, radius as f32)
+    }
+
+    pub fn newv(position: Vector, radius: f32) -> Circle {
+        Circle::new(position.x, position.y, radius)
     }
 
     ///Get the center of a circle as a vector
@@ -62,6 +67,14 @@ impl Circle {
         Circle::new(self.x + v.x, self.y + v.y, self.radius)
     }
 }
+
+impl PartialEq for Circle {
+    fn eq(&self, other: &Circle) -> bool {
+        about_equal(self.x, other.x) && about_equal(self.y, other.y) && about_equal(self.radius, other.radius)
+    }
+}
+
+impl Eq for Circle {}
 
 #[cfg(test)]
 mod tests {

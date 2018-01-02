@@ -7,14 +7,15 @@ repository = "https://github.com/ryanisaacg/quicksilver"
 
 
 [dependencies]
-gl = "0.6"
+gl = "0.7"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 lazy_static = "1.0"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-glutin = "0.10"
-image = "0.17"
+glutin = "0.11"
+image = "0.18"
+rand = "0.4.1"
 rodio = "0.5"
 tiled = "0.7"
 

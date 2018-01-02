@@ -1,2 +1,2 @@
 #!/bin/sh
-cargo test && cargo check --example platformer && cargo check --example image && cargo check --example sound
+cargo test

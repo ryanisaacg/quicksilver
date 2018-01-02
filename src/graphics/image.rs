@@ -1,17 +1,27 @@
 #[cfg(not(target_arch="wasm32"))]
 extern crate image;
-#[cfg(target_arch="wasm32")]
-use bridge;
 
 use gl;
 use geom::{Rectangle, Vector};
+#[cfg(target_arch="wasm32")]
 use std::ffi::CString;
 use std::io;
 use std::os::raw::c_void;
+#[cfg(target_arch="wasm32")]
+use std::os::raw::c_char;
 use std::ops::Drop;
 use std::path::Path;
 use std::rc::Rc;
 
+#[cfg(target_arch="wasm32")]
+extern "C" {
+    fn load_image(string: *mut c_char);
+    fn get_image_id() -> u32;
+    fn get_image_width() -> i32;
+    fn get_image_height() -> i32;
+}
+
+///Pixel formats for use with loading raw images
 pub enum PixelFormat {
     RGB = gl::RGB as isize,
     RGBA = gl::RGBA as isize,
@@ -25,25 +35,29 @@ struct ImageData {
     height: i32,
 }
 
+#[cfg(not(target_arch="wasm32"))]
 impl Drop for ImageData {
     fn drop(&mut self) {
         unsafe {
-            gl::DeleteTexture(self.id);
+            gl::DeleteTextures(1, &self.id as *const u32);
         }
     }
 }
 
 #[derive(Clone)]
+///An image that can be drawn to the screen
 pub struct Image {
     source: Rc<ImageData>,
     region: Rectangle,
 }
 
 impl Image {
+    ///Load an image from raw bytes
     #[cfg(not(target_arch="wasm32"))]
     pub fn from_raw(data: &[u8], width: i32, height: i32, format: PixelFormat) -> Image {
         let id = unsafe {
-            let texture = gl::GenTexture();
+            let mut texture = 0;
+            gl::GenTextures(1, &mut texture as *mut u32);
             gl::BindTexture(gl::TEXTURE_2D, texture);
             gl::TexParameteri(
                 gl::TEXTURE_2D,
@@ -79,10 +93,10 @@ impl Image {
     #[cfg(target_arch="wasm32")]
     //TODO: create an image error that works across wasm and native
     fn load_impl<P: AsRef<Path>>(path: P) -> Result<Image, ImageError> {
-        unsafe { bridge::load_image(CString::new(path.as_ref().to_str().unwrap()).unwrap().into_raw());}
-        let id = unsafe { bridge::get_image_id() };
-        let width = unsafe { bridge::get_image_width() } ;
-        let height = unsafe { bridge::get_image_height() };
+        unsafe { load_image(CString::new(path.as_ref().to_str().unwrap()).unwrap().into_raw());}
+        let id = unsafe { get_image_id() };
+        let width = unsafe { get_image_width() } ;
+        let height = unsafe { get_image_height() };
         Ok(Image { 
             source: Rc::new(ImageData {
                 id,
@@ -93,6 +107,7 @@ impl Image {
         })
     }
 
+    ///Load an image from an image file
     pub fn load<P: AsRef<Path>>(path: P) -> Result<Image, ImageError> {
         Self::load_impl(path)
     }
@@ -113,10 +128,12 @@ impl Image {
         Vector::newi(self.source_width(), self.source_height())
     }
 
+    ///The area of the source image this subimage takes up
     pub fn area(&self) -> Rectangle {
         self.region
     }
 
+    ///Find a subimage of a larger image
     pub fn subimage(&self, rect: Rectangle) -> Image {
         Image {
             source: self.source.clone(),
@@ -130,6 +147,7 @@ impl Image {
     }
 }
 
+#[derive(Debug)]
 pub enum ImageError {
     FormatError(String),
     DimensionError,

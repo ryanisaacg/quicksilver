@@ -1,11 +1,13 @@
 use super::{Circle, Line, Rectangle, Vector};
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+///A universal shape union
 pub enum Shape {
     Circ(Circle), Line(Line), Rect(Rectangle), Vect(Vector)
 }
 
 impl Shape {
+    ///Check if the shape overlaps with a circle
     pub fn overlaps_circ(&self, circ: Circle) -> bool {
         match *self {
             Shape::Circ(this) => this.overlaps_circ(circ),
@@ -15,6 +17,7 @@ impl Shape {
         }
     }
 
+    ///Check if the shape overlaps with a rectangle
     pub fn overlaps_rect(&self, rect: Rectangle) -> bool {
         match *self {
             Shape::Circ(this) => this.overlaps_rect(rect),
@@ -24,6 +27,7 @@ impl Shape {
         }
     }
 
+    ///Check if the shape intersects with a line
     pub fn intersects(&self, line: Line) -> bool {
         match *self {
             Shape::Circ(this) => this.intersects(line),
@@ -33,6 +37,7 @@ impl Shape {
         }
     }
 
+    ///Check if the shape contains a vector
     pub fn contains(&self, vec: Vector) -> bool {
         match *self {
             Shape::Circ(this) => this.contains(vec),
@@ -42,6 +47,7 @@ impl Shape {
         }
     }
 
+    ///Check if the shape overlaps with another shape
     pub fn overlaps(&self, shape: Shape) -> bool {
         match *self {
             Shape::Circ(this) => shape.overlaps_circ(this),
@@ -51,6 +57,7 @@ impl Shape {
         }
     }
 
+    ///Create a shape moved by a given amount
     pub fn translate(&self, vec: Vector) -> Shape {
         match *self {
             Shape::Circ(this) => Shape::Circ(this.translate(vec)),
@@ -60,6 +67,7 @@ impl Shape {
         }
     }
 
+    ///Create a copy of the shape with a given center
     pub fn with_center(&self, vec: Vector) -> Shape {
         match *self {
             Shape::Circ(this) => Shape::Circ(Circle::new(vec.x, vec.y, this.radius)),
@@ -69,6 +77,7 @@ impl Shape {
         }
     }
 
+    ///Find the smallest bounding box that contains the shape
     pub fn bounding_box(&self) -> Rectangle {
         match *self {
             Shape::Circ(this) => Rectangle::new(this.x - this.radius, this.y - this.radius, this.radius * 2.0, this.radius * 2.0),
@@ -82,6 +91,7 @@ impl Shape {
         }
     }
 
+    ///Find the center of the shape
     pub fn center(&self) -> Vector {
         match *self {
             Shape::Circ(this) => this.center(),

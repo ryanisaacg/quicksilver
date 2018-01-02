@@ -1,18 +1,23 @@
-use super::Vector;
+use super::{about_equal, Vector};
 use std::ops::Mul;
 use std::f32::consts::PI;
 use std::fmt;
+use std::default::Default;
+use std::cmp::{Eq, PartialEq};
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
+///A 2D transformation represented by a matrix
 pub struct Transform([[f32; 3]; 3]);
 
 impl Transform {
+    ///Create an identity transformation
     pub fn identity() -> Transform {
         Transform([[1f32, 0f32, 0f32],
                   [0f32, 1f32, 0f32],
                   [0f32, 0f32, 1f32]])
     }
 
+    ///Create a rotation transformation
     pub fn rotate(angle: f32) -> Transform {
         let c = (angle * PI / 180f32).cos();
         let s = (angle * PI / 180f32).sin();
@@ -21,24 +26,21 @@ impl Transform {
                   [0f32, 0f32, 1f32]])
     }
 
+    ///Create a translation transformation
     pub fn translate(vec: Vector) -> Transform {
         Transform([[1f32, 0f32, vec.x],
                   [0f32, 1f32, vec.y],
                   [0f32, 0f32, 1f32]])
     }
 
+    ///Create a scale transformation
     pub fn scale(vec: Vector) -> Transform {
         Transform([[vec.x, 0f32, 0f32],
                   [0f32, vec.y, 0f32],
                   [0f32, 0f32, 1f32]])
     }
-
-    pub fn transpose(&self) -> Transform {
-        Transform([[self.0[0][0], self.0[1][0], self.0[2][0]],
-                  [self.0[0][1], self.0[1][1], self.0[2][1]],
-                  [self.0[0][2], self.0[1][2], self.0[2][2]]])
-    }
-    
+ 
+    ///Find the inverse of a Transform
     pub fn inverse(&self) -> Transform {
         let det = 
             self.0[0][0] * (self.0[1][1] * self.0[2][2] - self.0[2][1] * self.0[1][2])
@@ -61,6 +63,7 @@ impl Transform {
     }
 }
 
+///Concat two transforms A and B such that A * B * v = A * (B * v)
 impl Mul<Transform> for Transform {
     type Output = Transform;
 
@@ -78,6 +81,7 @@ impl Mul<Transform> for Transform {
     }
 }
 
+///Transform a vector
 impl Mul<Vector> for Transform {
     type Output = Vector;
 
@@ -115,6 +119,28 @@ impl fmt::Display for Transform {
         write!(f, "]")
     }
 }
+
+impl Default for Transform {
+    fn default() -> Transform {
+        Transform::identity()
+    }
+}
+
+
+impl PartialEq for Transform {
+    fn eq(&self, other: &Transform) -> bool {
+        for i in 0..3 {
+            for j in 0..3 {
+                if about_equal(self.0[i][j], other.0[i][j]) {
+                    return false;
+                }
+            }
+        }
+        true
+    }
+}
+
+impl Eq for Transform {}
 
 #[cfg(test)]
 mod tests {

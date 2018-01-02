@@ -1,27 +1,35 @@
-use bridge;
 #[cfg(not(target_arch="wasm32"))]
 use gl;
 #[cfg(not(target_arch="wasm32"))]
 use glutin;
+use geom::{ Rectangle, Transform, Vector};
 #[cfg(not(target_arch="wasm32"))]
 use glutin::{EventsLoop, GlContext};
-use geom::{ Rectangle, Vector};
-use graphics::{GLBackend, Camera, Canvas, Color, Colors};
-use input::{Keyboard, Mouse, MouseBuilder, ViewportBuilder };
+use graphics::{Backend, Camera, Canvas, Color};
+use input::{ButtonState, Keyboard, Mouse, Viewport, ViewportBuilder };
 
+///A builder that constructs a Window and its Canvas
 pub struct WindowBuilder {
     clear_color: Color,
     show_cursor: bool
 }
 
+#[cfg(target_arch="wasm32")]
+extern "C" {
+    pub fn create_context(width: u32, height: u32);
+}
+
+
 impl WindowBuilder {
+    ///Create a default window builder
     pub fn new() -> WindowBuilder {
         WindowBuilder {
-            clear_color: Colors::BLACK,
+            clear_color: Color::black(),
             show_cursor: true
         }
     }
-    
+   
+    ///Set if the window should show its cursor
     pub fn with_show_cursor(self, show_cursor: bool) -> WindowBuilder {
         WindowBuilder {
             show_cursor,
@@ -29,6 +37,7 @@ impl WindowBuilder {
         }
     }
 
+    ///Set the window's default clear color
     pub fn with_clear_color(self, clear_color: Color) -> WindowBuilder {
         WindowBuilder {
             clear_color,
@@ -36,6 +45,7 @@ impl WindowBuilder {
         }
     }
 
+    ///Create a window and canvas with the given configuration
     #[cfg(not(target_arch="wasm32"))]
     pub fn build(self, title: &str, width: u32, height: u32) -> (Window, Canvas) {
         let events = glutin::EventsLoop::new();
@@ -58,11 +68,18 @@ impl WindowBuilder {
             scale_factor,
             offset: Vector::zero(),
             screen_size,
-            keyboard: Keyboard::new(),
-            mouse: Mouse::new(),
+            keyboard: Keyboard {
+                keys: [ButtonState::NotPressed; 256]
+            },
+            mouse: Mouse {
+                pos: Vector::zero(),
+                left: ButtonState::NotPressed,
+                middle: ButtonState::NotPressed,
+                right: ButtonState::NotPressed
+            }
         };
         let canvas = Canvas {
-            backend: Box::new(GLBackend::new()),
+            backend: Backend::new(),
             clear_color: self.clear_color,
             cam: Camera::new(Rectangle::newv_sized(screen_size)),
         };
@@ -71,15 +88,22 @@ impl WindowBuilder {
     
     #[cfg(target_arch="wasm32")]
     pub fn build(self, _: &str, width: u32, height: u32) -> (Window, Canvas) {
-        unsafe { bridge::create_context(width, height) };
+        unsafe { create_context(width, height) };
         let screen_size = Vector::new(width as f32, height as f32);
         let window = Window {
             screen_size,
-            keyboard: Keyboard::new(),
-            mouse: Mouse::new(),
+            keyboard: Keyboard {
+                keys: [ButtonState::NotPressed; 256]
+            },
+            mouse: Mouse {
+                pos: Vector::zero(),
+                left: ButtonState::NotPressed,
+                middle: ButtonState::NotPressed,
+                right: ButtonState::NotPressed
+            }
         };
         let canvas = Canvas {
-            backend: Box::new(GLBackend::new()),
+            backend: Backend::new(),
             clear_color: self.clear_color,
             cam: Camera::new(Rectangle::newv_sized(screen_size)),
         };
@@ -87,6 +111,7 @@ impl WindowBuilder {
     }
 }
 
+///The window currently in use
 #[cfg(not(target_arch="wasm32"))]
 pub struct Window {
     pub(crate) gl_window: glutin::GlWindow,
@@ -106,6 +131,7 @@ pub struct Window {
 }
 
 impl Window {
+    ///Update the keyboard, mouse, and window state, and return if the window is still open
     #[cfg(not(target_arch="wasm32"))]
     pub fn poll_events(&mut self) -> bool {
         self.keyboard.clear_temporary_states();
@@ -126,10 +152,12 @@ impl Window {
                     } => {
                         keyboard.process_event(&event);
                     }
-                    glutin::WindowEvent::MouseMoved { position, .. } => {
+                    glutin::WindowEvent::CursorMoved { position, .. } => {
                         let (x, y) = position;
-                        mouse = mouse.with_position(
-                            (Vector::new(x as f32, y as f32) - offset) / scale_factor);
+                        mouse = Mouse {
+                            pos: (Vector::new(x as f32, y as f32) - offset) / scale_factor,
+                            ..mouse
+                        };
                     }
                     glutin::WindowEvent::MouseInput { state, button, .. } => {
                         mouse.process_button(state, button);
@@ -171,28 +199,39 @@ impl Window {
         true
     }
 
+    ///Create a viewport builder
     #[cfg(not(target_arch="wasm32"))]
     pub fn viewport(&self) -> ViewportBuilder {
-        ViewportBuilder::new(self.screen_size / self.scale_factor)
+        ViewportBuilder {
+            screen_size: self.screen_size / self.scale_factor,
+            transform: Transform::identity()
+        }
     }
     
     #[cfg(target_arch="wasm32")]
     pub fn viewport(&self) -> ViewportBuilder {
-        ViewportBuilder::new(self.screen_size)
+        ViewportBuilder {
+            screen_size: self.screen_size,
+            transform: Transform::identity()
+        }
     }
 
+    ///Get the screen size
     pub fn screen_size(&self) -> Vector {
         self.screen_size
     }
 
+
+    ///Get a reference to the keyboard
     pub fn keyboard(&self) -> &Keyboard {
         &self.keyboard
     }
 
-    pub fn mouse(&self) -> MouseBuilder {
-        MouseBuilder {
-            mouse: self.mouse.clone(),
-            viewport: self.viewport()
+    ///Create a mouse builder
+    pub fn mouse(&self, viewport: &Viewport) -> Mouse {
+        Mouse {
+            pos: viewport.project() * self.mouse.pos,
+            ..self.mouse.clone()
         }
     }
 

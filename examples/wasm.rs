@@ -2,7 +2,8 @@
 extern crate lazy_static;
 extern crate quicksilver;
 
-use quicksilver::{Canvas, Colors, Rectangle, WindowBuilder};
+use quicksilver::graphics::{Canvas, Color, WindowBuilder};
+use quicksilver::geom::Rectangle;
 use std::sync::Mutex;
 
 lazy_static! {
@@ -20,7 +21,7 @@ pub unsafe extern "C" fn init() {
 pub unsafe extern "C" fn draw() {
     match *CANVAS.lock().unwrap() {
         Some(ref mut canvas) => {
-            canvas.draw_rect(Rectangle::newi_sized(100, 100), Colors::GREEN);
+            canvas.draw_rect(Rectangle::newi_sized(100, 100), Color::green());
             canvas.present()
         },
         None => ()

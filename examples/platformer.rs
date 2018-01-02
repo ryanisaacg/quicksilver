@@ -1,6 +1,10 @@
 extern crate quicksilver;
 
-use quicksilver::*;
+use quicksilver::geom::*;
+use quicksilver::graphics::*;
+use quicksilver::input::Key;
+use quicksilver::Timer;
+
 use std::time::Duration;
 
 struct Entity {
@@ -28,7 +32,7 @@ impl Entity {
 fn main() {
     let (mut window, mut canvas) = WindowBuilder::new()
         .with_show_cursor(false)
-        .with_clear_color(Colors::WHITE)
+        .with_clear_color(Color::white())
         .build("Window", 800, 600);
     let mut player = Entity::new(Rectangle::newi(16, 16, 32, 32));
     let map: Tilemap<u8> = Tilemap::new(800f32, 600f32, 40f32, 40f32);
@@ -60,9 +64,9 @@ fn main() {
             player.step(&map);
             Duration::from_millis(10)
         });
-        canvas.draw_line(Line::new(Vector::zero(), Vector::one() * 100), Colors::BLACK);
-        canvas.draw_shape(player.bounds, Colors::BLUE);
-        canvas.draw_shape_trans(player.bounds, Colors::BLUE, Transform::translate(Vector::one() * 16) 
+        canvas.draw_line(Line::new(Vector::zero(), Vector::one() * 100), Color::black());
+        canvas.draw_shape(player.bounds, Color::blue());
+        canvas.draw_shape_trans(player.bounds, Color::blue(), Transform::translate(Vector::one() * 16) 
                 * Transform::rotate(45.0) 
                 * Transform::translate(Vector::one() * -16));
         canvas.present(&window);
