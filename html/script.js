@@ -22,15 +22,29 @@ void main() {
     highp vec4 tex_color = (int(uses_texture) != 0) ? texture2D(tex, tex_coord) : vec4(1, 1, 1, 1);
     gl_FragColor = color * tex_color;
 }`;
-
+var instance = {};
+function rust_ptr_to_buffer(pointer) {
+    const memory = instance.exports.memory;
+    return new Uint8Array(memory.buffer, pointer);
+}
+function rust_str_to_js(pointer) {
+    const buffer = rust_ptr_to_buffer(pointer);
+    let string = '';
+    for(let i = 0; buffer[i] != 0; i++)
+        string += String.fromCharCode(buffer[i]);
+    console.log(string);
+    return string;
+}
 var env = {
+    print: (pointer) => console.log(rust_str_to_js(pointer)),
     create_context: function(width, height) {
         canvas.width = width;
         canvas.height = height;
         gl.viewportWidth = width;
         gl.viewportHeight = height;
     },
-    load_image: function(string) {
+    load_image: (pointer) => {
+        var string = rust_str_to_js(pointer);
         var images = document.getElementsByTagName("img");
         var image = null;
         for(var i = 0; i < images.length; i++) {
@@ -62,8 +76,6 @@ var env = {
     get_image_height: function() {
         return loaded_image.height;
     },
-    load_vertex_shader: (index) => gl.shaderSource(gl_objects[index], DEFAULT_VERTEX_SHADER),
-    load_frag_shader: (index) => gl.shaderSource(gl_objects[index], DEFAULT_FRAGMENT_SHADER),
     log_num: function(x) { console.log(x); },
     ActiveTexture: gl.activeTexture.bind(gl),
     AttachShader: (progindex, shadeindex) => gl.attachShader(gl_objects[progindex], gl_objects[shadeindex]),
@@ -96,7 +108,7 @@ var env = {
     GetShaderiv: (index, param) => gl.getShaderParameter(gl_objects[index], param),
     GetUniformLocation: gl.getUniformLocation.bind(gl),
     LinkProgram: (index) => gl.linkProgram(gl_objects[index]),
-    ShaderSource: (shader, source) => gl.shaderSource(gl_objects[shader], source),
+    ShaderSource: (shader, source_ptr) => gl.shaderSource(gl_objects[shader], rust_str_to_js(source_ptr)),
     TexParameteri: gl.texParameteri.bind(gl),
     Uniform1i: gl.uniform1i.bind(gl),
     UseProgram: (index) => gl.useProgram(gl_objects[index]),
@@ -108,8 +120,9 @@ fetch("wasm.wasm")
     .then(response => response.arrayBuffer())
     .then(bytes =>  WebAssembly.instantiate(bytes, { env } ))
     .then(results => {
-        var init = results.instance.exports.init;
-        var draw = results.instance.exports.draw;
+        instance = results.instance;
+        var init = instance.exports.init;
+        var draw = instance.exports.draw;
         init();
         draw();
     })
