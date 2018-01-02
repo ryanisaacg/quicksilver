@@ -70,8 +70,7 @@ void main() {
 }"#;
 
 #[cfg(all(not(test), target_arch="wasm32"))]
-const DEFAULT_VERTEX_SHADER: &str = r#"
-attribute vec2 position;
+const DEFAULT_VERTEX_SHADER: &str = r#"attribute vec2 position;
 varying vec2 tex_coord;
 varying vec4 color;
 varying lowp float uses_texture;
@@ -80,8 +79,7 @@ void main() {
 }"#;
 
 #[cfg(all(not(test), target_arch="wasm32"))]
-const DEFAULT_FRAGMENT_SHADER: &str = r#"
-varying highp vec4 color;
+const DEFAULT_FRAGMENT_SHADER: &str = r#"varying highp vec4 color;
 varying highp vec2 tex_coord;
 varying lowp float uses_texture;
 uniform sampler2D tex;
@@ -149,7 +147,7 @@ impl Backend {
             }
             self.vertex = gl::CreateShader(gl::VERTEX_SHADER);
             let vertex_text = CString::new(vertex_shader).unwrap().into_raw();
-            gl::ShaderSource(self.vertex, 1, &(vertex_text as *const i8) as *const *const i8, null());
+            gl::ShaderSource(self.vertex, vertex_text);
             gl::CompileShader(self.vertex);
             let mut status: i32 = 0;
             gl::GetShaderiv(self.vertex, gl::COMPILE_STATUS, &mut status as *mut i32);
@@ -162,7 +160,7 @@ impl Backend {
             }
             self.fragment = gl::CreateShader(gl::FRAGMENT_SHADER);
             let fragment_text = CString::new(fragment_shader).unwrap().into_raw();
-            gl::ShaderSource(self.fragment, 1, &(fragment_text as *const i8) as *const *const i8, null());
+            gl::ShaderSource(self.fragment, fragment_text);
             gl::CompileShader(self.fragment);
             gl::GetShaderiv(self.fragment, gl::COMPILE_STATUS, &mut status as *mut i32);
             if status as u8 != gl::TRUE {

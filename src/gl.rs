@@ -32,7 +32,6 @@ pub unsafe fn GenTexture() -> u32 {
     texture
 }
 
-
 #[cfg(not(target_arch="wasm32"))]
 pub unsafe fn GenVertexArray() -> u32 {
     let mut array = 0;
@@ -40,6 +39,11 @@ pub unsafe fn GenVertexArray() -> u32 {
     array
 }
 
+#[cfg(not(target_arch="wasm32"))]
+pub unsafe fn ShaderSource(shader: u32, string: *const i8) {
+    use std::ptr::null;
+    gl::ShaderSource(shader, 1, &(string) as *const *const i8, null());
+}
 
 #[cfg(target_arch="wasm32")]
 pub use self::gl::{RGBA, DEPTH_BUFFER_BIT, ONE_MINUS_SRC_ALPHA, TEXTURE_MAG_FILTER, TRUE, UNSIGNED_INT, BLEND, FRAGMENT_SHADER, VERTEX_SHADER, LINEAR, RGB, STREAM_DRAW, ARRAY_BUFFER, TEXTURE_MIN_FILTER, ELEMENT_ARRAY_BUFFER, TRIANGLES, FALSE, BGRA, BGR, TEXTURE_WRAP_T, UNSIGNED_BYTE, COLOR_BUFFER_BIT, FLOAT, TEXTURE_WRAP_S, INVALID_VALUE, TEXTURE, COMPILE_STATUS, SRC_ALPHA, CLAMP_TO_EDGE, TEXTURE_2D, TEXTURE0};
@@ -78,7 +82,7 @@ extern "C" {
     pub fn GetShaderiv(shader: u32, name: u32, params: *mut i32);
     pub fn GetUniformLocation(program: u32, name: *const i8) -> i32;
     pub fn LinkProgram(shader: u32);
-    pub fn ShaderSource(shader: u32, count: isize, string: *const *const i8, length: *const i32);
+    pub fn ShaderSource(shader: u32, string: *const i8);
     pub fn TexParameteri(textype: u32, filtertype: u32, value: i32);
     pub fn Uniform1i(location: i32, index: u32);
     pub fn UseProgram(program: u32);
