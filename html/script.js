@@ -32,7 +32,6 @@ function rust_str_to_js(pointer) {
     let string = '';
     for(let i = 0; buffer[i] != 0; i++)
         string += String.fromCharCode(buffer[i]);
-    console.log(string);
     return string;
 }
 var env = {
@@ -85,11 +84,11 @@ var env = {
     CreateShader: (type) => gl_objects.push(gl.createShader(type)) - 1,
     CreateProgram: () => gl_objects.push(gl.createProgram()) - 1,
     BindBuffer: (mask, index) => gl.bindBuffer(mask, gl_objects[index]),
-    BindTexture: (index) => gl.bindTexture(gl_objects[index]),
+    BindTexture: (target, index) => gl.bindTexture(target, gl_objects[index]),
     BindVertexArray: (index) => gl.bindVertexArray(gl_objects[index]),
     BlendFunc: gl.blendFunc.bind(gl),
-    BufferData: gl.bufferData.bind(gl), //likely to cause problems
-    BufferSubData: gl.bufferSubData.bind(gl), // likely to cause problems
+    BufferData: (target, size, data, usage) => gl.bufferData(target, rust_ptr_to_buffer(data), usage, 0, size), //likely to cause problems
+    BufferSubData: (target, offset, size, data) => gl.bufferSubData(target, offset, rust_ptr_to_buffer(data), 0, size), // likely to cause problems
     DeleteBuffer: gl.deleteBuffer.bind(gl),
     DeleteProgram: gl.deleteProgram.bind(gl),
     DeleteShader: gl.deleteShader.bind(gl),
@@ -102,15 +101,15 @@ var env = {
     GenerateMipmap: () => gl_objects.push(gl.generateMipmap()) - 1,
     GenTexture: () => gl_objects.push(gl.createTexture()) - 1,
     GenVertexArray: () => gl_objects.push(gl.createVertexArray()) - 1,
-    GetAttribLocation: gl.getAttribLocation.bind(gl),
+    GetAttribLocation: (index, string_ptr) => gl.getAttribLocation(gl_objects[index], rust_str_to_js(string_ptr)),
     GetError: gl.getError.bind(gl),
-    GetShaderInfoLog: (index) => { var str = gl.getShaderInfoLog(gl_objects[index]); console.log(str); return str; },
+    GetShaderInfoLog: (index) => { var str = gl.getShaderInfoLog(gl_objects[index]); console.log(str); return str; }, //todo: convert to rust string?
     GetShaderiv: (index, param) => gl.getShaderParameter(gl_objects[index], param),
-    GetUniformLocation: gl.getUniformLocation.bind(gl),
+    GetUniformLocation: (index, string_ptr) => gl_objects.push(gl.getUniformLocation(gl_objects[index], rust_str_to_js(string_ptr))) - 1,
     LinkProgram: (index) => gl.linkProgram(gl_objects[index]),
     ShaderSource: (shader, source_ptr) => gl.shaderSource(gl_objects[shader], rust_str_to_js(source_ptr)),
     TexParameteri: gl.texParameteri.bind(gl),
-    Uniform1i: gl.uniform1i.bind(gl),
+    Uniform1i: (index, value) => gl.uniform1i(gl_objects[index], value),
     UseProgram: (index) => gl.useProgram(gl_objects[index]),
     VertexAttribPointer: gl.vertexAttribPointer.bind(gl),
     Viewport: gl.viewport.bind(gl)
