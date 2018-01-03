@@ -1,3 +1,5 @@
+#![allow(non_snake_case)]
+
 extern crate gl;
 
 #[cfg(not(target_arch="wasm32"))]
