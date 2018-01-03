@@ -60,7 +60,7 @@ var env = {
         gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RGBA, image.width, image.height, 0, format, gl.UNSIGNED_BYTE, image);
         gl.GenerateMipmap(gl.TEXTURE_2D);
         loaded_image = { 
-            id: texture,
+            id: gl_objects.push(texture) - 1,
             width: image.width,
             height: image.height
         }
@@ -87,14 +87,14 @@ var env = {
     BindTexture: (target, index) => gl.bindTexture(target, gl_objects[index]),
     BindVertexArray: (index) => gl.bindVertexArray(gl_objects[index]),
     BlendFunc: gl.blendFunc.bind(gl),
-    BufferData: (target, size, data, usage) => gl.bufferData(target, rust_ptr_to_buffer(data), usage, 0, size), //likely to cause problems
-    BufferSubData: (target, offset, size, data) => gl.bufferSubData(target, offset, rust_ptr_to_buffer(data), 0, size), // likely to cause problems
-    DeleteBuffer: gl.deleteBuffer.bind(gl),
-    DeleteProgram: gl.deleteProgram.bind(gl),
-    DeleteShader: gl.deleteShader.bind(gl),
-    DeleteTexture: gl.deleteTexture.bind(gl),
+    BufferData: (target, size, data, usage) => gl.bufferData(target, rust_ptr_to_buffer(data), usage, 0, size),
+    BufferSubData: (target, offset, size, data) => gl.bufferSubData(target, offset, rust_ptr_to_buffer(data), 0, size), 
+    DeleteBuffer: (index) => gl.deleteBuffer(gl_objects[index]),
+    DeleteProgram: (index) => gl.deleteProgram(gl_objects[index]),
+    DeleteShader: (index) => gl.deleteShader(gl_objects[index]),
+    DeleteTexture: (index) => gl.deleteTexture(gl_objects[index]),
     DeleteVertexArray: gl.deleteVertexArray.bind(gl),
-    DrawElements: gl.drawElements.bind(gl), // likely to cause problems
+    DrawElements: gl.drawElements.bind(gl), 
     Enable: gl.enable.bind(gl),
     EnableVertexAttribArray: gl.enableVertexAttribArray.bind(gl),
     GenBuffer: () => gl_objects.push(gl.createBuffer()) - 1,
