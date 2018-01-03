@@ -263,12 +263,7 @@ impl Backend {
             }
             gl::Uniform1i(self.texture_location, 0);
             //Draw the triangles
-            gl::DrawElements(
-                gl::TRIANGLES,
-                self.indices.len() as i32,
-                gl::UNSIGNED_INT,
-                null(),
-            );
+            gl::DrawElements(gl::TRIANGLES, self.indices.len() as i32, gl::UNSIGNED_INT, null());
         }
         self.vertices.clear();
         self.indices.clear();
