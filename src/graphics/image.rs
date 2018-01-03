@@ -39,7 +39,7 @@ struct ImageData {
 impl Drop for ImageData {
     fn drop(&mut self) {
         unsafe {
-            gl::DeleteTextures(1, &self.id as *const u32);
+            gl::DeleteTexture(self.id);
         }
     }
 }
@@ -56,8 +56,7 @@ impl Image {
     #[cfg(not(target_arch="wasm32"))]
     pub fn from_raw(data: &[u8], width: i32, height: i32, format: PixelFormat) -> Image {
         let id = unsafe {
-            let mut texture = 0;
-            gl::GenTextures(1, &mut texture as *mut u32);
+            let texture = gl::GenTexture();
             gl::BindTexture(gl::TEXTURE_2D, texture);
             gl::TexParameteri(
                 gl::TEXTURE_2D,
