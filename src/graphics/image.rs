@@ -35,7 +35,6 @@ struct ImageData {
     height: i32,
 }
 
-#[cfg(not(target_arch="wasm32"))]
 impl Drop for ImageData {
     fn drop(&mut self) {
         unsafe {
