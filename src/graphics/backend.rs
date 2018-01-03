@@ -75,21 +75,27 @@ void main() {
 
 #[cfg(all(not(test), target_arch="wasm32"))]
 const DEFAULT_VERTEX_SHADER: &str = r#"attribute vec2 position;
-varying vec2 tex_coord;
-varying vec4 color;
-varying lowp float uses_texture;
+attribute vec2 tex_coord;
+attribute vec4 color;
+attribute lowp float uses_texture;
+varying vec2 Tex_coord;
+varying vec4 Color;
+varying lowp float Uses_texture;
 void main() {
     gl_Position = vec4(position, 0, 1);
+    Tex_coord = tex_coord;
+    Color = color;
+    Uses_texture = uses_texture;
 }"#;
 
 #[cfg(all(not(test), target_arch="wasm32"))]
-const DEFAULT_FRAGMENT_SHADER: &str = r#"varying highp vec4 color;
-varying highp vec2 tex_coord;
-varying lowp float uses_texture;
+const DEFAULT_FRAGMENT_SHADER: &str = r#"varying highp vec4 Color;
+varying highp vec2 Tex_coord;
+varying lowp float Uses_texture;
 uniform sampler2D tex;
 void main() {
-    highp vec4 tex_color = (int(uses_texture) != 0) ? texture2D(tex, tex_coord) : vec4(1, 1, 1, 1);
-    gl_FragColor = color * tex_color;
+    highp vec4 tex_color = (int(Uses_texture) != 0) ? texture2D(tex, Tex_coord) : vec4(1, 1, 1, 1);
+    gl_FragColor = Color * tex_color;
 }"#;
 
 pub(crate) const VERTEX_SIZE: usize = 9; // the number of floats in a vertex
