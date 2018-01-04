@@ -47,8 +47,19 @@ const keynames = ["Digit1", "Digit2", "Digit3", "Digit4", "Digit5", "Digit6", "D
     "Sysrq", "Tab", "Underline", "Unlabeled", "AudioVolumeDown", "AudioVolumeUp", "Wake", "WebBack", "WebFavorites", "WebForward", "WebHome", 
     "WebRefresh", "WebSearch", "WebStop", "Yen"];
 const keycodes = keynames.reduce((map, value, index) => { map[value] = index; return map }, {})
-
+const key_queue = []
+document.addEventListener('keydown', (event) => { 
+    if(keycodes[event.code] !== undefined) { 
+        key_queue.push(keycodes[event.code] + 1) 
+    }
+})
+document.addEventListener('keyup', (event) => {
+    if(keycodes[event.code] !== undefined) {
+        key_queue.push(-keycodes[event.code] - 1) 
+    }
+})
 let env = {
+    pump_key_queue: () => key_queue.length > 0 ? key_queue.shift() : 0,
     print: (pointer) => console.log(rust_str_to_js(pointer)),
     create_context: function(width, height) {
         canvas.width = width;
@@ -128,5 +139,5 @@ fetch("wasm.wasm")
         let init = instance.exports.init;
         let draw = instance.exports.draw;
         init();
-        draw();
+        setInterval(draw, 16);
     })

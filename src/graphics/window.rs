@@ -8,6 +8,7 @@ use glutin::{EventsLoop, GlContext};
 use graphics::{Backend, Camera, Canvas, Color};
 use input::{ButtonState, Keyboard, Mouse, Viewport, ViewportBuilder };
 
+
 ///A builder that constructs a Window and its Canvas
 pub struct WindowBuilder {
     clear_color: Color,
@@ -17,6 +18,7 @@ pub struct WindowBuilder {
 #[cfg(target_arch="wasm32")]
 extern "C" {
     pub fn create_context(width: u32, height: u32);
+    pub fn pump_key_queue() -> i32;
 }
 
 
@@ -202,6 +204,12 @@ impl Window {
     
     #[cfg(target_arch="wasm32")]
     pub fn poll_events(&mut self) -> bool {
+        self.keyboard.clear_temporary_states();
+        let mut key = unsafe { pump_key_queue() };
+        while key != 0 {
+            self.keyboard.process_event(key.abs() as usize - 1, key > 0);
+            key = unsafe { pump_key_queue() };
+        }
         true
     }
 
