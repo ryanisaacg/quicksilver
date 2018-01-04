@@ -1,4 +1,3 @@
-- Try to unify the version of GLSL used between native and web
 - Create some wrapper over webaudio
 - Asynchronous asset loading
 - Unified game loop between WASM and native
