@@ -1,28 +1,28 @@
-var canvas = document.getElementById('canvas');
-var gl = canvas.getContext('webgl2');
+let canvas = document.getElementById('canvas');
+let gl = canvas.getContext('webgl2');
 console.log(gl);
-var loaded_image = {}
-var gl_objects = [];
+let loaded_image = {}
+let gl_objects = [];
 
 const DEFAULT_VERTEX_SHADER = `
 attribute vec2 position;
-varying vec2 tex_coord;
-varying vec4 color;
-varying lowp float uses_texture;
+letying vec2 tex_coord;
+letying vec4 color;
+letying lowp float uses_texture;
 void main() {
     gl_Position = vec4(position, 0, 1);
 }`;
 
 const DEFAULT_FRAGMENT_SHADER = `
-varying highp vec4 color;
-varying highp vec2 tex_coord;
-varying lowp float uses_texture;
+letying highp vec4 color;
+letying highp vec2 tex_coord;
+letying lowp float uses_texture;
 uniform sampler2D tex;
 void main() {
     highp vec4 tex_color = (int(uses_texture) != 0) ? texture2D(tex, tex_coord) : vec4(1, 1, 1, 1);
     gl_FragColor = color * tex_color;
 }`;
-var instance = {};
+let instance = {};
 function rust_ptr_to_buffer(pointer) {
     const memory = instance.exports.memory;
     return new Uint8Array(memory.buffer, pointer);
@@ -34,7 +34,21 @@ function rust_str_to_js(pointer) {
         string += String.fromCharCode(buffer[i]);
     return string;
 }
-var env = {
+//Generate the keycodes from an in-order list that maps to the Glutin keycodes in rust
+const keynames = ["Digit1", "Digit2", "Digit3", "Digit4", "Digit5", "Digit6", "Digit7", "Digit8", "Digit9", "Digit0", "KeyA", "KeyB", "KeyC", "KeyD", "KeyE", "KeyF", "KeyG", "KeyH", "KeyI", "KeyJ", "KeyK", "KeyL", "KeyM", 
+    "KeyN", "KeyO", "KeyP", "KeyQ", "KeyR", "KeyS", "KeyT", "KeyU", "KeyV", "KeyW", "KeyX", "KeyY", "KeyZ", "Escape", "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12", 
+    "F13", "F14", "F15", "PrintScreen", "ScrollLock", "Pause", "Insert", "Home", "Delete", "End", "PageDown", "PageUp", "ArrowLeft", "ArrowUp", "ArrowRight", 
+    "ArrowDown", "Backspace", "Enter", "Space", "Compose", "NumLock", "Numpad0", "Numpad1", "Numpad2", "Numpad3", "Numpad4", "Numpad5", 
+    "Numpad6", "Numpad7", "Numpad8", "Numpad9", "AbntC1", "AbntC2", "Add", "Quote", "Apps", "At", "Ax", "Backslash", "Calculator", 
+    "Capital", "Colon", "Comma", "Convert", "Decimal", "Divide", "Equal", "Backquote", "Kana", "Kanji", "AltLeft", "BracketLeft", "ControlLeft", 
+    "LMenu", "ShiftLeft", "MetaLeft", "Mail", "MediaSelect", "MediaStop", "Minus", "Multiply", "Mute", "LaunchMyComputer", "NavigateForward", 
+    "NavigateBackward", "NextTrack", "NoConvert", "NumpadComma", "NumpadEnter", "NumpadEquals", "OEM102", "Period", "PlayPause", 
+    "Power", "PrevTrack", "AltRight", "BracketRight", "ControlRight", "RMenu", "ShiftRight", "MetaRight", "Semicolon", "Slash", "Sleep", "Stop", "Subtract", 
+    "Sysrq", "Tab", "Underline", "Unlabeled", "AudioVolumeDown", "AudioVolumeUp", "Wake", "WebBack", "WebFavorites", "WebForward", "WebHome", 
+    "WebRefresh", "WebSearch", "WebStop", "Yen"];
+const keycodes = keynames.reduce((map, value, index) => { map[value] = index; return map }, {})
+
+let env = {
     print: (pointer) => console.log(rust_str_to_js(pointer)),
     create_context: function(width, height) {
         canvas.width = width;
@@ -43,10 +57,10 @@ var env = {
         gl.viewportHeight = height;
     },
     load_image: (pointer) => {
-        var string = rust_str_to_js(pointer);
-        var image = document.getElementById(string);
+        let string = rust_str_to_js(pointer);
+        let image = document.getElementById(string);
         if(image == null) return false;
-        var texture = gl.createTexture();
+        let texture = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
@@ -95,7 +109,7 @@ var env = {
     GenBuffer: () => gl_objects.push(gl.createBuffer()) - 1,
     GenVertexArray: () => gl_objects.push(gl.createVertexArray()) - 1,
     GetAttribLocation: (index, string_ptr) => gl.getAttribLocation(gl_objects[index], rust_str_to_js(string_ptr)),
-    GetShaderInfoLog: (index) => { var str = gl.getShaderInfoLog(gl_objects[index]); console.log(str); return str; }, //todo: convert to rust string?
+    GetShaderInfoLog: (index) => { let str = gl.getShaderInfoLog(gl_objects[index]); console.log(str); return str; }, //todo: convert to rust string?
     GetShaderiv: (index, param) => gl.getShaderParameter(gl_objects[index], param),
     GetUniformLocation: (index, string_ptr) => gl_objects.push(gl.getUniformLocation(gl_objects[index], rust_str_to_js(string_ptr))) - 1,
     LinkProgram: (index) => gl.linkProgram(gl_objects[index]),
@@ -111,8 +125,8 @@ fetch("wasm.wasm")
     .then(bytes =>  WebAssembly.instantiate(bytes, { env } ))
     .then(results => {
         instance = results.instance;
-        var init = instance.exports.init;
-        var draw = instance.exports.draw;
+        let init = instance.exports.init;
+        let draw = instance.exports.draw;
         init();
         draw();
     })
