@@ -11,7 +11,7 @@ use std::os::raw::c_void;
 use std::os::raw::c_char;
 use std::ops::Drop;
 use std::path::Path;
-use std::rc::Rc;
+use std::sync::Arc;
 
 #[cfg(target_arch="wasm32")]
 extern "C" {
@@ -46,7 +46,7 @@ impl Drop for ImageData {
 #[derive(Clone)]
 ///An image that can be drawn to the screen
 pub struct Image {
-    source: Rc<ImageData>,
+    source: Arc<ImageData>,
     region: Rectangle,
 }
 
@@ -75,7 +75,7 @@ impl Image {
             texture
         };
         Image {
-            source: Rc::new(ImageData { id, width, height }),
+            source: Arc::new(ImageData { id, width, height }),
             region: Rectangle::newi_sized(width, height)
         }
     }
@@ -96,7 +96,7 @@ impl Image {
         let width = unsafe { get_image_width() } ;
         let height = unsafe { get_image_height() };
         Ok(Image { 
-            source: Rc::new(ImageData {
+            source: Arc::new(ImageData {
                 id,
                 width,
                 height
