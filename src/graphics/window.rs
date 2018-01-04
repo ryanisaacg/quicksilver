@@ -18,6 +18,8 @@ pub struct WindowBuilder {
 #[cfg(target_arch="wasm32")]
 extern "C" {
     pub fn create_context(width: u32, height: u32);
+    pub fn get_mouse_x() -> f32;
+    pub fn get_mouse_y() -> f32;
     pub fn pump_key_queue() -> i32;
 }
 
@@ -210,6 +212,10 @@ impl Window {
             self.keyboard.process_event(key.abs() as usize - 1, key > 0);
             key = unsafe { pump_key_queue() };
         }
+        self.mouse = Mouse {
+            pos: unsafe { Vector::new(get_mouse_x(), get_mouse_y()) },
+            ..self.mouse
+        };
         true
     }
 

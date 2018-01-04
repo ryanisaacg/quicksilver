@@ -48,6 +48,7 @@ const keynames = ["Digit1", "Digit2", "Digit3", "Digit4", "Digit5", "Digit6", "D
     "WebRefresh", "WebSearch", "WebStop", "Yen"];
 const keycodes = keynames.reduce((map, value, index) => { map[value] = index; return map }, {})
 const key_queue = []
+const mouse = { x: 0, y: 0 };
 document.addEventListener('keydown', (event) => { 
     if(keycodes[event.code] !== undefined) { 
         key_queue.push(keycodes[event.code] + 1) 
@@ -58,8 +59,14 @@ document.addEventListener('keyup', (event) => {
         key_queue.push(-keycodes[event.code] - 1) 
     }
 })
+canvas.addEventListener('mousemove', (event) => {
+    mouse.x = event.clientX;
+    mouse.y = event.clientY;
+})
 let env = {
     pump_key_queue: () => key_queue.length > 0 ? key_queue.shift() : 0,
+    get_mouse_x: () => mouse.x,
+    get_mouse_y: () => mouse.y,
     print: (pointer) => console.log(rust_str_to_js(pointer)),
     create_context: function(width, height) {
         canvas.width = width;
