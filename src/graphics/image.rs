@@ -6,6 +6,7 @@ use geom::{Rectangle, Vector};
 #[cfg(target_arch="wasm32")]
 use std::ffi::CString;
 use std::io;
+#[cfg(not(target_arch="wasm32"))]
 use std::os::raw::c_void;
 #[cfg(target_arch="wasm32")]
 use std::os::raw::c_char;
