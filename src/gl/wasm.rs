@@ -29,17 +29,13 @@ extern "C" {
     pub fn Enable(feature: u32);
     pub fn EnableVertexAttribArray(index: u32);
     pub fn GenBuffer() -> u32;
-    pub fn GenerateMipmap(enum_type: u32);
-    pub fn GenTexture() -> u32;
     pub fn GenVertexArray() -> u32;
     pub fn GetAttribLocation(program: u32, name: *const i8) -> i32;
-    pub fn GetError() -> u32;
     pub fn GetShaderInfoLog(shader: u32, max_length: isize, length: *mut i32, log: *mut i8);
     pub fn GetShaderiv(shader: u32, name: u32, params: *mut i32);
     pub fn GetUniformLocation(program: u32, name: *const i8) -> i32;
     pub fn LinkProgram(shader: u32);
     pub fn ShaderSource(shader: u32, string: *const i8);
-    pub fn TexParameteri(textype: u32, filtertype: u32, value: i32);
     pub fn Uniform1i(location: i32, index: u32);
     pub fn UseProgram(program: u32);
     pub fn VertexAttribPointer(index: u32, size: i32, attr_type: u32, norm: u8, stride: i32, ptr: *const c_void);
