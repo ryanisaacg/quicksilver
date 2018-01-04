@@ -1,7 +1,4 @@
-#[cfg(not(target_arch="wasm32"))]
-extern crate glutin;
-
-use input::{ButtonState};
+use input::{ButtonState, Key};
 use std::ops::Index;
 
 #[derive(Copy)]
@@ -11,28 +8,21 @@ pub struct Keyboard {
 }
 
 impl Keyboard {
-    #[cfg(not(target_arch="wasm32"))]
-    pub(crate) fn process_event(&mut self, event: &glutin::KeyboardInput) {
-        if let Some(keycode) = event.virtual_keycode {
-            let index = keycode as usize;
-            let previous_state = self.keys[index];
-            self.keys[index] = match event.state {
-                glutin::ElementState::Pressed => {
-                    if previous_state.is_down() {
-                        ButtonState::Held
-                    } else {
-                        ButtonState::Pressed
-                    }
-                }
-                glutin::ElementState::Released => {
-                    if previous_state.is_down() {
-                        ButtonState::Released
-                    } else {
-                        ButtonState::NotPressed
-                    }
-                }
-            };
-        }
+    pub(crate) fn process_event(&mut self, keycode: usize, pressed: bool) {
+        let previous_state = self.keys[keycode];
+        self.keys[keycode] = if pressed {
+            if previous_state.is_down() {
+                ButtonState::Held
+            } else {
+                ButtonState::Pressed
+            }
+        } else {
+            if previous_state.is_down() {
+                ButtonState::Released
+            } else {
+                ButtonState::NotPressed
+            }
+        };
     }
 
     pub(crate) fn clear_temporary_states(&mut self) {
@@ -47,17 +37,15 @@ impl Clone for Keyboard {
         *self
     }
 }
-//TODO: Create some way of indexing the keyboard that works the same on WASM and native
-/*
-#[cfg(not(target_arch="wasm32"))]
-impl Index<glutin::Key> for Keyboard {
+
+impl Index<Key> for Keyboard {
     type Output = ButtonState;
 
     fn index(&self, index: Key) -> &ButtonState {
         &self.keys[index as usize]
     }
 }
-*/
+
 
 #[cfg(test)]
 mod tests {
@@ -68,33 +56,13 @@ mod tests {
         let mut keyboard = Keyboard {
             keys: [ButtonState::NotPressed; 256]
         };
-        keyboard.process_event(&glutin::KeyboardInput {
-            scancode: 0,
-            state: glutin::ElementState::Pressed,
-            virtual_keycode: Some(Key::A),
-            modifiers: glutin::ModifiersState::default()
-        });
+        keyboard.process_event(Key::A as usize, true);
         assert_eq!(keyboard[Key::A], ButtonState::Pressed);
-        keyboard.process_event(&glutin::KeyboardInput {
-            scancode: 0,
-            state: glutin::ElementState::Pressed,
-            virtual_keycode: Some(Key::A),
-            modifiers: glutin::ModifiersState::default()
-        });
+        keyboard.process_event(Key::A as usize, true);
         assert_eq!(keyboard[Key::A], ButtonState::Held);
-        keyboard.process_event(&glutin::KeyboardInput {
-            scancode: 0,
-            state: glutin::ElementState::Released,
-            virtual_keycode: Some(Key::A),
-            modifiers: glutin::ModifiersState::default()
-        });
+        keyboard.process_event(Key::A as usize, false);
         assert_eq!(keyboard[Key::A], ButtonState::Released);
-        keyboard.process_event(&glutin::KeyboardInput {
-            scancode: 0,
-            state: glutin::ElementState::Released,
-            virtual_keycode: Some(Key::A),
-            modifiers: glutin::ModifiersState::default()
-        });
+        keyboard.process_event(Key::A as usize, false);
         assert_eq!(keyboard[Key::A], ButtonState::NotPressed);
     }
 
@@ -103,20 +71,10 @@ mod tests {
         let mut keyboard = Keyboard {
             keys: [ButtonState::NotPressed; 256].clone()
         };
-        keyboard.process_event(&glutin::KeyboardInput {
-            scancode: 0,
-            state: glutin::ElementState::Pressed,
-            virtual_keycode: Some(Key::A),
-            modifiers: glutin::ModifiersState::default()
-        });
+        keyboard.process_event(Key::A as usize, true);
         keyboard.clear_temporary_states();
         assert_eq!(keyboard[Key::A], ButtonState::Held);
-        keyboard.process_event(&glutin::KeyboardInput {
-            scancode: 0,
-            state: glutin::ElementState::Released,
-            virtual_keycode: Some(Key::A),
-            modifiers: glutin::ModifiersState::default()
-        });
+        keyboard.process_event(Key::A as usize, false);
         keyboard.clear_temporary_states();
         assert_eq!(keyboard[Key::A], ButtonState::NotPressed);
     }

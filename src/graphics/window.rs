@@ -150,7 +150,13 @@ impl Window {
                         device_id: _,
                         input: event,
                     } => {
-                        keyboard.process_event(&event);
+                        if let Some(keycode) = event.virtual_keycode {
+                            let state = match event.state {
+                                glutin::ElementState::Pressed => true,
+                                glutin::ElementState::Released => false
+                            };
+                            keyboard.process_event(keycode as usize, state);
+                        }
                     }
                     glutin::WindowEvent::CursorMoved { position, .. } => {
                         let (x, y) = position;
