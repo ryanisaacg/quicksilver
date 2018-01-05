@@ -4,7 +4,6 @@ extern crate glutin;
 use geom::{Circle, Line, Rectangle, Shape, Transform, Vector};
 #[cfg(not(target_arch="wasm32"))]
 use glutin::{GlContext};
-#[cfg(not(target_arch="wasm32"))]
 use graphics::Window;
 use graphics::{Backend, Camera, Color, Image, Vertex};
 
@@ -42,17 +41,12 @@ impl Canvas {
     }
 
     ///Draw the changes made to the screen
-    #[cfg(not(target_arch="wasm32"))]
-    pub fn present(&mut self, window: &Window) {
+    pub fn present(&mut self, _window: &Window) {
         self.backend.flush();
-        window.gl_window.swap_buffers().unwrap();
+        #[cfg(not(target_arch="wasm32"))]
+        _window.gl_window.swap_buffers().unwrap();
     }
     
-    #[cfg(target_arch="wasm32")]
-    pub fn present(&mut self) {
-        self.backend.flush();
-    }
-
     ///Draw an image with a given center
     pub fn draw_image(&mut self, image: &Image, center: Vector) {
         self.draw_image_blend(image, center, Color::white());

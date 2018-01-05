@@ -22,7 +22,7 @@ impl State {
         self.canvas.clear();
         self.canvas.draw_rect(Rectangle::newi_sized(100, 100), Color::green());
         self.canvas.draw_image(&self.image, self.window.mouse(&self.viewport).pos);
-        self.canvas.present();
+        self.canvas.present(&self.window);
     }
 }
 
