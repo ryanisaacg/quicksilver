@@ -1,6 +1,6 @@
 - Create some wrapper over webaudio
 - Asynchronous asset loading
-- Unified game loop between WASM and native
 - Easy WASM deployment with assets packaged
 - Center the canvas
 - Set the page title
+- Deallocate CStrings

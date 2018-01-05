@@ -76,6 +76,7 @@ canvas.addEventListener('mouseup', (event) => {
     }
 })
 let env = {
+    fmodf: (a, b) => a % b,
     pump_key_queue: () => key_queue.length > 0 ? key_queue.shift() : 0,
     pump_mouse_queue: () => mouse_queue.length > 0 ? mouse_queue.shift() : 0,
     get_mouse_x: () => mouse.x,
@@ -157,7 +158,15 @@ fetch("wasm.wasm")
     .then(results => {
         instance = results.instance;
         let init = instance.exports.init;
-        let draw = instance.exports.draw;
         let state_ptr = init();
-        setInterval(() => draw(state_ptr), 16);
+        function update() {
+            let delay = instance.exports.update(state_ptr);
+            setTimeout(update, delay);
+        }
+        function draw() {
+            instance.exports.draw(state_ptr);
+            requestAnimationFrame(draw);
+        }
+        update();
+        requestAnimationFrame(draw);
     })
