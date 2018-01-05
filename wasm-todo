@@ -2,4 +2,5 @@
 - Asynchronous asset loading
 - Unified game loop between WASM and native
 - Easy WASM deployment with assets packaged
-- Merge in master
+- Center the canvas
+- Set the page title
