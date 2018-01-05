@@ -2,12 +2,8 @@
 extern crate image;
 
 use gl;
+use asset::{Loadable, LoadingAsset, LoadingHandle};
 use geom::{Rectangle, Vector};
-#[cfg(target_arch="wasm32")]
-use std::ffi::CString;
-use std::io;
-#[cfg(not(target_arch="wasm32"))]
-use std::os::raw::c_void;
 #[cfg(target_arch="wasm32")]
 use std::os::raw::c_char;
 use std::ops::Drop;
@@ -16,10 +12,10 @@ use std::sync::Arc;
 
 #[cfg(target_arch="wasm32")]
 extern "C" {
-    fn load_image(string: *mut c_char);
-    fn get_image_id() -> u32;
-    fn get_image_width() -> i32;
-    fn get_image_height() -> i32;
+    fn load_image(string: *mut c_char) -> u32;
+    fn get_image_id(index: u32) -> u32;
+    fn get_image_width(index: u32) -> i32;
+    fn get_image_height(index: u32) -> i32;
 }
 
 ///Pixel formats for use with loading raw images
@@ -52,9 +48,18 @@ pub struct Image {
 }
 
 impl Image {
+    fn new(data: ImageData) -> Image {
+        let region = Rectangle::newi_sized(data.width, data.height);
+        Image {
+            source: Arc::new(data),
+            region
+        }
+    }
+
     ///Load an image from raw bytes
     #[cfg(not(target_arch="wasm32"))]
     pub fn from_raw(data: &[u8], width: i32, height: i32, format: PixelFormat) -> Image {
+        use std::os::raw::c_void;
         let id = unsafe {
             let texture = gl::GenTexture();
             gl::BindTexture(gl::TEXTURE_2D, texture);
@@ -75,42 +80,26 @@ impl Image {
             gl::GenerateMipmap(gl::TEXTURE_2D);
             texture
         };
-        Image {
-            source: Arc::new(ImageData { id, width, height }),
-            region: Rectangle::newi_sized(width, height)
-        }
+        Image::new(ImageData { id, width, height })
     }
 
     #[cfg(not(target_arch="wasm32"))]
     fn load_impl<P: AsRef<Path>>(path: P) -> Result<Image, ImageError> {
-        let img = image::open(path)?.to_rgba();
+        let img = match image::open(path) {
+            Ok(img) => img,
+            Err(err) => return Err(From::from(err))
+        }.to_rgba();
         let width = img.width() as i32;
         let height = img.height() as i32;
         Ok(Image::from_raw(img.into_raw().as_slice(), width, height, PixelFormat::RGBA))
     }
     
     #[cfg(target_arch="wasm32")]
-    //TODO: create an image error that works across wasm and native
-    fn load_impl<P: AsRef<Path>>(path: P) -> Result<Image, ImageError> {
-        unsafe { load_image(CString::new(path.as_ref().to_str().unwrap()).unwrap().into_raw());}
-        let id = unsafe { get_image_id() };
-        let width = unsafe { get_image_width() } ;
-        let height = unsafe { get_image_height() };
-        Ok(Image { 
-            source: Arc::new(ImageData {
-                id,
-                width,
-                height
-            }),
-            region: Rectangle::newi_sized(width, height)
-        })
+    fn load_impl<P: AsRef<Path>>(path: P) -> u32 {
+        use std::ffi::CString;
+        unsafe { load_image(CString::new(path.as_ref().to_str().unwrap()).unwrap().into_raw()) }
     }
 
-    ///Load an image from an image file
-    pub fn load<P: AsRef<Path>>(path: P) -> Result<Image, ImageError> {
-        Self::load_impl(path)
-    }
-        
     pub(crate) fn get_id(&self) -> u32 {
         self.source.id
     }
@@ -146,14 +135,49 @@ impl Image {
     }
 }
 
-#[derive(Debug)]
+impl Loadable for Image {
+    type Error = ImageError;
+
+    #[cfg(target_arch="wasm32")]
+    fn load<P: AsRef<Path>>(path: P) -> LoadingAsset<Self> {
+        LoadingAsset::Loading(LoadingHandle(Image::load_impl(path)))
+    }
+    
+    #[cfg(not(target_arch="wasm32"))]
+    fn load<P: AsRef<Path>>(path: P) -> LoadingAsset<Self> {
+        match Image::load_impl(path) {
+            Ok(val) => LoadingAsset::Loaded(val),
+            Err(err) => LoadingAsset::Errored(err)
+        }
+    }
+
+    #[cfg(target_arch="wasm32")]
+    fn parse_result(handle: LoadingHandle, loaded: bool, errored: bool) -> LoadingAsset<Self> {
+        if loaded {
+            if errored {
+                LoadingAsset::Errored(ImageError::IoError)
+            } else {
+                LoadingAsset::Loaded(Image::new(ImageData {
+                    id: unsafe { get_image_id(handle.0) },
+                    width: unsafe { get_image_width(handle.0) },
+                    height: unsafe { get_image_height(handle.0) }
+                }))
+            }
+        } else {
+            LoadingAsset::Loading(handle)
+        }
+    }
+}
+
+
+#[derive(Clone, Debug)]
 pub enum ImageError {
     FormatError(String),
     DimensionError,
     UnsupportedError(String),
     UnsupportedColor,
     NotEnoughData,
-    IoError(io::Error),
+    IoError,
     ImageEnd,
 }
 
@@ -166,7 +190,7 @@ impl From<image::ImageError> for ImageError {
             image::ImageError::UnsupportedError(string) => ImageError::UnsupportedError(string),
             image::ImageError::UnsupportedColor(_) => ImageError::UnsupportedColor,
             image::ImageError::NotEnoughData => ImageError::NotEnoughData,
-            image::ImageError::IoError(err) => ImageError::IoError(err),
+            image::ImageError::IoError(_) => ImageError::IoError,
             image::ImageError::ImageEnd => ImageError::ImageEnd
         }
     }

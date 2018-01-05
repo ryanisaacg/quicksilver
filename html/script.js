@@ -1,7 +1,6 @@
 let canvas = document.getElementById('canvas');
 let gl = canvas.getContext('webgl2');
 console.log(gl);
-let loaded_image = {}
 let gl_objects = [];
 
 const DEFAULT_VERTEX_SHADER = `
@@ -50,6 +49,7 @@ const keycodes = keynames.reduce((map, value, index) => { map[value] = index; re
 const key_queue = []
 const mouse = { x: 0, y: 0 };
 const mouse_queue = []
+const assets = []
 //Establish all of the event hooks
 document.addEventListener('keydown', (event) => { 
     if(keycodes[event.code] !== undefined) { 
@@ -75,7 +75,10 @@ canvas.addEventListener('mouseup', (event) => {
         mouse_queue.push(-event.button - 1);
     }
 })
+//TODO: async asset loading
 let env = {
+    is_loaded: (index) => assets[index].loaded,
+    is_errored: (index) => assets[index].error,
     fmodf: (a, b) => a % b,
     pump_key_queue: () => key_queue.length > 0 ? key_queue.shift() : 0,
     pump_mouse_queue: () => mouse_queue.length > 0 ? mouse_queue.shift() : 0,
@@ -90,33 +93,38 @@ let env = {
         gl.viewportHeight = height;
     },
     load_image: (pointer) => {
-        let string = rust_str_to_js(pointer);
-        let image = document.getElementById(string);
-        if(image == null) return false;
-        let texture = gl.createTexture();
-        gl.bindTexture(gl.TEXTURE_2D, texture);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, image.width, image.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, image);
-        gl.generateMipmap(gl.TEXTURE_2D);
-        loaded_image = { 
-            id: gl_objects.push(texture) - 1,
-            width: image.width,
-            height: image.height
+        const image = new Image();
+        image.src = rust_str_to_js(pointer);
+        const index = assets.push({ loaded: false }) - 1;
+        console.log(assets)
+        image.onload = () => {
+            let texture = gl.createTexture();
+            gl.bindTexture(gl.TEXTURE_2D, texture);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, image.width, image.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, image);
+            gl.generateMipmap(gl.TEXTURE_2D);
+            const id = gl_objects.push(texture) - 1;
+            assets[index].loaded = true;
+            assets[index].error = false;
+            assets[index].id = id;
+            assets[index].width = image.width;
+            assets[index].height = image.height;
         }
-        return true;
+        if(image.complete) { 
+            image.onload()
+        }
+        image.onerror = () => {
+            assets[index].loaded = true;
+            assets[index].error = true;
+        }
+        return index;
     },
-    get_image_id: function() {
-        return loaded_image.id
-    },
-    get_image_width: function() {
-        return loaded_image.width;
-    },
-    get_image_height: function() {
-        return loaded_image.height;
-    },
+    get_image_id: (index) => assets[index].id,
+    get_image_width: (index) => assets[index].width,
+    get_image_height: (index) => assets[index].height,
     log_num: function(x) { console.log(x); },
     ActiveTexture: gl.activeTexture.bind(gl),
     AttachShader: (progindex, shadeindex) => gl.attachShader(gl_objects[progindex], gl_objects[shadeindex]),

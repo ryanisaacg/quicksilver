@@ -10,11 +10,10 @@ extern crate rodio;
 extern crate tiled;
 
 mod gl;
+pub mod asset;
 pub mod geom;
 pub mod graphics;
 pub mod input;
-#[cfg(not(target_arch="wasm32"))]
-pub mod level;
 #[cfg(not(target_arch="wasm32"))]
 pub mod sound;
 mod timer;

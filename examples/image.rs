@@ -1,21 +1,22 @@
 #[macro_use]
 extern crate quicksilver;
 
+use quicksilver::asset::{Loadable, LoadingAsset};
 use quicksilver::geom::Vector;
 use quicksilver::graphics::{Canvas, Color, Image, Window, WindowBuilder};
 use std::time::Duration;
 
-struct State {
+pub struct State {
     window: Window,
     canvas: Canvas,
-    image: Image
+    image: LoadingAsset<Image>
 }
 
 impl State {
     pub fn new() -> State {
         let (window, canvas) = WindowBuilder::new()
             .build("Basic Window", 800, 600);
-        let image = Image::load("examples/image.png").unwrap();
+        let image = Image::load("examples/image.png");
         State { window, canvas, image }
     }
 
@@ -28,9 +29,16 @@ impl State {
     }
 
     pub fn draw(&mut self) {
-        self.canvas.clear(Color::white());
-        self.canvas.draw_image(&self.image, Vector::new(100.0, 100.0));
-        self.canvas.present(&self.window);
+        self.image.update();
+        match self.image {
+            LoadingAsset::Loading(_) => {},
+            LoadingAsset::Errored(_) => {},
+            LoadingAsset::Loaded(ref image) => {
+                self.canvas.clear(Color::white());
+                self.canvas.draw_image(image, Vector::new(100.0, 100.0));
+                self.canvas.present(&self.window);
+            }
+        }
     }
 }
 
