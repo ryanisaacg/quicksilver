@@ -41,7 +41,6 @@ impl State {
     fn new() -> State {
         let (window, canvas) = WindowBuilder::new()
             .with_show_cursor(false)
-            .with_clear_color(Color::white())
             .build("Window", 800, 600);
         State {
             window,

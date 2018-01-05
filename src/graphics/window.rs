@@ -5,13 +5,12 @@ use glutin;
 use geom::{ Rectangle, Transform, Vector};
 #[cfg(not(target_arch="wasm32"))]
 use glutin::{EventsLoop, GlContext};
-use graphics::{Backend, Camera, Canvas, Color};
+use graphics::{Backend, Camera, Canvas};
 use input::{ButtonState, Keyboard, Mouse, Viewport, ViewportBuilder };
 
 
 ///A builder that constructs a Window and its Canvas
 pub struct WindowBuilder {
-    clear_color: Color,
     show_cursor: bool
 }
 
@@ -29,7 +28,6 @@ impl WindowBuilder {
     ///Create a default window builder
     pub fn new() -> WindowBuilder {
         WindowBuilder {
-            clear_color: Color::black(),
             show_cursor: true
         }
     }
@@ -38,14 +36,6 @@ impl WindowBuilder {
     pub fn with_show_cursor(self, show_cursor: bool) -> WindowBuilder {
         WindowBuilder {
             show_cursor,
-            ..self
-        }
-    }
-
-    ///Set the window's default clear color
-    pub fn with_clear_color(self, clear_color: Color) -> WindowBuilder {
-        WindowBuilder {
-            clear_color,
             ..self
         }
     }
