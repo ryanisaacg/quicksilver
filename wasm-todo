@@ -1,6 +1,5 @@
 - Create some wrapper over webaudio
 - Asynchronous asset loading
 - Easy WASM deployment with assets packaged
-- Center the canvas
 - Set the page title
 - Deallocate CStrings
