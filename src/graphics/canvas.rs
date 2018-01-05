@@ -11,7 +11,6 @@ use graphics::{Backend, Camera, Color, Image, Vertex};
 pub struct Canvas {
     pub(crate) backend: Backend,
     pub(crate) cam: Camera,
-    pub(crate) clear_color: Color,
 }
 
 const CIRCLE_POINTS: usize = 32; //the number of points in the poly to simulate the circle
@@ -26,18 +25,9 @@ impl Canvas {
         self.cam.transform()
     }
 
-    ///Get the color the window is cleared to
-    pub fn clear_color(&self) -> Color {
-        self.clear_color
-    }
-
-    ///Set the color the window is cleared to
-    pub fn set_clear_color(&mut self, col: Color) {
-        self.clear_color = col;
-    }
-
-    pub fn clear(&mut self) {
-        self.backend.clear(self.clear_color);
+    ///Clear the screen to a given color
+    pub fn clear(&mut self, color: Color) {
+        self.backend.clear(color);
     }
 
     ///Draw the changes made to the screen
@@ -195,8 +185,7 @@ mod tests {
     fn test_backend() {
         let mut canvas = Canvas {
             backend: Backend::new(),
-            cam: Camera::new(Rectangle::newi(-1, -1, 2, 2)),
-            clear_color: Color::black()
+            cam: Camera::new(Rectangle::newi(-1, -1, 2, 2))
         };
         canvas.draw_shape(Shape::Rect(Rectangle::newi(-1, -1, 0, 0)), Color::white());
         let expected_vertices = &[-1f32, 1f32, 0f32, 0f32, 1f32, 1f32, 1f32, 1f32, 0f32, -1f32, 

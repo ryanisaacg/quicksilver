@@ -85,7 +85,6 @@ impl WindowBuilder {
         };
         let canvas = Canvas {
             backend: Backend::new(),
-            clear_color: self.clear_color,
             cam: Camera::new(Rectangle::newv_sized(screen_size)),
         };
         (window, canvas)
@@ -110,7 +109,6 @@ impl WindowBuilder {
         };
         let canvas = Canvas {
             backend: Backend::new(),
-            clear_color: self.clear_color,
             cam: Camera::new(Rectangle::newv_sized(screen_size)),
         };
         (window, canvas)

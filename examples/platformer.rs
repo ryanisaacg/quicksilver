@@ -83,7 +83,7 @@ impl State {
     }
 
     fn draw(&mut self) {
-        self.canvas.clear();
+        self.canvas.clear(Color::white());
         self.canvas.draw_line(Line::new(Vector::zero(), Vector::one() * 100), Color::black());
         self.canvas.draw_shape(self.player.bounds, Color::blue());
         self.canvas.draw_shape_trans(self.player.bounds, Color::blue(), Transform::translate(Vector::one() * 16) 
