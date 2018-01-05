@@ -1,5 +1,4 @@
 - Create some wrapper over webaudio
 - Asynchronous asset loading
 - Easy WASM deployment with assets packaged
-- Set the page title
 - Deallocate CStrings

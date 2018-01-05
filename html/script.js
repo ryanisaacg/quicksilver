@@ -82,7 +82,8 @@ let env = {
     get_mouse_x: () => mouse.x,
     get_mouse_y: () => mouse.y,
     print: (pointer) => console.log(rust_str_to_js(pointer)),
-    create_context: function(width, height) {
+    create_context: function(title, width, height) {
+        document.title = rust_str_to_js(title);
         canvas.width = width;
         canvas.height = height;
         gl.viewportWidth = width;
