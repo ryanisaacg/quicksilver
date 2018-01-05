@@ -2,5 +2,4 @@
 - Asynchronous asset loading
 - Unified game loop between WASM and native
 - Easy WASM deployment with assets packaged
-- Unified input methods
 - Merge in master
