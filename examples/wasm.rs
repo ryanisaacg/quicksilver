@@ -1,17 +1,10 @@
-#[macro_use]
-extern crate lazy_static;
 extern crate quicksilver;
 
 use quicksilver::graphics::{Canvas, Color, Image, WindowBuilder, Window};
-use quicksilver::geom::{Rectangle, Vector};
+use quicksilver::geom::Rectangle;
 use quicksilver::input::{Key, Viewport};
-use std::sync::Mutex;
 
-lazy_static! {
-    static ref STATE: Mutex<Option<State>> = Mutex::new(None);
-}
-
-struct State {
+pub struct State {
     window: Window,
     canvas: Canvas,
     viewport: Viewport,
@@ -34,20 +27,19 @@ impl State {
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn init() {
+pub unsafe extern "C" fn init() -> *mut State {
     let (window, canvas) = WindowBuilder::new()
         .build("WASM", 800, 600);
     let image = Image::load("image.png").unwrap();
     let viewport = window.viewport().build(Rectangle::newi_sized(800, 600));
-    *STATE.lock().unwrap() = Some(State { window, canvas, viewport, image });
+    Box::into_raw(Box::new(State { window, canvas, viewport, image }))
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn draw() {
-    match *STATE.lock().unwrap() {
-        Some(ref mut state) => state.draw(),
-        None => ()
-    }
+pub unsafe extern "C" fn draw(state: *mut State) {
+    let mut state = Box::from_raw(state);
+    state.draw();
+    Box::into_raw(state);
 }
 
 fn main() {}

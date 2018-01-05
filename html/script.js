@@ -158,6 +158,6 @@ fetch("wasm.wasm")
         instance = results.instance;
         let init = instance.exports.init;
         let draw = instance.exports.draw;
-        init();
-        setInterval(draw, 16);
+        let state_ptr = init();
+        setInterval(() => draw(state_ptr), 16);
     })
