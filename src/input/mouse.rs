@@ -18,6 +18,17 @@ pub struct Mouse {
 }
 
 impl Mouse {
+    #[cfg(target_arch="wasm32")]
+    pub(crate) fn process_button(&mut self, button: u32, state: bool) {
+        let value = if state { ButtonState::Pressed } else { ButtonState::Released };
+        match button {
+            0 => self.left = value,
+            1 => self.right = value,
+            2 => self.middle = value,
+            _ => (),
+        }
+    }
+
     #[cfg(not(target_arch="wasm32"))]
     pub(crate) fn process_button(&mut self, state: glutin::ElementState, button: glutin::MouseButton) {
         let value = match state {

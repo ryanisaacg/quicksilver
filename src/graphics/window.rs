@@ -21,6 +21,7 @@ extern "C" {
     pub fn get_mouse_x() -> f32;
     pub fn get_mouse_y() -> f32;
     pub fn pump_key_queue() -> i32;
+    pub fn pump_mouse_queue() -> i32;
 }
 
 
@@ -216,6 +217,11 @@ impl Window {
             pos: unsafe { Vector::new(get_mouse_x(), get_mouse_y()) },
             ..self.mouse
         };
+        let mut button = unsafe { pump_mouse_queue() };
+        while button != 0 {
+            self.mouse.process_button(button.abs() as u32 - 1, button > 0);
+            button = unsafe { pump_mouse_queue() };
+        }
         true
     }
 
