@@ -96,7 +96,6 @@ let env = {
         const image = new Image();
         image.src = rust_str_to_js(pointer);
         const index = assets.push({ loaded: false }) - 1;
-        console.log(assets)
         image.onload = () => {
             let texture = gl.createTexture();
             gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -121,6 +120,29 @@ let env = {
             assets[index].error = true;
         }
         return index;
+    },
+    load_sound: (pointer) => {
+        const sound = new Audio(rust_str_to_js(pointer));
+        sound.play()
+        console.log(sound)
+        const index = assets.push({ loaded: false }) - 1;
+        sound.oncanplaythrough = () => {
+            assets[index].loaded = true;
+            assets[index].sound = sound;
+        }
+        if(sound.readyState === 4) {
+            sound.oncanplaythrough()
+        }
+        sound.onerror = () => {
+            assets[index].loaded = true;
+            assets[index].error = true;
+        }
+        return index;
+    },
+    play_sound: (index, volume) => {
+        const sound = assets[index].sound.clone();
+        sound.volume = volume;
+        sound.play();
     },
     get_image_id: (index) => assets[index].id,
     get_image_width: (index) => assets[index].width,
