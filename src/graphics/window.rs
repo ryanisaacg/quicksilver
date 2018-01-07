@@ -199,6 +199,7 @@ impl Window {
     #[cfg(target_arch="wasm32")]
     pub fn poll_events(&mut self) -> bool {
         self.keyboard.clear_temporary_states();
+        self.mouse.clear_temporary_states();
         let mut key = unsafe { pump_key_queue() };
         while key != 0 {
             self.keyboard.process_event(key.abs() as usize - 1, key > 0);
