@@ -4,7 +4,10 @@ description = "A simple game framework for 2D games in pure Rust"
 version = "0.1.0"
 authors = ["Ryan Goldstein <ryanisaacg@gmail.com>"]
 repository = "https://github.com/ryanisaacg/quicksilver"
+readme = "README.md"
 license = "MIT/Apache-2.0"
+keywords = ["game", "audio", "graphics", "gamedev"]
+categories = ["game-engines"]
 
 [dependencies]
 gl = "0.7"
@@ -15,3 +18,8 @@ image = "0.18"
 rand = "0.4.1"
 rodio = "0.5"
 
+[badges]
+
+travis-ci = { repository = "ryanisaacg/quicksilver", branch = "master" }
+codecov = { repository = "https://codecov.io/gh/ryanisaacg/quicksilver/branch/master/" }
+maintenance = { status = "actively-developed" }
