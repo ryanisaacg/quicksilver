@@ -22,6 +22,11 @@ use std::sync::Arc;
 extern "C" {
     fn load_sound(path: *mut i8) -> u32;
     fn play_sound(index: u32, volume: f32);
+    fn set_music_track(index: u32);
+    fn play_music();
+    fn pause_music();
+    fn get_music_volume() -> f32;
+    fn set_music_volume(volume: f32);
 }
 
 
@@ -126,35 +131,36 @@ impl AsRef<[u8]> for Sound {
     }
 }
 
-/*
+#[cfg(not(target_arch="wasm32"))]
 pub struct MusicPlayer {
-    tracks: Vec<Sound>,
     sink: Sink
 }
 
+#[cfg(target_arch="wasm32")]
+pub struct MusicPlayer;
+
+#[cfg(not(target_arch="wasm32"))]
 impl MusicPlayer {
     pub fn new() -> MusicPlayer {
         MusicPlayer {
-            tracks: Vec::new(),
             sink: Sink::new(&rodio::get_default_endpoint().unwrap())
         }
     }
 
-    pub fn add(&mut self, tracks: &[Sound]) {
-        self.tracks.extend_from_slice(tracks);
+    pub fn set_track(&mut self, sound: &Sound) {
+        self.sink.stop();
+        self.sink.append(sound.get_source().repeat_infinite());
     }
 
     pub fn play(&self) {
-        self.sink.stop();
-        for track in self.tracks.iter() {
-            self.sink.append(track.get_source());
-        }
+        self.sink.play();
     }
+
 
     pub fn pause(&self) {
         self.sink.pause();
     }
-
+    
     pub fn finished(&self) -> bool {
         self.sink.empty()
     }
@@ -166,7 +172,34 @@ impl MusicPlayer {
     pub fn set_volume(&mut self, volume: f32) {
         self.sink.set_volume(volume);
     }
-}*/
+}
+
+#[cfg(target_arch="wasm32")]
+impl MusicPlayer {
+    pub fn new() -> MusicPlayer { MusicPlayer }
+
+    pub fn set_track(&mut self, sound: &Sound) {
+        unsafe { set_music_track(sound.index) };
+    }
+
+    pub fn play(&self) {
+        unsafe { play_music() };
+    }
+
+
+    pub fn pause(&self) {
+        unsafe { pause_music() };
+    }
+    
+    pub fn volume(&self) -> f32 {
+        unsafe { get_music_volume() }
+    }
+
+    pub fn set_volume(&mut self, volume: f32) {
+        unsafe { set_music_volume(volume) };
+    }
+}
+
 
 #[derive(Clone, Debug)]
 pub enum SoundError {

@@ -50,6 +50,7 @@ const key_queue = []
 const mouse = { x: 0, y: 0 };
 const mouse_queue = []
 const assets = []
+const music = { playing: null, volume: 1 }
 //Establish all of the event hooks
 document.addEventListener('keydown', (event) => { 
     if(keycodes[event.code] !== undefined) { 
@@ -75,7 +76,6 @@ canvas.addEventListener('mouseup', (event) => {
         mouse_queue.push(-event.button - 1);
     }
 })
-//TODO: async asset loading
 let env = {
     is_loaded: (index) => assets[index].loaded,
     is_errored: (index) => assets[index].error,
@@ -143,6 +143,33 @@ let env = {
         const sound = assets[index].sound.clone();
         sound.volume = volume;
         sound.play();
+    },
+    set_music_track: (index) => {
+        if(music.playing) { 
+            music.playing.stop()
+        }
+        const source = assets[music.index].sound.clone();
+        source.loop = true;
+        source.volume = music.volume;
+        source.play();
+        music.playing = source;
+    },
+    play_music: () => { 
+        if(music.playing) { 
+            music.playing.play();
+        }
+    },
+    pause_music: () => {
+        if(music.playing) {
+            music.playing.pause();
+        }
+    },
+    get_music_volume: () => music.volume,
+    set_music_volume: (volume) => {
+        music.volume = volume;
+        if(music.playing) {
+            music.playing.volume = volume;
+        }
     },
     get_image_id: (index) => assets[index].id,
     get_image_width: (index) => assets[index].width,
