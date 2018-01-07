@@ -1,4 +1,4 @@
-#quicksilver
+# quicksilver
 
 A 2D game framework written in pure Rust
 
