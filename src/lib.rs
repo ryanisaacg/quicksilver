@@ -6,8 +6,6 @@ extern crate image;
 extern crate rand;
 #[cfg(not(target_arch="wasm32"))]
 extern crate rodio;
-#[cfg(not(target_arch="wasm32"))]
-extern crate tiled;
 
 mod gl;
 pub mod asset;
