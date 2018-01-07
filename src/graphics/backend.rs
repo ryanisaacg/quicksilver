@@ -1,7 +1,8 @@
-use gl;
 use geom::Vector;
 use graphics::Color;
 //Not used in mock, so #[cfg]'ed to avoid code warnings when testing
+#[cfg(not(test))]
+use gl;
 #[cfg(not(test))]
 use std::ffi::CString;
 #[cfg(not(test))]
