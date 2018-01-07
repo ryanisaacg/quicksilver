@@ -1,5 +1,8 @@
 # quicksilver
 
+[![Build Status](https://travis-ci.org/ryanisaacg/quicksilver.svg?branch=asset-rework)](https://travis-ci.org/ryanisaacg/quicksilver)
+[![Code Coverage](https://codecov.io/gh/ryanisaacg/quicksilver/branch/master/graph/badge.svg)](https://codecov.io/gh/ryanisaacg/quicksilver)
+
 A 2D game framework written in pure Rust
 
 ## What's included?
