@@ -31,6 +31,7 @@ function rust_str_to_js(pointer) {
     let string = '';
     for(let i = 0; buffer[i] != 0; i++)
         string += String.fromCharCode(buffer[i]);
+    instance.exports.deallocate_cstring(pointer);
     return string;
 }
 //Generate the keycodes from an in-order list that maps to the Glutin keycodes in rust
@@ -192,7 +193,7 @@ let env = {
     DeleteProgram: (index) => gl.deleteProgram(gl_objects[index]),
     DeleteShader: (index) => gl.deleteShader(gl_objects[index]),
     DeleteTexture: (index) => gl.deleteTexture(gl_objects[index]),
-    DeleteVertexArray: gl.deleteVertexArray.bind(gl),
+    DeleteVertexArray: (index) => gl.deleteVertexArray(gl_objects[index]),
     DrawElements: gl.drawElements.bind(gl), 
     Enable: gl.enable.bind(gl),
     EnableVertexAttribArray: gl.enableVertexAttribArray.bind(gl),

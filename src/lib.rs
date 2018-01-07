@@ -17,6 +17,13 @@ pub mod input;
 pub mod sound;
 mod timer;
 
+#[no_mangle]
+#[cfg(target_arch="wasm32")]
+pub unsafe extern "C" fn deallocate_cstring(string: *mut i8) {
+    use std::ffi::CString;
+    CString::from_raw(string);
+}
+
 pub use self::timer::Timer;
 
 #[macro_export]

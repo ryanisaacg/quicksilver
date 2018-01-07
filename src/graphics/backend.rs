@@ -187,14 +187,17 @@ impl Backend {
             self.shader = gl::CreateProgram();
             gl::AttachShader(self.shader, self.vertex);
             gl::AttachShader(self.shader, self.fragment);
-            let raw = CString::new("out_color").unwrap().into_raw();
-            #[cfg(not(target_arch="wasm32"))]
-            gl::BindFragDataLocation(self.shader, 0, raw as *mut i8);
+            #[cfg(not(target_arch="wasm32"))] {
+                let raw = CString::new("out_color").unwrap().into_raw();
+                gl::BindFragDataLocation(self.shader, 0, raw as *mut i8);
+                CString::from_raw(raw);
+            }
             gl::LinkProgram(self.shader);
             gl::UseProgram(self.shader);
-            CString::from_raw(vertex_text);
-            CString::from_raw(fragment_text);
-            CString::from_raw(raw);
+            #[cfg(not(target_arch="wasm32"))] {
+                CString::from_raw(vertex_text);
+                CString::from_raw(fragment_text);
+            }
         }
     }
 
@@ -229,11 +232,13 @@ impl Backend {
         self.vertex_length = vbo_size as usize;
         self.index_length = ebo_size as usize;
         //Make sure to deallocate the attribute strings
-        CString::from_raw(position_string);
-        CString::from_raw(tex_coord_string);
-        CString::from_raw(color_string);
-        CString::from_raw(tex_string);
-        CString::from_raw(use_texture_string);
+        #[cfg(not(target_arch="wasm32"))] {
+            CString::from_raw(position_string);
+            CString::from_raw(tex_coord_string);
+            CString::from_raw(color_string);
+            CString::from_raw(tex_string);
+            CString::from_raw(use_texture_string);
+        }
     }
 
     fn switch_texture(&mut self, texture: u32) {
