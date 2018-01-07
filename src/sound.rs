@@ -1,6 +1,7 @@
 #[cfg(not(target_arch="wasm32"))]
 extern crate rodio;
 
+
 use asset::{Loadable, LoadingAsset};
 #[cfg(target_arch="wasm32")]
 use asset::LoadingHandle;
@@ -80,6 +81,7 @@ impl Sound {
 
 
     #[cfg(not(target_arch="wasm32"))]
+    #[allow(deprecated)]
     pub fn play(&self) {
         let endpoint = rodio::get_default_endpoint().unwrap();
         rodio::play_raw(&endpoint, self.get_source());
@@ -141,6 +143,7 @@ pub struct MusicPlayer;
 
 #[cfg(not(target_arch="wasm32"))]
 impl MusicPlayer {
+    #[allow(deprecated)]
     pub fn new() -> MusicPlayer {
         MusicPlayer {
             sink: Sink::new(&rodio::get_default_endpoint().unwrap())
