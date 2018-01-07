@@ -4,7 +4,7 @@ description = "A simple game framework for 2D games in pure Rust"
 version = "0.1.0"
 authors = ["Ryan Goldstein <ryanisaacg@gmail.com>"]
 repository = "https://github.com/ryanisaacg/quicksilver"
-
+license = "MIT/Apache-2.0"
 
 [dependencies]
 gl = "0.7"
