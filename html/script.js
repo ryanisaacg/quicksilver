@@ -55,12 +55,14 @@ const music = { playing: null, volume: 1 }
 //Establish all of the event hooks
 document.addEventListener('keydown', (event) => { 
     if(keycodes[event.code] !== undefined) { 
-        key_queue.push(keycodes[event.code] + 1) 
+        key_queue.push(keycodes[event.code] + 1);
+        event.preventDefault();
     }
 })
 document.addEventListener('keyup', (event) => {
     if(keycodes[event.code] !== undefined) {
-        key_queue.push(-keycodes[event.code] - 1) 
+        key_queue.push(-keycodes[event.code] - 1);
+        event.preventDefault();
     }
 })
 canvas.addEventListener('mousemove', (event) => {
@@ -70,11 +72,13 @@ canvas.addEventListener('mousemove', (event) => {
 canvas.addEventListener('mousedown', (event) => {
     if(event.button < 3) {
         mouse_queue.push(event.button + 1);
+        event.preventDefault();
     }
 })
 canvas.addEventListener('mouseup', (event) => {
     if(event.button < 3) {
         mouse_queue.push(-event.button - 1);
+        event.preventDefault();
     }
 })
 let env = {
