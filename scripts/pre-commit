@@ -1,2 +1,2 @@
 #!/bin/sh
-cargo test
+cargo test && cargo +nightly check --target wasm32-unknown-unknown
