@@ -4,7 +4,6 @@ extern crate quicksilver;
 use quicksilver::asset::{Loadable, LoadingAsset};
 use quicksilver::sound::Sound;
 use std::time::Duration;
-use std::thread::sleep;
 
 pub struct State {
     sound: LoadingAsset<Sound>,
