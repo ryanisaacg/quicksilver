@@ -16,6 +16,7 @@ pub struct WindowBuilder {
 
 #[cfg(target_arch="wasm32")]
 extern "C" {
+    pub fn set_show_mouse(show: bool);
     pub fn create_context(title: *mut i8, width: u32, height: u32);
     pub fn get_mouse_x() -> f32;
     pub fn get_mouse_y() -> f32;
@@ -83,6 +84,7 @@ impl WindowBuilder {
     #[cfg(target_arch="wasm32")]
     pub fn build(self, title: &str, width: u32, height: u32) -> (Window, Canvas) {
         use std::ffi::CString;
+        unsafe { set_show_mouse(self.show_cursor) };
         unsafe { create_context(CString::new(title).unwrap().into_raw(), width, height) };
         let screen_size = Vector::new(width as f32, height as f32);
         let window = Window {

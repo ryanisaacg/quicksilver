@@ -90,6 +90,7 @@ let env = {
     get_mouse_x: () => mouse.x,
     get_mouse_y: () => mouse.y,
     print: (pointer) => console.log(rust_str_to_js(pointer)),
+    set_show_mouse: (show) => canvas.style.cursor = show ? "auto" : "none",
     create_context: function(title, width, height) {
         document.title = rust_str_to_js(title);
         canvas.width = width;
