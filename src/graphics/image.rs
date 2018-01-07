@@ -2,7 +2,9 @@
 extern crate image;
 
 use gl;
-use asset::{Loadable, LoadingAsset, LoadingHandle};
+use asset::{Loadable, LoadingAsset};
+#[cfg(target_arch="wasm32")]
+use asset::LoadingHandle;
 use geom::{Rectangle, Vector};
 #[cfg(target_arch="wasm32")]
 use std::os::raw::c_char;
