@@ -5,6 +5,7 @@
 [![License](https://img.shields.io/badge/license-Apache-blue.svg)](https://github.com/ryanisaacg/quicksilver/blob/master/LICENSE)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/ryanisaacg/quicksilver/blob/master/LICENSE)
 [![Crates.io](https://img.shields.io/crates/v/quicksilver.svg)](https://crates.io/crates/quicksilver)
+[![Docs Status](https://docs.rs/quicksilver/badge.svg)](https://docs.rs/quicksilver)
 
 A 2D game framework written in pure Rust
 
