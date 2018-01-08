@@ -8,13 +8,13 @@ use input::ButtonState;
 ///A simple mosue cursor abstraction
 pub struct Mouse {
     ///The location of the cursor in the viewport space
-    pub pos: Vector,
+    pub(crate) pos: Vector,
     ///The state of the left mouse button
-    pub left: ButtonState,
+    pub(crate) left: ButtonState,
     ///The state of the right mouse button
-    pub right: ButtonState,
+    pub(crate) right: ButtonState,
     ///The state of the middle mouse button
-    pub middle: ButtonState,
+    pub(crate) middle: ButtonState,
 }
 
 impl Mouse {
@@ -47,6 +47,22 @@ impl Mouse {
         self.left = self.left.clear_temporary();
         self.right = self.right.clear_temporary();
         self.middle = self.middle.clear_temporary();
+    }
+
+    pub fn pos(&self) -> Vector {
+        self.pos
+    }
+
+    pub fn left(&self) -> ButtonState {
+        self.left
+    }
+
+    pub fn middle(&self) -> ButtonState {
+        self.middle
+    }
+
+    pub fn right(&self) -> ButtonState {
+        self.right
     }
 }
 
