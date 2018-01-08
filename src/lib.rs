@@ -1,3 +1,5 @@
+#![warn(missing_docs)]
+
 #[cfg(not(target_arch="wasm32"))]
 extern crate glutin;
 #[cfg(not(target_arch="wasm32"))]
