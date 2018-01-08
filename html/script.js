@@ -48,7 +48,7 @@ const keynames = ["Digit1", "Digit2", "Digit3", "Digit4", "Digit5", "Digit6", "D
     "WebRefresh", "WebSearch", "WebStop", "Yen"];
 const keycodes = keynames.reduce((map, value, index) => { map[value] = index; return map }, {})
 const key_queue = []
-const mouse = { x: 0, y: 0 };
+const mouse = { x: 0, y: 0, scroll_type: 0, scroll_x: 0, scroll_y: 0 };
 const mouse_queue = []
 const assets = []
 const music = { playing: null, volume: 1 }
@@ -81,6 +81,12 @@ canvas.addEventListener('mouseup', (event) => {
         event.preventDefault();
     }
 })
+canvas.addEventListener('wheel', (event) => {
+    mouse.scroll_type = event.deltaMode;
+    mouse.scroll_x = event.deltaX;
+    mouse.scroll_y = event.deltaY;
+    event.preventDefault();
+})
 let env = {
     is_loaded: (index) => assets[index].loaded,
     is_errored: (index) => assets[index].error,
@@ -89,6 +95,10 @@ let env = {
     pump_mouse_queue: () => mouse_queue.length > 0 ? mouse_queue.shift() : 0,
     get_mouse_x: () => mouse.x,
     get_mouse_y: () => mouse.y,
+    mouse_scroll_clear: () => { mouse.scroll_x = 0; mouse.scroll_y = 0; },
+    mouse_scroll_type: () => mouse.scroll_type,
+    mouse_scroll_x: () => mouse.scroll_x,
+    mouse_scroll_y: () => mouse.scroll_y,
     print: (pointer) => console.log(rust_str_to_js(pointer)),
     set_show_mouse: (show) => canvas.style.cursor = show ? "auto" : "none",
     create_context: function(title, width, height) {
