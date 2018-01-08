@@ -1,6 +1,10 @@
+//! A sound API that allows playing clips at given volumes
+//!
+//! On the desktop, currently all sounds are loaded into memory, but streaming sounds may be
+//! introduced in the future. On the web, it can be different from browser to browser
+
 #[cfg(not(target_arch="wasm32"))]
 extern crate rodio;
-
 
 use asset::{Loadable, LoadingAsset};
 #[cfg(target_arch="wasm32")]
@@ -31,20 +35,19 @@ extern "C" {
 }
 
 
+/// A clip of sound, which may be streamed from disc or stored in memory
+///
+/// It can be played an arbitrary amount of times and concurrently with itself, meaning you don't
+/// need more than one instance of a clip. However, if you want different clips with different
+/// volumes, you can clone the Sound.
 #[derive(Clone)]
-#[cfg(not(target_arch="wasm32"))]
 pub struct Sound {
+    #[cfg(not(target_arch="wasm32"))]
     val: Arc<Vec<u8>>,
-    volume: f32
-}
-
-#[derive(Clone)]
-#[cfg(target_arch="wasm32")]
-pub struct Sound {
+    #[cfg(target_arch="wasm32")]
     index: u32,
     volume: f32
 }
-
 
 impl Sound {
     #[cfg(not(target_arch="wasm32"))]
@@ -66,10 +69,20 @@ impl Sound {
         unsafe { load_sound(CString::new(path.as_ref().to_str().unwrap()).unwrap().into_raw()) }
     }
 
+    /// Get the volume of the sound clip instance
+    ///
+    /// The volume is multiplicative, meaing 1 is the identity, 0 is silent, 2 is twice the
+    /// amplitude, etc. Note that sound is not perceived linearly so results may not correspond as
+    /// expected.
     pub fn volume(&self) -> f32 {
         self.volume
     }
 
+    /// Set the volume of the sound clip instance
+    ///
+    /// The volume is multiplicative, meaing 1 is the identity, 0 is silent, 2 is twice the
+    /// amplitude, etc. Note that sound is not perceived linearly so results may not correspond as
+    /// expected.
     pub fn set_volume(&mut self, volume: f32) {
         self.volume = volume;
     }
@@ -79,16 +92,18 @@ impl Sound {
         Decoder::new(Cursor::new(self.clone())).unwrap().amplify(self.volume).convert_samples()
     }
 
-
-    #[cfg(not(target_arch="wasm32"))]
-    #[allow(deprecated)]
+    /// Play the sound clip at its current volume
+    ///
+    /// The sound clip can be played over itself.
+    ///
+    /// Future changes in volume will not change the sound emitted by this method.
     pub fn play(&self) {
-        let endpoint = rodio::get_default_endpoint().unwrap();
-        rodio::play_raw(&endpoint, self.get_source());
-    }
-    
-    #[cfg(target_arch="wasm32")]
-    pub fn play(&self) {
+        #[cfg(not(target_arch="wasm32"))]
+        #[allow(deprecated)] {
+            let endpoint = rodio::get_default_endpoint().unwrap();
+            rodio::play_raw(&endpoint, self.get_source());
+        }
+        #[cfg(target_arch="wasm32")]
         unsafe { play_sound(self.index, self.volume); }
     }
 }
@@ -133,81 +148,81 @@ impl AsRef<[u8]> for Sound {
     }
 }
 
-#[cfg(not(target_arch="wasm32"))]
+/// A music player that loops a single track indefinitely
+///
+/// The music player has its own internal volume and will adjust the sound of the music if its
+/// volume is changed. 
 pub struct MusicPlayer {
+    #[cfg(not(target_arch="wasm32"))]
     sink: Sink
 }
 
-#[cfg(target_arch="wasm32")]
-pub struct MusicPlayer;
-
-#[cfg(not(target_arch="wasm32"))]
 impl MusicPlayer {
-    #[allow(deprecated)]
+    /// Create a new music player with the default volume of 1
     pub fn new() -> MusicPlayer {
+        #[allow(deprecated)]
         MusicPlayer {
+            #[cfg(not(target_arch="wasm32"))]
             sink: Sink::new(&rodio::get_default_endpoint().unwrap())
         }
     }
 
+    /// Set the sound that should be playing
+    ///
+    /// If there already is a playing song, it will be stopped and replaced. The volume of the
+    /// parameter is ignored, in favor of the volume from the player itself.
     pub fn set_track(&mut self, sound: &Sound) {
-        self.sink.stop();
-        self.sink.append(sound.get_source().repeat_infinite());
-    }
-
-    pub fn play(&self) {
-        self.sink.play();
-    }
-
-
-    pub fn pause(&self) {
-        self.sink.pause();
-    }
-    
-    pub fn finished(&self) -> bool {
-        self.sink.empty()
-    }
-
-    pub fn volume(&self) -> f32 {
-        self.sink.volume()
-    }
-
-    pub fn set_volume(&mut self, volume: f32) {
-        self.sink.set_volume(volume);
-    }
-}
-
-#[cfg(target_arch="wasm32")]
-impl MusicPlayer {
-    pub fn new() -> MusicPlayer { MusicPlayer }
-
-    pub fn set_track(&mut self, sound: &Sound) {
+        #[cfg(not(target_arch="wasm32"))] {
+            self.sink.stop();
+            self.sink.append(sound.get_source().repeat_infinite());
+        }
+        #[cfg(target_arch="wasm32")]
         unsafe { set_music_track(sound.index) };
     }
 
+    /// Resume the player if it is paused
     pub fn play(&self) {
+        #[cfg(not(target_arch="wasm32"))]
+        self.sink.play();
+        #[cfg(target_arch="wasm32")]
         unsafe { play_music() };
     }
 
-
+    /// Pause the player
     pub fn pause(&self) {
+        #[cfg(not(target_arch="wasm32"))]
+        self.sink.pause();
+        #[cfg(target_arch="wasm32")]
         unsafe { pause_music() };
     }
-    
+
+    #[cfg(not(target_arch="wasm32"))]
+    fn volume_impl(&self) -> f32 { self.sink.volume() }
+
+    #[cfg(target_arch="wasm32")]
+    fn volume_impl(&self) -> f32 { unsafe { get_music_volume() } }
+
+    /// Get the volume the song is playing at, see Sound::volume for more
     pub fn volume(&self) -> f32 {
-        unsafe { get_music_volume() }
+        self.volume_impl()
     }
 
+    /// Set the volume the song is playing at, changing the currently playing song
     pub fn set_volume(&mut self, volume: f32) {
+        #[cfg(not(target_arch="wasm32"))]
+        self.sink.set_volume(volume);
+        #[cfg(target_arch="wasm32")]
         unsafe { set_music_volume(volume) };
     }
 }
 
-
 #[derive(Clone, Debug)]
+///An error generated when loading a sound
 pub enum SoundError {
-     UnrecognizedFormat,
-     IOError
+    ///The sound file is not in an format that can be played
+    UnrecognizedFormat,
+    ///The Sound was not found or could not be loaded
+    IOError
 }
 
 #[cfg(not(target_arch="wasm32"))]
