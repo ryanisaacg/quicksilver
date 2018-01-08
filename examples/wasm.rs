@@ -39,7 +39,7 @@ impl State {
             LoadingAsset::Loading(_) => {},
             LoadingAsset::Errored(_) => {},
             LoadingAsset::Loaded(ref image) => 
-                self.canvas.draw_image(image, self.window.mouse(&self.viewport).pos)
+                self.canvas.draw_image(image, self.window.mouse(&self.viewport).pos())
         }
         self.canvas.present(&self.window);
     }
