@@ -1,7 +1,9 @@
 use geom::{Rectangle, Transform, Vector};
 
 #[derive(Clone)]
-///Allows the creation of a viewport
+/// Allows the creation of a viewport
+///
+/// Can only be created from an instance of a Window
 pub struct ViewportBuilder {
     pub(crate) screen_size: Vector,
     pub(crate) transform: Transform
