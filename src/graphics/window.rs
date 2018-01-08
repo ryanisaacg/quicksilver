@@ -22,6 +22,10 @@ extern "C" {
     pub fn get_mouse_y() -> f32;
     pub fn pump_key_queue() -> i32;
     pub fn pump_mouse_queue() -> i32;
+    pub fn mouse_scroll_clear();
+    pub fn mouse_scroll_type() -> u32;
+    pub fn mouse_scroll_x() -> f32;
+    pub fn mouse_scroll_y() -> f32;
 }
 
 
@@ -71,7 +75,8 @@ impl WindowBuilder {
                 pos: Vector::zero(),
                 left: ButtonState::NotPressed,
                 middle: ButtonState::NotPressed,
-                right: ButtonState::NotPressed
+                right: ButtonState::NotPressed,
+                wheel: Vector::zero()
             }
         };
         let canvas = Canvas {
@@ -96,7 +101,8 @@ impl WindowBuilder {
                 pos: Vector::zero(),
                 left: ButtonState::NotPressed,
                 middle: ButtonState::NotPressed,
-                right: ButtonState::NotPressed
+                right: ButtonState::NotPressed,
+                wheel: Vector::zero()
             }
         };
         let canvas = Canvas {
@@ -164,6 +170,12 @@ impl Window {
                     glutin::WindowEvent::MouseInput { state, button, .. } => {
                         mouse.process_button(state, button);
                     }
+                    glutin::WindowEvent::MouseWheel { delta, .. } => {
+                        match delta {
+                            glutin::MouseScrollDelta::LineDelta(x, y) => mouse.process_wheel_lines(x, -y),
+                            glutin::MouseScrollDelta::PixelDelta(x, y) => mouse.process_wheel_pixels(x, y)
+                        }
+                    }
                     glutin::WindowEvent::Closed => {
                         running = false;
                     }
@@ -214,6 +226,15 @@ impl Window {
             self.mouse.process_button(button.abs() as u32 - 1, button > 0);
             button = unsafe { pump_mouse_queue() };
         }
+        let scroll = unsafe { mouse_scroll_type() };
+        let x = unsafe { mouse_scroll_x() };
+        let y = unsafe { mouse_scroll_y() };
+        if scroll == 0 {
+            self.mouse.process_wheel_pixels(x, y);
+        } else {
+            self.mouse.process_wheel_lines(x, y);
+        }
+        unsafe { mouse_scroll_clear(); }
         true
     }
 
