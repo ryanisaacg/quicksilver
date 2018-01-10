@@ -16,7 +16,8 @@ pub mod geom;
 pub mod graphics;
 pub mod input;
 pub mod sound;
-pub mod timer;
+mod timer;
+pub use self::timer::Timer;
 
 #[no_mangle]
 #[cfg(target_arch="wasm32")]
@@ -26,7 +27,6 @@ pub unsafe extern "C" fn deallocate_cstring(string: *mut i8) {
     CString::from_raw(string);
 }
 
-pub use self::timer::Timer;
 
 #[macro_export]
 macro_rules! game_loop {
