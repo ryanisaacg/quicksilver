@@ -27,3 +27,22 @@ impl ResizeStrategy {
         (Vector::newi(offset_x, offset_y), Vector::newi(w, h))
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn resize() {
+        //Format: (target_ratio, new_width, new_height, (offset, size))
+        let tests = [
+            (16.0 / 9.0, 16, 9, (Vector::zero(), Vector::newi(16, 9))),
+            (16.0 / 9.0, 32, 9, (Vector::newi(8, 0), Vector::newi(16, 9))),
+            (16.0 / 9.0, 16, 17, (Vector::newi(0, 4), Vector::newi(16, 9))),
+        ];
+        let resize = ResizeStrategy::Letterbox;
+        for test in tests.iter() {
+            assert_eq!(resize.resize(test.0, test.1, test.2), test.3);
+        }
+    }
+}
