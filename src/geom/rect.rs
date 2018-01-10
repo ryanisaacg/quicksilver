@@ -4,9 +4,13 @@ use std::cmp::{Eq, PartialEq};
 #[derive(Clone, Copy, Default, Debug)]
 ///A rectangle with a top-left position and a size
 pub struct Rectangle {
+    ///The top-left x coordinate of the rectangle
     pub x: f32,
+    ///The top-left y coordinate of the rectangle
     pub y: f32,
+    ///The width of the rectangle
     pub width: f32,
+    ///The height of the rectangle
     pub height: f32,
 }
 
@@ -21,10 +25,12 @@ impl Rectangle {
         }
     }
 
+    ///Create a rectangle from a top-left vector and a size vector
     pub fn newv(pos: Vector, size: Vector) -> Rectangle {
         Rectangle::new(pos.x, pos.y, size.x, size.y)
     }
 
+    ///Create a position rectangle with integer dimension
     pub fn newi(x: i32, y: i32, width: i32, height: i32) -> Rectangle {
         Rectangle::new(x as f32, y as f32, width as f32, height as f32)
     }
@@ -34,10 +40,12 @@ impl Rectangle {
         Rectangle::new(0f32, 0f32, width, height)
     }
 
+    ///Create a rectangle at the origin with the given integer size
     pub fn newi_sized(width: i32, height: i32) -> Rectangle {
         Rectangle::newi(0, 0, width, height)
     }
 
+    ///Create a rectangle at the origin with a size given by a Vector
     pub fn newv_sized(size: Vector) -> Rectangle {
         Rectangle::newv(Vector::zero(), size)
     }
