@@ -1,11 +1,14 @@
+/// Find if two floating points are about equal
 pub fn about_equal(a: f32, b: f32) -> bool {
     (a - b).abs() < 0.0001
 }
 
+/// Linearly interpolate between two values
 pub fn lerp(current: f32, target: f32, fraction: f32) -> f32 {
     current + (target - current) * fraction
 }
 
+/// Linearly interpolate between two angles, trying to find the shortest path
 pub fn lerp_angle(current: f32, target: f32, fraction: f32) -> f32 {
     let delta = ((target - current + 360f32 + 180f32) % 360f32) - 180f32;
     (current + delta * fraction + 360f32) % 360f32
