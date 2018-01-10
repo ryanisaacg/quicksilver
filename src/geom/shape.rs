@@ -2,6 +2,7 @@ use super::{Circle, Line, Rectangle, Vector};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 ///A universal shape union
+#[allow(missing_docs)]
 pub enum Shape {
     Circ(Circle), Line(Line), Rect(Rectangle), Vect(Vector)
 }

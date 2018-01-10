@@ -1,13 +1,18 @@
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-///The current state of a button
+/// The current state of a button
 pub enum ButtonState {
+    /// The button was activated this frame
     Pressed,
+    /// The button is active but was not activated this frame
     Held,
+    /// The button was released this frame
     Released,
+    /// The button is not active but was not released this frame
     NotPressed,
 }
 
 impl ButtonState {
+    /// Determine if the button is either Pressed or Held
     pub fn is_down(&self) -> bool {
         match *self {
             ButtonState::Pressed => true,
@@ -17,6 +22,9 @@ impl ButtonState {
         }
     }
 
+    /// Convert the button from a temporary state to a permanent state
+    ///
+    /// Pressed states become Held, Released states become NotPressed
     pub fn clear_temporary(&self) -> ButtonState {
         if self.is_down() {
             ButtonState::Held

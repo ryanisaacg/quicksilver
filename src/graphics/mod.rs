@@ -1,3 +1,7 @@
+//! A module to draw 2D graphics in a window
+//! 
+//! It also includes image loading
+
 mod backend;
 mod camera;
 mod canvas;

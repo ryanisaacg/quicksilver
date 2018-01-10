@@ -22,9 +22,13 @@ extern "C" {
 
 ///Pixel formats for use with loading raw images
 pub enum PixelFormat {
+    /// Red, Green, and Blue
     RGB = gl::RGB as isize,
+    /// Red, Green, Blue, and Alpha
     RGBA = gl::RGBA as isize,
+    /// Blue, Green, and Red
     BGR = gl::BGR as isize,
+    /// Blue, Green, Red, and Alpha
     BGRA = gl::BGRA as isize,
 }
 
@@ -173,13 +177,21 @@ impl Loadable for Image {
 
 
 #[derive(Clone, Debug)]
+///An error generated while loading an image
 pub enum ImageError {
+    ///There was an error in the image format
     FormatError(String),
+    ///The image dimensions were invalid
     DimensionError,
+    ///The image format is unsupported
     UnsupportedError(String),
+    ///The color type is not supported
     UnsupportedColor,
+    ///The image data ends too early
     NotEnoughData,
+    ///There was some error reading the image file
     IoError,
+    ///The image has reached its end
     ImageEnd,
 }
 

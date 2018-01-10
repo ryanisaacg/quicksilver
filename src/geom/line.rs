@@ -3,10 +3,13 @@ use super::Vector;
 #[derive(Copy, Clone, Default, Debug, Eq, PartialEq)]
 ///Represents a 2D line segment
 pub struct Line {
+    ///One of the two points of the line segment
     pub start: Vector,
+    ///The other of the two points of the line segment
     pub end: Vector,
 }
 impl Line {
+    ///Create a line segment with two endpoints
     pub fn new(start: Vector, end: Vector) -> Line {
         Line {
             start: start,
@@ -46,10 +49,12 @@ impl Line {
         }
     }
 
+    ///Check if a point falls on the line segment
     pub fn contains(self, other: Vector) -> bool {
         self.start == other || self.end == other || self.start + (other - self.start).normalize() * (self.end - self.start).len() == self.end
     }
 
+    ///Create a line segment translated by a given vector
     pub fn translate(self, other: Vector) -> Line {
         Line::new(self.start + other, self.end + other)
     }

@@ -8,7 +8,9 @@ use std::fmt;
 #[derive(Copy, Clone, Default, Debug)]
 ///A 2D vector with an arbitrary numeric type
 pub struct Vector {
+    ///The x coordinate of the vector
     pub x: f32,
+    ///The y coordinate of the vector
     pub y: f32,
 }
 
@@ -33,10 +35,12 @@ impl Vector {
         Vector { x: 1f32, y: 1f32 }
     }
 
+    ///Create a new vector
     pub fn new(x: f32, y: f32) -> Vector {
         Vector { x: x, y: y }
     }
 
+    ///Create a new vector with integer components
     pub fn newi(x: i32, y: i32) -> Vector {
         Vector::new(x as f32, y as f32)
     }

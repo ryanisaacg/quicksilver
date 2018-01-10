@@ -4,12 +4,16 @@ use std::cmp::{Eq, PartialEq};
 #[derive(Clone, Copy, Default, Debug)]
 ///A circle with a center and a radius
 pub struct Circle {
+    /// The x coordinate of the center
     pub x: f32,
+    /// The y coordinate of the center
     pub y: f32,
+    /// The radius of the circle
     pub radius: f32,
 }
 
 impl Circle {
+    ///Create a new circle with the given dimensions
     pub fn new(x: f32, y: f32, radius: f32) -> Circle {
         Circle {
             x: x,
@@ -18,10 +22,12 @@ impl Circle {
         }
     }
 
+    ///Create a new circle with integer dimensions
     pub fn newi(x: i32, y: i32, radius: i32) -> Circle {
         Circle::new(x as f32, y as f32, radius as f32)
     }
 
+    ///Create a circle with the center as a vector
     pub fn newv(position: Vector, radius: f32) -> Circle {
         Circle::new(position.x, position.y, radius)
     }

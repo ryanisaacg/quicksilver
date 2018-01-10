@@ -45,9 +45,14 @@ impl WindowBuilder {
         }
     }
 
+
     ///Create a window and canvas with the given configuration
-    #[cfg(not(target_arch="wasm32"))]
     pub fn build(self, title: &str, width: u32, height: u32) -> (Window, Canvas) {
+        self.build_impl(title, width, height)
+    }
+
+    #[cfg(not(target_arch="wasm32"))]
+    fn build_impl(self, title: &str, width: u32, height: u32) -> (Window, Canvas) {
         let events = glutin::EventsLoop::new();
         let window = glutin::WindowBuilder::new()
             .with_title(title)
@@ -87,13 +92,15 @@ impl WindowBuilder {
     }
     
     #[cfg(target_arch="wasm32")]
-    pub fn build(self, title: &str, width: u32, height: u32) -> (Window, Canvas) {
+    fn build_impl(self, title: &str, width: u32, height: u32) -> (Window, Canvas) {
         use std::ffi::CString;
         unsafe { set_show_mouse(self.show_cursor) };
         unsafe { create_context(CString::new(title).unwrap().into_raw(), width, height) };
         let screen_size = Vector::new(width as f32, height as f32);
         let window = Window {
             screen_size,
+            scale_factor: 1.0,
+            offset: Vector::zero(),
             keyboard: Keyboard {
                 keys: [ButtonState::NotPressed; 256]
             },
@@ -114,9 +121,10 @@ impl WindowBuilder {
 }
 
 ///The window currently in use
-#[cfg(not(target_arch="wasm32"))]
 pub struct Window {
+    #[cfg(not(target_arch="wasm32"))]
     pub(crate) gl_window: glutin::GlWindow,
+    #[cfg(not(target_arch="wasm32"))]
     events: EventsLoop,
     scale_factor: f32,
     offset: Vector,
@@ -125,17 +133,14 @@ pub struct Window {
     mouse: Mouse,
 }
 
-#[cfg(target_arch="wasm32")]
-pub struct Window {
-    screen_size: Vector,
-    keyboard: Keyboard,
-    mouse: Mouse
-}
-
 impl Window {
     ///Update the keyboard, mouse, and window state, and return if the window is still open
-    #[cfg(not(target_arch="wasm32"))]
     pub fn poll_events(&mut self) -> bool {
+        self.poll_events_impl()
+    }
+
+    #[cfg(not(target_arch="wasm32"))]
+    fn poll_events_impl(&mut self) -> bool {
         self.keyboard.clear_temporary_states();
         self.mouse.clear_temporary_states();
         let scale_factor = self.gl_window.hidpi_factor();
@@ -209,7 +214,7 @@ impl Window {
     }
     
     #[cfg(target_arch="wasm32")]
-    pub fn poll_events(&mut self) -> bool {
+    fn poll_events_impl(&mut self) -> bool {
         self.keyboard.clear_temporary_states();
         self.mouse.clear_temporary_states();
         let mut key = unsafe { pump_key_queue() };
@@ -218,7 +223,7 @@ impl Window {
             key = unsafe { pump_key_queue() };
         }
         self.mouse = Mouse {
-            pos: unsafe { Vector::new(get_mouse_x(), get_mouse_y()) },
+            pos: unsafe { Vector::new(get_mouse_x(), get_mouse_y()) } - self.offset,
             ..self.mouse
         };
         let mut button = unsafe { pump_mouse_queue() };
@@ -239,18 +244,9 @@ impl Window {
     }
 
     ///Create a viewport builder
-    #[cfg(not(target_arch="wasm32"))]
     pub fn viewport(&self) -> ViewportBuilder {
         ViewportBuilder {
             screen_size: self.screen_size / self.scale_factor,
-            transform: Transform::identity()
-        }
-    }
-    
-    #[cfg(target_arch="wasm32")]
-    pub fn viewport(&self) -> ViewportBuilder {
-        ViewportBuilder {
-            screen_size: self.screen_size,
             transform: Transform::identity()
         }
     }

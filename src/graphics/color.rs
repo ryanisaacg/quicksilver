@@ -1,12 +1,17 @@
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
-///An RGBA color represented by normalized floats
+/// An RGBA color represented by normalized floats
 pub struct Color {
+    ///The red component of the color
     pub r: f32,
+    ///The green component of the color
     pub g: f32,
+    ///The blue component of the color
     pub b: f32,
+    ///The alpha component of the color
     pub a: f32,
 }
 
+#[allow(missing_docs)]
 impl Color {
     pub fn white() -> Color {
         Color {
