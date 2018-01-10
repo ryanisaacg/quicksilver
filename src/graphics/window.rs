@@ -223,7 +223,7 @@ impl Window {
             key = unsafe { pump_key_queue() };
         }
         self.mouse = Mouse {
-            pos: unsafe { Vector::new(get_mouse_x(), get_mouse_y()) },
+            pos: unsafe { Vector::new(get_mouse_x(), get_mouse_y()) } - self.offset,
             ..self.mouse
         };
         let mut button = unsafe { pump_mouse_queue() };
