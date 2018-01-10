@@ -34,7 +34,7 @@ impl WindowBuilder {
     pub fn new() -> WindowBuilder {
         WindowBuilder {
             show_cursor: true,
-            resize: ResizeStrategy::Letterbox
+            resize: ResizeStrategy::Fit
         }
     }
    
