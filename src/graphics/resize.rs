@@ -4,7 +4,7 @@ use geom::Vector;
 ///The way to adjust the content when the size of the window changes
 pub enum ResizeStrategy {
     ///Use black bars to keep the size exactly the same
-//    Maintain,
+    Maintain,
     ///Fill the screen, possiby cutting off content in the process
     Fill,
     ///Take up as much of the screen as possible, but use letterboxing if necessary
@@ -13,20 +13,20 @@ pub enum ResizeStrategy {
 
 impl ResizeStrategy {
     ///Calculate the content offset and the content size
-    pub(crate) fn resize(self, target_ratio: f32, new_width: u32, new_height: u32) -> (Vector, Vector) {
-        let window_ratio = new_width as f32 / new_height as f32;
-        match self {
+    pub(crate) fn resize(self, old_size: Vector, new_size: Vector) -> (Vector, Vector) {
+        let target_ratio = old_size.x / old_size.y; 
+        let window_ratio = new_size.x / new_size.y;
+        let content_area = match self {
+            ResizeStrategy::Maintain => old_size,
             ResizeStrategy::Fill | ResizeStrategy::Fit => {
-                let (w, h) = if (self == ResizeStrategy::Fill) == (window_ratio < target_ratio) {
-                    ((target_ratio * new_height as f32) as i32, new_height as i32)
+                if (self == ResizeStrategy::Fill) == (window_ratio < target_ratio) {
+                    Vector::new((target_ratio * new_size.y), new_size.y)
                 } else {
-                    (new_width as i32, (new_width as f32 / target_ratio) as i32)
-                }; 
-                let offset_x = (new_width as i32 - w) / 2;
-                let offset_y = (new_height as i32 - h) / 2;
-                (Vector::newi(offset_x, offset_y), Vector::newi(w, h))
+                    Vector::new(new_size.x, (new_size.x / target_ratio))
+                } 
             }
-        }
+        };
+        ((new_size - content_area) / 2, content_area)
     }
 }
 
@@ -36,27 +36,34 @@ mod tests {
 
     #[test]
     fn resize() {
-        //Format: (target_ratio, new_width, new_height)
+        //Format: (old_size, new_size)
+        let base = Vector::newi(16, 9);
         let inputs = [
-            (16.0 / 9.0, 16, 9),
-            (16.0 / 9.0, 32, 9),
-            (16.0 / 9.0, 16, 18),
+            (base, base),
+            (base, base.x_comp() * 2 + base.y_comp()),
+            (base, base.x_comp() + base.y_comp() * 2),
         ];
         //Fomat: (offset, size)
+        let maintain = [
+            (Vector::zero(), base),
+            (base.x_comp() / 2, base),
+            (base.y_comp() / 2, base),
+        ];
         let fill = [
-            (Vector::zero(), Vector::newi(16, 9)),
-            (Vector::newi(0, -4), Vector::newi(32, 18)),
-            (Vector::newi(-8, 0), Vector::newi(32, 18))
+            (Vector::zero(), base),
+            (-base.y_comp() / 2, base * 2),
+            (-base.x_comp() / 2, base * 2)
         ];
         let fit = [
-            (Vector::zero(), Vector::newi(16, 9)),
-            (Vector::newi(8, 0), Vector::newi(16, 9)),
-            (Vector::newi(0, 4), Vector::newi(16, 9))
+            (Vector::zero(), base),
+            (base.x_comp() / 2, base),
+            (base.y_comp() / 2, base)
         ];
         for i in 0..inputs.len() {
-            let (target, width, height) = inputs[i];
-            assert_eq!(ResizeStrategy::Fill.resize(target, width, height), fill[i]);
-            assert_eq!(ResizeStrategy::Fit.resize(target, width, height), fit[i]);
+            let (old, new) = inputs[i];
+            assert_eq!(ResizeStrategy::Maintain.resize(old, new), maintain[i]);
+            assert_eq!(ResizeStrategy::Fill.resize(old, new), fill[i]);
+            assert_eq!(ResizeStrategy::Fit.resize(old, new), fit[i]);
         }
     }
 }

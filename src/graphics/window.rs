@@ -137,7 +137,6 @@ impl Window {
         let mut running = true;
         let mut screen_size = self.screen_size;
         let mut offset = self.offset;
-        let target_ratio = self.screen_size.x / self.screen_size.y;
         let mut keyboard = self.keyboard.clone();
         let mut mouse = self.mouse.clone();
         let resize = self.resize;
@@ -176,7 +175,8 @@ impl Window {
                         running = false;
                     }
                     glutin::WindowEvent::Resized(new_width, new_height) => {
-                        let (new_offset, new_size) = resize.resize(target_ratio, new_width, new_height);
+                        let new_size = Vector::new(new_width as f32, new_height as f32);
+                        let (new_offset, new_size) = resize.resize(screen_size, new_size);
                         offset = new_offset;
                         screen_size = new_size;
                         unsafe { gl::Viewport(offset.x as i32, offset.y as i32, 
