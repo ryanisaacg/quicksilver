@@ -12,10 +12,11 @@ extern crate rodio;
 mod gl;
 pub mod asset;
 pub mod geom;
+/// A module to draw 2D graphics in a window
 pub mod graphics;
 pub mod input;
 pub mod sound;
-mod timer;
+pub mod timer;
 
 #[no_mangle]
 #[cfg(target_arch="wasm32")]
