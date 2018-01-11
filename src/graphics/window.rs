@@ -5,13 +5,13 @@ use glutin;
 use geom::{ Rectangle, Transform, Vector};
 #[cfg(not(target_arch="wasm32"))]
 use glutin::{EventsLoop, GlContext};
-use graphics::{Backend, Camera, Canvas};
+use graphics::{Backend, Camera, Canvas, ResizeStrategy};
 use input::{ButtonState, Keyboard, Mouse, Viewport, ViewportBuilder };
-
 
 ///A builder that constructs a Window and its Canvas
 pub struct WindowBuilder {
-    show_cursor: bool
+    show_cursor: bool,
+    resize: ResizeStrategy
 }
 
 #[cfg(target_arch="wasm32")]
@@ -33,7 +33,8 @@ impl WindowBuilder {
     ///Create a default window builder
     pub fn new() -> WindowBuilder {
         WindowBuilder {
-            show_cursor: true
+            show_cursor: true,
+            resize: ResizeStrategy::Fit
         }
     }
    
@@ -45,31 +46,49 @@ impl WindowBuilder {
         }
     }
 
+    ///Set how the window should handle resizing
+    pub fn with_resize_strategy(self, resize: ResizeStrategy) -> WindowBuilder {
+        WindowBuilder {
+            resize,
+            ..self
+        }
+    }
+
 
     ///Create a window and canvas with the given configuration
     pub fn build(self, title: &str, width: u32, height: u32) -> (Window, Canvas) {
-        self.build_impl(title, width, height)
-    }
-
-    #[cfg(not(target_arch="wasm32"))]
-    fn build_impl(self, title: &str, width: u32, height: u32) -> (Window, Canvas) {
-        let events = glutin::EventsLoop::new();
-        let window = glutin::WindowBuilder::new()
-            .with_title(title)
-            .with_dimensions(width, height);
-        let context = glutin::ContextBuilder::new().with_vsync(true);
-        let gl_window = glutin::GlWindow::new(window, context, &events).unwrap();
-        unsafe {
-            gl_window.make_current().unwrap();
-            gl::load_with(|symbol| gl_window.get_proc_address(symbol) as *const _);
+        #[cfg(not(target_arch="wasm32"))]
+        let (gl_window, events) = {
+            let events = glutin::EventsLoop::new();
+            let window = glutin::WindowBuilder::new()
+                .with_title(title)
+                .with_dimensions(width, height);
+            let context = glutin::ContextBuilder::new().with_vsync(true);
+            let gl_window = glutin::GlWindow::new(window, context, &events).unwrap();
+            unsafe {
+                gl_window.make_current().unwrap();
+                gl::load_with(|symbol| gl_window.get_proc_address(symbol) as *const _);
+            }
+            gl_window.set_cursor_state(if self.show_cursor { 
+                glutin::CursorState::Normal } else { glutin::CursorState::Hide }).unwrap();
+            (gl_window, events)
+        };
+        #[cfg(target_arch="wasm32")] {
+            use std::ffi::CString;
+            unsafe { set_show_mouse(self.show_cursor) };
+            unsafe { create_context(CString::new(title).unwrap().into_raw(), width, height) };
         }
-        gl_window.set_cursor_state(if self.show_cursor { 
-            glutin::CursorState::Normal } else { glutin::CursorState::Hide }).unwrap();
-        let scale_factor = gl_window.hidpi_factor();
         let screen_size = Vector::new(width as f32, height as f32);
-        let window = Window {
+        #[cfg(not(target_arch="wasm32"))]
+        let scale_factor = gl_window.hidpi_factor();
+        #[cfg(target_arch="wasm32")]
+        let scale_factor = 1f32;
+        (Window {
+            #[cfg(not(target_arch="wasm32"))]
             gl_window,
+            #[cfg(not(target_arch="wasm32"))]
             events,
+            resize: self.resize,
             scale_factor,
             offset: Vector::zero(),
             screen_size,
@@ -83,40 +102,10 @@ impl WindowBuilder {
                 right: ButtonState::NotPressed,
                 wheel: Vector::zero()
             }
-        };
-        let canvas = Canvas {
+        }, Canvas {
             backend: Backend::new(),
             cam: Camera::new(Rectangle::newv_sized(screen_size)),
-        };
-        (window, canvas)
-    }
-    
-    #[cfg(target_arch="wasm32")]
-    fn build_impl(self, title: &str, width: u32, height: u32) -> (Window, Canvas) {
-        use std::ffi::CString;
-        unsafe { set_show_mouse(self.show_cursor) };
-        unsafe { create_context(CString::new(title).unwrap().into_raw(), width, height) };
-        let screen_size = Vector::new(width as f32, height as f32);
-        let window = Window {
-            screen_size,
-            scale_factor: 1.0,
-            offset: Vector::zero(),
-            keyboard: Keyboard {
-                keys: [ButtonState::NotPressed; 256]
-            },
-            mouse: Mouse {
-                pos: Vector::zero(),
-                left: ButtonState::NotPressed,
-                middle: ButtonState::NotPressed,
-                right: ButtonState::NotPressed,
-                wheel: Vector::zero()
-            }
-        };
-        let canvas = Canvas {
-            backend: Backend::new(),
-            cam: Camera::new(Rectangle::newv_sized(screen_size)),
-        };
-        (window, canvas)
+        })
     }
 }
 
@@ -126,6 +115,7 @@ pub struct Window {
     pub(crate) gl_window: glutin::GlWindow,
     #[cfg(not(target_arch="wasm32"))]
     events: EventsLoop,
+    resize: ResizeStrategy,
     scale_factor: f32,
     offset: Vector,
     screen_size: Vector,
@@ -147,9 +137,9 @@ impl Window {
         let mut running = true;
         let mut screen_size = self.screen_size;
         let mut offset = self.offset;
-        let target_ratio = self.screen_size.x / self.screen_size.y;
         let mut keyboard = self.keyboard.clone();
         let mut mouse = self.mouse.clone();
+        let resize = self.resize;
         self.events.poll_events(|event| match event {
             glutin::Event::WindowEvent { event, .. } => {
                 match event {
@@ -185,21 +175,12 @@ impl Window {
                         running = false;
                     }
                     glutin::WindowEvent::Resized(new_width, new_height) => {
-                        let window_ratio = new_width as f32 / new_height as f32;
-                        let (w, h) = if window_ratio > target_ratio {
-                            ((target_ratio * new_height as f32) as i32, new_height as i32)
-                        } else if window_ratio < target_ratio {
-                            (new_width as i32, (new_width as f32 / target_ratio) as i32)
-                        } else {
-                            (new_width as i32, new_height as i32)
-                        };
-                        let offset_x = (new_width as i32 - w) / 2;
-                        let offset_y = (new_height as i32 - h) / 2;
-                        screen_size = Vector::new(w as f32, h as f32);
-                        offset = Vector::newi(offset_x, offset_y);
-                        unsafe {
-                            gl::Viewport(offset_x, offset_y, w, h);
-                        }
+                        let new_size = Vector::new(new_width as f32, new_height as f32);
+                        let view = resize.resize(screen_size, new_size);
+                        offset = view.top_left();
+                        screen_size = view.size();
+                        unsafe { gl::Viewport(offset.x as i32, offset.y as i32, 
+                                              screen_size.x as i32, screen_size.y as i32); }
                     }
                     _ => (),
                 }
