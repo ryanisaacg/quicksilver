@@ -176,9 +176,9 @@ impl Window {
                     }
                     glutin::WindowEvent::Resized(new_width, new_height) => {
                         let new_size = Vector::new(new_width as f32, new_height as f32);
-                        let (new_offset, new_size) = resize.resize(screen_size, new_size);
-                        offset = new_offset;
-                        screen_size = new_size;
+                        let view = resize.resize(screen_size, new_size);
+                        offset = view.top_left();
+                        screen_size = view.size();
                         unsafe { gl::Viewport(offset.x as i32, offset.y as i32, 
                                               screen_size.x as i32, screen_size.y as i32); }
                     }
