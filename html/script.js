@@ -1,26 +1,6 @@
 let canvas = document.getElementById('canvas');
 let gl = canvas.getContext('webgl2');
-console.log(gl);
 let gl_objects = [];
-
-const DEFAULT_VERTEX_SHADER = `
-attribute vec2 position;
-letying vec2 tex_coord;
-letying vec4 color;
-letying lowp float uses_texture;
-void main() {
-    gl_Position = vec4(position, 0, 1);
-}`;
-
-const DEFAULT_FRAGMENT_SHADER = `
-letying highp vec4 color;
-letying highp vec2 tex_coord;
-letying lowp float uses_texture;
-uniform sampler2D tex;
-void main() {
-    highp vec4 tex_color = (int(uses_texture) != 0) ? texture2D(tex, tex_coord) : vec4(1, 1, 1, 1);
-    gl_FragColor = color * tex_color;
-}`;
 let instance = {};
 function rust_ptr_to_buffer(pointer) {
     const memory = instance.exports.memory;
