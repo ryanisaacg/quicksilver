@@ -30,6 +30,7 @@ impl State {
     }
 
     pub fn update(&mut self) -> Duration {
+        self.viewport = self.window.viewport().build(Rectangle::newi_sized(800, 600));
         self.bounds = self.bounds.translate(self.window.mouse(&self.viewport).wheel());
         Duration::from_millis(16)
     }
@@ -37,6 +38,7 @@ impl State {
     pub fn draw(&mut self) {
         self.canvas.clear(Color::white());
         self.canvas.draw_rect(self.bounds, Color::blue());
+        self.canvas.draw_rect(Rectangle::newi_sized(40, 40).translate(self.window.mouse(&self.viewport).pos()), Color::green());
         self.canvas.present(&self.window);
     }
 }
