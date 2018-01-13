@@ -171,6 +171,7 @@ impl Window {
         let mut keyboard = self.keyboard.clone();
         let mut mouse = self.mouse.clone();
         let resize = self.resize;
+        let mut was_resized = false;
         self.events.poll_events(|event| match event {
             glutin::Event::WindowEvent { event, .. } => {
                 match event {
@@ -210,6 +211,7 @@ impl Window {
                         let view = resize.resize(screen_size, new_size);
                         offset = view.top_left();
                         screen_size = view.size();
+                        was_resized = true;
                         unsafe { gl::Viewport(offset.x as i32, offset.y as i32, 
                                               screen_size.x as i32, screen_size.y as i32); }
                     }
@@ -219,6 +221,9 @@ impl Window {
             _ => (),
         });
         self.screen_size = screen_size;
+        if was_resized {
+            self.gl_window.resize(screen_size.x as u32, screen_size.y as u32);
+        }
         self.offset = offset;
         self.keyboard = keyboard;
         self.mouse = mouse;
