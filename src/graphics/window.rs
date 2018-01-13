@@ -11,6 +11,8 @@ use input::{ButtonState, Keyboard, Mouse, Viewport, ViewportBuilder };
 ///A builder that constructs a Window and its Canvas
 pub struct WindowBuilder {
     show_cursor: bool,
+    min_size: Option<Vector>,
+    max_size: Option<Vector>,
     resize: ResizeStrategy
 }
 
@@ -34,6 +36,8 @@ impl WindowBuilder {
     pub fn new() -> WindowBuilder {
         WindowBuilder {
             show_cursor: true,
+            min_size: None,
+            max_size: None,
             resize: ResizeStrategy::Fit
         }
     }
@@ -54,6 +58,25 @@ impl WindowBuilder {
         }
     }
 
+    ///Set the minimum size for the window
+    ///
+    ///On the web, this does nothing.
+    pub fn with_minimum_size(self, min_size: Vector) -> WindowBuilder {
+        WindowBuilder {
+            min_size: Some(min_size),
+            ..self
+        }
+    }
+    
+    ///Set the maximum size for the window
+    ///
+    ///On the web, this does nothing.
+    pub fn with_maximum_size(self, max_size: Vector) -> WindowBuilder {
+        WindowBuilder {
+            max_size: Some(max_size),
+            ..self
+        }
+    }
 
     ///Create a window and canvas with the given configuration
     pub fn build(self, title: &str, width: u32, height: u32) -> (Window, Canvas) {
@@ -61,8 +84,16 @@ impl WindowBuilder {
         let (gl_window, events) = {
             let events = glutin::EventsLoop::new();
             let window = glutin::WindowBuilder::new()
-                .with_title(title)
-                .with_dimensions(width, height);
+                .with_title(title);
+            let window = match self.min_size { 
+                Some(v) => window.with_min_dimensions(v.x as u32, v.y as u32),
+                None => window
+            };
+            let window = match self.max_size {
+                Some(v) => window.with_max_dimensions(v.x as u32, v.y as u32),
+                None => window
+            };
+            let window = window.with_dimensions(width, height);
             let context = glutin::ContextBuilder::new().with_vsync(true);
             let gl_window = glutin::GlWindow::new(window, context, &events).unwrap();
             unsafe {
