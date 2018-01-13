@@ -30,6 +30,7 @@ impl State {
     }
 
     pub fn update(&mut self) -> Duration {
+        self.window.clear_temporary_states();
         self.viewport = self.window.viewport().build(Rectangle::newi_sized(800, 600));
         self.bounds = self.bounds.translate(self.window.mouse(&self.viewport).wheel());
         Duration::from_millis(16)

@@ -9,20 +9,8 @@ pub struct Keyboard {
 
 impl Keyboard {
     pub(crate) fn process_event(&mut self, keycode: usize, pressed: bool) {
-        let previous_state = self.keys[keycode];
-        self.keys[keycode] = if pressed {
-            if previous_state.is_down() {
-                ButtonState::Held
-            } else {
-                ButtonState::Pressed
-            }
-        } else {
-            if previous_state.is_down() {
-                ButtonState::Released
-            } else {
-                ButtonState::NotPressed
-            }
-        };
+        self.keys[keycode] = self.keys[keycode].update(if pressed { ButtonState::Pressed } 
+                                                       else { ButtonState::Released });
     }
 
     pub(crate) fn clear_temporary_states(&mut self) {
@@ -59,11 +47,11 @@ mod tests {
         keyboard.process_event(Key::A as usize, true);
         assert_eq!(keyboard[Key::A], ButtonState::Pressed);
         keyboard.process_event(Key::A as usize, true);
-        assert_eq!(keyboard[Key::A], ButtonState::Held);
+        assert_eq!(keyboard[Key::A], ButtonState::Pressed);
         keyboard.process_event(Key::A as usize, false);
         assert_eq!(keyboard[Key::A], ButtonState::Released);
         keyboard.process_event(Key::A as usize, false);
-        assert_eq!(keyboard[Key::A], ButtonState::NotPressed);
+        assert_eq!(keyboard[Key::A], ButtonState::Released);
     }
 
     #[test]

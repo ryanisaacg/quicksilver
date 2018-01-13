@@ -54,6 +54,7 @@ impl State {
     }
 
     fn update(&mut self) -> Duration {
+        self.window.clear_temporary_states();
         let keyboard = self.window.keyboard();
         self.player.speed += Vector::y() * 0.5;
         if self.player.speed.x.abs() < 0.3 {

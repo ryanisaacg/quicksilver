@@ -13,7 +13,8 @@ pub struct WindowBuilder {
     show_cursor: bool,
     min_size: Option<Vector>,
     max_size: Option<Vector>,
-    resize: ResizeStrategy
+    resize: ResizeStrategy,
+    fullscreen: bool
 }
 
 #[cfg(target_arch="wasm32")]
@@ -28,6 +29,7 @@ extern "C" {
     fn mouse_scroll_type() -> u32;
     fn mouse_scroll_x() -> f32;
     fn mouse_scroll_y() -> f32;
+    fn set_fullscreen(fullscreen: bool);
 }
 
 
@@ -38,7 +40,8 @@ impl WindowBuilder {
             show_cursor: true,
             min_size: None,
             max_size: None,
-            resize: ResizeStrategy::Fit
+            resize: ResizeStrategy::Fit,
+            fullscreen: false
         }
     }
    
@@ -78,6 +81,14 @@ impl WindowBuilder {
         }
     }
 
+    ///Sets if the window should be fullscreen or not
+    pub fn with_fullscreen(self, fullscreen: bool) -> WindowBuilder {
+        WindowBuilder {
+            fullscreen,
+            ..self
+        }
+    }
+
     ///Create a window and canvas with the given configuration
     pub fn build(self, title: &str, width: u32, height: u32) -> (Window, Canvas) {
         #[cfg(not(target_arch="wasm32"))]
@@ -106,8 +117,11 @@ impl WindowBuilder {
         };
         #[cfg(target_arch="wasm32")] {
             use std::ffi::CString;
-            unsafe { set_show_mouse(self.show_cursor) };
-            unsafe { create_context(CString::new(title).unwrap().into_raw(), width, height) };
+            unsafe { 
+                set_show_mouse(self.show_cursor);
+                create_context(CString::new(title).unwrap().into_raw(), width, height);
+                set_fullscreen(self.fullscreen);
+            }
         }
         let screen_size = Vector::new(width as f32, height as f32);
         #[cfg(not(target_arch="wasm32"))]
@@ -160,10 +174,14 @@ impl Window {
         self.poll_events_impl()
     }
 
-    #[cfg(not(target_arch="wasm32"))]
-    fn poll_events_impl(&mut self) -> bool {
+    ///Transition temporary input states (Pressed, Released) into sustained ones (Held, NotPressed)
+    pub fn clear_temporary_states(&mut self) {
         self.keyboard.clear_temporary_states();
         self.mouse.clear_temporary_states();
+    }
+
+    #[cfg(not(target_arch="wasm32"))]
+    fn poll_events_impl(&mut self) -> bool {
         let scale_factor = self.gl_window.hidpi_factor();
         let mut running = true;
         let mut screen_size = self.screen_size;
@@ -232,8 +250,6 @@ impl Window {
     
     #[cfg(target_arch="wasm32")]
     fn poll_events_impl(&mut self) -> bool {
-        self.keyboard.clear_temporary_states();
-        self.mouse.clear_temporary_states();
         let mut key = unsafe { pump_key_queue() };
         while key != 0 {
             self.keyboard.process_event(key.abs() as usize - 1, key > 0);
