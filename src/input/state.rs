@@ -12,6 +12,14 @@ pub enum ButtonState {
 }
 
 impl ButtonState {
+    pub(crate) fn update(&self, new: ButtonState) -> ButtonState {
+        match (self.is_down(), new.is_down()) {
+            (false, true) => ButtonState::Pressed,
+            (true, false) => ButtonState::Released,
+            _ => self.clone()
+        }
+    }
+
     /// Determine if the button is either Pressed or Held
     pub fn is_down(&self) -> bool {
         match *self {
