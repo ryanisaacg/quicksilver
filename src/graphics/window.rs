@@ -18,16 +18,16 @@ pub struct WindowBuilder {
 
 #[cfg(target_arch="wasm32")]
 extern "C" {
-    pub fn set_show_mouse(show: bool);
-    pub fn create_context(title: *mut i8, width: u32, height: u32);
-    pub fn get_mouse_x() -> f32;
-    pub fn get_mouse_y() -> f32;
-    pub fn pump_key_queue() -> i32;
-    pub fn pump_mouse_queue() -> i32;
-    pub fn mouse_scroll_clear();
-    pub fn mouse_scroll_type() -> u32;
-    pub fn mouse_scroll_x() -> f32;
-    pub fn mouse_scroll_y() -> f32;
+    fn set_show_mouse(show: bool);
+    fn create_context(title: *mut i8, width: u32, height: u32);
+    fn get_mouse_x() -> f32;
+    fn get_mouse_y() -> f32;
+    fn pump_key_queue() -> i32;
+    fn pump_mouse_queue() -> i32;
+    fn mouse_scroll_clear();
+    fn mouse_scroll_type() -> u32;
+    fn mouse_scroll_x() -> f32;
+    fn mouse_scroll_y() -> f32;
 }
 
 
