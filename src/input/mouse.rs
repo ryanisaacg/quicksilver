@@ -35,9 +35,9 @@ impl Mouse {
             glutin::ElementState::Released => ButtonState::Released,
         };
         match button {
-            glutin::MouseButton::Left => self.left = value,
-            glutin::MouseButton::Right => self.right = value,
-            glutin::MouseButton::Middle => self.middle = value,
+            glutin::MouseButton::Left => self.left = self.left.update(value),
+            glutin::MouseButton::Right => self.right = self.right.update(value),
+            glutin::MouseButton::Middle => self.middle = self.middle.update(value),
             _ => (),
         }
     }
