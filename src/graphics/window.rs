@@ -20,6 +20,7 @@ pub struct WindowBuilder {
 extern "C" {
     fn set_show_mouse(show: bool);
     fn create_context(title: *mut i8, width: u32, height: u32);
+    fn set_title(title: *mut i8);
     fn get_mouse_x() -> f32;
     fn get_mouse_y() -> f32;
     fn pump_key_queue() -> i32;
@@ -282,4 +283,19 @@ impl Window {
         }
     }
 
+    ///Set the title of the Window
+    pub fn set_title(&self, title: &str) {
+        self.set_title_impl(title);
+    }
+
+    #[cfg(not(target_arch="wasm32"))]
+    fn set_title_impl(&self, title: &str) {
+        self.gl_window.set_title(title);
+    }
+    
+    #[cfg(target_arch="wasm32")]
+    fn set_title_impl(&self, title: &str) {
+        use std::ffi::CString;
+        unsafe { set_title(CString::new(title).unwrap().into_raw()) };
+    }
 }
