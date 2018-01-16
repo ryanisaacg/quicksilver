@@ -13,7 +13,6 @@ pub struct WindowBuilder {
     min_size: Option<Vector>,
     max_size: Option<Vector>,
     resize: ResizeStrategy,
-    fullscreen: bool
 }
 
 #[cfg(target_arch="wasm32")]
@@ -29,7 +28,6 @@ extern "C" {
     fn mouse_scroll_type() -> u32;
     fn mouse_scroll_x() -> f32;
     fn mouse_scroll_y() -> f32;
-    fn set_fullscreen(fullscreen: bool);
 }
 
 
@@ -41,7 +39,6 @@ impl WindowBuilder {
             min_size: None,
             max_size: None,
             resize: ResizeStrategy::Fit,
-            fullscreen: false
         }
     }
    
@@ -81,14 +78,6 @@ impl WindowBuilder {
         }
     }
 
-    ///Sets if the window should be fullscreen or not
-    pub fn with_fullscreen(self, fullscreen: bool) -> WindowBuilder {
-        WindowBuilder {
-            fullscreen,
-            ..self
-        }
-    }
-
     ///Create a window and canvas with the given configuration
     pub fn build(self, title: &str, width: u32, height: u32) -> (Window, Canvas) {
         #[cfg(not(target_arch="wasm32"))]
@@ -120,7 +109,6 @@ impl WindowBuilder {
             unsafe { 
                 set_show_mouse(self.show_cursor);
                 create_context(CString::new(title).unwrap().into_raw(), width, height);
-                set_fullscreen(self.fullscreen);
             }
         }
         let screen_size = Vector::new(width as f32, height as f32);
