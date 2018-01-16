@@ -81,13 +81,14 @@ let env = {
     mouse_scroll_y: () => mouse.scroll_y,
     print: (pointer) => console.log(rust_str_to_js(pointer)),
     set_show_mouse: (show) => canvas.style.cursor = show ? "auto" : "none",
-    create_context: function(title, width, height) {
+    create_context: (title, width, height) => {
         document.title = rust_str_to_js(title);
         canvas.width = width;
         canvas.height = height;
         gl.viewportWidth = width;
         gl.viewportHeight = height;
     },
+    set_title: (title) => document.title = rust_str_to_js(title),
     load_image: (pointer) => {
         const image = new Image();
         image.src = rust_str_to_js(pointer);

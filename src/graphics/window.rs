@@ -1,4 +1,3 @@
-#[cfg(not(target_arch="wasm32"))]
 use gl;
 #[cfg(not(target_arch="wasm32"))]
 use glutin;
@@ -21,6 +20,7 @@ pub struct WindowBuilder {
 extern "C" {
     fn set_show_mouse(show: bool);
     fn create_context(title: *mut i8, width: u32, height: u32);
+    fn set_title(title: *mut i8);
     fn get_mouse_x() -> f32;
     fn get_mouse_y() -> f32;
     fn pump_key_queue() -> i32;
@@ -184,12 +184,10 @@ impl Window {
     fn poll_events_impl(&mut self) -> bool {
         let scale_factor = self.gl_window.hidpi_factor();
         let mut running = true;
-        let mut screen_size = self.screen_size;
-        let mut offset = self.offset;
         let mut keyboard = self.keyboard.clone();
         let mut mouse = self.mouse.clone();
-        let resize = self.resize;
-        let mut was_resized = false;
+        let mut resized = None;
+        let offset = self.offset;
         self.events.poll_events(|event| match event {
             glutin::Event::WindowEvent { event, .. } => {
                 match event {
@@ -225,24 +223,16 @@ impl Window {
                         running = false;
                     }
                     glutin::WindowEvent::Resized(new_width, new_height) => {
-                        let new_size = Vector::new(new_width as f32, new_height as f32);
-                        let view = resize.resize(screen_size, new_size);
-                        offset = view.top_left();
-                        screen_size = view.size();
-                        was_resized = true;
-                        unsafe { gl::Viewport(offset.x as i32, offset.y as i32, 
-                                              screen_size.x as i32, screen_size.y as i32); }
+                        resized = Some(Vector::new(new_width as f32, new_height as f32));
                     }
                     _ => (),
                 }
             }
             _ => (),
         });
-        self.screen_size = screen_size;
-        if was_resized {
-            self.gl_window.resize(screen_size.x as u32, screen_size.y as u32);
+        if let Some(vector) = resized {
+            self.adjust_size(vector);
         }
-        self.offset = offset;
         self.keyboard = keyboard;
         self.mouse = mouse;
         running
@@ -276,12 +266,37 @@ impl Window {
         true
     }
 
+    ///Handle the available size for the window changing
+    fn adjust_size(&mut self, available: Vector) {
+        let view = self.resize.resize(self.screen_size, available);
+        self.offset = view.top_left();
+        self.screen_size = view.size();
+        unsafe { gl::Viewport(self.offset.x as i32, self.offset.y as i32, 
+                              self.screen_size.x as i32, self.screen_size.y as i32); }
+        #[cfg(not(target_arch="wasm32"))]
+        self.gl_window.resize(self.screen_size.x as u32, self.screen_size.y as u32);
+    }
+
+
     ///Create a viewport builder
     pub fn viewport(&self) -> ViewportBuilder {
         ViewportBuilder {
             screen_size: self.screen_size / self.scale_factor,
             transform: Transform::identity()
         }
+    }
+
+    ///Get the resize strategy used by the window
+    pub fn resize_strategy(&self) -> ResizeStrategy {
+        self.resize
+    }
+    
+    ///Switch the strategy the window uses to display content when the available area changes
+    pub fn set_resize_strategy(&mut self, resize: ResizeStrategy) {
+        //Find the previous window size and reconfigure to match the new strategy
+        let available = self.resize.get_window_size(self.offset, self.screen_size);
+        self.resize = resize;
+        self.adjust_size(available);
     }
 
     ///Get the screen size
@@ -303,4 +318,19 @@ impl Window {
         }
     }
 
+    ///Set the title of the Window
+    pub fn set_title(&self, title: &str) {
+        self.set_title_impl(title);
+    }
+
+    #[cfg(not(target_arch="wasm32"))]
+    fn set_title_impl(&self, title: &str) {
+        self.gl_window.set_title(title);
+    }
+    
+    #[cfg(target_arch="wasm32")]
+    fn set_title_impl(&self, title: &str) {
+        use std::ffi::CString;
+        unsafe { set_title(CString::new(title).unwrap().into_raw()) };
+    }
 }
