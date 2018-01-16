@@ -1,7 +1,7 @@
 [package]
 name = "quicksilver"
 description = "A simple game framework for 2D games in pure Rust"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Ryan Goldstein <ryanisaacg@gmail.com>"]
 repository = "https://github.com/ryanisaacg/quicksilver"
 readme = "README.md"
@@ -10,10 +10,10 @@ keywords = ["game", "audio", "graphics", "gamedev"]
 categories = ["game-engines"]
 
 [dependencies]
-gl = "0.7"
+gl = "0.9"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-glutin = "0.11"
+glutin = "0.12"
 image = "0.18"
 rand = "0.4.1"
 rodio = "0.5"
