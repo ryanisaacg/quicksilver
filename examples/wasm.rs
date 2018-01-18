@@ -4,13 +4,12 @@ extern crate quicksilver;
 use quicksilver::asset::{Loadable, LoadingAsset};
 use quicksilver::graphics::{Canvas, Color, Image, WindowBuilder, Window};
 use quicksilver::geom::Rectangle;
-use quicksilver::input::{Key, Viewport};
+use quicksilver::input::Key;
 use std::time::Duration;
 
 pub struct State {
     window: Window,
     canvas: Canvas,
-    viewport: Viewport,
     image: LoadingAsset<Image>
 }
 
@@ -19,8 +18,7 @@ impl State {
         let (window, canvas) = WindowBuilder::new()
             .build("WASM", 800, 600);
         let image = Image::load("image.png");
-        let viewport = window.viewport().build(Rectangle::newi_sized(800, 600));
-        State { window, canvas, viewport, image }
+        State { window, canvas, image }
     }
 
     pub fn events(&mut self) -> bool {
@@ -39,7 +37,7 @@ impl State {
             LoadingAsset::Loading(_) => {},
             LoadingAsset::Errored(_) => {},
             LoadingAsset::Loaded(ref image) => 
-                self.canvas.draw_image(image, self.window.mouse(&self.viewport).pos())
+                self.canvas.draw_image(image, self.window.mouse().pos())
         }
         self.canvas.present(&self.window);
     }

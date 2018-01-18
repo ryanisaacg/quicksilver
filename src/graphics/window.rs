@@ -4,8 +4,8 @@ use glutin;
 use geom::{ Rectangle, Transform, Vector};
 #[cfg(not(target_arch="wasm32"))]
 use glutin::{EventsLoop, GlContext};
-use graphics::{Backend, Camera, Canvas, ResizeStrategy};
-use input::{ButtonState, Keyboard, Mouse, Viewport, ViewportBuilder };
+use graphics::{Backend, Canvas, ResizeStrategy, View};
+use input::{ButtonState, Keyboard, Mouse};
 
 ///A builder that constructs a Window and its Canvas
 pub struct WindowBuilder {
@@ -116,6 +116,7 @@ impl WindowBuilder {
         let scale_factor = gl_window.hidpi_factor();
         #[cfg(target_arch="wasm32")]
         let scale_factor = 1f32;
+        let view = View::new(Rectangle::newv_sized(screen_size));
         (Window {
             #[cfg(not(target_arch="wasm32"))]
             gl_window,
@@ -134,10 +135,11 @@ impl WindowBuilder {
                 middle: ButtonState::NotPressed,
                 right: ButtonState::NotPressed,
                 wheel: Vector::zero()
-            }
+            },
+            view
         }, Canvas {
             backend: Backend::new(),
-            cam: Camera::new(Rectangle::newv_sized(screen_size)),
+            view
         })
     }
 }
@@ -154,6 +156,7 @@ pub struct Window {
     screen_size: Vector,
     keyboard: Keyboard,
     mouse: Mouse,
+    view: View,
 }
 
 impl Window {
@@ -266,12 +269,14 @@ impl Window {
     }
 
 
-    ///Create a viewport builder
-    pub fn viewport(&self) -> ViewportBuilder {
-        ViewportBuilder {
-            screen_size: self.screen_size / self.scale_factor,
-            transform: Transform::identity()
-        }
+    ///Get the view from the window
+    pub fn view(&self) -> View {
+        self.view
+    }
+
+    ///Set the view the window uses
+    pub fn set_view(&mut self, view: View) {
+        self.view = view;
     }
 
     ///Get the resize strategy used by the window
@@ -292,6 +297,16 @@ impl Window {
         self.screen_size
     }
 
+    ///Get the unprojection matrix according to the View
+    pub fn unproject(&self) -> Transform {
+        Transform::scale(self.screen_size / self.scale_factor)
+            * self.view.normalize
+    }
+    
+    ///Get the projection matrix according to the View
+    pub fn project(&self) -> Transform {
+        self.unproject().inverse()
+    }
 
     ///Get a reference to the keyboard
     pub fn keyboard(&self) -> &Keyboard {
@@ -299,9 +314,9 @@ impl Window {
     }
 
     ///Create a mouse builder
-    pub fn mouse(&self, viewport: &Viewport) -> Mouse {
+    pub fn mouse(&self) -> Mouse {
         Mouse {
-            pos: viewport.project() * self.mouse.pos,
+            pos: self.project() * self.mouse.pos,
             ..self.mouse.clone()
         }
     }
