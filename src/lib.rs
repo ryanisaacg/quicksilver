@@ -57,6 +57,11 @@ extern crate image;
 extern crate rand;
 #[cfg(not(target_arch="wasm32"))]
 extern crate rodio;
+extern crate serde;
+extern crate serde_json;
+
+#[macro_use]
+extern crate serde_derive;
 
 mod gl;
 pub mod asset;

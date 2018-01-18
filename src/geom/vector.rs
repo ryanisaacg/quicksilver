@@ -5,7 +5,7 @@ use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssi
 use std::cmp::{Eq, PartialEq};
 use std::fmt;
 
-#[derive(Copy, Clone, Default, Debug)]
+#[derive(Copy, Clone, Default, Debug, Deserialize, Serialize)]
 ///A 2D vector with an arbitrary numeric type
 pub struct Vector {
     ///The x coordinate of the vector

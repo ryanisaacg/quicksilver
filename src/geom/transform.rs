@@ -5,7 +5,7 @@ use std::fmt;
 use std::default::Default;
 use std::cmp::{Eq, PartialEq};
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Deserialize, Serialize)]
 ///A 2D transformation represented by a matrix
 pub struct Transform([[f32; 3]; 3]);
 

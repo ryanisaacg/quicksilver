@@ -1,7 +1,7 @@
 use super::{about_equal, Line, Rectangle, Vector};
 use std::cmp::{Eq, PartialEq};
 
-#[derive(Clone, Copy, Default, Debug)]
+#[derive(Clone, Copy, Default, Debug, Deserialize, Serialize)]
 ///A circle with a center and a radius
 pub struct Circle {
     /// The x coordinate of the center

@@ -11,6 +11,9 @@ categories = ["game-engines"]
 
 [dependencies]
 gl = "0.9"
+serde = "1.0"
+serde_derive = "1.0"
+serde_json = "1.0"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 glutin = "0.12"
