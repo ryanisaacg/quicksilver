@@ -87,13 +87,9 @@ fn save_impl<T: Serialize>(_appname: &str, profile: &str, data: &T) -> Result<()
 fn load_impl<T>(_appname: &str, profile: &str) -> Result<T, Error>
         where for<'de> T: Deserialize<'de> {
     extern "C" {
-        fn get_cookie_length(key: *const i8) -> usize;
-        fn load_cookie(key: *const i8, val: *mut i8);
+        fn load_cookie(key: *const i8) -> *mut i8;
     }
     let key = CString::new(profile).unwrap().into_raw();
-    let length = unsafe { get_cookie_length(key) };
-    let buffer = Vec::with_capacity(length).as_mut_slice().as_mut_ptr();
-    unsafe { load_cookie(key, buffer) };
-    let string = unsafe { CString::from_raw(buffer) }.into_string().unwrap();
+    let string = unsafe { CString::from_raw(load_cookie(key)) }.into_string().unwrap();
     serde_json::from_str(string.as_str())
 }

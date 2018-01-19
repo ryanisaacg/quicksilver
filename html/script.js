@@ -180,6 +180,24 @@ let env = {
     get_image_id: (index) => assets[index].id,
     get_image_width: (index) => assets[index].width,
     get_image_height: (index) => assets[index].height,
+    save_cookie: (key_ptr, val_ptr) => document.cookie = rust_str_to_js(key_ptr) + "=" + rust_str_to_js(val_ptr) + ";",
+    load_cookie: (key_ptr) => {
+        const key = rust_str_to_js(key_ptr);
+        const name = key + "=";
+        const decodedCookie = decodeURIComponent(document.cookie);
+        const ca = decodedCookie.split(';');
+        let value = '';
+        for(let i = 0; i < ca.length; i++) {
+            let c = ca[i];
+            while (c.charAt(0) == ' ') {
+                c = c.substring(1);
+            }
+            if (c.indexOf(name) == 0) {
+                value = c.substring(name.length, c.length);
+            }
+        }
+        return js_str_to_rust(value);
+    },
     log_num: function(x) { console.log(x); },
     ActiveTexture: gl.activeTexture.bind(gl),
     AttachShader: (progindex, shadeindex) => gl.attachShader(gl_objects[progindex], gl_objects[shadeindex]),
