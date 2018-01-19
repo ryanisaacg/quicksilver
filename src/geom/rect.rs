@@ -1,7 +1,7 @@
 use super::{about_equal, Circle, Line, Vector};
 use std::cmp::{Eq, PartialEq};
 
-#[derive(Clone, Copy, Default, Debug)]
+#[derive(Clone, Copy, Default, Debug, Deserialize, Serialize)]
 ///A rectangle with a top-left position and a size
 pub struct Rectangle {
     ///The top-left x coordinate of the rectangle

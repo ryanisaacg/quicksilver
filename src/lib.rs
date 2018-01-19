@@ -57,12 +57,18 @@ extern crate image;
 extern crate rand;
 #[cfg(not(target_arch="wasm32"))]
 extern crate rodio;
+extern crate serde;
+extern crate serde_json;
+
+#[macro_use]
+extern crate serde_derive;
 
 mod gl;
 pub mod asset;
 pub mod geom;
 pub mod graphics;
 pub mod input;
+pub mod saving;
 pub mod sound;
 mod timer;
 pub use self::timer::Timer;
@@ -73,6 +79,13 @@ pub use self::timer::Timer;
 pub unsafe extern "C" fn deallocate_cstring(string: *mut i8) {
     use std::ffi::CString;
     CString::from_raw(string);
+}
+
+#[no_mangle]
+#[cfg(target_arch="wasm32")]
+#[doc(hidden)]
+pub unsafe extern "C" fn allocate_memory(length: usize) -> *mut i8 {
+    Vec::with_capacity(length).as_mut_slice().as_mut_ptr()
 }
 
 

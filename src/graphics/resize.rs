@@ -1,6 +1,6 @@
 use geom::{Rectangle, Vector};
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Deserialize, Serialize)]
 ///The way to adjust the content when the size of the window changes
 pub enum ResizeStrategy {
     ///Use black bars to keep the size exactly the same

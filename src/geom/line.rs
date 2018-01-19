@@ -1,6 +1,6 @@
 use super::Vector;
 
-#[derive(Copy, Clone, Default, Debug, Eq, PartialEq)]
+#[derive(Copy, Clone, Default, Debug, Eq, PartialEq, Deserialize, Serialize)]
 ///Represents a 2D line segment
 pub struct Line {
     ///One of the two points of the line segment
