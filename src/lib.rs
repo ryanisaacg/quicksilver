@@ -68,6 +68,7 @@ pub mod asset;
 pub mod geom;
 pub mod graphics;
 pub mod input;
+pub mod saving;
 pub mod sound;
 mod timer;
 pub use self::timer::Timer;
