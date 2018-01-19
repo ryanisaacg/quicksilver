@@ -38,7 +38,7 @@ use std::path::PathBuf;
 use std::fs::File;
 
 #[cfg(not(target_arch="wasm32"))]
-fn get_save_location(appname: &str, profile: &str) -> PathBuf{
+fn get_save_folder(appname: &str) -> PathBuf {
     use std::env;
     let mut path = env::home_dir().unwrap();
     let location = if cfg!(windows) { "AppData" } 
@@ -46,12 +46,20 @@ fn get_save_location(appname: &str, profile: &str) -> PathBuf{
         else { ".config" };
     path.push(location);
     path.push(appname);
+    path
+}
+
+#[cfg(not(target_arch="wasm32"))]
+fn get_save_location(appname: &str, profile: &str) -> PathBuf {
+    let mut path = get_save_folder(appname);
     path.push(profile);
     path
 }
 
 #[cfg(not(target_arch="wasm32"))]
 fn save_impl<T: Serialize>(appname: &str, profile: &str, data: &T) -> Result<(), Error> {
+    use std::fs::DirBuilder;
+    DirBuilder::new().recursive(true).create(get_save_folder(appname)).unwrap();
     serde_json::to_writer(File::create(get_save_location(appname, profile)).unwrap(), data)
 }
 
