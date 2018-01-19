@@ -5,24 +5,29 @@ use geom::{Circle, Line, Rectangle, Shape, Transform, Vector};
 #[cfg(not(target_arch="wasm32"))]
 use glutin::{GlContext};
 use graphics::Window;
-use graphics::{Backend, Camera, Color, Image, Vertex};
+use graphics::{Backend, Color, Image, Vertex, View};
 
 ///The way to draw items to the screen, produced by WindowBuilder
 pub struct Canvas {
     pub(crate) backend: Backend,
-    pub(crate) cam: Camera,
+    pub(crate) view: View,
 }
 
 const CIRCLE_POINTS: usize = 32; //the number of points in the poly to simulate the circle
 
 impl Canvas {
     ///Set the camera view for the Canvas
-    pub fn set_camera(&mut self, cam: Camera) {
-        self.cam = cam;
+    pub fn set_view(&mut self, view: View) {
+        self.view = view;
+    }
+
+    ///Get the camera view for the Canvas
+    pub fn view(&self) -> View {
+        self.view
     }
 
     fn camera(&self) -> Transform {
-        self.cam.transform()
+        self.view.opengl
     }
 
     ///Clear the screen to a given color
@@ -185,7 +190,7 @@ mod tests {
     fn test_backend() {
         let mut canvas = Canvas {
             backend: Backend::new(),
-            cam: Camera::new(Rectangle::newi(-1, -1, 2, 2))
+            view: View::new(Rectangle::newi(-1, -1, 2, 2))
         };
         canvas.draw_shape(Shape::Rect(Rectangle::newi(-1, -1, 0, 0)), Color::white());
         let expected_vertices = &[-1f32, 1f32, 0f32, 0f32, 1f32, 1f32, 1f32, 1f32, 0f32, -1f32, 
