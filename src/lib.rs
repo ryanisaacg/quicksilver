@@ -81,6 +81,13 @@ pub unsafe extern "C" fn deallocate_cstring(string: *mut i8) {
     CString::from_raw(string);
 }
 
+#[no_mangle]
+#[cfg(target_arch="wasm32")]
+#[doc(hidden)]
+pub unsafe extern "C" fn allocate_memory(length: usize) -> *mut i8 {
+    Vec::with_capacity(length).as_mut_slice().as_mut_ptr()
+}
+
 
 #[macro_export]
 /// A macro that defines the main functions required for native and web

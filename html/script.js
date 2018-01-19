@@ -14,6 +14,15 @@ function rust_str_to_js(pointer) {
     instance.exports.deallocate_cstring(pointer);
     return string;
 }
+function js_str_to_rust(string) {
+    const pointer = instance.exports.allocate_memory(string.length + 1);
+    const buffer = rust_ptr_to_buffer(pointer);
+    for(let i = 0; i < string.length; i++) {
+        buffer[i] = string.charCodeAt(i)
+    }
+    buffer[string.length] = 0;
+    return pointer;
+}
 //Generate the keycodes from an in-order list that maps to the Glutin keycodes in rust
 const keynames = ["Digit1", "Digit2", "Digit3", "Digit4", "Digit5", "Digit6", "Digit7", "Digit8", "Digit9", "Digit0", "KeyA", "KeyB", "KeyC", "KeyD", "KeyE", "KeyF", "KeyG", "KeyH", "KeyI", "KeyJ", "KeyK", "KeyL", "KeyM", 
     "KeyN", "KeyO", "KeyP", "KeyQ", "KeyR", "KeyS", "KeyT", "KeyU", "KeyV", "KeyW", "KeyX", "KeyY", "KeyZ", "Escape", "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12", 
