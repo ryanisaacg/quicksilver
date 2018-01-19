@@ -19,7 +19,7 @@ use serde_json::Error;
 ///The appname should be some constant; this is used to name the file to place the save in on
 ///Desktop platforms. The profile should allow multiple saves of the same game (save slots,
 ///numbered saves, different players) etc.
-pub fn save<T: Serialize>(appname: &str, profile: &str, data: T) -> Result<(), Error> {
+pub fn save<T: Serialize>(appname: &str, profile: &str, data: &T) -> Result<(), Error> {
     save_impl(appname, profile, data)
 }
 
@@ -51,8 +51,8 @@ fn get_save_location(appname: &str, profile: &str) -> PathBuf{
 }
 
 #[cfg(not(target_arch="wasm32"))]
-fn save_impl<T: Serialize>(appname: &str, profile: &str, data: T) -> Result<(), Error> {
-    serde_json::to_writer(File::open(get_save_location(appname, profile)).unwrap(), &data)
+fn save_impl<T: Serialize>(appname: &str, profile: &str, data: &T) -> Result<(), Error> {
+    serde_json::to_writer(File::create(get_save_location(appname, profile)).unwrap(), data)
 }
 
 #[cfg(not(target_arch="wasm32"))]
@@ -65,12 +65,12 @@ fn load_impl<T>(appname: &str, profile: &str) -> Result<T, Error>
 use std::ffi::CString;
 
 #[cfg(target_arch="wasm32")]
-fn save_impl<T: Serialize>(_appname: &str, profile: &str, data: T) -> Result<(), Error> {
+fn save_impl<T: Serialize>(_appname: &str, profile: &str, data: &T) -> Result<(), Error> {
     extern "C" {
         fn save_cookie(key: *const i8, val: *const i8);
     }
     let key = CString::new(profile).unwrap().into_raw();
-    let val = CString::new(serde_json::to_string(&data)?).unwrap().into_raw();
+    let val = CString::new(serde_json::to_string(data)?).unwrap().into_raw();
     unsafe { save_cookie(key, val) };
     Ok(())
 }
