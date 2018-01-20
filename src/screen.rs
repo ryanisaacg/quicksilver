@@ -1,6 +1,17 @@
 
 use graphics::{Canvas, Window};
 
+/// The first Screen in the application
+///
+/// It is responsible for creating and configuring the window
+pub trait InitialScreen: Screen {
+    /// Create a Window and a Canvas to be used in the application
+    fn configure() -> (Window, Canvas);
+
+    /// Create the screen
+    fn new() -> Self;
+}
+
 /// A screen in an application meant to be used with screens_loop!
 ///
 /// Screens are responsible for managing their own internal state
@@ -46,13 +57,13 @@ impl Application {
 ///
 /// It takes a typename where the type implements the Screen trait and has a 'new' function and runs the event loop.
 macro_rules! screens_loop {
-    ($Start: tt, $title: tt, $width: tt, $height: tt) => (
+    ($Start: tt) => (
         use quicksilver::Application;
 
         #[no_mangle]
         #[cfg(target_arch="wasm32")]
         pub extern "C" fn init() -> *mut Application {
-            let (window, canvas) = WindowBuilder::new().build($title, $width, $height);
+            let (window, canvas) = $Start::configure();
             let state = Box::new($Start::new());
             Box::into_raw(Box::new(Application { state, window, canvas }))
         }
@@ -82,7 +93,7 @@ macro_rules! screens_loop {
         fn main() {
             use std::time::Duration;
             let mut timer = quicksilver::Timer::new();
-            let (window, canvas) = WindowBuilder::new().build($title, $width, $height);
+            let (window, canvas) = $Start::configure();
             let screen = Box::new($Start::new());
             let mut app = Application { screen, window, canvas };
             while app.events() {

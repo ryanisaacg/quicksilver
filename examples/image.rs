@@ -4,21 +4,24 @@ extern crate quicksilver;
 use quicksilver::asset::{Loadable, LoadingAsset};
 use quicksilver::geom::Vector;
 use quicksilver::graphics::{Canvas, Color, Image, Window, WindowBuilder};
-use quicksilver::Screen;
+use quicksilver::{InitialScreen, Screen};
 
 struct Loading {
     image: LoadingAsset<Image>
 }
 
+impl InitialScreen for Loading {
+    fn configure() -> (Window, Canvas) {
+        WindowBuilder::new()
+            .build("Image Example", 800, 600)
+    }
 
-impl Loading {
     fn new() -> Loading {
         Loading {
             image: Image::load("examples/image.png")
         }
     }
 }
-
 
 impl Screen for Loading {
     fn update(&mut self, _window: &mut Window, _canvas: &mut Canvas) -> Option<Box<Screen>> {
@@ -52,4 +55,4 @@ impl Screen for Loaded {
     }
 }
 
-screens_loop!(Loading, "Image Example", 800, 600);
+screens_loop!(Loading);
