@@ -28,6 +28,31 @@ pub trait Loadable: Sized + Clone {
     fn parse_result(handle: LoadingHandle, loaded: bool, errored: bool) -> LoadingAsset<Self>;
 }
 
+/// Update all assets in a given mutable slice
+///
+/// If all assets have finished loading, a Vec of all the assets is returned. Otherwise None is
+/// returned.
+pub fn update_all<T: Loadable>(assets: &mut [LoadingAsset<T>]) -> Option<Vec<T>> {
+    let all_loaded = assets.iter_mut().fold(true, |mut loaded, asset| {
+        asset.update();
+        match asset {
+            &mut LoadingAsset::Loaded(_) => (),
+            _ => loaded = false
+        }
+        loaded
+    });
+    if all_loaded {
+        Some(assets.iter().map(|item| 
+            match item {
+                &LoadingAsset::Loaded(ref asset) => asset.clone(),
+                _ => unreachable!()
+            }).collect())
+    } else {
+        None
+    }
+}
+
+
 #[derive(Clone)]
 ///An opaque object that represents the still-loading state of an asset
 pub struct LoadingHandle(pub(crate) u32);
