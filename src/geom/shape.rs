@@ -1,6 +1,6 @@
 use super::{Circle, Line, Rectangle, Vector};
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize, Serialize)]
 ///A universal shape union
 #[allow(missing_docs)]
 pub enum Shape {
