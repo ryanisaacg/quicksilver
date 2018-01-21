@@ -32,11 +32,11 @@ pub trait Loadable: Sized + Clone {
 ///
 /// If all assets have finished loading, a Vec of all the assets is returned. Otherwise None is
 /// returned.
-pub fn update_all<T: Loadable>(assets: &mut [LoadingAsset<T>]) -> Option<Vec<T>> {
+pub fn update_all<T: Loadable>(assets: &mut [&mut LoadingAsset<T>]) -> Option<Vec<T>> {
     let all_loaded = assets.iter_mut().fold(true, |mut loaded, asset| {
         asset.update();
         match asset {
-            &mut LoadingAsset::Loaded(_) => (),
+            &mut &mut LoadingAsset::Loaded(_) => (),
             _ => loaded = false
         }
         loaded
@@ -44,7 +44,7 @@ pub fn update_all<T: Loadable>(assets: &mut [LoadingAsset<T>]) -> Option<Vec<T>>
     if all_loaded {
         Some(assets.iter().map(|item| 
             match item {
-                &LoadingAsset::Loaded(ref asset) => asset.clone(),
+                &&mut LoadingAsset::Loaded(ref asset) => asset.clone(),
                 _ => unreachable!()
             }).collect())
     } else {
