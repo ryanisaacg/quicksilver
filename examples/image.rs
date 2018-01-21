@@ -2,7 +2,7 @@
 extern crate quicksilver;
 
 use quicksilver::asset::{Loadable, LoadingAsset};
-use quicksilver::geom::Vector;
+use quicksilver::geom::{Vector, Transform};
 use quicksilver::graphics::{Canvas, Color, Image, Window, WindowBuilder};
 use quicksilver::{InitialScreen, Screen};
 
@@ -50,7 +50,7 @@ impl Screen for Loaded {
 
     fn draw(&mut self, window: &mut Window, canvas: &mut Canvas) {
         canvas.clear(Color::white());
-        canvas.draw_image(&self.image, Vector::newi(100, 100));
+        canvas.draw_image_trans(&self.image, Vector::newi(100, 100), Color::white(), Transform::scale(Vector::newi(2, 2)));
         canvas.present(&window);
     }
 }
