@@ -313,7 +313,7 @@ impl Window {
         &self.keyboard
     }
 
-    ///Create a mouse builder
+    ///Get an instance of a mouse, projected into the current View
     pub fn mouse(&self) -> Mouse {
         Mouse {
             pos: self.project() * self.mouse.pos,
