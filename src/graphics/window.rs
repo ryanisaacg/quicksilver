@@ -42,7 +42,7 @@ impl WindowBuilder {
         }
     }
    
-    ///Set if the window should show its cursor
+    ///Set if the window should show its cursor (defaults to true)
     pub fn with_show_cursor(self, show_cursor: bool) -> WindowBuilder {
         WindowBuilder {
             show_cursor,
@@ -50,7 +50,7 @@ impl WindowBuilder {
         }
     }
 
-    ///Set how the window should handle resizing
+    ///Set how the window should handle resizing (defaults to `ResizeStrategy::Fit`)
     pub fn with_resize_strategy(self, resize: ResizeStrategy) -> WindowBuilder {
         WindowBuilder {
             resize,
@@ -58,7 +58,7 @@ impl WindowBuilder {
         }
     }
 
-    ///Set the minimum size for the window
+    ///Set the minimum size for the window (no value by default)
     ///
     ///On the web, this does nothing.
     pub fn with_minimum_size(self, min_size: Vector) -> WindowBuilder {
@@ -68,7 +68,7 @@ impl WindowBuilder {
         }
     }
     
-    ///Set the maximum size for the window
+    ///Set the maximum size for the window (no value by default)
     ///
     ///On the web, this does nothing.
     pub fn with_maximum_size(self, max_size: Vector) -> WindowBuilder {
@@ -313,7 +313,7 @@ impl Window {
         &self.keyboard
     }
 
-    ///Create a mouse builder
+    ///Get an instance of a mouse, projected into the current View
     pub fn mouse(&self) -> Mouse {
         Mouse {
             pos: self.project() * self.mouse.pos,
