@@ -2,7 +2,10 @@ use input::{ButtonState, Key};
 use std::ops::Index;
 
 #[derive(Copy)]
-///A structure that stores each key's state
+/// A structure that stores each key's state
+///
+/// Keyboards are maintained and owned by a `Window`, and can be accessed via the `keyboard`
+/// function. They are indexed by the Key enum.
 pub struct Keyboard {
     pub(crate) keys: [ButtonState; 256],
 }

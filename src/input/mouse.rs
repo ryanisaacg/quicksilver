@@ -7,7 +7,9 @@ use input::ButtonState;
 const LINES_TO_PIXELS: f32 = 15.0;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-///A simple mosue cursor abstraction
+/// A simple mouse cursor abstraction
+///
+/// Mice are owned and maintained a `Window` and can be accessed via the `mouse` function.
 pub struct Mouse {
     pub(crate) pos: Vector,
     pub(crate) left: ButtonState,
