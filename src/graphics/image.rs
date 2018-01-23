@@ -8,7 +8,7 @@ use geom::{Rectangle, Vector};
 use std::os::raw::c_char;
 use std::ops::Drop;
 use std::path::Path;
-use std::sync::Arc;
+use std::rc::Rc;
 
 #[cfg(target_arch="wasm32")]
 extern "C" {
@@ -47,7 +47,7 @@ impl Drop for ImageData {
 #[derive(Clone)]
 ///An image that can be drawn to the screen
 pub struct Image {
-    source: Arc<ImageData>,
+    source: Rc<ImageData>,
     region: Rectangle,
 }
 
@@ -55,7 +55,7 @@ impl Image {
     fn new(data: ImageData) -> Image {
         let region = Rectangle::newi_sized(data.width, data.height);
         Image {
-            source: Arc::new(data),
+            source: Rc::new(data),
             region
         }
     }
