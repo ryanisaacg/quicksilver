@@ -4,13 +4,17 @@ extern crate gl;
 
 pub use self::gl::*;
 
-pub unsafe fn DeleteTexture(id: u32) {
-    gl::DeleteTextures(1, &id as *const u32);
-}
-
 #[cfg(not(test))]
 pub unsafe fn DeleteBuffer(buffer: u32) {
     gl::DeleteBuffers(1, &buffer as *const u32);
+}
+
+pub unsafe fn DeleteFramebuffer(id: u32) {
+    gl::DeleteFramebuffers(1, &id as *const u32);
+}
+
+pub unsafe fn DeleteTexture(id: u32) {
+    gl::DeleteTextures(1, &id as *const u32);
 }
 
 #[cfg(not(test))]
@@ -22,6 +26,12 @@ pub unsafe fn DeleteVertexArray(array: u32) {
 pub unsafe fn GenBuffer() -> u32 {
     let mut buffer = 0;
     gl::GenBuffers(1, &mut buffer as *mut u32);
+    buffer
+}
+
+pub unsafe fn GenFramebuffer() -> u32 {
+    let mut buffer = 0;
+    gl::GenFramebuffers(1, &mut buffer as *mut u32);
     buffer
 }
 
