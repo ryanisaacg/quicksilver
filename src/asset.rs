@@ -30,25 +30,28 @@ pub trait Loadable: Sized + Clone {
 
 /// Update all assets in a given mutable slice
 ///
-/// If all assets have finished loading, a Vec of all the assets is returned. Otherwise None is
-/// returned.
-pub fn update_all<T: Loadable>(assets: &mut [&mut LoadingAsset<T>]) -> Option<Vec<T>> {
-    let all_loaded = assets.iter_mut().fold(true, |mut loaded, asset| {
+/// If any asset generated an error while loading, that is returned; if all assets have finished
+/// loading, a Vec of their loaded states is returned; otherwise nothing is returned.
+pub fn update_all<T: Loadable>(assets: &mut [&mut LoadingAsset<T>]) -> Result<Option<Vec<T>>, T::Error> {
+    let (all_loaded, error) = assets.iter_mut().fold((true, None), |(mut loaded, mut error), asset| {
         asset.update();
         match asset {
             &mut &mut LoadingAsset::Loaded(_) => (),
-            _ => loaded = false
+            &mut &mut LoadingAsset::Errored(ref err) => error = Some(err.clone()),
+            &mut &mut LoadingAsset::Loading(_) => loaded = false
         }
-        loaded
+        (loaded, error)
     });
-    if all_loaded {
-        Some(assets.iter().map(|item| 
+    if let Some(err) = error {
+        Err(err)
+    } else if all_loaded {
+        Ok(Some(assets.iter().map(|item| 
             match item {
                 &&mut LoadingAsset::Loaded(ref asset) => asset.clone(),
                 _ => unreachable!()
-            }).collect())
+            }).collect()))
     } else {
-        None
+        Ok(None)
     }
 }
 
@@ -90,5 +93,4 @@ impl<T: Loadable> LoadingAsset<T> {
         }
     }
 }
-
 
