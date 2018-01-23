@@ -12,7 +12,7 @@ mod window;
 pub(crate) use self::backend::{Backend, Vertex};
 pub use self::canvas::Canvas;
 pub use self::color::Color;
-pub use self::image::{Image, ImageError, PixelFormat};
+pub use self::image::{Image, ImageError, PixelFormat, Surface};
 pub use self::resize::ResizeStrategy;
 pub use self::view::View;
 pub use self::window::{Window, WindowBuilder};

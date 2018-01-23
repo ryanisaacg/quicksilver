@@ -5,7 +5,8 @@ use gl;
 use asset::{Loadable, LoadingAsset};
 #[cfg(target_arch="wasm32")]
 use asset::LoadingHandle;
-use geom::{Rectangle, Vector};
+use geom::{Rectangle, Vector, Transform};
+use graphics::{Canvas, View};
 #[cfg(target_arch="wasm32")]
 use std::os::raw::c_char;
 use std::ops::Drop;
@@ -199,5 +200,67 @@ impl From<image::ImageError> for ImageError {
             image::ImageError::IoError(_) => ImageError::IoError,
             image::ImageError::ImageEnd => ImageError::ImageEnd
         }
+    }
+}
+
+struct SurfaceData {
+    framebuffer: u32
+}
+
+impl Drop for SurfaceData {
+    fn drop(&mut self) {
+        unsafe { gl::DeleteFramebuffer(self.framebuffer) };
+    }
+}
+
+#[derive(Clone)]
+///A possible render target that can be drawn to the screen
+pub struct Surface {
+    image: Image,
+    data: Rc<SurfaceData>,
+}
+
+impl Surface {
+    ///Create a new surface with a given width and height
+    pub fn new(width: i32, height: i32) -> Surface {
+        let image = Image::from_raw(&[], width, height, PixelFormat::RGBA);
+        let surface = SurfaceData {
+            framebuffer: unsafe { gl::GenFramebuffer() }
+        };
+        unsafe { 
+            gl::BindFramebuffer(gl::FRAMEBUFFER, surface.framebuffer);
+            gl::FramebufferTexture(gl::FRAMEBUFFER, gl::COLOR_ATTACHMENT0, image.source.id, 0);
+            gl::DrawBuffers(1, &gl::COLOR_ATTACHMENT0 as *const u32);
+        }
+        Surface {
+            image,
+            data: Rc::new(surface)
+        }
+    }
+
+    ///Render data to the surface
+    ///
+    ///Do not attempt to use the surface or its image within the function, because it is undefined behavior
+    pub fn render_to<F>(&self, func: F, canvas: &mut Canvas) where F: FnOnce(&mut Canvas) {
+        let viewport = &mut [0, 0, 0, 0];
+        let view = canvas.view();
+        unsafe {
+            gl::GetIntegerv(gl::VIEWPORT, viewport.as_mut_ptr());
+            gl::BindFramebuffer(gl::FRAMEBUFFER, self.data.framebuffer);
+            gl::Viewport(0, 0, self.image.source_width(), self.image.source_height());
+            canvas.set_view(View::new_transformed(self.image.area(), Transform::scale(Vector::newi(1, -1))));
+        }
+        func(canvas);
+        canvas.backend.flush();
+        canvas.set_view(view);
+        unsafe {
+            gl::BindFramebuffer(gl::FRAMEBUFFER, 0); 
+            gl::Viewport(viewport[0], viewport[1], viewport[2], viewport[3]);
+        }
+    }
+
+    ///Get a reference to the Image that contains the data drawn to the Surface
+    pub fn image(&self) -> &Image {
+        &self.image
     }
 }
