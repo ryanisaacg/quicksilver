@@ -18,32 +18,6 @@ pub trait Asset: Sized + Clone {
     fn update(loading: Self::Loading) -> LoadingAsset<Self>;
 }
 
-/// If any asset generated an error while loading, that is returned; if all assets have finished
-/// loading, a Vec of their loaded states is returned; otherwise nothing is returned.
-pub fn update_all<T: Asset>(assets: &mut [&mut LoadingAsset<T>]) -> Result<Option<Vec<T>>, T::Error> {
-    let (all_loaded, error) = assets.iter_mut().fold((true, None), |(mut loaded, mut error), asset| {
-        asset.update();
-        match asset {
-            &mut &mut LoadingAsset::Loaded(_) => (),
-            &mut &mut LoadingAsset::Errored(ref err) => error = Some(err.clone()),
-            &mut &mut LoadingAsset::Loading(_) => loaded = false
-        }
-        (loaded, error)
-    });
-    if let Some(err) = error {
-        Err(err)
-    } else if all_loaded {
-        Ok(Some(assets.iter().map(|item| 
-            match item {
-                &&mut LoadingAsset::Loaded(ref asset) => asset.clone(),
-                _ => unreachable!()
-            }).collect()))
-    } else {
-        Ok(None)
-    }
-}
-
-
 #[derive(Clone)]
 ///A wrapper for an asset that is loading, errored, or loaded
 pub enum LoadingAsset<T: Asset> {
@@ -66,3 +40,38 @@ impl<T: Asset> LoadingAsset<T> {
     }
 }
 
+impl<T: Asset> Asset for Vec<T> {
+    type Loading = Vec<LoadingAsset<T>>;
+    type Error = Vec<T::Error>;
+    
+    fn update(mut loading: Vec<LoadingAsset<T>>) -> LoadingAsset<Self> {
+        let (all_loaded, errored) = loading.iter_mut()
+            .fold((true, false), |(mut loaded, mut errored), asset| {
+                asset.update();
+                match asset {
+                    &mut LoadingAsset::Loaded(_) => (),
+                    &mut LoadingAsset::Errored(_) => errored = true,
+                    &mut LoadingAsset::Loading(_) => loaded = false
+                }
+                (loaded, errored)
+            });
+        if errored {
+            let mut list = Vec::new();
+            for asset in loading.iter() {
+                if let &LoadingAsset::Errored(ref err) = asset {
+                    list.push(err.clone());
+                }
+            }
+            LoadingAsset::Errored(list)
+        } else if all_loaded {
+            LoadingAsset::Loaded(loading.iter()
+                .map(|asset| if let &LoadingAsset::Loaded(ref asset) = asset {
+                    asset.clone()
+                } else {
+                    unreachable!();
+                }).collect())
+        } else {
+            LoadingAsset::Loading(loading)
+        }
+    }
+}
