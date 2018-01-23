@@ -6,6 +6,10 @@ function rust_ptr_to_buffer(pointer) {
     const memory = instance.exports.memory;
     return new Uint8Array(memory.buffer, pointer);
 }
+function rust_ptr_to_int32(pointer) {
+    const memory = instance.exports.memory;
+    return new Int32Array(memory.buffer, pointer);
+}
 function rust_str_to_js(pointer) {
     const buffer = rust_ptr_to_buffer(pointer);
     let string = '';
@@ -207,27 +211,43 @@ let env = {
     CreateShader: (type) => gl_objects.push(gl.createShader(type)) - 1,
     CreateProgram: () => gl_objects.push(gl.createProgram()) - 1,
     BindBuffer: (mask, index) => gl.bindBuffer(mask, gl_objects[index]),
+    BindFramebuffer: (target, index) => gl.bindFramebuffer(target, gl_objects[index]),
     BindTexture: (target, index) => gl.bindTexture(target, gl_objects[index]),
     BindVertexArray: (index) => gl.bindVertexArray(gl_objects[index]),
     BlendFunc: gl.blendFunc.bind(gl),
     BufferData: (target, size, data, usage) => gl.bufferData(target, rust_ptr_to_buffer(data), usage, 0, size),
     BufferSubData: (target, offset, size, data) => gl.bufferSubData(target, offset, rust_ptr_to_buffer(data), 0, size), 
     DeleteBuffer: (index) => gl.deleteBuffer(gl_objects[index]),
+    DeleteFramebuffer: (index) => gl.deleteFramebuffer(gl_objects[index]),
     DeleteProgram: (index) => gl.deleteProgram(gl_objects[index]),
     DeleteShader: (index) => gl.deleteShader(gl_objects[index]),
     DeleteTexture: (index) => gl.deleteTexture(gl_objects[index]),
     DeleteVertexArray: (index) => gl.deleteVertexArray(gl_objects[index]),
+    DrawBuffer: (buffer) => gl.drawBuffers([buffer]),
     DrawElements: gl.drawElements.bind(gl), 
     Enable: gl.enable.bind(gl),
     EnableVertexAttribArray: gl.enableVertexAttribArray.bind(gl),
+    FramebufferTexture: (target, attachment, textarget, tex_index, level) => gl.framebufferTexture2D(target, attachment, textarget, gl_objects[tex_index], level),
     GenBuffer: () => gl_objects.push(gl.createBuffer()) - 1,
+    GenerateMipmap: gl.generateMipmap.bind(gl),
+    GenFramebuffer: () => gl_objects.push(gl.createFramebuffer()) - 1,
+    GenTexture: () => gl_objects.push(gl.createTexture()) - 1,
     GenVertexArray: () => gl_objects.push(gl.createVertexArray()) - 1,
-    GetAttribLocation: (index, string_ptr) => gl.getAttribLocation(gl_objects[index], rust_str_to_js(string_ptr)),
+    GetAttribLocation: (index, string_ptr) => gl.getAttribLocation(gl_objects[index], rust_str_to_js(string_ptr)),    
     GetShaderInfoLog: (index) => { let str = gl.getShaderInfoLog(gl_objects[index]); console.log(str); return str; }, //todo: convert to rust string?
     GetShaderiv: (index, param) => gl.getShaderParameter(gl_objects[index], param),
     GetUniformLocation: (index, string_ptr) => gl_objects.push(gl.getUniformLocation(gl_objects[index], rust_str_to_js(string_ptr))) - 1,
+    GetViewport: (param, ptr) => {
+        const buffer = rust_ptr_to_int32(ptr);
+        const values = gl.getParameter(param);
+        for(let i = 0; i < 4; i++) {
+            buffer[i] = values[i];
+        }
+    },
     LinkProgram: (index) => gl.linkProgram(gl_objects[index]),
     ShaderSource: (shader, source_ptr) => gl.shaderSource(gl_objects[shader], rust_str_to_js(source_ptr)),
+    TexImage2D: (target, level, internal, width, height, border, format, textype, data) => gl_objects.push(gl.texImage2D(target, level, internal, width, border, format, textype, rust_ptr_to_buffer(data), 0)) - 1,
+    TexParameteri: (target, pname, param) => gl.texParameteri.bind(gl),
     Uniform1i: (index, value) => gl.uniform1i(gl_objects[index], value),
     UseProgram: (index) => gl.useProgram(gl_objects[index]),
     VertexAttribPointer: gl.vertexAttribPointer.bind(gl),

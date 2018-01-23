@@ -64,7 +64,6 @@ impl Image {
     }
 
     ///Load an image from raw bytes
-    #[cfg(not(target_arch="wasm32"))]
     pub fn from_raw(data: &[u8], width: i32, height: i32, format: PixelFormat) -> Image {
         use std::os::raw::c_void;
         let id = unsafe {
@@ -230,7 +229,7 @@ impl Surface {
         unsafe { 
             gl::BindFramebuffer(gl::FRAMEBUFFER, surface.framebuffer);
             gl::FramebufferTexture(gl::FRAMEBUFFER, gl::COLOR_ATTACHMENT0, image.source.id, 0);
-            gl::DrawBuffers(1, &gl::COLOR_ATTACHMENT0 as *const u32);
+            gl::DrawBuffer(gl::COLOR_ATTACHMENT0);
         }
         Surface {
             image,
@@ -245,7 +244,7 @@ impl Surface {
         let viewport = &mut [0, 0, 0, 0];
         let view = canvas.view();
         unsafe {
-            gl::GetIntegerv(gl::VIEWPORT, viewport.as_mut_ptr());
+            gl::GetViewport(viewport.as_mut_ptr());
             gl::BindFramebuffer(gl::FRAMEBUFFER, self.data.framebuffer);
             gl::Viewport(0, 0, self.image.source_width(), self.image.source_height());
             canvas.set_view(View::new_transformed(self.image.area(), Transform::scale(Vector::newi(1, -1))));

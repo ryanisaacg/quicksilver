@@ -4,6 +4,14 @@ extern crate gl;
 
 pub use self::gl::*;
 
+pub unsafe fn GetViewport(target: *mut i32) {
+    gl::GetIntegerv(gl::Viewport, target);
+}
+
+pub unsafe fn DrawBuffer(buffer: u32) {
+    gl::DrawBuffers(1, &buffer as *const u32);
+}
+
 #[cfg(not(test))]
 pub unsafe fn DeleteBuffer(buffer: u32) {
     gl::DeleteBuffers(1, &buffer as *const u32);

@@ -64,8 +64,8 @@ macro_rules! screens_loop {
         #[cfg(target_arch="wasm32")]
         pub extern "C" fn init() -> *mut Application {
             let (window, canvas) = $Start::configure();
-            let state = Box::new($Start::new());
-            Box::into_raw(Box::new(Application { state, window, canvas }))
+            let screen = Box::new($Start::new());
+            Box::into_raw(Box::new(Application { screen, window, canvas }))
         }
 
         #[no_mangle]
