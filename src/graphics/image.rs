@@ -3,8 +3,6 @@ extern crate image;
 
 use gl;
 use asset::{Loadable, LoadingAsset};
-#[cfg(target_arch="wasm32")]
-use asset::LoadingHandle;
 use geom::{Rectangle, Vector};
 #[cfg(target_arch="wasm32")]
 use std::os::raw::c_char;
@@ -134,11 +132,12 @@ impl Image {
 }
 
 impl Loadable for Image {
+    type Loading = u32;
     type Error = ImageError;
 
     #[cfg(target_arch="wasm32")]
     fn load<P: AsRef<Path>>(path: P) -> LoadingAsset<Self> {
-        LoadingAsset::Loading(LoadingHandle(Image::load_impl(path)))
+        LoadingAsset::Loading(Image::load_impl(path))
     }
     
     #[cfg(not(target_arch="wasm32"))]
@@ -150,19 +149,23 @@ impl Loadable for Image {
     }
 
     #[cfg(target_arch="wasm32")]
-    fn parse_result(handle: LoadingHandle, loaded: bool, errored: bool) -> LoadingAsset<Self> {
-        if loaded {
-            if errored {
+    fn check_update(loading: u32) -> LoadingAsset<Self> {
+        extern "C" {
+            fn is_texture_loaded(handle: u32) -> bool;
+            fn is_texture_errored(handle: u32) -> bool;
+        }
+        if unsafe { is_texture_loaded(loading) } {
+            if unsafe { is_texture_errored(loading) } {
                 LoadingAsset::Errored(ImageError::IoError)
             } else {
                 LoadingAsset::Loaded(Image::new(ImageData {
-                    id: unsafe { get_image_id(handle.0) },
-                    width: unsafe { get_image_width(handle.0) },
-                    height: unsafe { get_image_height(handle.0) }
+                    id: unsafe { get_image_id(loading) },
+                    width: unsafe { get_image_width(loading) },
+                    height: unsafe { get_image_height(loading) }
                 }))
-            }
+            } 
         } else {
-            LoadingAsset::Loading(handle)
+            LoadingAsset::Loading(loading)
         }
     }
 }

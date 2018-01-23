@@ -6,17 +6,13 @@
 
 use std::path::Path;
 
-#[cfg(target_arch="wasm32")]
-extern "C" {
-    fn is_loaded(index: u32) -> bool;
-    fn is_errored(index: u32) -> bool;
-}
-
 ///A trait that allows an asset to be asynchronously loaded
 ///
 ///Currently on desktop assets are actually loaded synchronously, but on the web they are loaded
 ///async.
 pub trait Loadable: Sized + Clone {
+    ///The intermediary loading type
+    type Loading: Clone;
     ///The error type to return when an asset fails to load
     type Error: Clone;
 
@@ -25,7 +21,7 @@ pub trait Loadable: Sized + Clone {
 
     #[cfg(target_arch="wasm32")]
     ///Parse the loaded webassembly result
-    fn parse_result(handle: LoadingHandle, loaded: bool, errored: bool) -> LoadingAsset<Self>;
+    fn check_update(loading: Self::Loading) -> LoadingAsset<Self>;
 }
 
 /// Update all assets in a given mutable slice
@@ -54,14 +50,10 @@ pub fn update_all<T: Loadable>(assets: &mut [&mut LoadingAsset<T>]) -> Option<Ve
 
 
 #[derive(Clone)]
-///An opaque object that represents the still-loading state of an asset
-pub struct LoadingHandle(pub(crate) u32);
-
-#[derive(Clone)]
 ///A wrapper for an asset that is loading, errored, or loaded
 pub enum LoadingAsset<Asset: Loadable> {
     ///An asset that is not finished loading
-    Loading(LoadingHandle), 
+    Loading(Asset::Loading), 
     ///The asset has successfully loaded
     Loaded(Asset),
     ///Some error has occurred while trying to load
@@ -80,11 +72,7 @@ impl<T: Loadable> LoadingAsset<T> {
     #[cfg(target_arch="wasm32")]
     fn update_impl(&mut self) {
         *self = match self.clone() {
-            LoadingAsset::Loading(handle) =>  {
-                let loaded = unsafe { is_loaded(handle.0) };
-                let errored = unsafe { is_errored(handle.0) };
-                T::parse_result(handle, loaded, errored)
-            },
+            LoadingAsset::Loading(handle) => T::check_update(handle),
             LoadingAsset::Errored(error) => LoadingAsset::Errored(error),
             LoadingAsset::Loaded(result) => LoadingAsset::Loaded(result)
         }

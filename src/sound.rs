@@ -7,8 +7,6 @@
 extern crate rodio;
 
 use asset::{Loadable, LoadingAsset};
-#[cfg(target_arch="wasm32")]
-use asset::LoadingHandle;
 #[cfg(not(target_arch="wasm32"))]
 use rodio::{Decoder, Sink, Source};
 #[cfg(not(target_arch="wasm32"))]
@@ -109,6 +107,7 @@ impl Sound {
 }
 
 impl Loadable for Sound {
+    type Loading = u32;
     type Error = SoundError;
 
     #[cfg(not(target_arch="wasm32"))]
@@ -121,22 +120,26 @@ impl Loadable for Sound {
 
     #[cfg(target_arch="wasm32")]
     fn load<P: AsRef<Path>>(path: P) -> LoadingAsset<Self> {
-        LoadingAsset::Loading(LoadingHandle(Sound::load_impl(path)))
+        LoadingAsset::Loading(Sound::load_impl(path))
     }
 
     #[cfg(target_arch="wasm32")]
-    fn parse_result(handle: LoadingHandle, loaded: bool, errored: bool) -> LoadingAsset<Self> {
-        if loaded {
-            if errored {
+    fn check_update(loading: u32) -> LoadingAsset<Self> {
+        extern "C" {
+            fn is_sound_loaded(handle: u32) -> bool;
+            fn is_sound_errored(handle: u32) -> bool;
+        }
+        if unsafe { is_sound_loaded(loading) } {
+            if unsafe { is_sound_errored(loading) } {
                 LoadingAsset::Errored(SoundError::IOError)
             } else {
                 LoadingAsset::Loaded(Sound {
-                    index: handle.0,
+                    index: loading,
                     volume: 1.0
                 })
             }
         } else {
-            LoadingAsset::Loading(handle)
+            LoadingAsset::Loading(loading)
         }
     }
 }
