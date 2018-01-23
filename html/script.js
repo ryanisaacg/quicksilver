@@ -77,8 +77,10 @@ canvas.addEventListener('wheel', (event) => {
     event.preventDefault();
 })
 let env = {
-    is_loaded: (index) => assets[index].loaded,
-    is_errored: (index) => assets[index].error,
+    is_texture_loaded: (index) => assets[index].loaded,
+    is_texture_errored: (index) => assets[index].error,
+    is_sound_loaded: (index) => assets[index].loaded,
+    is_sound_errored: (index) => assets[index].error,
     fmodf: (a, b) => a % b,
     pump_key_queue: () => key_queue.length > 0 ? key_queue.shift() : 0,
     pump_mouse_queue: () => mouse_queue.length > 0 ? mouse_queue.shift() : 0,

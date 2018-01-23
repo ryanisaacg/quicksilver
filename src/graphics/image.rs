@@ -2,9 +2,7 @@
 extern crate image;
 
 use gl;
-use asset::{Loadable, LoadingAsset};
-#[cfg(target_arch="wasm32")]
-use asset::LoadingHandle;
+use asset::{Asset, LoadingAsset};
 use geom::{Rectangle, Vector};
 #[cfg(target_arch="wasm32")]
 use std::os::raw::c_char;
@@ -61,6 +59,29 @@ impl Image {
             region
         }
     }
+   
+    /// Start loading a texture from a given path
+    pub fn load<P: AsRef<Path>>(path: P) -> LoadingAsset<Image> {
+        Image::load_impl(path)
+    }
+    
+    #[cfg(target_arch="wasm32")]
+    fn load_impl<P: AsRef<Path>>(path: P) -> LoadingAsset<Self> {
+        use std::ffi::CString;
+        LoadingAsset::Loading(unsafe { load_image(CString::new(path.as_ref().to_str().unwrap()).unwrap().into_raw()) })
+    }
+    
+    #[cfg(not(target_arch="wasm32"))]
+    fn load_impl<P: AsRef<Path>>(path: P) -> LoadingAsset<Self> {
+        let img = match image::open(path) {
+            Ok(img) => img,
+            Err(err) => return LoadingAsset::Errored(err.into())
+        }.to_rgba();
+        let width = img.width() as i32;
+        let height = img.height() as i32;
+        LoadingAsset::Loaded(Image::from_raw(img.into_raw().as_slice(), width, height, PixelFormat::RGBA))
+    }
+
 
     ///Load an image from raw bytes
     #[cfg(not(target_arch="wasm32"))]
@@ -80,24 +101,7 @@ impl Image {
         };
         Image::new(ImageData { id, width, height })
     }
-
-    #[cfg(not(target_arch="wasm32"))]
-    fn load_impl<P: AsRef<Path>>(path: P) -> Result<Image, ImageError> {
-        let img = match image::open(path) {
-            Ok(img) => img,
-            Err(err) => return Err(From::from(err))
-        }.to_rgba();
-        let width = img.width() as i32;
-        let height = img.height() as i32;
-        Ok(Image::from_raw(img.into_raw().as_slice(), width, height, PixelFormat::RGBA))
-    }
     
-    #[cfg(target_arch="wasm32")]
-    fn load_impl<P: AsRef<Path>>(path: P) -> u32 {
-        use std::ffi::CString;
-        unsafe { load_image(CString::new(path.as_ref().to_str().unwrap()).unwrap().into_raw()) }
-    }
-
     pub(crate) fn get_id(&self) -> u32 {
         self.source.id
     }
@@ -133,36 +137,33 @@ impl Image {
     }
 }
 
-impl Loadable for Image {
+impl Asset for Image {
+    type Loading = u32;
     type Error = ImageError;
 
-    #[cfg(target_arch="wasm32")]
-    fn load<P: AsRef<Path>>(path: P) -> LoadingAsset<Self> {
-        LoadingAsset::Loading(LoadingHandle(Image::load_impl(path)))
-    }
-    
     #[cfg(not(target_arch="wasm32"))]
-    fn load<P: AsRef<Path>>(path: P) -> LoadingAsset<Self> {
-        match Image::load_impl(path) {
-            Ok(val) => LoadingAsset::Loaded(val),
-            Err(err) => LoadingAsset::Errored(err)
-        }
+    fn update(_: u32) -> LoadingAsset<Self> {
+        unreachable!();
     }
 
     #[cfg(target_arch="wasm32")]
-    fn parse_result(handle: LoadingHandle, loaded: bool, errored: bool) -> LoadingAsset<Self> {
-        if loaded {
-            if errored {
+    fn update(loading: u32) -> LoadingAsset<Self> {
+        extern "C" {
+            fn is_texture_loaded(handle: u32) -> bool;
+            fn is_texture_errored(handle: u32) -> bool;
+        }
+        if unsafe { is_texture_loaded(loading) } {
+            if unsafe { is_texture_errored(loading) } {
                 LoadingAsset::Errored(ImageError::IoError)
             } else {
                 LoadingAsset::Loaded(Image::new(ImageData {
-                    id: unsafe { get_image_id(handle.0) },
-                    width: unsafe { get_image_width(handle.0) },
-                    height: unsafe { get_image_height(handle.0) }
+                    id: unsafe { get_image_id(loading) },
+                    width: unsafe { get_image_width(loading) },
+                    height: unsafe { get_image_height(loading) }
                 }))
-            }
+            } 
         } else {
-            LoadingAsset::Loading(handle)
+            LoadingAsset::Loading(loading)
         }
     }
 }

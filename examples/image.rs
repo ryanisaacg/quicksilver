@@ -1,7 +1,7 @@
 #[macro_use]
 extern crate quicksilver;
 
-use quicksilver::asset::{Loadable, LoadingAsset};
+use quicksilver::asset::LoadingAsset;
 use quicksilver::geom::{Vector, Transform};
 use quicksilver::graphics::{Canvas, Color, Image, Window, WindowBuilder};
 use quicksilver::{InitialScreen, Screen};

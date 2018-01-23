@@ -6,9 +6,7 @@
 #[cfg(not(target_arch="wasm32"))]
 extern crate rodio;
 
-use asset::{Loadable, LoadingAsset};
-#[cfg(target_arch="wasm32")]
-use asset::LoadingHandle;
+use asset::{Asset, LoadingAsset};
 #[cfg(not(target_arch="wasm32"))]
 use rodio::{Decoder, Sink, Source};
 #[cfg(not(target_arch="wasm32"))]
@@ -50,24 +48,36 @@ pub struct Sound {
 }
 
 impl Sound {
+    /// Start loading a sound from a given path
+    pub fn load<P: AsRef<Path>>(path: P) -> LoadingAsset<Self> {
+        Sound::load_impl(path)
+    }
+
     #[cfg(not(target_arch="wasm32"))]
-    fn load_impl<P: AsRef<Path>>(path: P) -> Result<Sound, SoundError> {
-        let mut bytes = Vec::new();
-        BufReader::new(File::open(path)?).read_to_end(&mut bytes)?;
-        let val = Arc::new(bytes);
-        let sound = Sound {
-            val,
-            volume: 1f32
-        };
-        Decoder::new(Cursor::new(sound.clone()))?;
-        Ok(sound)
+    fn load_impl<P: AsRef<Path>>(path: P) -> LoadingAsset<Self> {
+        fn load_impl_data<P: AsRef<Path>>(path: P) -> Result<Sound, SoundError> {
+            let mut bytes = Vec::new();
+            BufReader::new(File::open(path)?).read_to_end(&mut bytes)?;
+            let val = Arc::new(bytes);
+            let sound = Sound {
+                val,
+                volume: 1f32
+            };
+            Decoder::new(Cursor::new(sound.clone()))?;
+            Ok(sound)
+        }
+        match load_impl_data(path) {
+            Ok(snd) => LoadingAsset::Loaded(snd),
+            Err(err) => LoadingAsset::Errored(err)
+        }
+    }
+
+    #[cfg(target_arch="wasm32")]
+    fn load_impl<P: AsRef<Path>>(path: P) -> LoadingAsset<Self> {
+        use std::ffi::CString;
+        LoadingAsset::Loading(unsafe { load_sound(CString::new(path.as_ref().to_str().unwrap()).unwrap().into_raw()) })
     }
     
-    #[cfg(target_arch="wasm32")]
-    fn load_impl<P: AsRef<Path>>(path: P) -> u32 {
-        use std::ffi::CString;
-        unsafe { load_sound(CString::new(path.as_ref().to_str().unwrap()).unwrap().into_raw()) }
-    }
 
     /// Get the volume of the sound clip instance
     ///
@@ -108,35 +118,32 @@ impl Sound {
     }
 }
 
-impl Loadable for Sound {
+impl Asset for Sound {
+    type Loading = u32;
     type Error = SoundError;
-
+    
     #[cfg(not(target_arch="wasm32"))]
-    fn load<P: AsRef<Path>>(path: P) -> LoadingAsset<Self> {
-        match Sound::load_impl(path) {
-            Ok(snd) => LoadingAsset::Loaded(snd),
-            Err(err) => LoadingAsset::Errored(err)
+    fn update(_: u32) -> LoadingAsset<Self> {
+        unreachable!();
+    }
+
+    #[cfg(target_arch="wasm32")]
+    fn update(loading: u32) -> LoadingAsset<Self> {
+        extern "C" {
+            fn is_sound_loaded(handle: u32) -> bool;
+            fn is_sound_errored(handle: u32) -> bool;
         }
-    }
-
-    #[cfg(target_arch="wasm32")]
-    fn load<P: AsRef<Path>>(path: P) -> LoadingAsset<Self> {
-        LoadingAsset::Loading(LoadingHandle(Sound::load_impl(path)))
-    }
-
-    #[cfg(target_arch="wasm32")]
-    fn parse_result(handle: LoadingHandle, loaded: bool, errored: bool) -> LoadingAsset<Self> {
-        if loaded {
-            if errored {
+        if unsafe { is_sound_loaded(loading) } {
+            if unsafe { is_sound_errored(loading) } {
                 LoadingAsset::Errored(SoundError::IOError)
             } else {
                 LoadingAsset::Loaded(Sound {
-                    index: handle.0,
+                    index: loading,
                     volume: 1.0
                 })
             }
         } else {
-            LoadingAsset::Loading(handle)
+            LoadingAsset::Loading(loading)
         }
     }
 }
