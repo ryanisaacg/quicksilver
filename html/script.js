@@ -227,7 +227,7 @@ let env = {
     DrawElements: gl.drawElements.bind(gl), 
     Enable: gl.enable.bind(gl),
     EnableVertexAttribArray: gl.enableVertexAttribArray.bind(gl),
-    FramebufferTexture: (target, attachment, textarget, tex_index, level) => gl.framebufferTexture2D(target, attachment, textarget, gl_objects[tex_index], level),
+    FramebufferTexture: (target, attachment, tex_index, level) => gl.framebufferTexture2D(target, attachment, gl.TEXTURE_2D, gl_objects[tex_index], level),
     GenBuffer: () => gl_objects.push(gl.createBuffer()) - 1,
     GenerateMipmap: gl.generateMipmap.bind(gl),
     GenFramebuffer: () => gl_objects.push(gl.createFramebuffer()) - 1,
@@ -237,9 +237,9 @@ let env = {
     GetShaderInfoLog: (index) => { let str = gl.getShaderInfoLog(gl_objects[index]); console.log(str); return str; }, //todo: convert to rust string?
     GetShaderiv: (index, param) => gl.getShaderParameter(gl_objects[index], param),
     GetUniformLocation: (index, string_ptr) => gl_objects.push(gl.getUniformLocation(gl_objects[index], rust_str_to_js(string_ptr))) - 1,
-    GetViewport: (param, ptr) => {
+    GetViewport: (ptr) => {
         const buffer = rust_ptr_to_int32(ptr);
-        const values = gl.getParameter(param);
+        const values = gl.getParameter(gl.VIEWPORT);
         for(let i = 0; i < 4; i++) {
             buffer[i] = values[i];
         }
