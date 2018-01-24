@@ -211,7 +211,7 @@ let env = {
     CreateShader: (type) => gl_objects.push(gl.createShader(type)) - 1,
     CreateProgram: () => gl_objects.push(gl.createProgram()) - 1,
     BindBuffer: (mask, index) => gl.bindBuffer(mask, gl_objects[index]),
-    BindFramebuffer: (target, index) => gl.bindFramebuffer(target, gl_objects[index]),
+    BindFramebuffer: (target, index) => gl.bindFramebuffer(target, index == 0 ? null : gl_objects[index]),
     BindTexture: (target, index) => gl.bindTexture(target, gl_objects[index]),
     BindVertexArray: (index) => gl.bindVertexArray(gl_objects[index]),
     BlendFunc: gl.blendFunc.bind(gl),
