@@ -5,7 +5,7 @@ extern crate gl;
 pub use self::gl::*;
 
 pub unsafe fn GetViewport(target: *mut i32) {
-    gl::GetIntegerv(gl::Viewport, target);
+    gl::GetIntegerv(gl::VIEWPORT, target);
 }
 
 pub unsafe fn DrawBuffer(buffer: u32) {
