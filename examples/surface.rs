@@ -1,15 +1,20 @@
 #[macro_use]
 extern crate quicksilver;
 
+use quicksilver::asset::LoadingAsset;
 use quicksilver::geom::{Rectangle, Vector};
-use quicksilver::graphics::{Canvas, Color, Surface, Window, WindowBuilder};
+use quicksilver::graphics::{Canvas, Color, Image, Surface, Window, WindowBuilder};
 use quicksilver::{InitialScreen, Screen};
 
-struct Loading;
+struct Loading {
+    image: LoadingAsset<Image>
+}
 
 impl InitialScreen for Loading {
     fn new() -> Loading {
-        Loading
+        Loading {
+            image: Image::load("examples/image.png")
+        }
     }
 
     fn configure() -> (Window, Canvas) {
@@ -20,12 +25,18 @@ impl InitialScreen for Loading {
 
 impl Screen for Loading {
     fn update(&mut self, _window: &mut Window, canvas: &mut Canvas) -> Option<Box<Screen>> {
-        let surface = Surface::new(600, 400);
-        surface.render_to(|canvas| {
-            canvas.clear(Color::white());
-            canvas.draw_rect(Rectangle::newi_sized(300, 200), Color::green());
-        }, canvas);
-        Some(Box::new(State { surface }))
+        self.image.update();
+        if let LoadingAsset::Loaded(ref image) = self.image {
+            let surface = Surface::new(600, 400);
+            surface.render_to(|canvas| {
+                canvas.clear(Color::white());
+                canvas.draw_image(image, Vector::zero());
+                canvas.draw_rect(Rectangle::newi_sized(300, 200), Color::green());
+            }, canvas);
+            Some(Box::new(State { surface }))
+        } else {
+            None
+        }
     }
 
     fn draw(&mut self, _window: &mut Window, _canvas: &mut Canvas) {
