@@ -1,17 +1,10 @@
 use geom::Vector;
-use graphics::Color;
-//Not used in mock, so #[cfg]'ed to avoid code warnings when testing
-#[cfg(not(test))]
+use graphics::{Color, Image, PixelFormat};
 use gl;
-#[cfg(not(test))]
 use std::ffi::CString;
-#[cfg(not(test))]
 use std::mem::size_of;
-#[cfg(not(test))]
 use std::os::raw::c_void;
-#[cfg(not(test))]
 use std::ptr::null;
-#[cfg(not(test))]
 use std::str::from_utf8;
 
 #[derive(Clone, Copy)]
@@ -25,28 +18,20 @@ pub(crate) struct Vertex {
 pub(crate) struct Backend {
     texture: u32,
     pub(crate) vertices: Vec<f32>,
-    pub(crate) indices: Vec<u32>,
-    #[cfg(not(test))]
-    vertex_length: usize,
-    #[cfg(not(test))]
-    index_length: usize,
-    #[cfg(not(test))]
-    shader: u32,
-    #[cfg(not(test))]
-    fragment: u32,
-    #[cfg(not(test))]
-    vertex: u32,
-    #[cfg(not(test))]
-    vbo: u32,
-    #[cfg(not(test))]
-    ebo: u32,
-    #[cfg(not(test))]
-    vao: u32,
-    #[cfg(not(test))]
+    pub(crate) indices: Vec<u32>, 
+    null: Image, 
+    vertex_length: usize, 
+    index_length: usize, 
+    shader: u32, 
+    fragment: u32, 
+    vertex: u32, 
+    vbo: u32, 
+    ebo: u32, 
+    vao: u32, 
     texture_location: i32,
 }
 
-#[cfg(not(any(test, target_arch="wasm32")))]
+#[cfg(not(target_arch="wasm32"))]
 const DEFAULT_VERTEX_SHADER: &str = r#"#version 150
 in vec2 position;
 in vec2 tex_coord;
@@ -62,7 +47,7 @@ void main() {
     gl_Position = vec4(position, 0, 1);
 }"#;
 
-#[cfg(not(any(test, target_arch="wasm32")))]
+#[cfg(not(target_arch="wasm32"))]
 const DEFAULT_FRAGMENT_SHADER: &str = r#"#version 150
 in vec4 Color;
 in vec2 Tex_coord;
@@ -74,7 +59,7 @@ void main() {
     outColor = Color * tex_color;
 }"#;
 
-#[cfg(all(not(test), target_arch="wasm32"))]
+#[cfg(target_arch="wasm32")]
 const DEFAULT_VERTEX_SHADER: &str = r#"attribute vec2 position;
 attribute vec2 tex_coord;
 attribute vec4 color;
@@ -89,7 +74,7 @@ void main() {
     Uses_texture = uses_texture;
 }"#;
 
-#[cfg(all(not(test), target_arch="wasm32"))]
+#[cfg(target_arch="wasm32")]
 const DEFAULT_FRAGMENT_SHADER: &str = r#"varying highp vec4 Color;
 varying highp vec2 Tex_coord;
 varying lowp float Uses_texture;
@@ -102,8 +87,7 @@ void main() {
 pub(crate) const VERTEX_SIZE: usize = 9; // the number of floats in a vertex
 
 impl Backend {
-    pub fn new() -> Backend {
-        #[cfg(not(test))]
+    pub fn new() -> Backend { 
         let (vao, vbo, ebo) = unsafe {
             let vao = gl::GenVertexArray();
             gl::BindVertexArray(vao);
@@ -115,40 +99,28 @@ impl Backend {
             gl::Enable( gl::BLEND );
             (vao, vbo, ebo)
         };
-        let backend = Backend {
-            texture: 0,
+        let null = Image::from_raw(&[], 0, 0, PixelFormat::RGBA);
+        let texture = null.get_id();
+        let mut backend = Backend {
+            texture,
             vertices: Vec::with_capacity(1024),
-            indices: Vec::with_capacity(1024),
-            #[cfg(not(test))]
-            vertex_length: 0,
-            #[cfg(not(test))]
-            index_length: 0,
-            #[cfg(not(test))]
-            shader: 0,
-            #[cfg(not(test))]
-            fragment: 0,
-            #[cfg(not(test))]
-            vertex: 0,
-            #[cfg(not(test))]
-            vbo,
-            #[cfg(not(test))]
-            ebo,
-            #[cfg(not(test))]
-            vao,
-            #[cfg(not(test))]
+            indices: Vec::with_capacity(1024), 
+            null,
+            vertex_length: 0, 
+            index_length: 0, 
+            shader: 0, 
+            fragment: 0, 
+            vertex: 0, 
+            vbo, 
+            ebo, 
+            vao, 
             texture_location: 0,
         };
-        #[cfg(not(test))]
-        {
-            let mut backend = backend;
-            backend.set_shader(DEFAULT_VERTEX_SHADER, DEFAULT_FRAGMENT_SHADER);
-            return backend;
-        }
-        #[cfg(test)]
+        backend.set_shader(DEFAULT_VERTEX_SHADER, DEFAULT_FRAGMENT_SHADER);
         backend
     }
 
-    #[cfg(not(test))]
+    
     fn set_shader(&mut self, vertex_shader: &str, fragment_shader: &str) {
         unsafe {
             if self.shader != 0 {
@@ -202,7 +174,7 @@ impl Backend {
         }
     }
 
-    #[cfg(not(test))]
+    
     unsafe fn create_buffers(&mut self, vbo_size: isize, ebo_size: isize) {
         //Create strings for all of the shader attributes
         let position_string = CString::new("position").unwrap().into_raw();
@@ -243,14 +215,13 @@ impl Backend {
     }
 
     fn switch_texture(&mut self, texture: u32) {
-        if self.texture != 0 && self.texture != texture {
+        if self.texture != self.null.get_id() && self.texture != texture {
             self.flush();
         }
         self.texture = texture;
     }
 
-    pub fn flush(&mut self) {
-        #[cfg(not(test))]
+    pub fn flush(&mut self) { 
         unsafe {
             //Bind the vertex data
             let vertex_length = size_of::<f32>() * self.vertices.len();
@@ -273,19 +244,16 @@ impl Backend {
         }
         self.vertices.clear();
         self.indices.clear();
-        self.texture = 0;
+        self.texture = self.null.get_id();
     }
     
-    #[cfg(not(test))]
+    
     pub fn clear(&mut self, col: Color) {
         unsafe {
             gl::ClearColor(col.r, col.g, col.b, col.a);
             gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
         }
     }
-
-    #[cfg(test)]
-    pub fn clear(&mut self, _: Color) {}
 
     pub fn num_vertices(&self) -> usize {
         self.vertices.len() / VERTEX_SIZE
@@ -322,8 +290,7 @@ impl Backend {
 }
 
 impl Drop for Backend {
-    fn drop(&mut self) {
-        #[cfg(not(test))]
+    fn drop(&mut self) { 
         unsafe {
             gl::DeleteProgram(self.shader);
             gl::DeleteShader(self.fragment);
@@ -335,40 +302,3 @@ impl Drop for Backend {
     } 
 }
 
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    use geom::Vector;
-
-    #[test]
-    fn test_backend() {
-        let mut backend = Backend::new();
-        backend.add(1, &[Vertex {
-            pos: Vector::newi(0, 0),
-            tex_pos: Vector::newi(2, 2),
-            col: Color::white(),
-            use_texture: false
-        }], &[0, 0]);
-        for i in 0..2 { assert_eq!(backend.vertices[i], 0f32); }
-        for i in 2..4 { assert_eq!(backend.vertices[i], 2f32); }
-        for i in 4..8 { assert_eq!(backend.vertices[i], 1f32); }
-        assert_eq!(backend.vertices[8], 0f32);
-        backend.add(1, &[Vertex {
-            pos: Vector::newi(0, 0),
-            tex_pos: Vector::newi(2, 2),
-            col: Color::white(),
-            use_texture: false
-        }], &[0, 0]);
-        for i in 0..2 { assert_eq!(backend.indices[i], 0); }
-        for i in 2..4 { assert_eq!(backend.indices[i], 1); }
-        backend.add(2, &[Vertex {
-            pos: Vector::newi(0, 0),
-            tex_pos: Vector::newi(2, 2),
-            col: Color::white(),
-            use_texture: false
-        }], &[0, 0]);
-        assert_eq!(backend.indices.len(), 2);
-    }
-}

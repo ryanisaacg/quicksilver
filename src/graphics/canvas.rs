@@ -180,24 +180,3 @@ impl Canvas {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    use graphics::Backend;
-
-    #[test]
-    fn test_backend() {
-        let mut canvas = Canvas {
-            backend: Backend::new(),
-            view: View::new(Rectangle::newi(-1, -1, 2, 2))
-        };
-        canvas.draw_shape(Shape::Rect(Rectangle::newi(-1, -1, 0, 0)), Color::white());
-        let expected_vertices = &[-1f32, 1f32, 0f32, 0f32, 1f32, 1f32, 1f32, 1f32, 0f32, -1f32, 
-            1f32, 0f32, 0f32, 1f32, 1f32, 1f32, 1f32, 0f32, -1f32, 1f32, 0f32, 0f32, 1f32, 1f32, 
-            1f32, 1f32, 0f32, -1f32, 1f32, 0f32, 0f32, 1f32, 1f32, 1f32, 1f32, 0f32];
-        let expected_indices = &[0, 1, 2, 0, 2, 3];
-        assert!(canvas.backend.vertices.as_slice() == &expected_vertices[..]);
-        assert!(canvas.backend.indices.as_slice() == &expected_indices[..]);
-    }
-}
