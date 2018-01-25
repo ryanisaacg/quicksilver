@@ -5,18 +5,9 @@ use gl;
 use asset::{Asset, LoadingAsset};
 use geom::{Rectangle, Vector, Transform};
 use graphics::{Canvas, View};
-use std::os::raw::c_char;
 use std::ops::Drop;
 use std::path::Path;
 use std::rc::Rc;
-
-#[cfg(target_arch="wasm32")]
-extern "C" {
-    fn load_image(string: *mut c_char) -> u32;
-    fn get_image_id(index: u32) -> u32;
-    fn get_image_width(index: u32) -> i32;
-    fn get_image_height(index: u32) -> i32;
-}
 
 ///Pixel formats for use with loading raw images
 pub enum PixelFormat {
@@ -68,6 +59,8 @@ impl Image {
     #[cfg(target_arch="wasm32")]
     fn load_impl<P: AsRef<Path>>(path: P) -> LoadingAsset<Self> {
         use std::ffi::CString;
+        use std::os::raw::c_char;
+        extern "C" { fn load_image(name: *mut c_char) -> u32; };
         LoadingAsset::Loading(unsafe { load_image(CString::new(path.as_ref().to_str().unwrap()).unwrap().into_raw()) })
     }
     
@@ -150,6 +143,9 @@ impl Asset for Image {
         extern "C" {
             fn is_texture_loaded(handle: u32) -> bool;
             fn is_texture_errored(handle: u32) -> bool;
+            fn get_image_id(index: u32) -> u32;
+            fn get_image_width(index: u32) -> i32;
+            fn get_image_height(index: u32) -> i32;
         }
         if unsafe { is_texture_loaded(loading) } {
             if unsafe { is_texture_errored(loading) } {
