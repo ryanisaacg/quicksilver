@@ -1,7 +1,7 @@
 #[macro_use]
 extern crate quicksilver;
 
-use quicksilver::asset::{Loadable, LoadingAsset};
+use quicksilver::asset::LoadingAsset;
 use quicksilver::sound::Sound;
 use std::time::Duration;
 

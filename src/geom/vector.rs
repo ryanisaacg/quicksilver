@@ -107,6 +107,11 @@ impl Vector {
     pub fn angle(self) -> f32 {
         self.y.atan2(self.x).to_degrees()
     }
+
+    ///Create a vector with the same angle and the given length
+    pub fn with_len(self, length: f32) -> Vector {
+        self.normalize() * length
+    }
 }
 
 impl Neg for Vector {
