@@ -1,4 +1,4 @@
-use geom::about_equal;
+use geom::{about_equal, Scalar};
 #[cfg(not(target_arch="wasm32"))]
 use rand::{Rand, Rng};
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
@@ -36,13 +36,13 @@ impl Vector {
     }
 
     ///Create a new vector
-    pub fn new<T: Into<f64>>(x: T, y: T) -> Vector {
-        Vector { x: x.into() as f32 , y: y.into() as f32 }
+    pub fn new<T: Scalar>(x: T, y: T) -> Vector {
+        Vector { x: x.float(), y: y.float() }
     }
 
     ///Create a unit vector at a given angle
-    pub fn from_angle(angle: f32) -> Vector {
-        Vector::new(angle.to_radians().cos(), angle.to_radians().sin())
+    pub fn from_angle<T: Scalar>(angle: T) -> Vector {
+        Vector::new(angle.float().to_radians().cos(), angle.float().to_radians().sin())
     }
 
     ///Get the squared length of the vector (faster than getting the length)

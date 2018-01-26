@@ -1,4 +1,4 @@
-use super::{about_equal, Circle, Line, Vector};
+use geom::{about_equal, Circle, Line, Scalar, Vector};
 use std::cmp::{Eq, PartialEq};
 
 #[derive(Clone, Copy, Default, Debug, Deserialize, Serialize)]
@@ -16,12 +16,12 @@ pub struct Rectangle {
 
 impl Rectangle {
     ///Create a positioned rectangle with dimensions
-    pub fn new<T: Into<f64>>(x: T, y: T, width: T, height: T) -> Rectangle {
+    pub fn new<T: Scalar>(x: T, y: T, width: T, height: T) -> Rectangle {
         Rectangle {
-            x: x.into() as f32,
-            y: y.into() as f32,
-            width: width.into() as f32,
-            height: height.into() as f32,
+            x: x.float(),
+            y: y.float(),
+            width: width.float(),
+            height: height.float(),
         }
     }
 
@@ -31,12 +31,12 @@ impl Rectangle {
     }
 
     ///Create a rectangle at the origin with the given size
-    pub fn new_sized<T: Into<f64>>(width: T, height: T) -> Rectangle {
+    pub fn new_sized<T: Scalar>(width: T, height: T) -> Rectangle {
         Rectangle {
             x: 0.0,
             y: 0.0,
-            width: width.into() as f32,
-            height: height.into() as f32
+            width: width.float(),
+            height: height.float()
         }
     }
 

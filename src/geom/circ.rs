@@ -1,4 +1,4 @@
-use super::{about_equal, Line, Rectangle, Vector};
+use super::{about_equal, Line, Rectangle, Scalar, Vector};
 use std::cmp::{Eq, PartialEq};
 
 #[derive(Clone, Copy, Default, Debug, Deserialize, Serialize)]
@@ -14,20 +14,20 @@ pub struct Circle {
 
 impl Circle {
     ///Create a new circle with the given dimensions
-    pub fn new<T: Into<f64>>(x: T, y: T, radius: T) -> Circle {
+    pub fn new<T: Scalar>(x: T, y: T, radius: T) -> Circle {
         Circle {
-            x: x.into() as f32,
-            y: y.into() as f32,
-            radius: radius.into() as f32,
+            x: x.float(),
+            y: y.float(),
+            radius: radius.float(),
         }
     }
 
     ///Create a circle with the center as a vector
-    pub fn newv<T: Into<f64>>(position: Vector, radius: T) -> Circle {
+    pub fn newv<T: Scalar>(position: Vector, radius: T) -> Circle {
         Circle {
             x: position.x,
             y: position.y,
-            radius: radius.into() as f32
+            radius: radius.float()
         }
     }
 
