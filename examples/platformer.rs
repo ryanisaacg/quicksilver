@@ -44,8 +44,8 @@ impl State {
         State {
             window,
             canvas,
-            player: Entity::new(Rectangle::newi(16, 16, 32, 32)),
-            map: Tilemap::new(800f32, 600f32, 40f32, 40f32)
+            player: Entity::new(Rectangle::new(16, 16, 32, 32)),
+            map: Tilemap::new(Vector::new(800, 600), Vector::new(40, 40))
         }
     }
 

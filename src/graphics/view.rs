@@ -21,7 +21,7 @@ impl View {
                 * Transform::translate(world.size() / 2)
                 * transform
                 * Transform::translate(-world.top_left() - world.size() / 2);
-        let opengl = Transform::scale(Vector::newi(2, -2))
+        let opengl = Transform::scale(Vector::new(2, -2))
             * Transform::translate(-Vector::one() / 2)
             * normalize;
         View { normalize, opengl }
@@ -34,10 +34,10 @@ mod tests {
 
     #[test]
     fn opengl_projection() {
-        let view = View::new(Rectangle::newi_sized(50, 50));
+        let view = View::new(Rectangle::new_sized(50, 50));
         let world_bottom = Vector::y() * 50;
         assert_eq!(view.opengl * world_bottom, -Vector::one());
-        let view = View::new(Rectangle::newi(50, 50, 50, 50));
+        let view = View::new(Rectangle::new(50, 50, 50, 50));
         let world_top = Vector::one() * 50;
         let expected = -Vector::x() + Vector::y();
         assert_eq!(view.opengl * world_top, expected);
@@ -45,8 +45,8 @@ mod tests {
     
     #[test]
     fn projection() {
-        let view = View::new(Rectangle::newi_sized(50, 50));
-        let screen_size = Vector::newi(100, 100);
+        let view = View::new(Rectangle::new_sized(50, 50));
+        let screen_size = Vector::new(100, 100);
         let unproject = Transform::scale(screen_size) * view.normalize;
         let project = unproject.inverse();
         let screen_bottom = Vector::y() * 100;
@@ -57,7 +57,7 @@ mod tests {
     
 //    #[test]
 //    fn custom_transform() {
-//        let rect = Rectangle::newi(-10, -10, 10, 10);
+//        let rect = Rectangle::new(-10, -10, 10, 10);
 //        let view = View::new_transformed(rect, Transform::rotate(-90f32));
 //        let unproject = Transform::scale(rect.size()) * view.normalize;
 //        let project = unproject.inverse();

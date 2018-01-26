@@ -23,7 +23,7 @@ impl Screen for Loading {
         let surface = Surface::new(600, 400);
         surface.render_to(|canvas| {
             canvas.clear(Color::white());
-            canvas.draw_rect(Rectangle::newi_sized(300, 200), Color::green());
+            canvas.draw_rect(Rectangle::new_sized(300, 200), Color::green());
         }, canvas);
         Some(Box::new(State { surface }))
     }
@@ -44,7 +44,7 @@ impl Screen for State {
 
     fn draw(&mut self, window: &mut Window, canvas: &mut Canvas) {
         canvas.clear(Color::black());
-        canvas.draw_image(self.surface.image(), Vector::newi(400, 300));
+        canvas.draw_image(self.surface.image(), Vector::new(400, 300));
         canvas.present(window);
     }
 }

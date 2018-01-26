@@ -66,10 +66,10 @@ mod tests {
 
     #[test]
     fn intersect() {
-        let line1 = Line::new(Vector::newi(0, 0), Vector::newi(32, 32));
-        let line2 = Line::new(Vector::newi(0, 32), Vector::newi(32, 0));
-        let line3 = Line::new(Vector::newi(32, 32), Vector::newi(64, 64));
-        let line4 = Line::new(Vector::newi(100, 100), Vector::newi(1000, 1000));
+        let line1 = Line::new(Vector::new(0, 0), Vector::new(32, 32));
+        let line2 = Line::new(Vector::new(0, 32), Vector::new(32, 0));
+        let line3 = Line::new(Vector::new(32, 32), Vector::new(64, 64));
+        let line4 = Line::new(Vector::new(100, 100), Vector::new(1000, 1000));
         assert!(line1.intersects(line2));
         assert!(!line2.intersects(line3));
         assert!(!line1.intersects(line4));
@@ -79,10 +79,10 @@ mod tests {
 
     #[test]
     fn contains() {
-        let line1 = Line::new(Vector::newi(0, 0), Vector::newi(32, 32));
-        let line2 = Line::new(Vector::newi(0, 32), Vector::newi(32, 0));
-        assert!(line1.contains(Vector::newi(5, 5)));
-        assert!(!line1.contains(Vector::newi(6, 5)));
-        assert!(line2.contains(Vector::newi(0, 32)));
+        let line1 = Line::new(Vector::new(0, 0), Vector::new(32, 32));
+        let line2 = Line::new(Vector::new(0, 32), Vector::new(32, 0));
+        assert!(line1.contains(Vector::new(5, 5)));
+        assert!(!line1.contains(Vector::new(6, 5)));
+        assert!(line2.contains(Vector::new(0, 32)));
     }
 }

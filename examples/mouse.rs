@@ -17,7 +17,7 @@ impl State {
         State {
             window,
             canvas,
-            bounds: Rectangle::newi_sized(32, 32)
+            bounds: Rectangle::new_sized(32, 32)
         }
     }
 
@@ -34,7 +34,7 @@ impl State {
     pub fn draw(&mut self) {
         self.canvas.clear(Color::white());
         self.canvas.draw_rect(self.bounds, Color::blue());
-        self.canvas.draw_rect(Rectangle::newi_sized(40, 40).translate(self.window.mouse().pos()), Color::green());
+        self.canvas.draw_rect(Rectangle::new_sized(40, 40).translate(self.window.mouse().pos()), Color::green());
         self.canvas.present(&self.window);
     }
 }

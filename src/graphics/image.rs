@@ -44,7 +44,7 @@ pub struct Image {
 
 impl Image {
     fn new(data: ImageData) -> Image {
-        let region = Rectangle::newi_sized(data.width, data.height);
+        let region = Rectangle::new_sized(data.width, data.height);
         Image {
             source: Rc::new(data),
             region
@@ -107,7 +107,7 @@ impl Image {
     }
 
     pub(crate) fn source_size(&self) -> Vector {
-        Vector::newi(self.source_width(), self.source_height())
+        Vector::new(self.source_width(), self.source_height())
     }
 
     ///The area of the source image this subimage takes up
@@ -243,7 +243,7 @@ impl Surface {
             gl::GetViewport(viewport.as_mut_ptr());
             gl::BindFramebuffer(gl::FRAMEBUFFER, self.data.framebuffer);
             gl::Viewport(0, 0, self.image.source_width(), self.image.source_height());
-            canvas.set_view(View::new_transformed(self.image.area(), Transform::scale(Vector::newi(1, -1))));
+            canvas.set_view(View::new_transformed(self.image.area(), Transform::scale(Vector::new(1, -1))));
         }
         func(canvas);
         canvas.backend.flush();

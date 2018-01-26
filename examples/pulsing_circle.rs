@@ -31,7 +31,7 @@ impl State {
 
     pub fn draw(&mut self) {
         self.canvas.clear(Color::black());
-        self.canvas.draw_circle_trans(Circle::newi(400, 300, 50), Color::white(), Transform::scale(self.scale));
+        self.canvas.draw_circle_trans(Circle::new(400, 300, 50), Color::white(), Transform::scale(self.scale));
         self.canvas.present(&self.window);
     }
 }
