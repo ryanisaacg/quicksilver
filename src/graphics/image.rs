@@ -6,6 +6,7 @@ use asset::{Asset, LoadingAsset};
 use geom::{Rectangle, Vector, Transform};
 use graphics::{Canvas, View};
 use std::ops::Drop;
+use std::os::raw::c_void;
 use std::path::Path;
 use std::rc::Rc;
 
@@ -75,23 +76,29 @@ impl Image {
         LoadingAsset::Loaded(Image::from_raw(img.into_raw().as_slice(), width, height, PixelFormat::RGBA))
     }
 
-
-    ///Load an image from raw bytes
-    pub fn from_raw(data: &[u8], width: i32, height: i32, format: PixelFormat) -> Image {
-        use std::os::raw::c_void;
-        let id = unsafe {
-            let texture = gl::GenTexture();
-            gl::BindTexture(gl::TEXTURE_2D, texture);
+    fn from_ptr(data: *const c_void, width: i32, height: i32, format: PixelFormat) -> Image {
+        unsafe {
+            let id = gl::GenTexture();
+            gl::BindTexture(gl::TEXTURE_2D, id);
             gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_S, gl::CLAMP_TO_EDGE as i32);
             gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_T, gl::CLAMP_TO_EDGE as i32);
             gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::NEAREST as i32);
             gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::NEAREST as i32);
             gl::TexImage2D(gl::TEXTURE_2D, 0, gl::RGBA as i32, width, height, 0, format as u32, 
-                           gl::UNSIGNED_BYTE, data.as_ptr() as *const c_void);
+                           gl::UNSIGNED_BYTE, data);
             gl::GenerateMipmap(gl::TEXTURE_2D);
-            texture
-        };
-        Image::new(ImageData { id, width, height })
+            Image::new(ImageData { id, width, height })
+        }
+    }
+
+    pub(crate) fn new_null(width: i32, height: i32, format: PixelFormat) -> Image {
+        use std::ptr::null;
+        Image::from_ptr(null(), width, height, format)
+    }
+
+    ///Load an image from raw bytes
+    pub fn from_raw(data: &[u8], width: i32, height: i32, format: PixelFormat) -> Image {
+        Image::from_ptr(data.as_ptr() as *const c_void, width, height, format)
     }
     
     pub(crate) fn get_id(&self) -> u32 {
@@ -218,7 +225,7 @@ pub struct Surface {
 impl Surface {
     ///Create a new surface with a given width and height
     pub fn new(width: i32, height: i32) -> Surface {
-        let image = Image::from_raw(&[], width, height, PixelFormat::RGBA);
+        let image = Image::new_null(width, height, PixelFormat::RGBA);
         let surface = SurfaceData {
             framebuffer: unsafe { gl::GenFramebuffer() }
         };
