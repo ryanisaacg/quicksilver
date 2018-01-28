@@ -1,4 +1,4 @@
-use geom::about_equal;
+use geom::{about_equal, Scalar};
 #[cfg(not(target_arch="wasm32"))]
 use rand::{Rand, Rng};
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
@@ -36,18 +36,13 @@ impl Vector {
     }
 
     ///Create a new vector
-    pub fn new(x: f32, y: f32) -> Vector {
-        Vector { x: x, y: y }
-    }
-
-    ///Create a new vector with integer components
-    pub fn newi(x: i32, y: i32) -> Vector {
-        Vector::new(x as f32, y as f32)
+    pub fn new<T: Scalar>(x: T, y: T) -> Vector {
+        Vector { x: x.float(), y: y.float() }
     }
 
     ///Create a unit vector at a given angle
-    pub fn from_angle(angle: f32) -> Vector {
-        Vector::new(angle.to_radians().cos(), angle.to_radians().sin())
+    pub fn from_angle<T: Scalar>(angle: T) -> Vector {
+        Vector::new(angle.float().to_radians().cos(), angle.float().to_radians().sin())
     }
 
     ///Get the squared length of the vector (faster than getting the length)
@@ -236,21 +231,21 @@ mod tests {
 
     #[test]
     fn arithmetic() {
-        let a = Vector::newi(5, 10);
-        let b = Vector::newi(1, -2);
+        let a = Vector::new(5, 10);
+        let b = Vector::new(1, -2);
         assert!((a + b).x == 6f32);
         assert!((a - b).y == 12f32);
     }
 
     #[test]
     fn equality() {
-        assert_eq!(Vector::newi(5, 5), Vector::newi(5, 5));
-        assert_ne!(Vector::newi(0, 5), Vector::newi(5, 5));
+        assert_eq!(Vector::new(5, 5), Vector::new(5, 5));
+        assert_ne!(Vector::new(0, 5), Vector::new(5, 5));
     }
 
     #[test]
     fn inverse() {
-        let vec = Vector::newi(3, 5);
+        let vec = Vector::new(3, 5);
         let inverse = vec.recip();
         assert_eq!(Vector::new(1.0 / 3.0, 1.0 / 5.0), inverse);
     }
@@ -264,8 +259,8 @@ mod tests {
 
     #[test]
     fn scale() {
-        let vec = Vector::newi(1, 1);
-        let doubled = Vector::newi(2, 2);
+        let vec = Vector::new(1, 1);
+        let doubled = Vector::new(2, 2);
         assert_eq!(vec * 2, doubled);
         let halved = Vector::new(0.5, 0.5);
         assert_eq!(vec / 2, halved);
@@ -273,22 +268,22 @@ mod tests {
 
     #[test]
     fn clamp() {
-        let min = Vector::newi(-10, -2);
-        let max = Vector::newi(5, 6);
-        let vec = Vector::newi(-11, 3);
+        let min = Vector::new(-10, -2);
+        let max = Vector::new(5, 6);
+        let vec = Vector::new(-11, 3);
         let clamped = vec.clamp(min, max);
-        let expected = Vector::newi(-10, 3);
+        let expected = Vector::new(-10, 3);
         assert_eq!(clamped, expected);
     }
 
     #[test]
     fn dot() {
-        assert!(about_equal(Vector::newi(6, 5).dot(Vector::newi(2, -8)), -28f32));
+        assert!(about_equal(Vector::new(6, 5).dot(Vector::new(2, -8)), -28f32));
     }
 
     #[test]
     fn times() {
-        let vec = Vector::newi(3, -2);
+        let vec = Vector::new(3, -2);
         let two = Vector::one() * 2;
         assert_eq!(vec.times(two), vec * 2);
     }

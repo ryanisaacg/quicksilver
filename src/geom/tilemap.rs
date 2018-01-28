@@ -32,57 +32,55 @@ impl<T: Clone> Tile<T> {
 ///A grid of Tile values
 pub struct Tilemap<T: Clone> {
     data: Vec<Tile<T>>,
-    width: f32,
-    height: f32,
-    tile_width: f32,
-    tile_height: f32,
+    map_size: Vector,
+    tile_size: Vector
 }
 
 impl<T: Clone> Tilemap<T> {
     ///Create a map full of empty, non-solid tiles of a given size
-    pub fn new(map_width: f32, map_height: f32, tile_width: f32, tile_height: f32) -> Tilemap<T> {
-        Tilemap::with_data(vec![Tile::empty(None);(map_width / tile_width * map_height / tile_height) as usize],
-            map_width, map_height, tile_width, tile_height)
+    pub fn new(map_size: Vector, tile_size: Vector ) -> Tilemap<T> {
+        let data = vec![Tile::empty(None);(map_size.x / tile_size.x * map_size.y / tile_size.y) as usize];
+        Tilemap { data, map_size, tile_size }
     }
 
     ///Create a map with pre-filled data
-    pub fn with_data(data: Vec<Tile<T>>, width: f32, height: f32, tile_width: f32, tile_height: f32) -> Tilemap<T> {
-        Tilemap { data, width, height, tile_width, tile_height }
+    pub fn with_data(data: Vec<Tile<T>>, map_size: Vector, tile_size: Vector) -> Tilemap<T> {
+        Tilemap { data, map_size, tile_size }
     }
 
     ///Get the width of the map
     pub fn width(&self) -> f32 {
-        self.width
+        self.map_size.x
     }
 
     ///Get the height of the map
     pub fn height(&self) -> f32 {
-        self.height
+        self.map_size.y
     }
 
     ///Get the size of the map
     pub fn size(&self) -> Vector {
-        Vector::new(self.width, self.height)
+        self.map_size
     }
 
     ///Get the region the map takes up
     pub fn region(&self) -> Rectangle {
-        Rectangle::new_sized(self.width, self.height)
+        Rectangle::newv_sized(self.map_size)
     }
 
     ///Get the width of an individual tile
     pub fn tile_width(&self) -> f32 {
-        self.tile_width
+        self.tile_size.x
     }
 
     ///Get the height of an individual tile
     pub fn tile_height(&self) -> f32 {
-        self.tile_height
+        self.tile_size.y
     }
 
     ///Get the size of a tile
     pub fn tile_size(&self) -> Vector {
-        Vector::new(self.tile_width, self.tile_height)
+        self.tile_size
     }
 
     ///Check if a point is within the map bounds
@@ -97,8 +95,8 @@ impl<T: Clone> Tilemap<T> {
     }
 
     fn array_index(&self, index: Vector) -> usize {
-        ((index.x / self.tile_width).trunc() * (self.height / self.tile_height).trunc() +
-             (index.y / self.tile_height).trunc()) as usize
+        ((index.x / self.tile_width()).trunc() * (self.height() / self.tile_height()).trunc() +
+             (index.y / self.tile_height()).trunc()) as usize
     }
 
     ///Get the tile found at a given point, if it is valid
@@ -142,13 +140,13 @@ impl<T: Clone> Tilemap<T> {
         match shape {
             Shape::Vect(_) => self.point_empty(shape.center()),
             Shape::Rect(_) | Shape::Circ(_) | Shape::Line(_) => {
-                let x_start = (self.align_left(bounds.x) / self.tile_width) as i32;
-                let y_start = (self.align_top(bounds.y) / self.tile_height) as i32;
-                let x_end = (self.align_right(bounds.x + bounds.width) / self.tile_width) as i32;
-                let y_end = (self.align_right(bounds.y + bounds.height) / self.tile_height) as i32;
+                let x_start = (self.align_left(bounds.x) / self.tile_width()) as i32;
+                let y_start = (self.align_top(bounds.y) / self.tile_height()) as i32;
+                let x_end = (self.align_right(bounds.x + bounds.width) / self.tile_width()) as i32;
+                let y_end = (self.align_right(bounds.y + bounds.height) / self.tile_height()) as i32;
                 for x in x_start..x_end {
                     for y in y_start..y_end {
-                        let point = Vector::newi(x, y).times(self.tile_size());
+                        let point = Vector::new(x, y).times(self.tile_size());
                         if !self.point_empty(point) && shape.overlaps_rect(Rectangle::newv(point, self.tile_size())) {
                             return false;
                         }
@@ -161,22 +159,22 @@ impl<T: Clone> Tilemap<T> {
 
     ///Align a given X value to the leftmost edge of a tile
     pub fn align_left(&self, x: f32) -> f32 {
-        (x / self.tile_width).floor() * self.tile_width
+        (x / self.tile_width()).floor() * self.tile_width()
     }
 
     ///Align a given X value to the rightmost edge of a tile
     pub fn align_right(&self, x: f32) -> f32 {
-        (x / self.tile_width).ceil() * self.tile_width
+        (x / self.tile_width()).ceil() * self.tile_width()
     }
 
     ///Align a given Y value to the topmost edge of a tile
     pub fn align_top(&self, y: f32) -> f32 {
-        (y / self.tile_height).floor() * self.tile_height
+        (y / self.tile_height()).floor() * self.tile_height()
     }
 
     ///Align a given Y value to the bottommost edge of a tile
     pub fn align_bottom(&self, y: f32) -> f32 {
-        (y / self.tile_height).ceil() * self.tile_height
+        (y / self.tile_height()).ceil() * self.tile_height()
     }
 
     ///Find the furthest a shape can move along a vector, and what its future speed should be
@@ -191,7 +189,7 @@ impl<T: Clone> Tilemap<T> {
             let mut bounds = bounds;
             let mut i = 1;
             // Find the largest number of tiles that can be moved
-            let chunk = Vector::x() * speed.x.signum() * self.tile_width;
+            let chunk = Vector::x() * speed.x.signum() * self.tile_width();
             while (chunk * (i + 1)).x.abs() < speed.x.abs() &&
                 self.shape_empty(bounds.translate(chunk * (i + 1)))
             {
@@ -199,7 +197,7 @@ impl<T: Clone> Tilemap<T> {
             }
             let incomplete = if (chunk * (i + 1)).x.abs() <= speed.x.abs() {
                 bounds = bounds.translate(chunk * i);
-                speed.x %= self.tile_width;
+                speed.x %= self.tile_width();
                 true
             } else {
                 false
@@ -217,7 +215,7 @@ impl<T: Clone> Tilemap<T> {
             }
             i = 1;
             // Find the largest number of tiles that can be moved
-            let chunk = Vector::y() * speed.y.signum() * self.tile_height;
+            let chunk = Vector::y() * speed.y.signum() * self.tile_height();
             while (chunk * (i + 1)).y.abs() < speed.y.abs() &&
                 self.shape_empty(bounds.translate(chunk * (i + 1)))
             {
@@ -225,7 +223,7 @@ impl<T: Clone> Tilemap<T> {
             }
             let incomplete = if (chunk * (i + 1)).y.abs() <= speed.y.abs() {
                 bounds = bounds.translate(chunk * i);
-                speed.y %= self.tile_height;
+                speed.y %= self.tile_height();
                 true
             } else {
                 false
@@ -257,10 +255,8 @@ impl<T: Clone> Tilemap<T> {
                     },
                     empty: tile.empty
                 }).collect(),
-            width: self.width,
-            height: self.height,
-            tile_width: self.tile_width,
-            tile_height: self.tile_height
+            map_size: self.map_size,
+            tile_size: self.tile_size
         }
     }
 }
@@ -270,8 +266,8 @@ mod tests {
     use super::*;
 
     fn setup() -> Tilemap<i32> {
-        let mut map = Tilemap::new(640f32, 480f32, 32f32, 32f32);
-        map.set(Vector::newi(35, 35), Tile::solid(Some(5)));
+        let mut map = Tilemap::new(Vector::new(640, 480), Vector::new(32, 32));
+        map.set(Vector::new(35, 35), Tile::solid(Some(5)));
         map
     }
 
@@ -282,10 +278,10 @@ mod tests {
             None => true,
             _ => false,
         });
-        assert!(map.get(Vector::newi(35, 0)).unwrap().empty);
-        assert!(!map.get(Vector::newi(35, 35)).unwrap().empty);
-        assert!(!map.get(Vector::newi(35, 35)).unwrap().empty);
-        assert_eq!(map.get(Vector::newi(35, 35)).unwrap().value.unwrap(), 5);
+        assert!(map.get(Vector::new(35, 0)).unwrap().empty);
+        assert!(!map.get(Vector::new(35, 35)).unwrap().empty);
+        assert!(!map.get(Vector::new(35, 35)).unwrap().empty);
+        assert_eq!(map.get(Vector::new(35, 35)).unwrap().value.unwrap(), 5);
     }
 
     #[test]
@@ -295,61 +291,61 @@ mod tests {
         //speed
         let test_cases = [
             (
-                Rectangle::newi(300, 5, 32, 32),
-                Vector::newi(0, -10),
-                Vector::newi(300, 0),
+                Rectangle::new(300, 5, 32, 32),
+                Vector::new(0, -10),
+                Vector::new(300, 0),
                 Vector::zero(),
             ),
             (
-                Rectangle::newi(80, 10, 16, 16),
-                Vector::newi(1, -20),
-                Vector::newi(81, 0),
-                Vector::newi(1, 0),
+                Rectangle::new(80, 10, 16, 16),
+                Vector::new(1, -20),
+                Vector::new(81, 0),
+                Vector::new(1, 0),
             ),
             (
-                Rectangle::newi(600, 10, 30, 10),
-                Vector::newi(15, 10),
-                Vector::newi(610, 20),
-                Vector::newi(0, 10),
+                Rectangle::new(600, 10, 30, 10),
+                Vector::new(15, 10),
+                Vector::new(610, 20),
+                Vector::new(0, 10),
             ),
             (
-                Rectangle::newi(10, 5, 5, 5),
-                Vector::newi(2, 2),
-                Vector::newi(12, 7),
-                Vector::newi(2, 2),
+                Rectangle::new(10, 5, 5, 5),
+                Vector::new(2, 2),
+                Vector::new(12, 7),
+                Vector::new(2, 2),
             ),
             (
-                Rectangle::newi(5, 5, 10, 10),
+                Rectangle::new(5, 5, 10, 10),
                 Vector::x() * -7.2,
-                Vector::newi(0, 5),
+                Vector::new(0, 5),
                 Vector::zero(),
             ),
             (
-                Rectangle::newi(0, 0, 30, 30),
+                Rectangle::new(0, 0, 30, 30),
                 Vector::x() * 2,
-                Vector::newi(2, 0),
+                Vector::new(2, 0),
                 Vector::x() * 2,
             ),
             (
-                Rectangle::newi(0, 0, 30, 30),
+                Rectangle::new(0, 0, 30, 30),
                 Vector::x() * 100,
                 Vector::x() * 100,
                 Vector::x() * 100,
             ),
             (
-                Rectangle::newi(0, 0, 30, 30),
+                Rectangle::new(0, 0, 30, 30),
                 Vector::y() * 100,
                 Vector::y() * 100,
                 Vector::y() * 100,
             ),
             (
-                Rectangle::newi(150, 0, 30, 30),
+                Rectangle::new(150, 0, 30, 30),
                 Vector::x() * -100,
                 Vector::x() * 50,
                 Vector::x() * -100,
             ),
             (
-                Rectangle::newi(0, 150, 30, 30),
+                Rectangle::new(0, 150, 30, 30),
                 Vector::y() * -200,
                 Vector::zero(),
                 Vector::zero(),

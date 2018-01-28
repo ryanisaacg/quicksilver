@@ -148,7 +148,7 @@ mod tests {
 
     #[test]
     fn inverse() {
-        let vec = Vector::newi(2, 4);
+        let vec = Vector::new(2, 4);
         let translate = Transform::scale(Vector::one() * 0.5);
         let inverse = translate.inverse();
         let transformed = inverse * vec;
@@ -159,7 +159,7 @@ mod tests {
     #[test]
     fn scale() {
         let trans = Transform::scale(Vector::one() * 2);
-        let vec = Vector::newi(2, 5);
+        let vec = Vector::new(2, 5);
         let scaled = trans * vec;
         let expected = vec * 2;
         assert_eq!(scaled, expected);
@@ -167,7 +167,7 @@ mod tests {
 
     #[test]
     fn translate() {
-        let translate = Vector::newi(3, 4);
+        let translate = Vector::new(3, 4);
         let trans = Transform::translate(translate);
         let vec = Vector::one();
         let translated = trans * vec;
@@ -179,7 +179,7 @@ mod tests {
     fn identity() {
         let trans = Transform::identity() * Transform::translate(Vector::zero()) *
             Transform::rotate(0f32) * Transform::scale(Vector::one());
-        let vec = Vector::newi(15, 12);
+        let vec = Vector::new(15, 12);
         assert_eq!(vec, trans * vec);
     }
 

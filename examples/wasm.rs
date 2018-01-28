@@ -32,7 +32,7 @@ impl State {
     pub fn draw(&mut self) {
         let color = if self.window.keyboard()[Key::A].is_down() { Color::blue() } else { Color::white() };
         self.canvas.clear(color);
-        self.canvas.draw_rect(Rectangle::newi_sized(100, 100), Color::green());
+        self.canvas.draw_rect(Rectangle::new_sized(100, 100), Color::green());
         match self.image {
             LoadingAsset::Loading(_) => {},
             LoadingAsset::Errored(_) => {},

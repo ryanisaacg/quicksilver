@@ -109,10 +109,10 @@ mod tests {
 
     fn get_shapes() -> [Shape; 4] {
         [
-            Shape::Circ(Circle::newi(0, 0, 32)),
-            Shape::Line(Line::new(Vector::newi(0, 0), Vector::newi(32, 32))),
-            Shape::Rect(Rectangle::newi(0, 0, 32, 32)),
-            Shape::Vect(Vector::newi(0, 0))
+            Shape::Circ(Circle::new(0, 0, 32)),
+            Shape::Line(Line::new(Vector::new(0, 0), Vector::new(32, 32))),
+            Shape::Rect(Rectangle::new(0, 0, 32, 32)),
+            Shape::Vect(Vector::new(0, 0))
         ]
     }
 
@@ -129,14 +129,14 @@ mod tests {
     #[test]
     fn with_center() {
         for a in get_shapes().iter() {
-            assert_eq!(a.with_center(Vector::newi(50, 40)).center(), Vector::newi(50, 40));
+            assert_eq!(a.with_center(Vector::new(50, 40)).center(), Vector::new(50, 40));
         }
     }
 
     #[test]
     fn translate() {
         for a in get_shapes().iter() {
-            assert_eq!(a.translate(Vector::newi(10, 5)).center(), a.center() + Vector::newi(10, 5));
+            assert_eq!(a.translate(Vector::new(10, 5)).center(), a.center() + Vector::new(10, 5));
         }
     }
 }

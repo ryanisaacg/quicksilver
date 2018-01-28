@@ -15,7 +15,7 @@ pub struct State {
 impl State {
     pub fn new() -> State {
         let (window, canvas) = WindowBuilder::new().build("Saving / loading", 800, 600);
-        save("quicksilver-save-example", "example-profile", &Rectangle::newi(50, 50, 100, 100)).unwrap();
+        save("quicksilver-save-example", "example-profile", &Rectangle::new(50, 50, 100, 100)).unwrap();
         let rect = load("quicksilver-save-example", "example-profile").unwrap();
         State { window, canvas, rect }
     }
