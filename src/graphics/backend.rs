@@ -17,15 +17,25 @@ pub(crate) struct Vertex {
 
 #[repr(u32)]
 #[derive(Clone, Copy)]
-/// TODO
+/// The way the colors are blended when drawing on top of other color
+///
+/// Blend modes only apply to RGB values
 pub enum BlendMode {
-/// TODO
+    /// Add the color being drawn onto and the color being drawn
+    ///
+    /// Adding red and blue will produce purple for example
     Additive = gl::FUNC_ADD,
-/// TODO
+    /// Subtract the color being drawn onto and the color being drawn
+    ///
+    /// Subtracting red from purple will produce blue for example
     Subtractive = gl::FUNC_REVERSE_SUBTRACT,
-/// TODO
+    /// Take the minimum of each component of the color
+    ///
+    /// Purple and red will produce red, blue and red will produce black
     Minimum = gl::MIN,
-/// TODO
+    /// Take the maximum of each component of the color
+    ///
+    /// Purple and red will produce purple, blue and red will produce purple
     Maximum = gl::MAX
 }
 
