@@ -15,6 +15,20 @@ pub(crate) struct Vertex {
     pub use_texture: bool,
 }
 
+#[repr(u32)]
+#[derive(Clone, Copy)]
+/// TODO
+pub enum BlendMode {
+/// TODO
+    Additive = gl::FUNC_ADD,
+/// TODO
+    Subtractive = gl::FUNC_REVERSE_SUBTRACT,
+/// TODO
+    Minimum = gl::MIN,
+/// TODO
+    Maximum = gl::MAX
+}
+
 pub(crate) struct Backend {
     texture: u32,
     pub(crate) vertices: Vec<f32>,
@@ -220,6 +234,19 @@ impl Backend {
         }
         self.texture = texture;
     }
+
+    pub fn set_blend_mode(&mut self, blend: BlendMode) {
+        self.flush();
+        unsafe { gl::BlendFunc(gl::ONE, gl::ONE) };
+        unsafe { gl::BlendEquationSeparate(blend as u32, gl::FUNC_ADD) };
+    }
+
+    pub fn reset_blend_mode(&mut self) {
+        self.flush();
+        unsafe { gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA) };
+        unsafe { gl::BlendEquationSeparate(gl::FUNC_ADD, gl::FUNC_ADD) };
+    }
+
 
     pub fn flush(&mut self) { 
         unsafe {

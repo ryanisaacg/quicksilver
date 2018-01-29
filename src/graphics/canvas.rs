@@ -4,8 +4,7 @@ extern crate glutin;
 use geom::{Circle, Line, Rectangle, Shape, Transform, Vector};
 #[cfg(not(target_arch="wasm32"))]
 use glutin::{GlContext};
-use graphics::Window;
-use graphics::{Backend, Color, Image, Vertex, View};
+use graphics::{Backend, BlendMode, Color, Image, Surface, Vertex, View, Window};
 
 ///The way to draw items to the screen, produced by WindowBuilder
 pub struct Canvas {
@@ -177,6 +176,13 @@ impl Canvas {
             Shape::Line(l) => self.draw_line_trans(l, col, trans),
             Shape::Vect(v) => self.draw_point(trans * v, col)
         }
+    }
+
+    ///Draw a surface with a given blend mode
+    pub fn draw_surface(&mut self, surface: &Surface, position: Vector, blend: BlendMode) {
+        self.backend.set_blend_mode(blend);
+        self.draw_image(surface.image(), position);
+        self.backend.reset_blend_mode();
     }
 }
 
