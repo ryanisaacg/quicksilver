@@ -216,6 +216,7 @@ let env = {
     BindFramebuffer: (target, index) => gl.bindFramebuffer(target, index == 0 ? null : gl_objects[index]),
     BindTexture: (target, index) => gl.bindTexture(target, gl_objects[index]),
     BindVertexArray: (index) => gl.bindVertexArray(gl_objects[index]),
+    BlendEquationSeparate: gl.blendEquationSeparate.bind(gl),
     BlendFunc: gl.blendFunc.bind(gl),
     BufferData: (target, size, data, usage) => gl.bufferData(target, rust_ptr_to_buffer(data), usage, 0, size),
     BufferSubData: (target, offset, size, data) => gl.bufferSubData(target, offset, rust_ptr_to_buffer(data), 0, size), 
