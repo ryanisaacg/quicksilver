@@ -10,6 +10,7 @@ mod resize;
 mod view;
 mod window;
 pub(crate) use self::backend::{Backend, Vertex};
+pub use self::backend::BlendMode;
 pub use self::canvas::Canvas;
 pub use self::color::Color;
 pub use self::image::{Image, ImageError, PixelFormat, Surface};

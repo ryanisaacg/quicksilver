@@ -15,6 +15,30 @@ pub(crate) struct Vertex {
     pub use_texture: bool,
 }
 
+#[repr(u32)]
+#[derive(Clone, Copy)]
+/// The way the colors are blended when drawing on top of other color
+///
+/// Blend modes only apply to RGB values
+pub enum BlendMode {
+    /// Add the color being drawn onto and the color being drawn
+    ///
+    /// Adding red and blue will produce purple for example
+    Additive = gl::FUNC_ADD,
+    /// Subtract the color being drawn onto and the color being drawn
+    ///
+    /// Subtracting red from purple will produce blue for example
+    Subtractive = gl::FUNC_REVERSE_SUBTRACT,
+    /// Take the minimum of each component of the color
+    ///
+    /// Purple and red will produce red, blue and red will produce black
+    Minimum = gl::MIN,
+    /// Take the maximum of each component of the color
+    ///
+    /// Purple and red will produce purple, blue and red will produce purple
+    Maximum = gl::MAX
+}
+
 pub(crate) struct Backend {
     texture: u32,
     pub(crate) vertices: Vec<f32>,
@@ -220,6 +244,19 @@ impl Backend {
         }
         self.texture = texture;
     }
+
+    pub fn set_blend_mode(&mut self, blend: BlendMode) {
+        self.flush();
+        unsafe { gl::BlendFunc(gl::ONE, gl::ONE) };
+        unsafe { gl::BlendEquationSeparate(blend as u32, gl::FUNC_ADD) };
+    }
+
+    pub fn reset_blend_mode(&mut self) {
+        self.flush();
+        unsafe { gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA) };
+        unsafe { gl::BlendEquationSeparate(gl::FUNC_ADD, gl::FUNC_ADD) };
+    }
+
 
     pub fn flush(&mut self) { 
         unsafe {

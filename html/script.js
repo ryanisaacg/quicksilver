@@ -216,6 +216,7 @@ let env = {
     BindFramebuffer: (target, index) => gl.bindFramebuffer(target, index == 0 ? null : gl_objects[index]),
     BindTexture: (target, index) => gl.bindTexture(target, gl_objects[index]),
     BindVertexArray: (index) => gl.bindVertexArray(gl_objects[index]),
+    BlendEquationSeparate: gl.blendEquationSeparate.bind(gl),
     BlendFunc: gl.blendFunc.bind(gl),
     BufferData: (target, size, data, usage) => gl.bufferData(target, rust_ptr_to_buffer(data), usage, 0, size),
     BufferSubData: (target, offset, size, data) => gl.bufferSubData(target, offset, rust_ptr_to_buffer(data), 0, size), 
@@ -248,7 +249,9 @@ let env = {
     },
     LinkProgram: (index) => gl.linkProgram(gl_objects[index]),
     ShaderSource: (shader, source_ptr) => gl.shaderSource(gl_objects[shader], rust_str_to_js(source_ptr)),
-    TexImage2D: (target, level, internal, width, height, border, format, textype, data) => gl_objects.push(gl.texImage2D(target, level, internal, width, height, border, format, textype, rust_ptr_to_buffer(data), 0)) - 1,
+    TexImage2D: (target, level, internal, width, height, border, format, textype, data) => 
+        gl_objects.push(gl.texImage2D(target, level, internal, width, height, border, format, textype, 
+                                      data == 0 ? new Uint8Array(width * height * 4) : rust_ptr_to_buffer(data), 0)) - 1,
     TexParameteri: (target, pname, param) => gl.texParameteri.bind(gl),
     Uniform1i: (index, value) => gl.uniform1i(gl_objects[index], value),
     UseProgram: (index) => gl.useProgram(gl_objects[index]),
