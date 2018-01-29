@@ -11,6 +11,27 @@ pub struct Color {
     pub a: f32,
 }
 
+impl Color {
+    ///Create an identical color with a different red component
+    pub fn with_red(self, r: f32) -> Color {
+        Color { r, ..self }
+    }
+
+    ///Create an identical color with a different green component
+    pub fn with_green(self, g: f32) -> Color {
+        Color { g, ..self }
+    }
+
+    ///Create an identical color with a different blue component
+    pub fn with_blue(self, b: f32) -> Color {
+        Color { b, ..self }
+    }
+    ///Create an identical color with a different alpha component
+    pub fn with_alpha(self, a: f32) -> Color {
+        Color { a, ..self }
+    }
+}
+
 #[allow(missing_docs)]
 impl Color {
     pub fn white() -> Color {
@@ -117,5 +138,8 @@ mod tests {
                 assert_eq!(i == j, colors[i].clone() == *&colors[j]);
             }
         }
+        assert_eq!(Color::black().with_red(1.0), Color::red());
+        assert_eq!(Color::black().with_green(1.0), Color::green());
+        assert_eq!(Color::black().with_blue(1.0), Color::blue());
     }
 }
