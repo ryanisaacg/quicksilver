@@ -2,6 +2,7 @@
 //! 
 //! It also includes image loading
 
+mod animation;
 mod backend;
 mod canvas;
 mod color;
@@ -9,6 +10,7 @@ mod image;
 mod resize;
 mod view;
 mod window;
+pub use self::animation::Animation;
 pub(crate) use self::backend::{Backend, Vertex};
 pub use self::backend::BlendMode;
 pub use self::canvas::Canvas;
