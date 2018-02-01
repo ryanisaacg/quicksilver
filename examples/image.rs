@@ -1,13 +1,14 @@
+extern crate futures;
 #[macro_use]
 extern crate quicksilver;
 
-use quicksilver::asset::LoadingAsset;
+use futures::{Async, Future};
 use quicksilver::geom::{Vector, Transform};
-use quicksilver::graphics::{Canvas, Color, Image, Window, WindowBuilder};
+use quicksilver::graphics::{Canvas, Color, Image, ImageLoader, Window, WindowBuilder};
 use quicksilver::{InitialScreen, Screen};
 
 struct Loading {
-    image: LoadingAsset<Image>
+    image: ImageLoader
 }
 
 impl InitialScreen for Loading {
@@ -25,13 +26,10 @@ impl InitialScreen for Loading {
 
 impl Screen for Loading {
     fn update(&mut self, _window: &mut Window, _canvas: &mut Canvas) -> Option<Box<Screen>> {
-        self.image.update();
-        match self.image {
-            LoadingAsset::Loaded(ref image) => {
-                let image = image.clone();
-                Some(Box::new(Loaded { image }))
-            },
-            _ => None
+        if let Async::Ready(image) = self.image.poll().unwrap() {
+            Some(Box::new(Loaded { image }))
+        } else {
+            None
         }
     }
 

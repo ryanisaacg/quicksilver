@@ -95,6 +95,7 @@ let env = {
     mouse_scroll_x: () => mouse.scroll_x,
     mouse_scroll_y: () => mouse.scroll_y,
     print: (pointer) => console.log(rust_str_to_js(pointer)),
+    printnum: (x) => console.log(x),
     set_show_mouse: (show) => canvas.style.cursor = show ? "auto" : "none",
     create_context: (title, width, height) => {
         document.title = rust_str_to_js(title);
