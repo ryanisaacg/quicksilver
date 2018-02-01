@@ -16,7 +16,7 @@ pub(crate) use self::backend::{Backend, Vertex};
 pub use self::backend::BlendMode;
 pub use self::canvas::Canvas;
 pub use self::color::Color;
-pub use self::image::{Image, ImageError, PixelFormat};
+pub use self::image::{Image, ImageError, ImageLoader, PixelFormat};
 pub use self::resize::ResizeStrategy;
 pub use self::surface::Surface;
 pub use self::view::View;

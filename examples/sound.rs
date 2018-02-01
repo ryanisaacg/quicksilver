@@ -1,12 +1,13 @@
+extern crate futures;
 #[macro_use]
 extern crate quicksilver;
 
-use quicksilver::asset::LoadingAsset;
-use quicksilver::sound::Sound;
+use futures::{Async, Future, Poll};
+use quicksilver::sound::{Sound, SoundLoader};
 use std::time::Duration;
 
 pub struct State {
-    sound: LoadingAsset<Sound>,
+    sound: SoundLoader,
     played: bool
 }
 
@@ -28,12 +29,9 @@ impl State {
 
     pub fn draw(&mut self) {
         if !self.played {
-            match self.sound {
-                LoadingAsset::Loaded(ref sound) => {
-                    self.played = true;
-                    sound.play()
-                },
-                _ => ()
+            if let Async::Ready(sound) = self.sound.poll().unwrap() {
+                self.played = true;
+                sound.play();
             }
         }
     }
