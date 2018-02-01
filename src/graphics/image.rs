@@ -1,10 +1,10 @@
+extern crate futures;
 #[cfg(not(target_arch="wasm32"))]
 extern crate image;
 
+use futures::{Async, Future, Poll};
 use gl;
-use asset::{Asset, LoadingAsset};
-use geom::{Rectangle, Vector, Transform};
-use graphics::{Canvas, View};
+use geom::{Rectangle, Vector};
 use std::ops::Drop;
 use std::os::raw::c_void;
 use std::path::Path;
@@ -53,27 +53,31 @@ impl Image {
     }
    
     /// Start loading a texture from a given path
-    pub fn load<P: AsRef<Path>>(path: P) -> LoadingAsset<Image> {
+    pub fn load<P: AsRef<Path>>(path: P) -> ImageLoader {
         Image::load_impl(path)
     }
     
     #[cfg(target_arch="wasm32")]
-    fn load_impl<P: AsRef<Path>>(path: P) -> LoadingAsset<Self> {
+    fn load_impl<P: AsRef<Path>>(path: P) -> ImageLoader {
         use std::ffi::CString;
         use std::os::raw::c_char;
         extern "C" { fn load_image(name: *mut c_char) -> u32; };
-        LoadingAsset::Loading(unsafe { load_image(CString::new(path.as_ref().to_str().unwrap()).unwrap().into_raw()) })
+        ImageLoader {
+            id: unsafe { load_image(CString::new(path.as_ref().to_str().unwrap()).unwrap().into_raw()) }
+        }
     }
     
     #[cfg(not(target_arch="wasm32"))]
-    fn load_impl<P: AsRef<Path>>(path: P) -> LoadingAsset<Self> {
+    fn load_impl<P: AsRef<Path>>(path: P) -> ImageLoader {
         let img = match image::open(path) {
             Ok(img) => img,
-            Err(err) => return LoadingAsset::Errored(err.into())
+            Err(err) => return ImageLoader { image: Err(err.into()) }
         }.to_rgba();
         let width = img.width() as i32;
         let height = img.height() as i32;
-        LoadingAsset::Loaded(Image::from_raw(img.into_raw().as_slice(), width, height, PixelFormat::RGBA))
+        ImageLoader {
+            image: Ok(Image::from_raw(img.into_raw().as_slice(), width, height, PixelFormat::RGBA))
+        }
     }
 
     fn from_ptr(data: *const c_void, width: i32, height: i32, format: PixelFormat) -> Image {
@@ -136,17 +140,25 @@ impl Image {
     }
 }
 
-impl Asset for Image {
-    type Loading = u32;
-    type Error = ImageError;
-
+/// A future for loading images
+pub struct ImageLoader { 
     #[cfg(not(target_arch="wasm32"))]
-    fn update(_: u32) -> LoadingAsset<Self> {
-        unreachable!();
+    image: Result<Image, ImageError>,
+    #[cfg(target_arch="wasm32")]
+    id: u32
+}
+
+impl Future for ImageLoader {
+    type Item = Image;
+    type Error = ImageError;
+    
+    #[cfg(not(target_arch="wasm32"))]
+    fn poll(&mut self) -> Poll<Image, ImageError> {
+        Ok(Async::Ready(self.image.clone()?))
     }
 
     #[cfg(target_arch="wasm32")]
-    fn update(loading: u32) -> LoadingAsset<Self> {
+    fn poll(&mut self) -> Poll<Image, ImageError> {
         extern "C" {
             fn is_texture_loaded(handle: u32) -> bool;
             fn is_texture_errored(handle: u32) -> bool;
@@ -154,22 +166,22 @@ impl Asset for Image {
             fn get_image_width(index: u32) -> i32;
             fn get_image_height(index: u32) -> i32;
         }
-        if unsafe { is_texture_loaded(loading) } {
-            if unsafe { is_texture_errored(loading) } {
-                LoadingAsset::Errored(ImageError::IoError)
+        if unsafe { is_texture_loaded(self.id) } {
+            if unsafe { is_texture_errored(self.id) } {
+                Err(ImageError::IoError)
             } else {
-                LoadingAsset::Loaded(Image::new(ImageData {
-                    id: unsafe { get_image_id(loading) },
-                    width: unsafe { get_image_width(loading) },
-                    height: unsafe { get_image_height(loading) }
-                }))
+                Ok(Async::Ready(Image::new(ImageData {
+                    id: unsafe { get_image_id(self.id) },
+                    width: unsafe { get_image_width(self.id) },
+                    height: unsafe { get_image_height(self.id) }
+                })))
             } 
         } else {
-            LoadingAsset::Loading(loading)
+            Ok(Async::NotReady)
         }
+
     }
 }
-
 
 #[derive(Clone, Debug)]
 ///An error generated while loading an image
@@ -202,67 +214,5 @@ impl From<image::ImageError> for ImageError {
             image::ImageError::IoError(_) => ImageError::IoError,
             image::ImageError::ImageEnd => ImageError::ImageEnd
         }
-    }
-}
-
-struct SurfaceData {
-    framebuffer: u32
-}
-
-impl Drop for SurfaceData {
-    fn drop(&mut self) {
-        unsafe { gl::DeleteFramebuffer(self.framebuffer) };
-    }
-}
-
-#[derive(Clone)]
-///A possible render target that can be drawn to the screen
-pub struct Surface {
-    image: Image,
-    data: Rc<SurfaceData>,
-}
-
-impl Surface {
-    ///Create a new surface with a given width and height
-    pub fn new(width: i32, height: i32) -> Surface {
-        let image = Image::new_null(width, height, PixelFormat::RGBA);
-        let surface = SurfaceData {
-            framebuffer: unsafe { gl::GenFramebuffer() }
-        };
-        unsafe { 
-            gl::BindFramebuffer(gl::FRAMEBUFFER, surface.framebuffer);
-            gl::FramebufferTexture(gl::FRAMEBUFFER, gl::COLOR_ATTACHMENT0, image.source.id, 0);
-            gl::DrawBuffer(gl::COLOR_ATTACHMENT0);
-        }
-        Surface {
-            image,
-            data: Rc::new(surface)
-        }
-    }
-
-    ///Render data to the surface
-    ///
-    ///Do not attempt to use the surface or its image within the function, because it is undefined behavior
-    pub fn render_to<F>(&self, func: F, canvas: &mut Canvas) where F: FnOnce(&mut Canvas) {
-        let viewport = &mut [0, 0, 0, 0];
-        let view = canvas.view();
-        unsafe {
-            gl::GetViewport(viewport.as_mut_ptr());
-            gl::BindFramebuffer(gl::FRAMEBUFFER, self.data.framebuffer);
-            gl::Viewport(0, 0, self.image.source_width(), self.image.source_height());
-            canvas.set_view(View::new_transformed(self.image.area(), Transform::scale(Vector::new(1, -1))));
-        }
-        func(canvas);
-        canvas.backend.flush();
-        canvas.set_view(view);
-        unsafe {
-            gl::BindFramebuffer(gl::FRAMEBUFFER, 0); 
-            gl::Viewport(viewport[0], viewport[1], viewport[2], viewport[3]);
-        }
-    }
-
-    ///Get a reference to the Image that contains the data drawn to the Surface
-    pub fn image(&self) -> &Image {
-        &self.image
     }
 }

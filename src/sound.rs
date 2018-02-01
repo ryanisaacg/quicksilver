@@ -3,10 +3,11 @@
 //! On the desktop, currently all sounds are loaded into memory, but streaming sounds may be
 //! introduced in the future. On the web, it can be different from browser to browser
 
+extern crate futures;
 #[cfg(not(target_arch="wasm32"))]
 extern crate rodio;
 
-use asset::{Asset, LoadingAsset};
+use futures::{Async, Future, Poll};
 #[cfg(not(target_arch="wasm32"))]
 use rodio::{Decoder, Sink, Source};
 #[cfg(not(target_arch="wasm32"))]
@@ -49,12 +50,12 @@ pub struct Sound {
 
 impl Sound {
     /// Start loading a sound from a given path
-    pub fn load<P: AsRef<Path>>(path: P) -> LoadingAsset<Self> {
+    pub fn load<P: AsRef<Path>>(path: P) -> SoundLoader {
         Sound::load_impl(path)
     }
 
     #[cfg(not(target_arch="wasm32"))]
-    fn load_impl<P: AsRef<Path>>(path: P) -> LoadingAsset<Self> {
+    fn load_impl<P: AsRef<Path>>(path: P) -> SoundLoader {
         fn load_impl_data<P: AsRef<Path>>(path: P) -> Result<Sound, SoundError> {
             let mut bytes = Vec::new();
             BufReader::new(File::open(path)?).read_to_end(&mut bytes)?;
@@ -66,16 +67,17 @@ impl Sound {
             Decoder::new(Cursor::new(sound.clone()))?;
             Ok(sound)
         }
-        match load_impl_data(path) {
-            Ok(snd) => LoadingAsset::Loaded(snd),
-            Err(err) => LoadingAsset::Errored(err)
+        SoundLoader {
+            sound: load_impl_data(path)
         }
     }
 
     #[cfg(target_arch="wasm32")]
-    fn load_impl<P: AsRef<Path>>(path: P) -> LoadingAsset<Self> {
+    fn load_impl<P: AsRef<Path>>(path: P) -> SoundLoader {
         use std::ffi::CString;
-        LoadingAsset::Loading(unsafe { load_sound(CString::new(path.as_ref().to_str().unwrap()).unwrap().into_raw()) })
+        SoundLoader {
+            id: unsafe { load_sound(CString::new(path.as_ref().to_str().unwrap()).unwrap().into_raw()) }
+        }
     }
     
 
@@ -118,32 +120,40 @@ impl Sound {
     }
 }
 
-impl Asset for Sound {
-    type Loading = u32;
-    type Error = SoundError;
-    
+/// A future for loading images
+pub struct SoundLoader { 
     #[cfg(not(target_arch="wasm32"))]
-    fn update(_: u32) -> LoadingAsset<Self> {
-        unreachable!();
+    sound: Result<Sound, SoundError>,
+    #[cfg(target_arch="wasm32")]
+    id: u32
+}
+
+impl Future for SoundLoader {
+    type Item = Sound;
+    type Error = SoundError;
+
+    #[cfg(not(target_arch="wasm32"))]
+    fn poll(&mut self) -> Poll<Sound, SoundError> {
+        Ok(Async::Ready(self.sound.clone()?))
     }
 
     #[cfg(target_arch="wasm32")]
-    fn update(loading: u32) -> LoadingAsset<Self> {
+    fn poll(&mut self) -> Poll<Sound, SoundError> {
         extern "C" {
             fn is_sound_loaded(handle: u32) -> bool;
             fn is_sound_errored(handle: u32) -> bool;
         }
-        if unsafe { is_sound_loaded(loading) } {
-            if unsafe { is_sound_errored(loading) } {
-                LoadingAsset::Errored(SoundError::IOError)
+        if unsafe { is_sound_loaded(self.id) } {
+            if unsafe { is_sound_errored(self.id) } {
+                Err(SoundError::IOError)
             } else {
-                LoadingAsset::Loaded(Sound {
-                    index: loading,
+                Ok(Async::Ready(Sound {
+                    index: self.id,
                     volume: 1.0
-                })
+                }))
             }
         } else {
-            LoadingAsset::Loading(loading)
+            Ok(Async::NotReady)
         }
     }
 }

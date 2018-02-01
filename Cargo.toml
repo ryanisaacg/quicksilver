@@ -10,6 +10,7 @@ keywords = ["game", "audio", "graphics", "gamedev"]
 categories = ["game-engines"]
 
 [dependencies]
+futures = "0.1"
 gl = "0.9"
 serde = "1.0"
 serde_derive = "1.0"

@@ -49,6 +49,7 @@
 
 #![deny(missing_docs)]
 
+extern crate futures;
 #[cfg(not(target_arch="wasm32"))]
 extern crate glutin;
 #[cfg(not(target_arch="wasm32"))]
@@ -64,7 +65,6 @@ extern crate serde_json;
 extern crate serde_derive;
 
 mod gl;
-pub mod asset;
 pub mod geom;
 pub mod graphics;
 pub mod input;
