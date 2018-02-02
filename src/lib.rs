@@ -72,6 +72,7 @@ mod screen;
 pub mod saving;
 pub mod sound;
 mod timer;
+pub mod util;
 pub use screen::{Application, InitialScreen, Screen};
 pub use self::timer::Timer;
 
