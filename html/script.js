@@ -85,6 +85,8 @@ let env = {
     is_texture_errored: (index) => assets[index].error,
     is_sound_loaded: (index) => assets[index].loaded,
     is_sound_errored: (index) => assets[index].error,
+    is_text_file_loaded: (index) => assets[index].loaded,
+    is_text_file_errored: (index) => assets[index].error,
     fmodf: (a, b) => a % b,
     pump_key_queue: () => key_queue.length > 0 ? key_queue.shift() : 0,
     pump_mouse_queue: () => mouse_queue.length > 0 ? mouse_queue.shift() : 0,
@@ -152,6 +154,18 @@ let env = {
         }
         return index;
     },
+    load_text_file: (ptr) => {
+        const index = assets.push({}) - 1;
+        fetch(rust_str_to_js(ptr))
+            .then(response => response.text())
+            .then(string => {
+                assets[index].loaded = true;
+                assets[index].value = string;
+            })
+            .catch(err => assets[index].error = true);
+        return index;
+    },
+    text_file_contents: (index) => js_str_to_rust(assets[index].value),
     play_sound: (index, volume) => {
         const sound = assets[index].sound.clone();
         sound.volume = volume;
