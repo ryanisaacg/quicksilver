@@ -8,6 +8,7 @@ use util::FileLoader;
 use std::cmp::Ordering;
 use std::collections::HashMap;
 use std::fmt::Debug;
+use std::io::ErrorKind as IOError;
 use std::num::ParseIntError;
 use std::path::Path;
 use std::str::{FromStr, ParseBoolError, Split};
@@ -44,7 +45,7 @@ impl Atlas {
 }
 
 type ManifestContents = Result<(JoinAll<Vec<ImageLoader>>, Vec<Vec<Region>>), AtlasError>;
-struct ManifestLoader(Result<(JoinAll<Vec<ImageLoader>>, Vec<Vec<Region>>), AtlasError>);
+struct ManifestLoader(ManifestContents);
 
 /// A Future to load an Atlas
 pub struct AtlasLoader(Box<Future<Item=Atlas, Error=AtlasError>>);
@@ -120,7 +121,7 @@ fn create(data: (Vec<Image>, Vec<Vec<Region>>)) -> Atlas {
 }
 
 // Parse a manifest file into a future to load the contents of the atlas
-fn parse<P: AsRef<Path>>(data: Result<String, ()>, path: P) -> ManifestLoader {
+fn parse<P: AsRef<Path>>(data: Result<String, IOError>, path: P) -> ManifestLoader {
     // Either parse the data or repackage the error
     return match data {
         Ok(data) => ManifestLoader(parse_body(data, path.as_ref())),
@@ -227,7 +228,7 @@ pub enum AtlasError {
     /// An error created parsing the Atlas manifest
     ParseError(&'static str),
     /// An error created loading the atlas manifest
-    IoError
+    IOError(IOError)
 }
 
 impl From<ImageError> for AtlasError {
@@ -248,8 +249,8 @@ impl From<ParseBoolError> for AtlasError {
     }
 }
 
-impl From<()> for AtlasError {
-    fn from(_: ()) -> AtlasError {
-        AtlasError::IoError
+impl From<IOError> for AtlasError {
+    fn from(err: IOError) -> AtlasError {
+        AtlasError::IOError(err)
     }
 }

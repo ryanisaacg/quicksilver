@@ -64,7 +64,7 @@ extern crate serde_json;
 #[macro_use]
 extern crate serde_derive;
 
-mod gl;
+mod ffi;
 pub mod geom;
 pub mod graphics;
 pub mod input;

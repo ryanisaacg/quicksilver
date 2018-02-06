@@ -74,22 +74,18 @@ use std::ffi::CString;
 
 #[cfg(target_arch="wasm32")]
 fn save_impl<T: Serialize>(_appname: &str, profile: &str, data: &T) -> Result<(), Error> {
-    extern "C" {
-        fn save_cookie(key: *const i8, val: *const i8);
-    }
+    use ffi::wasm;
     let key = CString::new(profile).unwrap().into_raw();
     let val = CString::new(serde_json::to_string(data)?).unwrap().into_raw();
-    unsafe { save_cookie(key, val) };
+    unsafe { wasm::save_cookie(key, val) };
     Ok(())
 }
 
 #[cfg(target_arch="wasm32")]
 fn load_impl<T>(_appname: &str, profile: &str) -> Result<T, Error>
         where for<'de> T: Deserialize<'de> {
-    extern "C" {
-        fn load_cookie(key: *const i8) -> *mut i8;
-    }
+    use ffi::wasm;
     let key = CString::new(profile).unwrap().into_raw();
-    let string = unsafe { CString::from_raw(load_cookie(key)) }.into_string().unwrap();
+    let string = unsafe { CString::from_raw(wasm::load_cookie(key)) }.into_string().unwrap();
     serde_json::from_str(string.as_str())
 }

@@ -1,4 +1,4 @@
-use gl;
+use ffi::gl;
 #[cfg(not(target_arch="wasm32"))]
 use glutin;
 use geom::{ Rectangle, Transform, Vector};
@@ -14,22 +14,6 @@ pub struct WindowBuilder {
     max_size: Option<Vector>,
     resize: ResizeStrategy,
 }
-
-#[cfg(target_arch="wasm32")]
-extern "C" {
-    fn set_show_mouse(show: bool);
-    fn create_context(title: *mut i8, width: u32, height: u32);
-    fn set_title(title: *mut i8);
-    fn get_mouse_x() -> f32;
-    fn get_mouse_y() -> f32;
-    fn pump_key_queue() -> i32;
-    fn pump_mouse_queue() -> i32;
-    fn mouse_scroll_clear();
-    fn mouse_scroll_type() -> u32;
-    fn mouse_scroll_x() -> f32;
-    fn mouse_scroll_y() -> f32;
-}
-
 
 impl WindowBuilder {
     ///Create a default window builder
@@ -105,10 +89,11 @@ impl WindowBuilder {
             (gl_window, events)
         };
         #[cfg(target_arch="wasm32")] {
+            use ffi::wasm;
             use std::ffi::CString;
             unsafe { 
-                set_show_mouse(self.show_cursor);
-                create_context(CString::new(title).unwrap().into_raw(), width, height);
+                wasm::set_show_mouse(self.show_cursor);
+                wasm::create_context(CString::new(title).unwrap().into_raw(), width, height);
             }
         }
         let screen_size = Vector::new(width as f32, height as f32);
@@ -231,29 +216,30 @@ impl Window {
     
     #[cfg(target_arch="wasm32")]
     fn poll_events_impl(&mut self) -> bool {
-        let mut key = unsafe { pump_key_queue() };
+        use ffi::wasm;
+        let mut key = unsafe { wasm::pump_key_queue() };
         while key != 0 {
             self.keyboard.process_event(key.abs() as usize - 1, key > 0);
-            key = unsafe { pump_key_queue() };
+            key = unsafe { wasm::pump_key_queue() };
         }
         self.mouse = Mouse {
-            pos: unsafe { Vector::new(get_mouse_x(), get_mouse_y()) } - self.offset,
+            pos: unsafe { Vector::new(wasm::get_mouse_x(), wasm::get_mouse_y()) } - self.offset,
             ..self.mouse
         };
-        let mut button = unsafe { pump_mouse_queue() };
+        let mut button = unsafe { wasm::pump_mouse_queue() };
         while button != 0 {
             self.mouse.process_button(button.abs() as u32 - 1, button > 0);
-            button = unsafe { pump_mouse_queue() };
+            button = unsafe { wasm::pump_mouse_queue() };
         }
-        let scroll = unsafe { mouse_scroll_type() };
-        let x = unsafe { mouse_scroll_x() };
-        let y = unsafe { mouse_scroll_y() };
+        let scroll = unsafe { wasm::mouse_scroll_type() };
+        let x = unsafe { wasm::mouse_scroll_x() };
+        let y = unsafe { wasm::mouse_scroll_y() };
         if scroll == 0 {
             self.mouse.process_wheel_pixels(x, y);
         } else {
             self.mouse.process_wheel_lines(x, y);
         }
-        unsafe { mouse_scroll_clear(); }
+        unsafe { wasm::mouse_scroll_clear(); }
         true
     }
 
@@ -333,7 +319,8 @@ impl Window {
     
     #[cfg(target_arch="wasm32")]
     fn set_title_impl(&self, title: &str) {
+        use ffi::wasm;
         use std::ffi::CString;
-        unsafe { set_title(CString::new(title).unwrap().into_raw()) };
+        unsafe { wasm::set_title(CString::new(title).unwrap().into_raw()) };
     }
 }

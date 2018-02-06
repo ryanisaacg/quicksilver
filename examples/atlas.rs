@@ -4,7 +4,7 @@ extern crate quicksilver;
 
 use futures::{Async, Future};
 use quicksilver::geom::Vector;
-use quicksilver::graphics::{Atlas, AtlasLoader, AtlasItem, Canvas, Color, Image, ImageLoader, Window, WindowBuilder};
+use quicksilver::graphics::{Atlas, AtlasLoader, Canvas, Color, Image, Window, WindowBuilder};
 use quicksilver::{InitialScreen, Screen};
 
 struct LoadingScreen {
