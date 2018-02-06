@@ -2,7 +2,7 @@ extern crate futures;
 #[macro_use]
 extern crate quicksilver;
 
-use futures::{Async, Future, Poll};
+use futures::{Async, Future};
 use quicksilver::sound::{Sound, SoundLoader};
 use std::time::Duration;
 

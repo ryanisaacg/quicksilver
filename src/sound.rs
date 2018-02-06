@@ -133,13 +133,13 @@ impl Future for SoundLoader {
     #[cfg(target_arch="wasm32")]
     fn poll(&mut self) -> Poll<Sound, SoundError> {
         use ffi::wasm;
-        match wasm::asset_status(self.id)? {
-            false => Ok(Async::NotReady),
-            true => Ok(Async::Ready(Sound {
+        Ok(match wasm::asset_status(self.id)? {
+            false => Async::NotReady,
+            true => Async::Ready(Sound {
                     index: self.id,
                     volume: 1.0
-                }))
-        }
+                })
+        })
     }
 }
 
