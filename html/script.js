@@ -204,6 +204,19 @@ let env = {
     get_image_id: (index) => assets[index].id,
     get_image_width: (index) => assets[index].width,
     get_image_height: (index) => assets[index].height,
+    //Text file
+    load_text_file: (ptr) => {
+        const index = assets.push({}) - 1;
+        fetch(rust_str_to_js(ptr))
+            .then(response => response.text())
+            .then(string => {
+                assets[index].loaded = true;
+                assets[index].value = string;
+            })
+            .catch(err => assets[index].error = true);
+        return index;
+    },
+    text_file_contents: (index) => js_str_to_rust(assets[index].value),
     //Asset loading
     asset_status: (index) => asstes[index].error ? 2 : (assets[index].loaded ? 1 : 0),
     //Rust runtime

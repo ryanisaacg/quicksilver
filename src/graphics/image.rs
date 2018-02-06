@@ -160,14 +160,14 @@ impl Future for ImageLoader {
     #[cfg(target_arch="wasm32")]
     fn poll(&mut self) -> Poll<Image, ImageError> {
         use ffi::wasm;
-        match wasm::asset_status(self.id)? {
-            true => Ok(Async::Ready(Image::new(ImageData {
+        Ok(match wasm::asset_status(self.id)? {
+            true => Async::Ready(Image::new(ImageData {
                     id: unsafe { wasm::get_image_id(self.id) },
                     width: unsafe { wasm::get_image_width(self.id) },
                     height: unsafe { wasm::get_image_height(self.id) }
-                }))),
-            false => Ok(Async::NotReady),
-        }
+                })),
+            false => Async::NotReady,
+        })
     }
 }
 

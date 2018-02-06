@@ -31,6 +31,9 @@ extern "C" {
     pub fn get_image_id(index: u32) -> u32;
     pub fn get_image_width(index: u32) -> i32;
     pub fn get_image_height(index: u32) -> i32;
+    //Text files
+    pub fn load_text_file(name: *mut i8) -> u32;
+    pub fn text_file_contents(handle: u32) -> *mut i8;
     //Asset loading
     fn ffi_asset_status(handle: u32) -> i32;
 }
