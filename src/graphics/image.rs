@@ -60,10 +60,9 @@ impl Image {
     #[cfg(target_arch="wasm32")]
     fn load_impl<P: AsRef<Path>>(path: P) -> ImageLoader {
         use std::ffi::CString;
-        use std::os::raw::c_char;
-        extern "C" { fn load_image(name: *mut c_char) -> u32; };
+        use ffi::wasm;
         ImageLoader {
-            id: unsafe { load_image(CString::new(path.as_ref().to_str().unwrap()).unwrap().into_raw()) }
+            id: unsafe { wasm::load_image(CString::new(path.as_ref().to_str().unwrap()).unwrap().into_raw()) }
         }
     }
     
@@ -159,21 +158,15 @@ impl Future for ImageLoader {
 
     #[cfg(target_arch="wasm32")]
     fn poll(&mut self) -> Poll<Image, ImageError> {
-        extern "C" {
-            fn is_texture_loaded(handle: u32) -> bool;
-            fn is_texture_errored(handle: u32) -> bool;
-            fn get_image_id(index: u32) -> u32;
-            fn get_image_width(index: u32) -> i32;
-            fn get_image_height(index: u32) -> i32;
-        }
-        if unsafe { is_texture_loaded(self.id) } {
-            if unsafe { is_texture_errored(self.id) } {
+        use ffi::wasm;
+        if unsafe { wasm::is_texture_loaded(self.id) } {
+            if unsafe { wasm::is_texture_errored(self.id) } {
                 Err(ImageError::IoError)
             } else {
                 Ok(Async::Ready(Image::new(ImageData {
-                    id: unsafe { get_image_id(self.id) },
-                    width: unsafe { get_image_width(self.id) },
-                    height: unsafe { get_image_height(self.id) }
+                    id: unsafe { wasm::get_image_id(self.id) },
+                    width: unsafe { wasm::get_image_width(self.id) },
+                    height: unsafe { wasm::get_image_height(self.id) }
                 })))
             } 
         } else {

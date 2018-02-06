@@ -22,17 +22,6 @@ use std::io::{BufReader, Cursor, Error as IOError, Read};
 #[cfg(not(target_arch="wasm32"))]
 use std::sync::Arc;
 
-#[cfg(target_arch="wasm32")]
-extern "C" {
-    fn load_sound(path: *mut i8) -> u32;
-    fn play_sound(index: u32, volume: f32);
-    fn set_music_track(index: u32);
-    fn play_music();
-    fn pause_music();
-    fn get_music_volume() -> f32;
-    fn set_music_volume(volume: f32);
-}
-
 
 /// A clip of sound, which may be streamed from disc or stored in memory
 ///
@@ -74,9 +63,10 @@ impl Sound {
 
     #[cfg(target_arch="wasm32")]
     fn load_impl<P: AsRef<Path>>(path: P) -> SoundLoader {
+        use ffi::wasm;
         use std::ffi::CString;
         SoundLoader {
-            id: unsafe { load_sound(CString::new(path.as_ref().to_str().unwrap()).unwrap().into_raw()) }
+            id: unsafe { wasm::load_sound(CString::new(path.as_ref().to_str().unwrap()).unwrap().into_raw()) }
         }
     }
     
@@ -115,8 +105,10 @@ impl Sound {
             let endpoint = rodio::get_default_endpoint().unwrap();
             rodio::play_raw(&endpoint, self.get_source());
         }
-        #[cfg(target_arch="wasm32")]
-        unsafe { play_sound(self.index, self.volume); }
+        #[cfg(target_arch="wasm32")] {
+            use ffi::wasm;
+            unsafe { wasm::play_sound(self.index, self.volume); }
+        }
     }
 }
 
@@ -139,12 +131,9 @@ impl Future for SoundLoader {
 
     #[cfg(target_arch="wasm32")]
     fn poll(&mut self) -> Poll<Sound, SoundError> {
-        extern "C" {
-            fn is_sound_loaded(handle: u32) -> bool;
-            fn is_sound_errored(handle: u32) -> bool;
-        }
-        if unsafe { is_sound_loaded(self.id) } {
-            if unsafe { is_sound_errored(self.id) } {
+        use ffi::wasm;
+        if unsafe { wasm::is_sound_loaded(self.id) } {
+            if unsafe { wasm::is_sound_errored(self.id) } {
                 Err(SoundError::IOError)
             } else {
                 Ok(Async::Ready(Sound {
@@ -193,31 +182,40 @@ impl MusicPlayer {
             self.sink.stop();
             self.sink.append(sound.get_source().repeat_infinite());
         }
-        #[cfg(target_arch="wasm32")]
-        unsafe { set_music_track(sound.index) };
+        #[cfg(target_arch="wasm32")] {
+            use ffi::wasm;
+            unsafe { wasm::set_music_track(sound.index) };
+        }
     }
 
     /// Resume the player if it is paused
     pub fn play(&self) {
         #[cfg(not(target_arch="wasm32"))]
         self.sink.play();
-        #[cfg(target_arch="wasm32")]
-        unsafe { play_music() };
+        #[cfg(target_arch="wasm32")] {
+            use ffi::wasm;
+            unsafe { wasm::play_music() };
+        }
     }
 
     /// Pause the player
     pub fn pause(&self) {
         #[cfg(not(target_arch="wasm32"))]
         self.sink.pause();
-        #[cfg(target_arch="wasm32")]
-        unsafe { pause_music() };
+        #[cfg(target_arch="wasm32")] {
+            use ffi::wasm;
+            unsafe { wasm::pause_music() };
+        }
     }
 
     #[cfg(not(target_arch="wasm32"))]
     fn volume_impl(&self) -> f32 { self.sink.volume() }
 
     #[cfg(target_arch="wasm32")]
-    fn volume_impl(&self) -> f32 { unsafe { get_music_volume() } }
+    fn volume_impl(&self) -> f32 { 
+        use ffi::wasm;
+        unsafe { wasm::get_music_volume() } 
+    }
 
     /// Get the volume the song is playing at, see Sound::volume for more
     pub fn volume(&self) -> f32 {
@@ -228,8 +226,10 @@ impl MusicPlayer {
     pub fn set_volume(&mut self, volume: f32) {
         #[cfg(not(target_arch="wasm32"))]
         self.sink.set_volume(volume);
-        #[cfg(target_arch="wasm32")]
-        unsafe { set_music_volume(volume) };
+        #[cfg(target_arch="wasm32")] {
+            use ffi::wasm;
+            unsafe { wasm::set_music_volume(volume) };
+        }
     }
 }
 
