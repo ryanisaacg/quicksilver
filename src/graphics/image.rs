@@ -2,9 +2,10 @@ extern crate futures;
 #[cfg(not(target_arch="wasm32"))]
 extern crate image;
 
+use ffi::gl;
 use futures::{Async, Future, Poll};
-use gl;
 use geom::{Rectangle, Vector};
+use std::io::ErrorKind as IOError;
 use std::ops::Drop;
 use std::os::raw::c_void;
 use std::path::Path;
@@ -60,10 +61,9 @@ impl Image {
     #[cfg(target_arch="wasm32")]
     fn load_impl<P: AsRef<Path>>(path: P) -> ImageLoader {
         use std::ffi::CString;
-        use std::os::raw::c_char;
-        extern "C" { fn load_image(name: *mut c_char) -> u32; };
+        use ffi::wasm;
         ImageLoader {
-            id: unsafe { load_image(CString::new(path.as_ref().to_str().unwrap()).unwrap().into_raw()) }
+            id: unsafe { wasm::load_image(CString::new(path.as_ref().to_str().unwrap()).unwrap().into_raw()) }
         }
     }
     
@@ -159,27 +159,15 @@ impl Future for ImageLoader {
 
     #[cfg(target_arch="wasm32")]
     fn poll(&mut self) -> Poll<Image, ImageError> {
-        extern "C" {
-            fn is_texture_loaded(handle: u32) -> bool;
-            fn is_texture_errored(handle: u32) -> bool;
-            fn get_image_id(index: u32) -> u32;
-            fn get_image_width(index: u32) -> i32;
-            fn get_image_height(index: u32) -> i32;
+        use ffi::wasm;
+        match wasm::asset_status(self.id)? {
+            true => Ok(Async::Ready(Image::new(ImageData {
+                    id: unsafe { wasm::get_image_id(self.id) },
+                    width: unsafe { wasm::get_image_width(self.id) },
+                    height: unsafe { wasm::get_image_height(self.id) }
+                }))),
+            false => Ok(Async::NotReady),
         }
-        if unsafe { is_texture_loaded(self.id) } {
-            if unsafe { is_texture_errored(self.id) } {
-                Err(ImageError::IoError)
-            } else {
-                Ok(Async::Ready(Image::new(ImageData {
-                    id: unsafe { get_image_id(self.id) },
-                    width: unsafe { get_image_width(self.id) },
-                    height: unsafe { get_image_height(self.id) }
-                })))
-            } 
-        } else {
-            Ok(Async::NotReady)
-        }
-
     }
 }
 
@@ -197,9 +185,15 @@ pub enum ImageError {
     ///The image data ends too early
     NotEnoughData,
     ///There was some error reading the image file
-    IoError,
+    IOError(IOError),
     ///The image has reached its end
     ImageEnd,
+}
+
+impl From<IOError> for ImageError {
+    fn from(err: IOError) -> ImageError {
+        ImageError::IOError(err)
+    }
 }
 
 #[cfg(not(target_arch="wasm32"))]
@@ -211,7 +205,7 @@ impl From<image::ImageError> for ImageError {
             image::ImageError::UnsupportedError(string) => ImageError::UnsupportedError(string),
             image::ImageError::UnsupportedColor(_) => ImageError::UnsupportedColor,
             image::ImageError::NotEnoughData => ImageError::NotEnoughData,
-            image::ImageError::IoError(_) => ImageError::IoError,
+            image::ImageError::IoError(err) => ImageError::IOError(err.kind()),
             image::ImageError::ImageEnd => ImageError::ImageEnd
         }
     }

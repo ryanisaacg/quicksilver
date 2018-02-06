@@ -1,6 +1,6 @@
 use geom::Vector;
 use graphics::{Color, Image, PixelFormat};
-use gl;
+use ffi::gl;
 use std::ffi::CString;
 use std::mem::size_of;
 use std::os::raw::c_void;
