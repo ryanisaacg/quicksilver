@@ -116,9 +116,7 @@ impl WindowBuilder {
             },
             mouse: Mouse {
                 pos: Vector::zero(),
-                left: ButtonState::NotPressed,
-                middle: ButtonState::NotPressed,
-                right: ButtonState::NotPressed,
+                buttons: [ButtonState::NotPressed; 3],
                 wheel: Vector::zero()
             },
             view
