@@ -18,7 +18,8 @@ use rodio::source::{SamplesConverter, Amplify};
 use std::fs::File;
 use std::path::Path;
 #[cfg(not(target_arch="wasm32"))]
-use std::io::{BufReader, Cursor, Error as IOError, Read};
+use std::io::{BufReader, Cursor, Error, Read};
+use std::io::ErrorKind as IOError;
 #[cfg(not(target_arch="wasm32"))]
 use std::sync::Arc;
 
@@ -132,17 +133,12 @@ impl Future for SoundLoader {
     #[cfg(target_arch="wasm32")]
     fn poll(&mut self) -> Poll<Sound, SoundError> {
         use ffi::wasm;
-        if unsafe { wasm::is_loaded(self.id) } {
-            if unsafe { wasm::is_errored(self.id) } {
-                Err(SoundError::IOError)
-            } else {
-                Ok(Async::Ready(Sound {
+        match wasm::asset_status(self.id)? {
+            false => Ok(Async::NotReady),
+            true => Ok(Async::Ready(Sound {
                     index: self.id,
                     volume: 1.0
                 }))
-            }
-        } else {
-            Ok(Async::NotReady)
         }
     }
 }
@@ -239,7 +235,7 @@ pub enum SoundError {
     ///The sound file is not in an format that can be played
     UnrecognizedFormat,
     ///The Sound was not found or could not be loaded
-    IOError
+    IOError(IOError)
 }
 
 #[cfg(not(target_arch="wasm32"))]
@@ -252,8 +248,14 @@ impl From<DecoderError> for SoundError {
 }
 
 #[cfg(not(target_arch="wasm32"))]
+impl From<Error> for SoundError {
+    fn from(err: Error) -> SoundError {
+        err.kind().into()
+    }
+}
+
 impl From<IOError> for SoundError {
-    fn from(_: IOError) -> SoundError {
-        SoundError::IOError
+    fn from(err: IOError) -> SoundError {
+        SoundError::IOError(err)
     }
 }

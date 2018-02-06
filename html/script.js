@@ -205,8 +205,7 @@ let env = {
     get_image_width: (index) => assets[index].width,
     get_image_height: (index) => assets[index].height,
     //Asset loading
-    is_loaded: (index) => assets[index].loaded,
-    is_errored: (index) => assets[index].error,
+    asset_status: (index) => asstes[index].error ? 2 : (assets[index].loaded ? 1 : 0),
     //Rust runtime
     fmodf: (a, b) => a % b,
     // OpenGL

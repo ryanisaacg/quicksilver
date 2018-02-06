@@ -1,3 +1,5 @@
+use std::io::ErrorKind as IOError;
+
 extern "C" {
     //Windowing
     pub fn set_show_mouse(show: bool);
@@ -30,6 +32,15 @@ extern "C" {
     pub fn get_image_width(index: u32) -> i32;
     pub fn get_image_height(index: u32) -> i32;
     //Asset loading
-    pub fn is_loaded(handle: u32) -> bool;
-    pub fn is_errored(handle: u32) -> bool;
+    fn ffi_asset_status(handle: u32) -> i32;
+}
+
+pub fn asset_status(handle: u32) -> Result<bool, IOError> {
+    use std::io::ErrorKind;
+    match unsafe { ffi_asset_status(handle) } {
+        0 => Ok(false),
+        1 => Ok(true),
+        2 => Err(ErrorKind::NotFound),
+        _ => unreachable!()
+    }
 }

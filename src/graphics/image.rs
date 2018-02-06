@@ -5,6 +5,7 @@ extern crate image;
 use ffi::gl;
 use futures::{Async, Future, Poll};
 use geom::{Rectangle, Vector};
+use std::io::ErrorKind as IOError;
 use std::ops::Drop;
 use std::os::raw::c_void;
 use std::path::Path;
@@ -159,20 +160,14 @@ impl Future for ImageLoader {
     #[cfg(target_arch="wasm32")]
     fn poll(&mut self) -> Poll<Image, ImageError> {
         use ffi::wasm;
-        if unsafe { wasm::is_loaded(self.id) } {
-            if unsafe { wasm::is_errored(self.id) } {
-                Err(ImageError::IoError)
-            } else {
-                Ok(Async::Ready(Image::new(ImageData {
+        match wasm::asset_status(self.id)? {
+            true => Ok(Async::Ready(Image::new(ImageData {
                     id: unsafe { wasm::get_image_id(self.id) },
                     width: unsafe { wasm::get_image_width(self.id) },
                     height: unsafe { wasm::get_image_height(self.id) }
-                })))
-            } 
-        } else {
-            Ok(Async::NotReady)
+                }))),
+            false => Ok(Async::NotReady),
         }
-
     }
 }
 
@@ -190,9 +185,15 @@ pub enum ImageError {
     ///The image data ends too early
     NotEnoughData,
     ///There was some error reading the image file
-    IoError,
+    IOError(IOError),
     ///The image has reached its end
     ImageEnd,
+}
+
+impl From<IOError> for ImageError {
+    fn from(err: IOError) -> ImageError {
+        ImageError::IOError(err)
+    }
 }
 
 #[cfg(not(target_arch="wasm32"))]
@@ -204,7 +205,7 @@ impl From<image::ImageError> for ImageError {
             image::ImageError::UnsupportedError(string) => ImageError::UnsupportedError(string),
             image::ImageError::UnsupportedColor(_) => ImageError::UnsupportedColor,
             image::ImageError::NotEnoughData => ImageError::NotEnoughData,
-            image::ImageError::IoError(_) => ImageError::IoError,
+            image::ImageError::IoError(err) => ImageError::IOError(err.kind()),
             image::ImageError::ImageEnd => ImageError::ImageEnd
         }
     }
