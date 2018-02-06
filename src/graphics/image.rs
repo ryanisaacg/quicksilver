@@ -159,8 +159,8 @@ impl Future for ImageLoader {
     #[cfg(target_arch="wasm32")]
     fn poll(&mut self) -> Poll<Image, ImageError> {
         use ffi::wasm;
-        if unsafe { wasm::is_texture_loaded(self.id) } {
-            if unsafe { wasm::is_texture_errored(self.id) } {
+        if unsafe { wasm::is_loaded(self.id) } {
+            if unsafe { wasm::is_errored(self.id) } {
                 Err(ImageError::IoError)
             } else {
                 Ok(Async::Ready(Image::new(ImageData {

@@ -81,21 +81,7 @@ canvas.addEventListener('wheel', (event) => {
     event.preventDefault();
 })
 let env = {
-    is_texture_loaded: (index) => assets[index].loaded,
-    is_texture_errored: (index) => assets[index].error,
-    is_sound_loaded: (index) => assets[index].loaded,
-    is_sound_errored: (index) => assets[index].error,
-    fmodf: (a, b) => a % b,
-    pump_key_queue: () => key_queue.length > 0 ? key_queue.shift() : 0,
-    pump_mouse_queue: () => mouse_queue.length > 0 ? mouse_queue.shift() : 0,
-    get_mouse_x: () => mouse.x,
-    get_mouse_y: () => mouse.y,
-    mouse_scroll_clear: () => { mouse.scroll_x = 0; mouse.scroll_y = 0; },
-    mouse_scroll_type: () => mouse.scroll_type,
-    mouse_scroll_x: () => mouse.scroll_x,
-    mouse_scroll_y: () => mouse.scroll_y,
-    print: (pointer) => console.log(rust_str_to_js(pointer)),
-    printnum: (x) => console.log(x),
+    // Windowing
     set_show_mouse: (show) => canvas.style.cursor = show ? "auto" : "none",
     create_context: (title, width, height) => {
         document.title = rust_str_to_js(title);
@@ -105,35 +91,36 @@ let env = {
         gl.viewportHeight = height;
     },
     set_title: (title) => document.title = rust_str_to_js(title),
-    load_image: (pointer) => {
-        const image = new Image();
-        image.src = rust_str_to_js(pointer);
-        const index = assets.push({ loaded: false }) - 1;
-        image.onload = () => {
-            let texture = gl.createTexture();
-            gl.bindTexture(gl.TEXTURE_2D, texture);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, image.width, image.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, image);
-            gl.generateMipmap(gl.TEXTURE_2D);
-            const id = gl_objects.push(texture) - 1;
-            assets[index].loaded = true;
-            assets[index].error = false;
-            assets[index].id = id;
-            assets[index].width = image.width;
-            assets[index].height = image.height;
+    // Mouse input
+    get_mouse_x: () => mouse.x,
+    get_mouse_y: () => mouse.y,
+    pump_mouse_queue: () => mouse_queue.length > 0 ? mouse_queue.shift() : 0,
+    mouse_scroll_clear: () => { mouse.scroll_x = 0; mouse.scroll_y = 0; },
+    mouse_scroll_type: () => mouse.scroll_type,
+    mouse_scroll_x: () => mouse.scroll_x,
+    mouse_scroll_y: () => mouse.scroll_y,
+    // Keyboard input
+    pump_key_queue: () => key_queue.length > 0 ? key_queue.shift() : 0,
+    // Saving / loading
+    save_cookie: (key_ptr, val_ptr) => document.cookie = rust_str_to_js(key_ptr) + "=" + rust_str_to_js(val_ptr) + ";",
+    load_cookie: (key_ptr) => {
+        const key = rust_str_to_js(key_ptr);
+        const name = key + "=";
+        const decodedCookie = decodeURIComponent(document.cookie);
+        const ca = decodedCookie.split(';');
+        let value = '';
+        for(let i = 0; i < ca.length; i++) {
+            let c = ca[i];
+            while (c.charAt(0) == ' ') {
+                c = c.substring(1);
+            }
+            if (c.indexOf(name) == 0) {
+                value = c.substring(name.length, c.length);
+            }
         }
-        if(image.complete) { 
-            image.onload()
-        }
-        image.onerror = () => {
-            assets[index].loaded = true;
-            assets[index].error = true;
-        }
-        return index;
+        return js_str_to_rust(value);
     },
+    //Sounds
     load_sound: (pointer) => {
         const sound = new Audio(rust_str_to_js(pointer));
         sound.play()
@@ -184,28 +171,45 @@ let env = {
             music.playing.volume = volume;
         }
     },
+    // Images
+    load_image: (pointer) => {
+        const image = new Image();
+        image.src = rust_str_to_js(pointer);
+        const index = assets.push({ loaded: false }) - 1;
+        image.onload = () => {
+            let texture = gl.createTexture();
+            gl.bindTexture(gl.TEXTURE_2D, texture);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, image.width, image.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, image);
+            gl.generateMipmap(gl.TEXTURE_2D);
+            const id = gl_objects.push(texture) - 1;
+            assets[index].loaded = true;
+            assets[index].error = false;
+            assets[index].id = id;
+            assets[index].width = image.width;
+            assets[index].height = image.height;
+        }
+        if(image.complete) { 
+            image.onload()
+        }
+        image.onerror = () => {
+            assets[index].loaded = true;
+            assets[index].error = true;
+        }
+        return index;
+    },
     get_image_id: (index) => assets[index].id,
     get_image_width: (index) => assets[index].width,
     get_image_height: (index) => assets[index].height,
-    save_cookie: (key_ptr, val_ptr) => document.cookie = rust_str_to_js(key_ptr) + "=" + rust_str_to_js(val_ptr) + ";",
-    load_cookie: (key_ptr) => {
-        const key = rust_str_to_js(key_ptr);
-        const name = key + "=";
-        const decodedCookie = decodeURIComponent(document.cookie);
-        const ca = decodedCookie.split(';');
-        let value = '';
-        for(let i = 0; i < ca.length; i++) {
-            let c = ca[i];
-            while (c.charAt(0) == ' ') {
-                c = c.substring(1);
-            }
-            if (c.indexOf(name) == 0) {
-                value = c.substring(name.length, c.length);
-            }
-        }
-        return js_str_to_rust(value);
-    },
-    log_num: function(x) { console.log(x); },
+    //Asset loading
+    is_loaded: (index) => assets[index].loaded,
+    is_errored: (index) => assets[index].error,
+    //Rust runtime
+    fmodf: (a, b) => a % b,
+    // OpenGL
     ActiveTexture: gl.activeTexture.bind(gl),
     AttachShader: (progindex, shadeindex) => gl.attachShader(gl_objects[progindex], gl_objects[shadeindex]),
     Clear: gl.clear.bind(gl),

@@ -132,8 +132,8 @@ impl Future for SoundLoader {
     #[cfg(target_arch="wasm32")]
     fn poll(&mut self) -> Poll<Sound, SoundError> {
         use ffi::wasm;
-        if unsafe { wasm::is_sound_loaded(self.id) } {
-            if unsafe { wasm::is_sound_errored(self.id) } {
+        if unsafe { wasm::is_loaded(self.id) } {
+            if unsafe { wasm::is_errored(self.id) } {
                 Err(SoundError::IOError)
             } else {
                 Ok(Async::Ready(Sound {
