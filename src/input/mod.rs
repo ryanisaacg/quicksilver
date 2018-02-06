@@ -10,5 +10,13 @@ mod state;
 
 pub use self::key::Key;
 pub use self::keyboard::Keyboard;
-pub use self::mouse::Mouse;
+pub use self::mouse::{Mouse, MouseButton};
 pub use self::state::ButtonState;
+
+/// A unified button input for mouse and keyboard
+pub enum UnifiedButton {
+    /// A mouse button
+    Mouse(MouseButton),
+    /// A keyboard key
+    Keyboard(Key)
+}

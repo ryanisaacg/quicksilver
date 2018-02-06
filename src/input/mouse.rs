@@ -10,7 +10,12 @@ const LINES_TO_PIXELS: f32 = 15.0;
 #[derive(Clone, Debug, Eq, PartialEq)]
 /// The different buttons a user can press on a mouse
 pub enum MouseButton {
-    Left = 0, Right = 1, Middle = 2
+    /// The left mouse button
+    Left = 0, 
+    /// The right mouse button
+    Right = 1, 
+    /// The middle mouse button
+    Middle = 2
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
