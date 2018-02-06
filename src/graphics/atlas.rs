@@ -1,7 +1,7 @@
 extern crate futures;
 
 use futures::{Async, Future, Poll};
-use futures::future::{JoinAll, join_all, Map, Then};
+use futures::future::{JoinAll, join_all};
 use geom::{Rectangle, Vector};
 use graphics::{Image, ImageLoader, ImageError};
 use util::FileLoader;
@@ -31,21 +31,23 @@ pub struct Atlas {
 
 impl Atlas {
     /// Load an atlas at a given path
-    pub fn load<P: AsRef<Path>>(path: P) -> AtlasLoader {
-        AtlasLoader(FileLoader::load(path)
-            .then(parse as fn(Result<String, ()>) -> ManifestLoader)
-            .map(create as fn((Vec<Image>, Vec<Vec<Region>>)) -> Atlas))
+    pub fn load<'a, P: 'static + AsRef<Path>>(path: P) -> AtlasLoader {
+        AtlasLoader(Box::new(FileLoader::load(path.as_ref())
+            .then(|data| parse(data, path))
+            .map(create)))
+    }
+
+    /// Get an image or animation with a given name
+    pub fn get(&self, name: &str) -> Option<AtlasItem> {
+        Some(self.data.get(name)?.clone())
     }
 }
 
 type ManifestContents = Result<(JoinAll<Vec<ImageLoader>>, Vec<Vec<Region>>), AtlasError>;
-struct ManifestLoader(ManifestContents);
+struct ManifestLoader(Result<(JoinAll<Vec<ImageLoader>>, Vec<Vec<Region>>), AtlasError>);
 
-type Parser = Then<FileLoader, ManifestLoader, fn(Result<String, ()>) -> ManifestLoader>;
-type Creator = Map<Parser, fn((Vec<Image>, Vec<Vec<Region>>)) -> Atlas>;
-
-/// The Future used to load an Atlas object
-pub struct AtlasLoader(Creator);
+/// A Future to load an Atlas
+pub struct AtlasLoader(Box<Future<Item=Atlas, Error=AtlasError>>);
 
 impl Future for ManifestLoader {
     type Item = (Vec<Image>, Vec<Vec<Region>>);
@@ -72,6 +74,7 @@ impl Future for AtlasLoader {
     }
 }
 
+// Turn the pages and regions into an Atlas
 fn create(data: (Vec<Image>, Vec<Vec<Region>>)) -> Atlas {
     let (images, regions) = data;
     let mut images = images.into_iter()
@@ -92,18 +95,21 @@ fn create(data: (Vec<Image>, Vec<Vec<Region>>)) -> Atlas {
     let data = images.into_iter()
         .fold(Vec::new(), |mut list: Vec<(String, AtlasItem)>, item: (String, i32, Image)| {
             let len = list.len();
-            if len == 0 || list[len].0 != item.0 {
+            // There are no previous items or the previous item is a different name
+            if len == 0 || list[len - 1].0 != item.0 {
                 list.push((item.0, AtlasItem::Image(item.2)));
             } else {
-                let is_still = match list[len].1 { AtlasItem::Image(_) => true, _ => false };
+                // If the previous entry is a still frame, convert it into a 1-sized animation
+                let is_still = match list[len - 1].1 { AtlasItem::Image(_) => true, _ => false };
                 if is_still {
-                    let image = match list[len].1 {
+                    let image = match list[len - 1].1 {
                         AtlasItem::Image(ref img) => img.clone(),
                         _ => unreachable!()
                     };
-                    list[len] = (item.0, AtlasItem::Animation(vec![image]));
+                    list[len - 1] = (item.0, AtlasItem::Animation(vec![image]));
                 }
-                match list[len].1 {
+                // Add the new frame to the animation
+                match list[len - 1].1 {
                     AtlasItem::Animation(ref mut vec) => vec.push(item.2),
                     _ => unreachable!()
                 }
@@ -113,34 +119,49 @@ fn create(data: (Vec<Image>, Vec<Vec<Region>>)) -> Atlas {
     Atlas { data }
 }
 
-fn parse(data: Result<String, ()>) -> ManifestLoader {
-    use std::iter::Map as IterMap;
-    fn get_values_from_line<'a, T: FromStr>(line: &'a str) -> IterMap<Split<'a, &'static str>, fn(&'a str) -> T> 
-        where <T as FromStr>::Err: Debug {
-        fn parse<'a, T: FromStr>(item: &'a str) -> T where <T as FromStr>::Err: Debug { item.parse().unwrap() }
-        let mut split = line.split(": ");
-        split.next();
-        split.next().unwrap().split(", ").map(parse)
-    }
-
-    fn getval<T, I: Iterator<Item = T>>(lines: &mut I) -> Result<T, AtlasError> {
-        match lines.next() {
-            Some(val) => Ok(val),
-            None => Err(AtlasError::ParseError("Unexpected end of data"))?
+// Parse a manifest file into a future to load the contents of the atlas
+fn parse<P: AsRef<Path>>(data: Result<String, ()>, path: P) -> ManifestLoader {
+    // Either parse the data or repackage the error
+    return match data {
+        Ok(data) => ManifestLoader(parse_body(data, path.as_ref())),
+        Err(err) => ManifestLoader(Err(err.into()))
+    };
+    fn parse_body(data: String, path: &Path) -> ManifestContents {
+        use std::path::PathBuf;
+        use std::iter::Map as IterMap;
+        // Split a line into its right-hand values
+        fn get_values_from_line<'a, T: FromStr>(line: &'a str) -> IterMap<Split<'a, &'static str>, fn(&'a str) -> T> 
+            where <T as FromStr>::Err: Debug {
+            fn parse<'a, T: FromStr>(item: &'a str) -> T where <T as FromStr>::Err: Debug { item.parse().unwrap() }
+            println!("{}", line);
+            let mut split = line.split(": ");
+            split.next();
+            split.next().unwrap().split(", ").map(parse)
         }
-    }
-    fn parse_body(data: String) -> ManifestContents {
+
+        // Get a value from the iterator (repackages Iterator::next into a Result rather than an
+        // Option)
+        fn getval<T, I: Iterator<Item = T>>(lines: &mut I) -> Result<T, AtlasError> {
+            match lines.next() {
+                Some(val) => Ok(val),
+                None => Err(AtlasError::ParseError("Unexpected end of data"))?
+            }
+        }
+
         let mut lines = data.lines();
         let mut images = Vec::new();
         let mut regions = Vec::new();
+        let directory: &Path = if let Some(parent) = path.parent() { parent } else { path.as_ref() };
         while let Some(line) = lines.next() {
-            //TODO: make relative to atlas location
-            images.push(Image::load(line));
+            //Create a path relative to the atlas location
+            let path: PathBuf = [directory, &Path::new(line)].iter().collect();
+            images.push(Image::load(path));
             regions.push(Vec::new());
             //Skip some lines the loader doesn't use
             for _ in 0..4 {
                 getval(&mut lines)?;
             }
+            //Parse each region
             while let Some(line) = lines.next() {
                 //If there's an empty line, move onto a different page
                 if line.len() == 0 { break; }
@@ -148,11 +169,11 @@ fn parse(data: Result<String, ()>) -> ManifestLoader {
                 let mut rotate = get_values_from_line(getval(&mut lines)?);
                 let mut xy = get_values_from_line::<i32>(getval(&mut lines)?);
                 let mut size = get_values_from_line(getval(&mut lines)?);
-                //Skip more &mut lines the loader doesn't use
-                for _ in 0..2 {
-                    getval(&mut lines)?;
-                }
-                let mut orig = get_values_from_line::<i32>(getval(&mut lines)?);
+                let mut line = getval(&mut lines)?;
+                while !line.contains("orig") {
+                    line = getval(&mut lines)?;
+                } 
+                let mut orig = get_values_from_line::<i32>(line);
                 let mut offset = get_values_from_line::<i32>(getval(&mut lines)?);
                 let index = getval(&mut get_values_from_line(getval(&mut lines)?))?;
                 let rotate = getval(&mut rotate)?;
@@ -165,23 +186,47 @@ fn parse(data: Result<String, ()>) -> ManifestLoader {
         }
         Ok((join_all(images), regions))
     }
-    match data {
-        Ok(data) => ManifestLoader(parse_body(data)),
-        Err(err) => ManifestLoader(Err(err.into()))
-    }
 }
 
 
 #[derive(Clone)]
+/// An individual named item of an Atlas
+///
+/// If there is only one frame / no index for an Atlas item, it will be an Image, otherwise, it
+/// will be an Animation. 
 pub enum AtlasItem {
+    /// A still image frame
     Image(Image),
+    /// A list of image frames in order
     Animation(Vec<Image>)
 }
 
+impl AtlasItem {
+    /// Unwrap the enum to a still frame, panicking if it is an animation
+    pub fn unwrap_image(self) -> Image {
+        match self {
+            AtlasItem::Image(image) => image,
+            AtlasItem::Animation(_) => panic!("called `AtlasItem::unwrap_image` on an Animation")
+        }
+    }
+
+    /// Unwrap the enum to an animationo, panicking if it is an image
+    pub fn unwrap_animation(self) -> Vec<Image> {
+        match self {
+            AtlasItem::Animation(anim) => anim,
+            AtlasItem::Image(_) => panic!("called `AtlasItem::unwrap_animation` on an Image")
+        }
+    }
+}
+
 #[derive(Clone, Debug)]
+/// An error generated when trying to load an atlas
 pub enum AtlasError {
+    /// An error created when loading one of the images
     ImageError(ImageError),
+    /// An error created parsing the Atlas manifest
     ParseError(&'static str),
+    /// An error created loading the atlas manifest
     IoError
 }
 
