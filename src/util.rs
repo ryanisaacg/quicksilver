@@ -2,6 +2,7 @@
 
 extern crate futures;
 
+use error::QuicksilverError;
 use futures::{Async, Future, Poll};
 use std::io::ErrorKind as IOError;
 use std::path::Path;
@@ -50,18 +51,18 @@ impl FileLoader {
 
 impl Future for FileLoader {
     type Item = String;
-    type Error = IOError;
+    type Error = QuicksilverError;
 
     #[cfg(not(target_arch="wasm32"))]
-    fn poll(&mut self) -> Poll<String, IOError> {
+    fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
         match self.data {
             Ok(ref data) => Ok(Async::Ready(data.clone())),
-            Err(err) => Err(err)
+            Err(err) => Err(err.into())
         }
     }
 
     #[cfg(target_arch="wasm32")]
-    fn poll(&mut self) -> Poll<String, IOError> {
+    fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
         use std::ffi::CString;
         use ffi::wasm;
         Ok(match wasm::asset_status(self.id)? {
