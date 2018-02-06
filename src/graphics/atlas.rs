@@ -134,7 +134,6 @@ fn parse<P: AsRef<Path>>(data: Result<String, IOError>, path: P) -> ManifestLoad
         fn get_values_from_line<'a, T: FromStr>(line: &'a str) -> IterMap<Split<'a, &'static str>, fn(&'a str) -> T> 
             where <T as FromStr>::Err: Debug {
             fn parse<'a, T: FromStr>(item: &'a str) -> T where <T as FromStr>::Err: Debug { item.parse().unwrap() }
-            println!("{}", line);
             let mut split = line.split(": ");
             split.next();
             split.next().unwrap().split(", ").map(parse)
