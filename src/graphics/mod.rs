@@ -13,7 +13,7 @@ mod surface;
 mod view;
 mod window;
 pub use self::animation::Animation;
-pub use self::atlas::Atlas;
+pub use self::atlas::{Atlas, AtlasError, AtlasItem, AtlasLoader};
 pub(crate) use self::backend::{Backend, Vertex};
 pub use self::backend::BlendMode;
 pub use self::canvas::Canvas;
