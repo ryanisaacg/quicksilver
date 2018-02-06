@@ -1,5 +1,5 @@
+use ffi::gl;
 use geom::{Transform, Vector};
-use gl;
 use graphics::{Canvas, Image, PixelFormat, View};
 use std::rc::Rc;
 

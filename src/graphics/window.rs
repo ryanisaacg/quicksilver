@@ -1,4 +1,4 @@
-use gl;
+use ffi::gl;
 #[cfg(not(target_arch="wasm32"))]
 use glutin;
 use geom::{ Rectangle, Transform, Vector};

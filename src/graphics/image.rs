@@ -2,8 +2,8 @@ extern crate futures;
 #[cfg(not(target_arch="wasm32"))]
 extern crate image;
 
+use ffi::gl;
 use futures::{Async, Future, Poll};
-use gl;
 use geom::{Rectangle, Vector};
 use std::ops::Drop;
 use std::os::raw::c_void;
