@@ -7,6 +7,7 @@ extern crate futures;
 #[cfg(not(target_arch="wasm32"))]
 extern crate rodio;
 
+use error::QuicksilverError;
 use futures::{Async, Future, Poll};
 #[cfg(not(target_arch="wasm32"))]
 use rodio::{Decoder, Sink, Source};
@@ -123,22 +124,23 @@ pub struct SoundLoader {
 
 impl Future for SoundLoader {
     type Item = Sound;
-    type Error = SoundError;
+    type Error = QuicksilverError;
 
     #[cfg(not(target_arch="wasm32"))]
-    fn poll(&mut self) -> Poll<Sound, SoundError> {
+    fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
         Ok(Async::Ready(self.sound.clone()?))
     }
 
     #[cfg(target_arch="wasm32")]
-    fn poll(&mut self) -> Poll<Sound, SoundError> {
+    fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
         use ffi::wasm;
-        Ok(match wasm::asset_status(self.id)? {
-            false => Async::NotReady,
-            true => Async::Ready(Sound {
-                    index: self.id,
-                    volume: 1.0
-                })
+        Ok(if wasm::asset_status(self.id)? {
+            Async::Ready(Sound {
+                index: self.id,
+                volume: 1.0
+            })
+        } else {
+            Async::NotReady
         })
     }
 }

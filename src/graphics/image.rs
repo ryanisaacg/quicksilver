@@ -2,6 +2,7 @@ extern crate futures;
 #[cfg(not(target_arch="wasm32"))]
 extern crate image;
 
+use error::QuicksilverError;
 use ffi::gl;
 use futures::{Async, Future, Poll};
 use geom::{Rectangle, Vector};
@@ -150,15 +151,15 @@ pub struct ImageLoader {
 
 impl Future for ImageLoader {
     type Item = Image;
-    type Error = ImageError;
+    type Error = QuicksilverError;
     
     #[cfg(not(target_arch="wasm32"))]
-    fn poll(&mut self) -> Poll<Image, ImageError> {
+    fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
         Ok(Async::Ready(self.image.clone()?))
     }
 
     #[cfg(target_arch="wasm32")]
-    fn poll(&mut self) -> Poll<Image, ImageError> {
+    fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
         use ffi::wasm;
         Ok(match wasm::asset_status(self.id)? {
             true => Async::Ready(Image::new(ImageData {
