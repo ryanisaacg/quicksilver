@@ -8,8 +8,8 @@
 extern crate serde;
 extern crate serde_json;
 
+use error::QuicksilverError;
 use serde::{Deserialize, Serialize};
-use serde_json::Error;
 
 ///Save some arbitrary data to the given profile
 ///
@@ -19,7 +19,7 @@ use serde_json::Error;
 ///The appname should be some constant; this is used to name the file to place the save in on
 ///Desktop platforms. The profile should allow multiple saves of the same game (save slots,
 ///numbered saves, different players) etc.
-pub fn save<T: Serialize>(appname: &str, profile: &str, data: &T) -> Result<(), Error> {
+pub fn save<T: Serialize>(appname: &str, profile: &str, data: &T) -> Result<(), QuicksilverError> {
     save_impl(appname, profile, data)
 }
 
@@ -27,7 +27,7 @@ pub fn save<T: Serialize>(appname: &str, profile: &str, data: &T) -> Result<(), 
 ///
 ///Different platforms may have different save locations: on the Web, data is saved in cookies, on
 ///the desktop, it is stored in some appropriate home-directory folder.
-pub fn load<T>(appname: &str, profile: &str) -> Result<T, Error>
+pub fn load<T>(appname: &str, profile: &str) -> Result<T, QuicksilverError>
         where for<'de> T: Deserialize<'de> {
     load_impl(appname, profile)
 }
@@ -57,23 +57,23 @@ fn get_save_location(appname: &str, profile: &str) -> PathBuf {
 }
 
 #[cfg(not(target_arch="wasm32"))]
-fn save_impl<T: Serialize>(appname: &str, profile: &str, data: &T) -> Result<(), Error> {
+fn save_impl<T: Serialize>(appname: &str, profile: &str, data: &T) -> Result<(), QuicksilverError> {
     use std::fs::DirBuilder;
     DirBuilder::new().recursive(true).create(get_save_folder(appname)).unwrap();
-    serde_json::to_writer(File::create(get_save_location(appname, profile)).unwrap(), data)
+    Ok(serde_json::to_writer(File::create(get_save_location(appname, profile)).unwrap(), data)?)
 }
 
 #[cfg(not(target_arch="wasm32"))]
-fn load_impl<T>(appname: &str, profile: &str) -> Result<T, Error> 
+fn load_impl<T>(appname: &str, profile: &str) -> Result<T, QuicksilverError> 
         where for<'de> T: Deserialize<'de> {
-    serde_json::from_reader(File::open(get_save_location(appname, profile)).unwrap())
+    Ok(serde_json::from_reader(File::open(get_save_location(appname, profile)).unwrap())?)
 }
 
 #[cfg(target_arch="wasm32")]
 use std::ffi::CString;
 
 #[cfg(target_arch="wasm32")]
-fn save_impl<T: Serialize>(_appname: &str, profile: &str, data: &T) -> Result<(), Error> {
+fn save_impl<T: Serialize>(_appname: &str, profile: &str, data: &T) -> Result<(), QuicksilverError> {
     use ffi::wasm;
     let key = CString::new(profile).unwrap().into_raw();
     let val = CString::new(serde_json::to_string(data)?).unwrap().into_raw();
@@ -82,10 +82,10 @@ fn save_impl<T: Serialize>(_appname: &str, profile: &str, data: &T) -> Result<()
 }
 
 #[cfg(target_arch="wasm32")]
-fn load_impl<T>(_appname: &str, profile: &str) -> Result<T, Error>
+fn load_impl<T>(_appname: &str, profile: &str) -> Result<T, QuicksilverError>
         where for<'de> T: Deserialize<'de> {
     use ffi::wasm;
     let key = CString::new(profile).unwrap().into_raw();
     let string = unsafe { CString::from_raw(wasm::load_cookie(key)) }.into_string().unwrap();
-    serde_json::from_str(string.as_str())
+    Ok(serde_json::from_str(string.as_str())?)
 }

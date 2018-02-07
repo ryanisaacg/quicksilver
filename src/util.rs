@@ -2,8 +2,8 @@
 
 extern crate futures;
 
+use error::QuicksilverError;
 use futures::{Async, Future, Poll};
-use std::io::ErrorKind as IOError;
 use std::path::Path;
 
 /// A Future that loads a file into an owned string
@@ -12,7 +12,7 @@ use std::path::Path;
 /// API between desktop and the web when it comes to file loading
 pub struct FileLoader {
     #[cfg(not(target_arch="wasm32"))]
-    data: Result<String, IOError>,
+    data: Result<String, QuicksilverError>,
     #[cfg(target_arch="wasm32")]
     id: u32
 }
@@ -31,9 +31,9 @@ impl FileLoader {
         let data = match File::open(path) {
             Ok(ref mut file) => match file.read_to_string(&mut data) {
                 Ok(_) => Ok(data),
-                Err(err) => Err(err.kind())
+                Err(err) => Err(err.kind().into())
             },
-            Err(err) => Err(err.kind())
+            Err(err) => Err(err.kind().into())
         };
         FileLoader { data }
     }
@@ -50,18 +50,18 @@ impl FileLoader {
 
 impl Future for FileLoader {
     type Item = String;
-    type Error = IOError;
+    type Error = QuicksilverError;
 
     #[cfg(not(target_arch="wasm32"))]
-    fn poll(&mut self) -> Poll<String, IOError> {
+    fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
         match self.data {
             Ok(ref data) => Ok(Async::Ready(data.clone())),
-            Err(err) => Err(err)
+            Err(ref err) => Err(err.clone())
         }
     }
 
     #[cfg(target_arch="wasm32")]
-    fn poll(&mut self) -> Poll<String, IOError> {
+    fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
         use std::ffi::CString;
         use ffi::wasm;
         Ok(match wasm::asset_status(self.id)? {

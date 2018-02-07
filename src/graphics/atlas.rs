@@ -1,5 +1,6 @@
 extern crate futures;
 
+use error::QuicksilverError;
 use futures::{Async, Future, Poll};
 use futures::future::{JoinAll, join_all};
 use geom::{Rectangle, Vector};
@@ -44,15 +45,15 @@ impl Atlas {
     }
 }
 
-type ManifestContents = Result<(JoinAll<Vec<ImageLoader>>, Vec<Vec<Region>>), AtlasError>;
+type ManifestContents = Result<(JoinAll<Vec<ImageLoader>>, Vec<Vec<Region>>), QuicksilverError>;
 struct ManifestLoader(ManifestContents);
 
 /// A Future to load an Atlas
-pub struct AtlasLoader(Box<Future<Item=Atlas, Error=AtlasError>>);
+pub struct AtlasLoader(Box<Future<Item=Atlas, Error=QuicksilverError>>);
 
 impl Future for ManifestLoader {
     type Item = (Vec<Image>, Vec<Vec<Region>>);
-    type Error = AtlasError;
+    type Error = QuicksilverError;
 
     fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
         match self.0 {
@@ -68,7 +69,7 @@ impl Future for ManifestLoader {
 
 impl Future for AtlasLoader {
     type Item = Atlas;
-    type Error = AtlasError;
+    type Error = QuicksilverError;
 
     fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
         self.0.poll()
@@ -121,7 +122,7 @@ fn create(data: (Vec<Image>, Vec<Vec<Region>>)) -> Atlas {
 }
 
 // Parse a manifest file into a future to load the contents of the atlas
-fn parse<P: AsRef<Path>>(data: Result<String, IOError>, path: P) -> ManifestLoader {
+fn parse<P: AsRef<Path>>(data: Result<String, QuicksilverError>, path: P) -> ManifestLoader {
     // Either parse the data or repackage the error
     return match data {
         Ok(data) => ManifestLoader(parse_body(data, path.as_ref())),

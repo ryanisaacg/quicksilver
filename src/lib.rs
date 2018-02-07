@@ -64,15 +64,17 @@ extern crate serde_json;
 #[macro_use]
 extern crate serde_derive;
 
+mod error;
 mod ffi;
+mod screen;
+mod timer;
 pub mod geom;
 pub mod graphics;
 pub mod input;
-mod screen;
 pub mod saving;
 pub mod sound;
-mod timer;
 pub mod util;
+pub use error::QuicksilverError;
 pub use screen::{Application, InitialScreen, Screen};
 pub use self::timer::Timer;
 
