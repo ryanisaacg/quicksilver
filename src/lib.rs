@@ -78,6 +78,19 @@ pub use error::QuicksilverError;
 pub use screen::{Application, InitialScreen, Screen};
 pub use self::timer::Timer;
 
+#[allow(deprecated)]
+#[doc(hidden)]
+#[cfg(not(target_arch="wasm32"))]
+//Play a silent sound so rodio startup doesn't interfere with application
+//Unfortunately this means even apps that don't use sound eat the startup penalty but it's not a
+//huge one
+pub fn initialize_sound() {
+    if let Some(ref endpoint) = rodio::get_default_endpoint() {
+        rodio::play_raw(endpoint, rodio::source::Empty::new())
+    }
+}
+
+
 #[no_mangle]
 #[cfg(target_arch="wasm32")]
 #[doc(hidden)]
