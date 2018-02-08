@@ -92,6 +92,7 @@ macro_rules! screens_loop {
         #[cfg(not(target_arch="wasm32"))]
         fn main() {
             use std::time::Duration;
+            quicksilver::initialize_sound();
             let mut timer = quicksilver::Timer::new();
             let (window, canvas) = $Start::configure();
             let screen = Box::new($Start::new());
