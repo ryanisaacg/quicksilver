@@ -1,3 +1,7 @@
+//! A set of tools for state management and flow
+//!
+//! The InitialScreen is passed to the run_screen! macro, which starts the application on both
+//! desktop and the web. Screens can return a different screen for control to switch to at any time
 
 use graphics::{Canvas, Window};
 
@@ -18,11 +22,15 @@ pub trait InitialScreen: Screen {
 pub trait Screen {
     /// Tick the internal state of the Screen
     ///
+    /// It is called 60 times a second by the runtime, or as close as possible, on both desktop and wasm
+    ///
     /// If a Screen is returned, control flow will switch to it and the current screen will be
     /// discarded
     fn update(&mut self, window: &mut Window, canvas: &mut Canvas) -> Option<Box<Screen>>;
 
     /// Draw the screen to the window
+    ///
+    /// It is called as often as possible by the runtime
     fn draw(&mut self, window: &mut Window, canvas: &mut Canvas);
 }
 
@@ -53,10 +61,10 @@ impl Application {
 }
 
 #[macro_export]
-/// A macro that defines the main functions required for native and web using Screens
+/// A macro that defines the main functions required for native and web
 ///
 /// It takes a typename where the type implements the Screen trait and has a 'new' function and runs the event loop.
-macro_rules! screens_loop {
+macro_rules! run_screen {
     ($Start: tt) => (
         use quicksilver::Application;
 
