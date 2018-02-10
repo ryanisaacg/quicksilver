@@ -43,7 +43,7 @@ impl Application {
     pub fn update(&mut self) {
         let result = self.screen.update(&mut self.window, &mut self.canvas);
         if let Some(screen) = result {
-            self.screen = screen;
+            self.screen = screen; //FIXME: out of bounds write on WASM for the Atlas example
         }
     }
 
