@@ -218,7 +218,7 @@ let env = {
     },
     text_file_contents: (index) => js_str_to_rust(assets[index].value),
     //Asset loading
-    asset_status: (index) => asstes[index].error ? 2 : (assets[index].loaded ? 1 : 0),
+    ffi_asset_status: (index) => assets[index].error ? 2 : (assets[index].loaded ? 1 : 0),
     //Rust runtime
     fmodf: (a, b) => a % b,
     // OpenGL
