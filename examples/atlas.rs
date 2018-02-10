@@ -3,7 +3,7 @@ extern crate futures;
 extern crate quicksilver;
 
 use futures::{Async, Future};
-use quicksilver::geom::Vector;
+use quicksilver::geom::{Rectangle, Vector};
 use quicksilver::graphics::{Atlas, AtlasLoader, Canvas, Color, Image, Window, WindowBuilder};
 use quicksilver::{InitialScreen, Screen};
 
@@ -48,6 +48,7 @@ impl Screen for LoadingScreen {
 
     fn draw(&mut self, window: &mut Window, canvas: &mut Canvas) {
         canvas.clear(Color::white());
+        canvas.draw_rect(Rectangle::new(50, 50, 50, 50), Color::blue());
         canvas.present(window);
     }
 }
