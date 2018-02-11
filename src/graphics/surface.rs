@@ -42,6 +42,7 @@ impl Surface {
     ///
     ///Do not attempt to use the surface or its image within the function, because it is undefined behavior
     pub fn render_to<F>(&self, func: F, canvas: &mut Canvas) where F: FnOnce(&mut Canvas) {
+        canvas.backend.flush();
         let viewport = &mut [0, 0, 0, 0];
         let view = canvas.view();
         unsafe {
