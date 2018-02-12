@@ -50,14 +50,11 @@
 #![deny(missing_docs)]
 
 extern crate futures;
-#[cfg(not(target_arch="wasm32"))]
-extern crate glutin;
-#[cfg(not(target_arch="wasm32"))]
-extern crate image;
-#[cfg(not(target_arch="wasm32"))]
-extern crate rand;
-#[cfg(not(target_arch="wasm32"))]
-extern crate rodio;
+#[cfg(not(target_arch="wasm32"))] extern crate glutin;
+#[cfg(not(target_arch="wasm32"))] extern crate image;
+#[cfg(not(target_arch="wasm32"))] extern crate rand;
+#[cfg(not(target_arch="wasm32"))] extern crate rodio;
+extern crate rusttype;
 extern crate serde;
 extern crate serde_json;
 
