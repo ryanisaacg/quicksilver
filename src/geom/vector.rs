@@ -1,5 +1,4 @@
 use geom::{about_equal, Scalar};
-#[cfg(not(target_arch="wasm32"))]
 use rand::{Rand, Rng};
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 use std::cmp::{Eq, PartialEq};
@@ -215,7 +214,6 @@ impl fmt::Display for Vector {
     }
 }
 
-#[cfg(not(target_arch="wasm32"))]
 impl Rand for Vector {
     fn rand<R: Rng>(rand: &mut R) -> Self {
         Vector {

@@ -52,7 +52,7 @@
 extern crate futures;
 #[cfg(not(target_arch="wasm32"))] extern crate glutin;
 #[cfg(not(target_arch="wasm32"))] extern crate image;
-#[cfg(not(target_arch="wasm32"))] extern crate rand;
+extern crate rand;
 #[cfg(not(target_arch="wasm32"))] extern crate rodio;
 extern crate rusttype;
 extern crate serde;
