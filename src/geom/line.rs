@@ -1,3 +1,4 @@
+use rand::{Rand, Rng};
 use super::Vector;
 
 #[derive(Copy, Clone, Default, Debug, Eq, PartialEq, Deserialize, Serialize)]
@@ -84,5 +85,11 @@ mod tests {
         assert!(line1.contains(Vector::new(5, 5)));
         assert!(!line1.contains(Vector::new(6, 5)));
         assert!(line2.contains(Vector::new(0, 32)));
+    }
+}
+
+impl Rand for Line {
+    fn rand<R: Rng>(rand: &mut R) -> Self {
+        Line::new(rand.gen(), rand.gen())
     }
 }
