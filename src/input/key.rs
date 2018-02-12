@@ -3,7 +3,7 @@ pub enum Key {
     Key1, Key2, Key3, Key4, Key5, Key6, Key7, Key8, Key9, Key0, A, B, C, D, E, F, G, H, I, J, K, L, M, 
     N, O, P, Q, R, S, T, U, V, W, X, Y, Z, Escape, F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, F11, F12, 
     F13, F14, F15, Snapshot, Scroll, Pause, Insert, Home, Delete, End, PageDown, PageUp, Left, Up, Right, 
-    Down, Back, Return, Space, Compose, Caret, Numlock, Numpad0, Numpad1, Numpad2, Numpad3, Numpad4, Numpad5, 
+    Down, Back, Return, Space, Compose, Numlock, Numpad0, Numpad1, Numpad2, Numpad3, Numpad4, Numpad5, 
     Numpad6, Numpad7, Numpad8, Numpad9, AbntC1, AbntC2, Add, Apostrophe, Apps, At, Ax, Backslash, Calculator, 
     Capital, Colon, Comma, Convert, Decimal, Divide, Equals, Grave, Kana, Kanji, LAlt, LBracket, LControl, 
     LMenu, LShift, LWin, Mail, MediaSelect, MediaStop, Minus, Multiply, Mute, MyComputer, NavigateForward, 
@@ -89,7 +89,6 @@ mod tests {
         assert_eq!(Key::Return as u32, glutin::VirtualKeyCode::Return as u32);
         assert_eq!(Key::Space as u32, glutin::VirtualKeyCode::Space as u32);
         assert_eq!(Key::Compose as u32, glutin::VirtualKeyCode::Compose as u32);
-        assert_eq!(Key::Caret as u32, glutin::VirtualKeyCode::Caret as u32);
         assert_eq!(Key::Numlock as u32, glutin::VirtualKeyCode::Numlock as u32);
         assert_eq!(Key::Numpad0 as u32, glutin::VirtualKeyCode::Numpad0 as u32);
         assert_eq!(Key::Numpad1 as u32, glutin::VirtualKeyCode::Numpad1 as u32);
