@@ -36,6 +36,7 @@ impl Atlas {
     /// Load an atlas at a given path
     pub fn load<'a, P: 'static + AsRef<Path>>(path: P) -> AtlasLoader {
         AtlasLoader(Box::new(FileLoader::load(path.as_ref())
+            .map(|bytes| String::from_utf8(bytes).unwrap())
             .then(|data| parse(data, path))
             .map(create)))
     }

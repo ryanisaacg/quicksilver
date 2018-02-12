@@ -31,11 +31,15 @@ extern "C" {
     pub fn get_image_id(index: u32) -> u32;
     pub fn get_image_width(index: u32) -> i32;
     pub fn get_image_height(index: u32) -> i32;
-    //Text files
-    pub fn load_text_file(name: *mut i8) -> u32;
-    pub fn text_file_contents(handle: u32) -> *mut i8;
+    //Arbitrary files
+    pub fn load_file(name: *mut i8) -> u32;
+    pub fn file_contents(handle: u32) -> *mut u8;
+    pub fn file_length(handle: u32) -> u32;
     //Asset loading
     fn ffi_asset_status(handle: u32) -> i32;
+    //Logging
+    pub fn log_num(x: i32);
+    pub fn log(x: *mut i8);
 }
 
 pub fn asset_status(handle: u32) -> Result<bool, IOError> {

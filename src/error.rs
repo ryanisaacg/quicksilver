@@ -17,7 +17,9 @@ pub enum QuicksilverError {
     /// An error from loading a file
     IOError(IOError),
     /// A serialize or deserialize error
-    SerdeError(SerdeError)
+    SerdeError(SerdeError),
+    /// There was an error loading a font file
+    InvalidFont
 }
 
 impl From<ImageError> for QuicksilverError {

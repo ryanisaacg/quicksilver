@@ -204,19 +204,27 @@ let env = {
     get_image_id: (index) => assets[index].id,
     get_image_width: (index) => assets[index].width,
     get_image_height: (index) => assets[index].height,
-    //Text file
-    load_text_file: (ptr) => {
+    //Arbitrary files
+    load_file: (ptr) => {
         const index = assets.push({}) - 1;
         fetch(rust_str_to_js(ptr))
-            .then(response => response.text())
-            .then(string => {
+            .then(response => response.arrayBuffer())
+            .then(bytes => {
+                const pointer = instance.exports.allocate_memory(bytes.byteLength);
+                const target = new Uint8Array(instance.exports.memory.buffer, pointer, bytes.byteLength);
+                const source = new Uint8Array(bytes);
+                for(let i = 0; i < source.length; i++) {
+                    target[i] = source[i];
+                }
                 assets[index].loaded = true;
-                assets[index].value = string;
+                assets[index].contents = pointer;
+                assets[index].length = source.length;
             })
-            .catch(err => assets[index].error = true);
+            .catch(err => { console.log(err); assets[index].error = true });
         return index;
     },
-    text_file_contents: (index) => js_str_to_rust(assets[index].value),
+    file_contents: (index) => assets[index].contents,
+    file_length: (index) => assets[index].length,
     //Asset loading
     ffi_asset_status: (index) => assets[index].error ? 2 : (assets[index].loaded ? 1 : 0),
     //Rust runtime
