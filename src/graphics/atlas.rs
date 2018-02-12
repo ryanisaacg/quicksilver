@@ -16,6 +16,7 @@ use std::str::{FromStr, ParseBoolError, Split};
 
 #[derive(Clone)]
 struct Region {
+    image: usize,
     name: String,
     rotate: bool,
     region: Rectangle,
@@ -46,14 +47,14 @@ impl Atlas {
     }
 }
 
-type ManifestContents = Result<(JoinAll<Vec<ImageLoader>>, Vec<Vec<Region>>), QuicksilverError>;
+type ManifestContents = Result<(JoinAll<Vec<ImageLoader>>, Vec<Region>), QuicksilverError>;
 struct ManifestLoader(ManifestContents);
 
 /// A Future to load an Atlas
 pub struct AtlasLoader(Box<Future<Item=Atlas, Error=QuicksilverError>>);
 
 impl Future for ManifestLoader {
-    type Item = (Vec<Image>, Vec<Vec<Region>>);
+    type Item = (Vec<Image>, Vec<Region>);
     type Error = QuicksilverError;
 
     fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
@@ -78,21 +79,12 @@ impl Future for AtlasLoader {
 }
 
 // Turn the pages and regions into an Atlas
-fn create(data: (Vec<Image>, Vec<Vec<Region>>)) -> Atlas {
+fn create(data: (Vec<Image>, Vec<Region>)) -> Atlas {
     let (images, regions) = data;
-    let mut images = images.into_iter()
-        //Match each image with its list of regions
-        .zip(regions.into_iter())
-        //Convert each region into a subimage
-        .map(|(image, region_list)| region_list.into_iter()
-             //TODO: Take into account the center and rotation
-             .map(|region| (region.name, region.index, image.subimage(region.region)))
-             .collect())
-        //Flatten all the subimages into a single list
-        .fold(Vec::new(), |mut master_list, single_image_list: Vec<(String, i32, Image)>| {
-            master_list.extend(single_image_list);
-            master_list
-        });
+    let mut images = regions.into_iter()
+        .map(|region| 
+             (region.name, region.index, images[region.image].subimage(region.region)))
+        .collect::<Vec<(String, i32, Image)>>();
     //Sort the images by name, and then sub-sort them by index
     images.sort_by(|a: &(String, i32, Image), b: &(String, i32, Image)| match a.0.cmp(&b.0) { Ordering::Equal => a.1.cmp(&b.1), x => x });
     let data = images.into_iter()
@@ -118,7 +110,7 @@ fn create(data: (Vec<Image>, Vec<Vec<Region>>)) -> Atlas {
                 }
             }
             list
-        }).into_iter().collect();
+        }).into_iter().collect::<HashMap<String, AtlasItem>>();
     Atlas { data }
 }
 
@@ -158,7 +150,6 @@ fn parse<P: AsRef<Path>>(data: Result<String, QuicksilverError>, path: P) -> Man
             //Create a path relative to the atlas location
             let path: PathBuf = [directory, &Path::new(line)].iter().collect();
             images.push(Image::load(path));
-            regions.push(Vec::new());
             //Skip some lines the loader doesn't use
             for _ in 0..4 {
                 getval(&mut lines)?;
@@ -183,7 +174,8 @@ fn parse<P: AsRef<Path>>(data: Result<String, QuicksilverError>, path: P) -> Man
                 let original_size = Vector::new(getval(&mut orig)?, getval(&mut orig)?);
                 let offset = Vector::new(getval(&mut offset)?, getval(&mut offset)?);
                 let center = region.center() + (original_size - region.size() - offset.x_comp() + offset.y_comp());
-                regions.last_mut().unwrap().push(Region { name, region, rotate, center, index });
+                let image = images.len() - 1;
+                regions.push(Region { image, name, region, rotate, center, index });
             }
         }
         Ok((join_all(images), regions))
