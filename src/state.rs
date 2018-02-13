@@ -10,11 +10,19 @@ pub trait State {
     ///
     /// Will happen at a fixed rate of 60 ticks per second under ideal conditions. Under non-ideal conditions,
     /// the game loop will do its best to still call the update at about 60 TPS. 
-    fn update(&mut self, window: &mut Window, canvas: &mut Canvas);
+    ///
+    /// By default it does nothing
+    fn update(&mut self, &mut Window, &mut Canvas) {}
     /// Draw the state to the screen
     ///
     /// Will happen as often as possible, only limited by vysnc
-    fn draw(&mut self, window: &mut Window, canvas: &mut Canvas);
+    ///
+    /// By default it draws a black screen
+    fn draw(&mut self, window: &mut Window, canvas: &mut Canvas) {
+        use graphics::Color;
+        canvas.clear(Color::black());
+        canvas.present(window);
+    }
 }
 
 #[doc(hidden)]
