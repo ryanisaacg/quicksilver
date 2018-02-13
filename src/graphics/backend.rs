@@ -259,29 +259,31 @@ impl Backend {
 
 
     pub fn flush(&mut self) { 
-        unsafe {
-            //Bind the vertex data
-            let vertex_length = size_of::<f32>() * self.vertices.len();
-            let vertex_data = self.vertices.as_ptr() as *const c_void;
-            let index_length = size_of::<u32>() * self.indices.len();
-            let index_data = self.indices.as_ptr() as *const c_void;
-            if vertex_length > self.vertex_length || index_length > self.index_length {
-                self.create_buffers(vertex_length as isize * 2, index_length as isize * 2);
+        if self.indices.len() != 0 {
+            unsafe {
+                //Bind the vertex data
+                let vertex_length = size_of::<f32>() * self.vertices.len();
+                let vertex_data = self.vertices.as_ptr() as *const c_void;
+                let index_length = size_of::<u32>() * self.indices.len();
+                let index_data = self.indices.as_ptr() as *const c_void;
+                if vertex_length > self.vertex_length || index_length > self.index_length {
+                    self.create_buffers(vertex_length as isize * 2, index_length as isize * 2);
+                }
+                gl::BufferSubData(gl::ARRAY_BUFFER, 0, vertex_length as isize, vertex_data);
+                gl::BufferSubData(gl::ELEMENT_ARRAY_BUFFER, 0, index_length as isize, index_data);
+                //Upload the texture to the GPU
+                gl::ActiveTexture(gl::TEXTURE0);
+                if self.texture != 0 {
+                    gl::BindTexture(gl::TEXTURE_2D, self.texture);
+                }
+                gl::Uniform1i(self.texture_location, 0);
+                //Draw the triangles
+                gl::DrawElements(gl::TRIANGLES, self.indices.len() as i32, gl::UNSIGNED_INT, null());
             }
-            gl::BufferSubData(gl::ARRAY_BUFFER, 0, vertex_length as isize, vertex_data);
-            gl::BufferSubData(gl::ELEMENT_ARRAY_BUFFER, 0, index_length as isize, index_data);
-            //Upload the texture to the GPU
-            gl::ActiveTexture(gl::TEXTURE0);
-            if self.texture != 0 {
-                gl::BindTexture(gl::TEXTURE_2D, self.texture);
-            }
-            gl::Uniform1i(self.texture_location, 0);
-            //Draw the triangles
-            gl::DrawElements(gl::TRIANGLES, self.indices.len() as i32, gl::UNSIGNED_INT, null());
+            self.vertices.clear();
+            self.indices.clear();
+            self.texture = self.null.get_id();
         }
-        self.vertices.clear();
-        self.indices.clear();
-        self.texture = self.null.get_id();
     }
     
     
