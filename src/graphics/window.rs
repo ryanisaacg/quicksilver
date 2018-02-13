@@ -5,7 +5,7 @@ use geom::{ Rectangle, Transform, Vector};
 #[cfg(not(target_arch="wasm32"))]
 use glutin::{EventsLoop, GlContext};
 use graphics::{Backend, Canvas, ResizeStrategy, View};
-use input::{ButtonState, Keyboard, Mouse};
+use input::{Button, ButtonState, Keyboard, Mouse};
 
 ///A builder that constructs a Window and its Canvas
 pub struct WindowBuilder {
@@ -116,12 +116,11 @@ impl WindowBuilder {
             },
             mouse: Mouse {
                 pos: Vector::zero(),
-                left: ButtonState::NotPressed,
-                middle: ButtonState::NotPressed,
-                right: ButtonState::NotPressed,
+                buttons: [ButtonState::NotPressed; 3],
                 wheel: Vector::zero()
             },
-            view
+            view,
+            previous_button: None
         }, Canvas {
             backend: Backend::new(),
             view
@@ -142,6 +141,7 @@ pub struct Window {
     keyboard: Keyboard,
     mouse: Mouse,
     view: View,
+    previous_button: Option<(Button, ButtonState)>
 }
 
 impl Window {
@@ -164,6 +164,7 @@ impl Window {
         let mut mouse = self.mouse.clone();
         let mut resized = None;
         let offset = self.offset;
+        let mut button_change = None;
         self.events.poll_events(|event| match event {
             glutin::Event::WindowEvent { event, .. } => {
                 match event {
@@ -176,7 +177,10 @@ impl Window {
                                 glutin::ElementState::Pressed => true,
                                 glutin::ElementState::Released => false
                             };
-                            keyboard.process_event(keycode as usize, state);
+                            let change = keyboard.process_event(keycode as usize, state);
+                            if let Some((button, state)) = change {
+                                button_change = Some((Button::Keyboard(button), state));
+                            }
                         }
                     }
                     glutin::WindowEvent::CursorMoved { position, .. } => {
@@ -187,7 +191,10 @@ impl Window {
                         };
                     }
                     glutin::WindowEvent::MouseInput { state, button, .. } => {
-                        mouse.process_button(state, button);
+                        let change = mouse.process_button(state, button);
+                        if let Some((button, state)) = change {
+                            button_change = Some((Button::Mouse(button), state));
+                        }
                     }
                     glutin::WindowEvent::MouseWheel { delta, .. } => {
                         match delta {
@@ -211,6 +218,7 @@ impl Window {
         }
         self.keyboard = keyboard;
         self.mouse = mouse;
+        self.previous_button = button_change;
         running
     }
     
@@ -219,7 +227,10 @@ impl Window {
         use ffi::wasm;
         let mut key = unsafe { wasm::pump_key_queue() };
         while key != 0 {
-            self.keyboard.process_event(key.abs() as usize - 1, key > 0);
+            let change = self.keyboard.process_event(key.abs() as usize - 1, key > 0);
+            if let Some((button, state)) = change {
+                self.previous_button = Some((Button::Keyboard(button), state));
+            }
             key = unsafe { wasm::pump_key_queue() };
         }
         self.mouse = Mouse {
@@ -228,7 +239,10 @@ impl Window {
         };
         let mut button = unsafe { wasm::pump_mouse_queue() };
         while button != 0 {
-            self.mouse.process_button(button.abs() as u32 - 1, button > 0);
+            let change = self.mouse.process_button(button.abs() as u32 - 1, button > 0);
+            if let Some((button, state)) = change {
+                self.previous_button = Some((Button::Mouse(button), state));
+            }
             button = unsafe { wasm::pump_mouse_queue() };
         }
         let scroll = unsafe { wasm::mouse_scroll_type() };
@@ -305,6 +319,16 @@ impl Window {
             pos: self.project() * self.mouse.pos,
             ..self.mouse.clone()
         }
+    }
+
+    ///Get the button that changed its state and its current state
+    pub fn last_button(&self) -> Option<(Button, ButtonState)> {
+        self.previous_button
+    }
+
+    ///Clear the last button state
+    pub fn clear_last_button(&mut self) {
+        self.previous_button = None;
     }
 
     ///Set the title of the Window
