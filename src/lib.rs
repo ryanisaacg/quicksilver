@@ -63,16 +63,17 @@ extern crate serde_derive;
 
 mod error;
 mod ffi;
+mod state;
 mod timer;
 pub mod geom;
 pub mod graphics;
 pub mod input;
 pub mod saving;
-pub mod screen;
 pub mod sound;
 pub mod util;
 pub use error::QuicksilverError;
-pub use self::timer::Timer;
+pub use timer::Timer;
+pub use state::{Application, State};
 
 #[allow(deprecated)]
 #[doc(hidden)]
