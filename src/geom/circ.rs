@@ -1,3 +1,4 @@
+use rand::{Rand, Rng};
 use super::{about_equal, Line, Rectangle, Scalar, Vector};
 use std::cmp::{Eq, PartialEq};
 
@@ -148,4 +149,10 @@ mod tests {
         assert_eq!(circ.center() + translate, circ.translate(translate).center());
     }
 
+}
+
+impl Rand for Circle {
+    fn rand<R: Rng>(rand: &mut R) -> Self {
+        Circle::newv(rand.gen(), rand.gen::<f32>())
+    }
 }

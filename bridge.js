@@ -31,7 +31,7 @@ function js_str_to_rust(string) {
 const keynames = ["Digit1", "Digit2", "Digit3", "Digit4", "Digit5", "Digit6", "Digit7", "Digit8", "Digit9", "Digit0", "KeyA", "KeyB", "KeyC", "KeyD", "KeyE", "KeyF", "KeyG", "KeyH", "KeyI", "KeyJ", "KeyK", "KeyL", "KeyM", 
     "KeyN", "KeyO", "KeyP", "KeyQ", "KeyR", "KeyS", "KeyT", "KeyU", "KeyV", "KeyW", "KeyX", "KeyY", "KeyZ", "Escape", "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12", 
     "F13", "F14", "F15", "PrintScreen", "ScrollLock", "Pause", "Insert", "Home", "Delete", "End", "PageDown", "PageUp", "ArrowLeft", "ArrowUp", "ArrowRight", 
-    "ArrowDown", "Backspace", "Enter", "Space", "Compose", "Caret", "NumLock", "Numpad0", "Numpad1", "Numpad2", "Numpad3", "Numpad4", "Numpad5", 
+    "ArrowDown", "Backspace", "Enter", "Space", "Compose", "NumLock", "Numpad0", "Numpad1", "Numpad2", "Numpad3", "Numpad4", "Numpad5", 
     "Numpad6", "Numpad7", "Numpad8", "Numpad9", "AbntC1", "AbntC2", "Add", "Quote", "Apps", "At", "Ax", "Backslash", "Calculator", 
     "Capital", "Colon", "Comma", "Convert", "Decimal", "Divide", "Equal", "Backquote", "Kana", "Kanji", "AltLeft", "BracketLeft", "ControlLeft", 
     "LMenu", "ShiftLeft", "MetaLeft", "Mail", "MediaSelect", "MediaStop", "Minus", "Multiply", "Mute", "LaunchMyComputer", "NavigateForward", 
@@ -204,21 +204,29 @@ let env = {
     get_image_id: (index) => assets[index].id,
     get_image_width: (index) => assets[index].width,
     get_image_height: (index) => assets[index].height,
-    //Text file
-    load_text_file: (ptr) => {
+    //Arbitrary files
+    load_file: (ptr) => {
         const index = assets.push({}) - 1;
         fetch(rust_str_to_js(ptr))
-            .then(response => response.text())
-            .then(string => {
+            .then(response => response.arrayBuffer())
+            .then(bytes => {
+                const pointer = instance.exports.allocate_memory(bytes.byteLength);
+                const target = new Uint8Array(instance.exports.memory.buffer, pointer, bytes.byteLength);
+                const source = new Uint8Array(bytes);
+                for(let i = 0; i < source.length; i++) {
+                    target[i] = source[i];
+                }
                 assets[index].loaded = true;
-                assets[index].value = string;
+                assets[index].contents = pointer;
+                assets[index].length = source.length;
             })
-            .catch(err => assets[index].error = true);
+            .catch(err => { console.log(err); assets[index].error = true });
         return index;
     },
-    text_file_contents: (index) => js_str_to_rust(assets[index].value),
+    file_contents: (index) => assets[index].contents,
+    file_length: (index) => assets[index].length,
     //Asset loading
-    asset_status: (index) => asstes[index].error ? 2 : (assets[index].loaded ? 1 : 0),
+    ffi_asset_status: (index) => assets[index].error ? 2 : (assets[index].loaded ? 1 : 0),
     //Rust runtime
     fmodf: (a, b) => a % b,
     // OpenGL

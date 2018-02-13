@@ -50,14 +50,11 @@
 #![deny(missing_docs)]
 
 extern crate futures;
-#[cfg(not(target_arch="wasm32"))]
-extern crate glutin;
-#[cfg(not(target_arch="wasm32"))]
-extern crate image;
-#[cfg(not(target_arch="wasm32"))]
+#[cfg(not(target_arch="wasm32"))] extern crate glutin;
+#[cfg(not(target_arch="wasm32"))] extern crate image;
 extern crate rand;
-#[cfg(not(target_arch="wasm32"))]
-extern crate rodio;
+#[cfg(not(target_arch="wasm32"))] extern crate rodio;
+extern crate rusttype;
 extern crate serde;
 extern crate serde_json;
 
@@ -76,6 +73,19 @@ pub mod sound;
 pub mod util;
 pub use error::QuicksilverError;
 pub use self::timer::Timer;
+
+#[allow(deprecated)]
+#[doc(hidden)]
+#[cfg(not(target_arch="wasm32"))]
+//Play a silent sound so rodio startup doesn't interfere with application
+//Unfortunately this means even apps that don't use sound eat the startup penalty but it's not a
+//huge one
+pub fn initialize_sound() {
+    if let Some(ref endpoint) = rodio::get_default_endpoint() {
+        rodio::play_raw(endpoint, rodio::source::Empty::new())
+    }
+}
+
 
 #[no_mangle]
 #[cfg(target_arch="wasm32")]
