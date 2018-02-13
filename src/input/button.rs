@@ -1,5 +1,16 @@
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+use input::{MouseButton, Key};
+
+/// A unified button input for mouse and keyboard
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+pub enum Button {
+    /// A mouse button
+    Mouse(MouseButton),
+    /// A keyboard key
+    Keyboard(Key)
+}
+
 /// The current state of a button
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum ButtonState {
     /// The button was activated this frame
     Pressed,

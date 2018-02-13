@@ -7,7 +7,7 @@ use std::ops::Index;
 
 const LINES_TO_PIXELS: f32 = 15.0;
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
 /// The different buttons a user can press on a mouse
 pub enum MouseButton {
     /// The left mouse button
@@ -30,13 +30,27 @@ pub struct Mouse {
 
 impl Mouse {
     #[cfg(target_arch="wasm32")]
-    pub(crate) fn process_button(&mut self, button: u32, state: bool) {
-        let value = if state { ButtonState::Pressed } else { ButtonState::Released };
-        self.buttons[button as usize] = value;
+    pub(crate) fn process_button(&mut self, button: u32, state: bool) -> Option<(MouseButton, ButtonState)> {
+        if button < 3 {
+            let value = if state { ButtonState::Pressed } else { ButtonState::Released };
+            if value != self.buttons[button as usize] {
+                self.buttons[button as usize] = value;
+                Some((match button {
+                    0 => MouseButton::Left,
+                    1 => MouseButton::Right,
+                    2 => MouseButton::Middle,
+                    _ => unreachable!()
+                }, value))
+            } else {
+                None
+            }
+        } else {
+            None
+        }
     }
 
     #[cfg(not(target_arch="wasm32"))]
-    pub(crate) fn process_button(&mut self, state: glutin::ElementState, button: glutin::MouseButton) {
+    pub(crate) fn process_button(&mut self, state: glutin::ElementState, button: glutin::MouseButton) -> Option<(MouseButton, ButtonState)> {
         let value = match state {
             glutin::ElementState::Pressed => ButtonState::Pressed,
             glutin::ElementState::Released => ButtonState::Released,
@@ -45,9 +59,15 @@ impl Mouse {
             glutin::MouseButton::Left => MouseButton::Left,
             glutin::MouseButton::Right => MouseButton::Right,
             glutin::MouseButton::Middle => MouseButton::Middle,
-            _ => { return; },
-        };
-        self.buttons[index as usize].update(value);
+            _ => { return None; },
+        }; 
+        let updated = self.buttons[index as usize].update(value);
+        if updated != self.buttons[index as usize] {
+            self.buttons[index as usize] = updated;
+            Some((index, updated))
+        } else {
+            None
+        }
     }
 
     pub(crate) fn process_wheel_lines(&mut self, x: f32, y: f32) {

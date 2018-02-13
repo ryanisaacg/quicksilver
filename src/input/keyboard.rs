@@ -1,4 +1,4 @@
-use input::{ButtonState, Key};
+use input::{ButtonState, Key, KEY_LIST};
 use std::ops::Index;
 
 #[derive(Copy)]
@@ -11,9 +11,16 @@ pub struct Keyboard {
 }
 
 impl Keyboard {
-    pub(crate) fn process_event(&mut self, keycode: usize, pressed: bool) {
-        self.keys[keycode] = self.keys[keycode].update(if pressed { ButtonState::Pressed } 
+    /// Return if there was a state change, and if so what was changed
+    pub(crate) fn process_event(&mut self, keycode: usize, pressed: bool) -> Option<(Key, ButtonState)> {
+        let updated = self.keys[keycode].update(if pressed { ButtonState::Pressed } 
                                                        else { ButtonState::Released });
+        if updated != self.keys[keycode] {
+            self.keys[keycode] = updated;
+            Some((KEY_LIST[keycode], updated))
+        } else {
+            None
+        }
     }
 
     pub(crate) fn clear_temporary_states(&mut self) {
