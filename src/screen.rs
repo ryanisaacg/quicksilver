@@ -43,7 +43,7 @@ impl Application {
     pub fn update(&mut self) {
         let result = self.screen.update(&mut self.window, &mut self.canvas);
         if let Some(screen) = result {
-            self.screen = screen;
+            self.screen = screen; //FIXME: out of bounds write on WASM for the Atlas example
         }
     }
 
@@ -92,6 +92,7 @@ macro_rules! screens_loop {
         #[cfg(not(target_arch="wasm32"))]
         fn main() {
             use std::time::Duration;
+            quicksilver::initialize_sound();
             let mut timer = quicksilver::Timer::new();
             let (window, canvas) = $Start::configure();
             let screen = Box::new($Start::new());

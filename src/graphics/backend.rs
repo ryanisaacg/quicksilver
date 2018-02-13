@@ -123,7 +123,7 @@ impl Backend {
             gl::Enable( gl::BLEND );
             (vao, vbo, ebo)
         };
-        let null = Image::new_null(0, 0, PixelFormat::RGBA);
+        let null = Image::new_null(1, 1, PixelFormat::RGBA);
         let texture = null.get_id();
         let mut backend = Backend {
             texture,
