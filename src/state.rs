@@ -25,40 +25,38 @@ pub trait State {
     }
 }
 
-#[doc(hidden)]
-pub struct Application {
-    pub state: Box<State>,
-    pub window: Window,
-    pub canvas: Canvas
-}
-
-#[doc(hidden)]
-impl Application {
-    pub fn events(&mut self) -> bool {
-        self.window.poll_events()
-    }
-
-    pub fn update(&mut self) {
-        self.state.update(&mut self.window, &mut self.canvas);
-    }
-
-    pub fn draw(&mut self) {
-        self.state.draw(&mut self.window, &mut self.canvas);
-    }
-}
-
 
 #[macro_export]
 /// A macro that defines the main functions required for native and web using a State typename
 macro_rules! run {
     ($Start: tt) => (
-        use quicksilver::Application;
+        #[doc(hidden)]
+        struct Application {
+            pub state: $Start, 
+            pub window: Window,
+            pub canvas: Canvas
+        }
+
+        #[doc(hidden)]
+        impl Application {
+            pub fn events(&mut self) -> bool {
+                self.window.poll_events()
+            }
+
+            pub fn update(&mut self) {
+                self.state.update(&mut self.window, &mut self.canvas);
+            }
+
+            pub fn draw(&mut self) {
+                self.state.draw(&mut self.window, &mut self.canvas);
+            }
+        }
 
         #[no_mangle]
         #[cfg(target_arch="wasm32")]
         pub extern "C" fn init() -> *mut Application {
             let (window, canvas) = $Start::configure();
-            let state = Box::new($Start::new());
+            let state = $Start::new();
             Box::into_raw(Box::new(Application { state, window, canvas }))
         }
 
@@ -88,7 +86,7 @@ macro_rules! run {
             quicksilver::initialize_sound();
             let mut timer = quicksilver::Timer::new();
             let (window, canvas) = $Start::configure();
-            let state = Box::new($Start::new());
+            let state = $Start::new();
             let mut app = Application { state, window, canvas };
             while app.events() {
                 timer.tick(||  { app.update(); Duration::from_millis(16) });

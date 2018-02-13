@@ -73,7 +73,7 @@ pub mod sound;
 pub mod util;
 pub use error::QuicksilverError;
 pub use timer::Timer;
-pub use state::{Application, State};
+pub use state::State;
 
 #[allow(deprecated)]
 #[doc(hidden)]
