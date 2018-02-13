@@ -31,10 +31,10 @@ pub trait State {
 macro_rules! run {
     ($Start: tt) => (
         #[doc(hidden)]
-        struct Application {
-            pub state: $Start, 
-            pub window: Window,
-            pub canvas: Canvas
+        pub struct Application {
+            state: $Start, 
+            window: Window,
+            canvas: Canvas
         }
 
         #[doc(hidden)]
@@ -51,6 +51,7 @@ macro_rules! run {
                 self.state.draw(&mut self.window, &mut self.canvas);
             }
         }
+
 
         #[no_mangle]
         #[cfg(target_arch="wasm32")]
