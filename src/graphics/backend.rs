@@ -53,6 +53,7 @@ pub(crate) struct Backend {
     ebo: u32, 
     vao: u32, 
     texture_location: i32,
+    texture_mode: u32
 }
 
 #[cfg(not(target_arch="wasm32"))]
@@ -111,7 +112,7 @@ void main() {
 pub(crate) const VERTEX_SIZE: usize = 9; // the number of floats in a vertex
 
 impl Backend {
-    pub fn new() -> Backend { 
+    pub fn new(texture_mode: u32) -> Backend { 
         let (vao, vbo, ebo) = unsafe {
             let vao = gl::GenVertexArray();
             gl::BindVertexArray(vao);
@@ -139,6 +140,7 @@ impl Backend {
             ebo, 
             vao, 
             texture_location: 0,
+            texture_mode
         };
         backend.set_shader(DEFAULT_VERTEX_SHADER, DEFAULT_FRAGMENT_SHADER);
         backend
@@ -275,6 +277,8 @@ impl Backend {
                 gl::ActiveTexture(gl::TEXTURE0);
                 if self.texture != 0 {
                     gl::BindTexture(gl::TEXTURE_2D, self.texture);
+                    gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, self.texture_mode as i32);
+                    gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, self.texture_mode as i32);
                 }
                 gl::Uniform1i(self.texture_location, 0);
                 //Draw the triangles
