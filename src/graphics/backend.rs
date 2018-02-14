@@ -277,6 +277,8 @@ impl Backend {
                 gl::ActiveTexture(gl::TEXTURE0);
                 if self.texture != 0 {
                     gl::BindTexture(gl::TEXTURE_2D, self.texture);
+                    gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, self.texture_mode as i32);
+                    gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, self.texture_mode as i32);
                 }
                 gl::Uniform1i(self.texture_location, 0);
                 //Draw the triangles
