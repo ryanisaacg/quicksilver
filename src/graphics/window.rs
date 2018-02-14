@@ -7,12 +7,22 @@ use glutin::{EventsLoop, GlContext};
 use graphics::{Backend, Canvas, ResizeStrategy, View};
 use input::{Button, ButtonState, Keyboard, Mouse};
 
+/// The way the images should change when drawn at a scale
+#[repr(u32)]
+pub enum ImageScaleStrategy {
+    /// The image should attempt to preserve each pixel as accurately as possible
+    Pixelate = gl::NEAREST,
+    /// The image should attempt to preserve the overall picture by blurring
+    Blur = gl::LINEAR
+}
+
 ///A builder that constructs a Window and its Canvas
 pub struct WindowBuilder {
     show_cursor: bool,
     min_size: Option<Vector>,
     max_size: Option<Vector>,
     resize: ResizeStrategy,
+    scale: ImageScaleStrategy
 }
 
 impl WindowBuilder {
@@ -23,6 +33,7 @@ impl WindowBuilder {
             min_size: None,
             max_size: None,
             resize: ResizeStrategy::Fit,
+            scale: ImageScaleStrategy::Pixelate
         }
     }
    
@@ -58,6 +69,14 @@ impl WindowBuilder {
     pub fn with_maximum_size(self, max_size: Vector) -> WindowBuilder {
         WindowBuilder {
             max_size: Some(max_size),
+            ..self
+        }
+    }
+
+    ///Set the strategy for scaling images
+    pub fn with_scaling_strategy(self, scale: ImageScaleStrategy) -> WindowBuilder {
+        WindowBuilder {
+            scale,
             ..self
         }
     }
@@ -122,7 +141,7 @@ impl WindowBuilder {
             view,
             previous_button: None
         }, Canvas {
-            backend: Backend::new(),
+            backend: Backend::new(self.scale as u32),
             view
         })
     }
