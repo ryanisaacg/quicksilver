@@ -1,28 +1,23 @@
+// The most basic example- it should just open a black window and set the window title to Hello
+// world!
 #[macro_use]
 extern crate quicksilver;
 
-use quicksilver::graphics::{Window, WindowBuilder};
-use std::time::Duration;
+use quicksilver::State;
+use quicksilver::graphics::{Canvas, Window, WindowBuilder};
 
-pub struct State {
-    window: Window
+// An empty structure because we don't need to store any state
+struct BlackScreen;
+
+impl State for BlackScreen {
+    fn configure() -> (Window, Canvas) {
+        // Create a Window with the title "Hello world!" that is 800 x 600 pixels
+        WindowBuilder::new()
+            .build("Hello world!", 800, 600)
+    }
+
+   fn new() -> BlackScreen { BlackScreen }
 }
 
-impl State {
-    pub fn new() -> State {
-        let (window, _canvas) = WindowBuilder::new().build("Basic Window", 800, 600);
-        State { window }
-    }
-
-    pub fn events(&mut self) -> bool {
-       self.window.poll_events()
-    }
-
-    pub fn update(&self) -> Duration {
-        Duration::from_millis(0)
-    }
-
-    pub fn draw(&self) {}
-}
-
-game_loop!(State);
+//Run the application on both desktop and web
+run!(BlackScreen);

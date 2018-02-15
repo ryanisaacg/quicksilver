@@ -1,3 +1,3 @@
 #!/bin/sh
 cargo +nightly build --target wasm32-unknown-unknown --example $1 --release
-cp target/wasm32-unknown-unknown/release/examples/$1.wasm html/wasm.wasm
+cp target/wasm32-unknown-unknown/release/examples/$1.wasm wasm.wasm
