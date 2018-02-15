@@ -1,4 +1,4 @@
-use super::{about_equal, Vector};
+use geom::{about_equal, Scalar, Vector};
 use std::ops::Mul;
 use std::f32::consts::PI;
 use std::fmt;
@@ -18,7 +18,8 @@ impl Transform {
     }
 
     ///Create a rotation transformation
-    pub fn rotate(angle: f32) -> Transform {
+    pub fn rotate<T: Scalar>(angle: T) -> Transform {
+        let angle = angle.float();
         let c = (angle * PI / 180f32).cos();
         let s = (angle * PI / 180f32).sin();
         Transform([[c, -s, 0f32],
