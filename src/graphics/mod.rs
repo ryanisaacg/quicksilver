@@ -24,4 +24,4 @@ pub use self::image::{Image, ImageError, ImageLoader, PixelFormat};
 pub use self::resize::ResizeStrategy;
 pub use self::surface::Surface;
 pub use self::view::View;
-pub use self::window::{Window, WindowBuilder};
+pub use self::window::{ImageScaleStrategy, Window, WindowBuilder};
