@@ -1,9 +1,9 @@
-use graphics::{Canvas, Window};
+use graphics::Window;
 
 /// The structure responsible for managing the game loop state
 pub trait State {
-    /// Create a Window and a Canvas to be used in the application
-    fn configure() -> (Window, Canvas) where Self: Sized;
+    /// Create a Window to be used in the application
+    fn configure() -> Window where Self: Sized;
     /// Create the state given the window and canvas
     fn new() -> Self where Self: Sized;
     /// Tick the State forward one frame
@@ -12,16 +12,16 @@ pub trait State {
     /// the game loop will do its best to still call the update at about 60 TPS. 
     ///
     /// By default it does nothing
-    fn update(&mut self, &mut Window, &mut Canvas) {}
+    fn update(&mut self, &mut Window) {}
     /// Draw the state to the screen
     ///
     /// Will happen as often as possible, only limited by vysnc
     ///
     /// By default it draws a black screen
-    fn draw(&mut self, window: &mut Window, canvas: &mut Canvas) {
+    fn draw(&mut self, window: &mut Window) {
         use graphics::Color;
-        canvas.clear(Color::black());
-        canvas.present(window);
+        window.clear(Color::black());
+        window.present();
     }
 }
 
@@ -34,7 +34,6 @@ macro_rules! run {
         pub struct Application {
             state: $Start, 
             window: Window,
-            canvas: Canvas
         }
 
         #[doc(hidden)]
@@ -44,11 +43,11 @@ macro_rules! run {
             }
 
             pub fn update(&mut self) {
-                self.state.update(&mut self.window, &mut self.canvas);
+                self.state.update(&mut self.window);
             }
 
             pub fn draw(&mut self) {
-                self.state.draw(&mut self.window, &mut self.canvas);
+                self.state.draw(&mut self.window);
             }
         }
 
@@ -58,7 +57,7 @@ macro_rules! run {
         pub extern "C" fn init() -> *mut Application {
             let (window, canvas) = $Start::configure();
             let state = $Start::new();
-            Box::into_raw(Box::new(Application { state, window, canvas }))
+            Box::into_raw(Box::new(Application { state, window }))
         }
 
         #[no_mangle]
@@ -86,9 +85,9 @@ macro_rules! run {
             use std::time::Duration;
             quicksilver::initialize_sound();
             let mut timer = quicksilver::Timer::new();
-            let (window, canvas) = $Start::configure();
+            let window = $Start::configure();
             let state = $Start::new();
-            let mut app = Application { state, window, canvas };
+            let mut app = Application { state, window };
             while app.events() {
                 timer.tick(||  { app.update(); Duration::from_millis(16) });
                 app.draw();
