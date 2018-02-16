@@ -13,7 +13,8 @@ impl State for BlackScreen {
     fn configure() -> (Window, Canvas) {
         // Create a Window with the title "Hello world!" that is 800 x 600 pixels
         WindowBuilder::new()
-            .build("Hello world!", 800, 600)
+            .with_fullscreen(true)
+            .build("Hello world!", 1920, 1080)
     }
 
    fn new() -> BlackScreen { BlackScreen }

@@ -22,7 +22,8 @@ pub struct WindowBuilder {
     min_size: Option<Vector>,
     max_size: Option<Vector>,
     resize: ResizeStrategy,
-    scale: ImageScaleStrategy
+    scale: ImageScaleStrategy,
+    fullscreen: bool
 }
 
 impl WindowBuilder {
@@ -33,7 +34,8 @@ impl WindowBuilder {
             min_size: None,
             max_size: None,
             resize: ResizeStrategy::Fit,
-            scale: ImageScaleStrategy::Pixelate
+            scale: ImageScaleStrategy::Pixelate,
+            fullscreen: false
         }
     }
    
@@ -81,12 +83,24 @@ impl WindowBuilder {
         }
     }
 
+    ///Set if the window should be in fullscreen mode
+    ///
+    ///On Windows, this means it is borderless fullscreen, on Unix, it means it is actually fullscreen, and on the web it takes up the entire web content area.
+    pub fn with_fullscreen(self, fullscreen: bool) -> WindowBuilder {
+        WindowBuilder {
+            fullscreen,
+            ..self
+        }
+    }
+
     ///Create a window and canvas with the given configuration
     pub fn build(self, title: &str, width: u32, height: u32) -> (Window, Canvas) {
         #[cfg(not(target_arch="wasm32"))]
         let (gl_window, events) = {
             let events = glutin::EventsLoop::new();
             let window = glutin::WindowBuilder::new()
+                .with_decorations(false)
+                .with_fullscreen(if self.fullscreen { Some(events.get_primary_monitor()) } else { None })
                 .with_title(title);
             let window = match self.min_size { 
                 Some(v) => window.with_min_dimensions(v.x as u32, v.y as u32),
@@ -121,7 +135,7 @@ impl WindowBuilder {
         #[cfg(target_arch="wasm32")]
         let scale_factor = 1f32;
         let view = View::new(Rectangle::newv_sized(screen_size));
-        (Window {
+        let window = Window {
             #[cfg(not(target_arch="wasm32"))]
             gl_window,
             #[cfg(not(target_arch="wasm32"))]
@@ -140,7 +154,8 @@ impl WindowBuilder {
             },
             view,
             previous_button: None
-        }, Canvas {
+        };
+        (window, Canvas {
             backend: Backend::new(self.scale as u32),
             view
         })
@@ -163,7 +178,7 @@ pub struct Window {
     previous_button: Option<(Button, ButtonState)>
 }
 
-impl Window {
+impl Window {    
     ///Update the keyboard, mouse, and window state, and return if the window is still open
     pub fn poll_events(&mut self) -> bool {
         self.poll_events_impl()
