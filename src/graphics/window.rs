@@ -381,9 +381,9 @@ impl Window {
     }
 
     ///Draw some amount of draw items
-    pub fn draw<I: IntoIterator<Item = DrawCall>>(&mut self, iter: I) {
+    pub fn draw<'a, I: IntoIterator<Item = &'a DrawCall>>(&mut self, iter: I) {
         self.draw_buffer.clear();
-        self.draw_buffer.extend(iter);
+        self.draw_buffer.extend(iter.into_iter().map(|x| x.clone()));
         self.draw_buffer.sort();
         for item in self.draw_buffer.iter() {
             item.apply(self.view.opengl, &mut self.backend);
@@ -391,7 +391,7 @@ impl Window {
     }
 
     ///Draw some amount of draw items with a given blend mode
-    pub fn draw_blended<I: IntoIterator<Item = DrawCall>>(&mut self, iter: I, blend: BlendMode) {
+    pub fn draw_blended<'a, I: IntoIterator<Item = &'a DrawCall>>(&mut self, iter: I, blend: BlendMode) {
         self.backend.set_blend_mode(blend);
         self.draw(iter);
         self.backend.reset_blend_mode();

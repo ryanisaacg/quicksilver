@@ -2,6 +2,7 @@ use geom::{Circle, Rectangle, Scalar, Transform, Vector};
 use graphics::{Backend, Color, Image, Vertex};
 use std::cmp::Ordering;
 
+#[derive(Clone)]
 pub(crate) enum DrawPayload {
     Image((Image, Vector)),
     Rectangle(Rectangle),
@@ -9,11 +10,12 @@ pub(crate) enum DrawPayload {
 }
 
 /// A single drawable item, with a transform, a blend color, and a depth
+#[derive(Clone)]
 pub struct DrawCall {
     item: DrawPayload,
     color: Color,
     transform: Transform,
-    depth: f32
+    z: f32
 }
 
 impl DrawCall {
@@ -23,7 +25,7 @@ impl DrawCall {
             item: DrawPayload::Image((image.clone(), center)),
             color: Color::white(),
             transform: Transform::identity(),
-            depth: 0.0
+            z: 0.0
         }
     }
 
@@ -33,7 +35,7 @@ impl DrawCall {
             item: DrawPayload::Rectangle(rectangle),
             color: Color::white(),
             transform: Transform::identity(),
-            depth: 0.0
+            z: 0.0
         }
     }
 
@@ -43,7 +45,7 @@ impl DrawCall {
             item: DrawPayload::Circle(circle),
             color: Color::white(),
             transform: Transform::identity(),
-            depth: 0.0
+            z: 0.0
         }
     }
 
@@ -64,9 +66,9 @@ impl DrawCall {
     }
 
     /// Change the depth of a draw call
-    pub fn with_depth<T: Scalar>(self, depth: T) -> DrawCall {
+    pub fn with_z<T: Scalar>(self, z: T) -> DrawCall {
         DrawCall {
-            depth: depth.float(),
+            z: z.float(),
             ..self
         }
     }
@@ -176,7 +178,7 @@ impl Ord for DrawPayload {
 
 impl PartialEq for DrawCall {
     fn eq(&self, other: &DrawCall) -> bool {
-        self.depth == other.depth && self.item == other.item
+        self.z == other.z && self.item == other.item
     }
 }
 
@@ -184,7 +186,7 @@ impl Eq for DrawCall {}
 
 impl PartialOrd for DrawCall {
     fn partial_cmp(&self, other: &DrawCall) -> Option<Ordering> {
-        match self.depth.partial_cmp(&other.depth) {
+        match self.z.partial_cmp(&other.z) {
             None | Some(Ordering::Equal) => self.item.partial_cmp(&other.item),
             x => x
         }
