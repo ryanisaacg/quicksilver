@@ -4,7 +4,7 @@ use glutin;
 use geom::{ Rectangle, Transform, Vector};
 #[cfg(not(target_arch="wasm32"))]
 use glutin::{EventsLoop, GlContext};
-use graphics::{Backend, Canvas, ResizeStrategy, View};
+use graphics::{Backend, BlendMode, Color, DrawCall, ResizeStrategy, View};
 use input::{Button, ButtonState, Keyboard, Mouse};
 
 /// The way the images should change when drawn at a scale
@@ -16,7 +16,7 @@ pub enum ImageScaleStrategy {
     Blur = gl::LINEAR
 }
 
-///A builder that constructs a Window and its Canvas
+///A builder that constructs a Window
 pub struct WindowBuilder {
     show_cursor: bool,
     min_size: Option<Vector>,
@@ -94,7 +94,7 @@ impl WindowBuilder {
     }
 
     ///Create a window and canvas with the given configuration
-    pub fn build(self, title: &str, width: u32, height: u32) -> (Window, Canvas) {
+    pub fn build(self, title: &str, width: u32, height: u32) -> Window {
         let mut actual_width = width;
         let mut actual_height = height;
         #[cfg(not(target_arch="wasm32"))]
@@ -141,7 +141,7 @@ impl WindowBuilder {
         #[cfg(target_arch="wasm32")]
         let scale_factor = 1f32;
         let view = View::new(Rectangle::newv_sized(screen_region.size()));
-        let window = Window {
+        Window {
             #[cfg(not(target_arch="wasm32"))]
             gl_window,
             #[cfg(not(target_arch="wasm32"))]
@@ -159,12 +159,10 @@ impl WindowBuilder {
                 wheel: Vector::zero()
             },
             view,
-            previous_button: None
-        };
-        (window, Canvas {
+            previous_button: None,
             backend: Backend::new(self.scale as u32),
-            view
-        })
+            draw_buffer: Vec::new()
+        }
     }
 }
 
@@ -181,7 +179,9 @@ pub struct Window {
     keyboard: Keyboard,
     mouse: Mouse,
     view: View,
-    previous_button: Option<(Button, ButtonState)>
+    previous_button: Option<(Button, ButtonState)>,
+    backend: Backend,
+    draw_buffer: Vec<DrawCall>
 }
 
 impl Window {    
@@ -386,5 +386,34 @@ impl Window {
         use ffi::wasm;
         use std::ffi::CString;
         unsafe { wasm::set_title(CString::new(title).unwrap().into_raw()) };
+    }
+    
+    /// Clear the screen to a given color
+    pub fn clear(&mut self, color: Color) {
+        self.backend.clear(color);
+    }
+
+    /// Draw the changes made to the screen
+    pub fn present(&mut self) {
+        self.backend.flush();
+        #[cfg(not(target_arch="wasm32"))]
+        self.gl_window.swap_buffers().unwrap();
+    }
+
+    ///Draw some amount of draw items
+    pub fn draw<'a, I: IntoIterator<Item = &'a DrawCall>>(&mut self, iter: I) {
+        self.draw_buffer.clear();
+        self.draw_buffer.extend(iter.into_iter().map(|x| x.clone()));
+        self.draw_buffer.sort();
+        for item in self.draw_buffer.iter() {
+            item.apply(self.view.opengl, &mut self.backend);
+        }
+    }
+
+    ///Draw some amount of draw items with a given blend mode
+    pub fn draw_blended<'a, I: IntoIterator<Item = &'a DrawCall>>(&mut self, iter: I, blend: BlendMode) {
+        self.backend.set_blend_mode(blend);
+        self.draw(iter);
+        self.backend.reset_blend_mode();
     }
 }

@@ -102,9 +102,8 @@ impl Sound {
     ///
     /// Future changes in volume will not change the sound emitted by this method.
     pub fn play(&self) {
-        #[cfg(not(target_arch="wasm32"))]
-        #[allow(deprecated)] {
-            let endpoint = rodio::get_default_endpoint().unwrap();
+        #[cfg(not(target_arch="wasm32"))] {
+            let endpoint = rodio::default_endpoint().unwrap();
             rodio::play_raw(&endpoint, self.get_source());
         }
         #[cfg(target_arch="wasm32")] {
