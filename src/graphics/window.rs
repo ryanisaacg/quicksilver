@@ -95,12 +95,13 @@ impl WindowBuilder {
 
     ///Create a window and canvas with the given configuration
     pub fn build(self, title: &str, width: u32, height: u32) -> (Window, Canvas) {
+        let mut actual_width = width;
+        let mut actual_height = height;
         #[cfg(not(target_arch="wasm32"))]
         let (gl_window, events) = {
             let events = glutin::EventsLoop::new();
             let window = glutin::WindowBuilder::new()
-                .with_decorations(false)
-                .with_fullscreen(if self.fullscreen { Some(events.get_primary_monitor()) } else { None })
+                .with_decorations(!self.fullscreen)
                 .with_title(title);
             let window = match self.min_size { 
                 Some(v) => window.with_min_dimensions(v.x as u32, v.y as u32),
@@ -110,7 +111,12 @@ impl WindowBuilder {
                 Some(v) => window.with_max_dimensions(v.x as u32, v.y as u32),
                 None => window
             };
-            let window = window.with_dimensions(width, height);
+            if self.fullscreen {
+                let (w, h) = events.get_primary_monitor().get_dimensions();
+                actual_width = w;
+                actual_height = h;
+            }
+            let window = window.with_dimensions(actual_width, actual_height);
             let context = glutin::ContextBuilder::new().with_vsync(true);
             let gl_window = glutin::GlWindow::new(window, context, &events).unwrap();
             unsafe {
@@ -129,12 +135,12 @@ impl WindowBuilder {
                 wasm::create_context(CString::new(title).unwrap().into_raw(), width, height);
             }
         }
-        let screen_size = Vector::new(width as f32, height as f32);
+        let screen_region = self.resize.resize(Vector::new(width, height), Vector::new(actual_width, actual_height)); 
         #[cfg(not(target_arch="wasm32"))]
         let scale_factor = gl_window.hidpi_factor();
         #[cfg(target_arch="wasm32")]
         let scale_factor = 1f32;
-        let view = View::new(Rectangle::newv_sized(screen_size));
+        let view = View::new(Rectangle::newv_sized(screen_region.size()));
         let window = Window {
             #[cfg(not(target_arch="wasm32"))]
             gl_window,
@@ -142,8 +148,8 @@ impl WindowBuilder {
             events,
             resize: self.resize,
             scale_factor,
-            offset: Vector::zero(),
-            screen_size,
+            offset: screen_region.top_left(),
+            screen_size: screen_region.size(),
             keyboard: Keyboard {
                 keys: [ButtonState::NotPressed; 256]
             },
