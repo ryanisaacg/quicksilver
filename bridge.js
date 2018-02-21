@@ -83,6 +83,8 @@ canvas.addEventListener('wheel', (event) => {
 let env = {
     // Windowing
     set_show_mouse: (show) => canvas.style.cursor = show ? "auto" : "none",
+    get_page_width: () => document.body.clientWidth,
+    get_page_height: () => document.body.clientHeight,
     create_context: (title, width, height) => {
         document.title = rust_str_to_js(title);
         canvas.width = width;

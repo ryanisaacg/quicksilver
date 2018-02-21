@@ -85,7 +85,7 @@ impl WindowBuilder {
 
     ///Set if the window should be in fullscreen mode
     ///
-    ///On Windows, this means it is borderless fullscreen, on Unix, it means it is actually fullscreen, and on the web it takes up the entire web content area.
+    ///On desktop it's borderless fullscreen, and on the web it makes the canvas the size of the browser window
     pub fn with_fullscreen(self, fullscreen: bool) -> WindowBuilder {
         WindowBuilder {
             fullscreen,
@@ -132,7 +132,11 @@ impl WindowBuilder {
             use std::ffi::CString;
             unsafe { 
                 wasm::set_show_mouse(self.show_cursor);
-                wasm::create_context(CString::new(title).unwrap().into_raw(), width, height);
+                if self.fullscreen {
+                    actual_width = wasm::get_page_width();
+                    actual_height = wasm::get_page_height();
+                }
+                wasm::create_context(CString::new(title).unwrap().into_raw(), actual_width, actual_height);
             }
         }
         let screen_region = self.resize.resize(Vector::new(width, height), Vector::new(actual_width, actual_height)); 
