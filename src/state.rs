@@ -55,7 +55,7 @@ macro_rules! run {
         #[no_mangle]
         #[cfg(target_arch="wasm32")]
         pub extern "C" fn init() -> *mut Application {
-            let (window, canvas) = $Start::configure();
+            let window = $Start::configure();
             let state = $Start::new();
             Box::into_raw(Box::new(Application { state, window }))
         }
