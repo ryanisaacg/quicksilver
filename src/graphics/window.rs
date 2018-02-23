@@ -151,9 +151,8 @@ impl WindowBuilder {
             #[cfg(not(target_arch="wasm32"))]
             events,
             resize: self.resize,
+            screen_region,
             scale_factor,
-            offset: screen_region.top_left(),
-            screen_size: screen_region.size(),
             keyboard: Keyboard {
                 keys: [ButtonState::NotPressed; 256]
             },
@@ -178,8 +177,7 @@ pub struct Window {
     events: EventsLoop,
     resize: ResizeStrategy,
     scale_factor: f32,
-    offset: Vector,
-    screen_size: Vector,
+    screen_region: Rectangle,
     keyboard: Keyboard,
     mouse: Mouse,
     view: View,
@@ -207,7 +205,7 @@ impl Window {
         let mut keyboard = self.keyboard.clone();
         let mut mouse = self.mouse.clone();
         let mut resized = None;
-        let offset = self.offset;
+        let offset = self.screen_region.top_left();
         let mut button_change = None;
         self.events.poll_events(|event| match event {
             glutin::Event::WindowEvent { event, .. } => {
@@ -278,7 +276,7 @@ impl Window {
             key = unsafe { wasm::pump_key_queue() };
         }
         self.mouse = Mouse {
-            pos: unsafe { Vector::new(wasm::get_mouse_x(), wasm::get_mouse_y()) } - self.offset,
+            pos: unsafe { Vector::new(wasm::get_mouse_x(), wasm::get_mouse_y()) } - self.screen_region.top_left(),
             ..self.mouse
         };
         let mut button = unsafe { wasm::pump_mouse_queue() };
@@ -303,13 +301,11 @@ impl Window {
 
     ///Handle the available size for the window changing
     fn adjust_size(&mut self, available: Vector) {
-        let view = self.resize.resize(self.screen_size, available);
-        self.offset = view.top_left();
-        self.screen_size = view.size();
-        unsafe { gl::Viewport(self.offset.x as i32, self.offset.y as i32, 
-                              self.screen_size.x as i32, self.screen_size.y as i32); }
+        self.screen_region = self.resize.resize(self.screen_region.size(), available);
+        unsafe { gl::Viewport(self.screen_region.x as i32, self.screen_region.y as i32, 
+                              self.screen_region.height as i32, self.screen_region.width as i32); }
         #[cfg(not(target_arch="wasm32"))]
-        self.gl_window.resize(self.screen_size.x as u32, self.screen_size.y as u32);
+        self.gl_window.resize(self.screen_region.width as u32, self.screen_region.height as u32);
     }
 
 
@@ -331,19 +327,19 @@ impl Window {
     ///Switch the strategy the window uses to display content when the available area changes
     pub fn set_resize_strategy(&mut self, resize: ResizeStrategy) {
         //Find the previous window size and reconfigure to match the new strategy
-        let available = self.resize.get_window_size(self.offset, self.screen_size);
+        let available = self.resize.get_window_size(self.screen_region);
         self.resize = resize;
         self.adjust_size(available);
     }
 
     ///Get the screen size
     pub fn screen_size(&self) -> Vector {
-        self.screen_size
+        self.screen_region.size()
     }
 
     ///Get the unprojection matrix according to the View
     pub fn unproject(&self) -> Transform {
-        Transform::scale(self.screen_size / self.scale_factor)
+        Transform::scale(self.screen_size() / self.scale_factor)
             * self.view.normalize
     }
     
