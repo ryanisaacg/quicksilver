@@ -12,7 +12,9 @@ struct BlackScreen;
 impl State for BlackScreen {
     fn configure() -> Window {
         // Create a Window with the title "Hello world!" that is 800 x 600 pixels
-        WindowBuilder::new().build("Hello world!", 800, 600)
+        WindowBuilder::new()
+            .with_fullscreen(true)
+            .build("Hello world!", 500, 300)
     }
 
    fn new() -> BlackScreen { BlackScreen }

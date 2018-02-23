@@ -3,6 +3,8 @@ use std::io::ErrorKind as IOError;
 extern "C" {
     //Windowing
     pub fn set_show_mouse(show: bool);
+    pub fn get_page_width() -> u32;
+    pub fn get_page_height() -> u32;
     pub fn create_context(title: *mut i8, width: u32, height: u32);
     pub fn set_title(title: *mut i8);
     //Mouse input

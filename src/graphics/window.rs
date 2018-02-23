@@ -22,7 +22,8 @@ pub struct WindowBuilder {
     min_size: Option<Vector>,
     max_size: Option<Vector>,
     resize: ResizeStrategy,
-    scale: ImageScaleStrategy
+    scale: ImageScaleStrategy,
+    fullscreen: bool
 }
 
 impl WindowBuilder {
@@ -33,7 +34,8 @@ impl WindowBuilder {
             min_size: None,
             max_size: None,
             resize: ResizeStrategy::Fit,
-            scale: ImageScaleStrategy::Pixelate
+            scale: ImageScaleStrategy::Pixelate,
+            fullscreen: false
         }
     }
    
@@ -81,12 +83,25 @@ impl WindowBuilder {
         }
     }
 
+    ///Set if the window should be in fullscreen mode
+    ///
+    ///On desktop it's borderless fullscreen, and on the web it makes the canvas the size of the browser window
+    pub fn with_fullscreen(self, fullscreen: bool) -> WindowBuilder {
+        WindowBuilder {
+            fullscreen,
+            ..self
+        }
+    }
+
     ///Create a window and canvas with the given configuration
     pub fn build(self, title: &str, width: u32, height: u32) -> Window {
+        let mut actual_width = width;
+        let mut actual_height = height;
         #[cfg(not(target_arch="wasm32"))]
         let (gl_window, events) = {
             let events = glutin::EventsLoop::new();
             let window = glutin::WindowBuilder::new()
+                .with_decorations(!self.fullscreen)
                 .with_title(title);
             let window = match self.min_size { 
                 Some(v) => window.with_min_dimensions(v.x as u32, v.y as u32),
@@ -96,7 +111,12 @@ impl WindowBuilder {
                 Some(v) => window.with_max_dimensions(v.x as u32, v.y as u32),
                 None => window
             };
-            let window = window.with_dimensions(width, height);
+            if self.fullscreen {
+                let (w, h) = events.get_primary_monitor().get_dimensions();
+                actual_width = w;
+                actual_height = h;
+            }
+            let window = window.with_dimensions(actual_width, actual_height);
             let context = glutin::ContextBuilder::new().with_vsync(true);
             let gl_window = glutin::GlWindow::new(window, context, &events).unwrap();
             unsafe {
@@ -112,15 +132,19 @@ impl WindowBuilder {
             use std::ffi::CString;
             unsafe { 
                 wasm::set_show_mouse(self.show_cursor);
-                wasm::create_context(CString::new(title).unwrap().into_raw(), width, height);
+                if self.fullscreen {
+                    actual_width = wasm::get_page_width();
+                    actual_height = wasm::get_page_height();
+                }
+                wasm::create_context(CString::new(title).unwrap().into_raw(), actual_width, actual_height);
             }
         }
-        let screen_size = Vector::new(width as f32, height as f32);
+        let screen_region = self.resize.resize(Vector::new(width, height), Vector::new(actual_width, actual_height)); 
         #[cfg(not(target_arch="wasm32"))]
         let scale_factor = gl_window.hidpi_factor();
         #[cfg(target_arch="wasm32")]
         let scale_factor = 1f32;
-        let view = View::new(Rectangle::newv_sized(screen_size));
+        let view = View::new(Rectangle::newv_sized(screen_region.size()));
         Window {
             #[cfg(not(target_arch="wasm32"))]
             gl_window,
@@ -128,8 +152,8 @@ impl WindowBuilder {
             events,
             resize: self.resize,
             scale_factor,
-            offset: Vector::zero(),
-            screen_size,
+            offset: screen_region.top_left(),
+            screen_size: screen_region.size(),
             keyboard: Keyboard {
                 keys: [ButtonState::NotPressed; 256]
             },
@@ -164,7 +188,7 @@ pub struct Window {
     draw_buffer: Vec<DrawCall>
 }
 
-impl Window {
+impl Window {    
     ///Update the keyboard, mouse, and window state, and return if the window is still open
     pub fn poll_events(&mut self) -> bool {
         self.poll_events_impl()
