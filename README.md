@@ -39,7 +39,7 @@ Create a rust project and add this line to your `Cargo.toml` file under `[depend
 
 Then replace `src/main.rs` with the following (the contents of quicksilver's example/pulsing_circle):
 
-
+```rust
     #[macro_use]
     extern crate quicksilver;
 
@@ -79,6 +79,7 @@ Then replace `src/main.rs` with the following (the contents of quicksilver's exa
     }
 
     game_loop!(State);
+```
 
 Run this with `cargo run` or, if you have the wasm32 toolchain installed, build it for the web with `cargo +nightly build --target wasm32-unknown-unknown`. 
 You should see a black screen with a pulsing circle in the middle, and your cursor should not be visible within the window. Try tweaking parameters to see if you can speed up or slow down the growth of the circle.
