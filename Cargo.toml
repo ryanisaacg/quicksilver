@@ -26,5 +26,4 @@ rodio = "0.6"
 [badges]
 
 travis-ci = { repository = "ryanisaacg/quicksilver", branch = "master" }
-codecov = { repository = "https://codecov.io/gh/ryanisaacg/quicksilver/branch/master/" }
 maintenance = { status = "actively-developed" }

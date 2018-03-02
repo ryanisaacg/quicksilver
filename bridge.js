@@ -2,13 +2,12 @@ let canvas = document.getElementById('canvas');
 let gl = canvas.getContext('webgl2');
 let gl_objects = [];
 let instance = {};
+const init = { window: null, state: null };
 function rust_ptr_to_buffer(pointer) {
-    const memory = instance.exports.memory;
-    return new Uint8Array(memory.buffer, pointer);
+    return new Uint8Array(instance.exports.memory.buffer, pointer);
 }
 function rust_ptr_to_int32(pointer) {
-    const memory = instance.exports.memory;
-    return new Int32Array(memory.buffer, pointer);
+    return new Int32Array(instance.exports.memory.buffer, pointer);
 }
 function rust_str_to_js(pointer) {
     const buffer = rust_ptr_to_buffer(pointer);
@@ -229,6 +228,11 @@ let env = {
     file_length: (index) => assets[index].length,
     //Asset loading
     ffi_asset_status: (index) => assets[index].error ? 2 : (assets[index].loaded ? 1 : 0),
+    //Game loop
+    set_init: (window_init, state_init) => {
+        init.window = window_init;
+        init.state = state_init;
+    },
     //Rust runtime
     fmodf: (a, b) => a % b,
     sinf: (x) => Math.sin(x),
@@ -290,7 +294,7 @@ let env = {
     Uniform1i: (index, value) => gl.uniform1i(gl_objects[index], value),
     UseProgram: (index) => gl.useProgram(gl_objects[index]),
     VertexAttribPointer: gl.vertexAttribPointer.bind(gl),
-    Viewport: gl.viewport.bind(gl)
+    Viewport: gl.viewport.bind(gl),
 }
 
 fetch("wasm.wasm")
@@ -298,16 +302,11 @@ fetch("wasm.wasm")
     .then(bytes =>  WebAssembly.instantiate(bytes, { env } ))
     .then(results => {
         instance = results.instance;
-        let init = instance.exports.init;
-        let state_ptr = init();
-        function update() {
-            let delay = instance.exports.update(state_ptr);
-            setTimeout(update, delay);
-        }
+        let state_ptr = instance.exports.init(init.window, init.state);
+        setTimeout(() => instance.exports.update(state_ptr), 16);
         function draw() {
             instance.exports.draw(state_ptr);
             requestAnimationFrame(draw);
         }
-        update();
         requestAnimationFrame(draw);
     })

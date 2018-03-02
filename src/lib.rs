@@ -73,16 +73,16 @@ pub mod sound;
 pub mod util;
 pub use error::QuicksilverError;
 pub use timer::Timer;
-pub use state::State;
+pub use state::{State, run};
+#[cfg(target_arch="wasm32")]
+pub use state::{init, update, draw};
 
-#[allow(deprecated)]
-#[doc(hidden)]
 #[cfg(not(target_arch="wasm32"))]
 //Play a silent sound so rodio startup doesn't interfere with application
 //Unfortunately this means even apps that don't use sound eat the startup penalty but it's not a
 //huge one
-pub fn initialize_sound() {
-    if let Some(ref endpoint) = rodio::get_default_endpoint() {
+fn initialize_sound() {
+    if let Some(ref endpoint) = rodio::default_endpoint() {
         rodio::play_raw(endpoint, rodio::source::Empty::new())
     }
 }

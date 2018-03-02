@@ -1,9 +1,8 @@
 // The most basic example- it should just open a black window and set the window title to Hello
 // world!
-#[macro_use]
 extern crate quicksilver;
 
-use quicksilver::State;
+use quicksilver::{State, run};
 use quicksilver::graphics::{Window, WindowBuilder};
 
 // An empty structure because we don't need to store any state
@@ -20,5 +19,6 @@ impl State for BlackScreen {
    fn new() -> BlackScreen { BlackScreen }
 }
 
-//Run the application on both desktop and web
-run!(BlackScreen);
+fn main() {
+    run::<BlackScreen>();
+}
