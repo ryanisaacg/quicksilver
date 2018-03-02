@@ -235,6 +235,13 @@ let env = {
     },
     //Rust runtime
     fmodf: (a, b) => a % b,
+    sinf: (x) => Math.sin(x),
+    cosf: (x) => Math.cos(x),
+    tanf: (x) => Math.tan(x),
+    Math_acos: (x) => Math.acos(x),
+    Math_asin: (x) => Math.asin(x),
+    Math_atan: (x) => Math.atan(x),
+    Math_atan2: (x, y) => Math.atan2(x, y),
     // OpenGL
     ActiveTexture: gl.activeTexture.bind(gl),
     AttachShader: (progindex, shadeindex) => gl.attachShader(gl_objects[progindex], gl_objects[shadeindex]),
