@@ -1,5 +1,5 @@
+use geom::{about_equal, Line, Positioned, Rectangle, Scalar, Vector};
 use rand::{Rand, Rng};
-use super::{about_equal, Line, Rectangle, Scalar, Vector};
 use std::cmp::{Eq, PartialEq};
 
 #[derive(Clone, Copy, Default, Debug, Deserialize, Serialize)]
@@ -29,14 +29,6 @@ impl Circle {
             x: position.x,
             y: position.y,
             radius: radius.float()
-        }
-    }
-
-    ///Get the center of a circle as a vector
-    pub fn center(self) -> Vector {
-        Vector {
-            x: self.x,
-            y: self.y,
         }
     }
 
@@ -86,6 +78,16 @@ impl PartialEq for Circle {
 }
 
 impl Eq for Circle {}
+
+impl Positioned for Circle {
+    fn center(&self) -> Vector {
+        Vector::new(self.x, self.y)
+    }
+
+    fn bounding_box(&self) -> Rectangle {
+        Rectangle::new(self.x - self.radius, self.y - self.radius, self.radius * 2.0, self.radius * 2.0)
+    }
+}
 
 #[cfg(test)]
 mod tests {

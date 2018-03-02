@@ -25,3 +25,11 @@ pub use self::tilemap::{Tile, Tilemap};
 pub use self::transform::Transform;
 pub use self::util::{about_equal, lerp, lerp_angle};
 pub use self::scalar::Scalar;
+
+/// A trait that indicates something exists in space
+pub trait Positioned {
+    /// Its center as a vector
+    fn center(&self) -> Vector;
+    /// The smallest possible rectangle that fully contains the shape
+    fn bounding_box(&self) -> Rectangle;
+}

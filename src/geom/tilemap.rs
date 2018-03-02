@@ -1,4 +1,4 @@
-use super::{Rectangle, Vector, Shape};
+use geom::{Positioned, Rectangle, Vector, Shape};
 use std::ops::Fn;
 
 #[derive(Clone, Deserialize, Serialize)]

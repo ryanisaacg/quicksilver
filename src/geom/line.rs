@@ -1,5 +1,5 @@
+use geom::{Positioned, Rectangle, Vector};
 use rand::{Rand, Rng};
-use super::Vector;
 
 #[derive(Copy, Clone, Default, Debug, Eq, PartialEq, Deserialize, Serialize)]
 ///Represents a 2D line segment
@@ -58,6 +58,18 @@ impl Line {
     ///Create a line segment translated by a given vector
     pub fn translate(self, other: Vector) -> Line {
         Line::new(self.start + other, self.end + other)
+    }
+}
+
+impl Positioned for Line {
+    fn center(&self) -> Vector {
+        (self.start + self.end) / 2
+    }
+
+    fn bounding_box(&self) -> Rectangle {
+        let x = self.start.x.min(self.end.x);
+        let y = self.start.y.min(self.end.y);
+        Rectangle::new(x, y, self.start.x.max(self.end.x) - x, self.start.y.max(self.end.y) - y)
     }
 }
 
