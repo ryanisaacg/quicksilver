@@ -1,5 +1,5 @@
+use geom::{about_equal, Circle, Line, Positioned, Scalar, Vector};
 use rand::{Rand, Rng};
-use geom::{about_equal, Circle, Line, Scalar, Vector};
 use std::cmp::{Eq, PartialEq};
 
 #[derive(Clone, Copy, Default, Debug, Deserialize, Serialize)]
@@ -54,11 +54,6 @@ impl Rectangle {
     ///Get the size of the Rectangle
     pub fn size(self) -> Vector {
         Vector::new(self.width, self.height)
-    }
-
-    ///Get the centerpoint on the rectangle
-    pub fn center(self) -> Vector {
-        self.top_left() + self.size() / 2
     }
 
     ///Checks if a point falls within the rectangle
@@ -134,6 +129,16 @@ impl Rand for Rectangle {
 }
 
 impl Eq for Rectangle {}
+
+impl Positioned for Rectangle {
+    fn center(&self) -> Vector {
+        self.top_left() + self.size() / 2
+    }
+
+    fn bounding_box(&self) -> Rectangle {
+        *self
+    }
+}
 
 #[cfg(test)]
 mod tests {

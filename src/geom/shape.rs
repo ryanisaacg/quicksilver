@@ -1,4 +1,4 @@
-use super::{Circle, Line, Rectangle, Vector};
+use geom::{Circle, Line, Positioned, Rectangle, Vector};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize, Serialize)]
 ///A universal shape union
@@ -78,28 +78,24 @@ impl Shape {
         }
     }
 
-    ///Find the smallest bounding box that contains the shape
-    pub fn bounding_box(&self) -> Rectangle {
-        match *self {
-            Shape::Circ(this) => Rectangle::new(this.x - this.radius, this.y - this.radius, this.radius * 2.0, this.radius * 2.0),
-            Shape::Line(this) => {
-                let x = this.start.x.min(this.end.x);
-                let y = this.start.y.min(this.end.y);
-                Rectangle::new(x, y, this.start.x.max(this.end.x) - x, this.start.y.max(this.end.y) - y)
-            },
-            Shape::Rect(this) => this,
-            Shape::Vect(this) => Rectangle::newv(this, Vector::zero())
+    fn as_positioned(&self) -> &Positioned {
+        match self {
+            &Shape::Circ(ref this) => this as &Positioned,
+            &Shape::Line(ref this) => this as &Positioned,
+            &Shape::Rect(ref this) => this as &Positioned,
+            &Shape::Vect(ref this) => this as &Positioned,
         }
+
+    }
+}
+
+impl Positioned for Shape {
+    fn center(&self) -> Vector {
+        self.as_positioned().center()
     }
 
-    ///Find the center of the shape
-    pub fn center(&self) -> Vector {
-        match *self {
-            Shape::Circ(this) => this.center(),
-            Shape::Line(this) => (this.start + this.end) / 2,
-            Shape::Rect(this) => this.center(),
-            Shape::Vect(this) => this
-        }
+    fn bounding_box(&self) -> Rectangle {
+        self.as_positioned().bounding_box()
     }
 }
 
