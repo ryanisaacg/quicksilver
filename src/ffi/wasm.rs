@@ -1,4 +1,6 @@
 use std::io::ErrorKind as IOError;
+use graphics::Window;
+use state::{Application, State};
 
 extern "C" {
     //Windowing
@@ -39,6 +41,8 @@ extern "C" {
     pub fn file_length(handle: u32) -> u32;
     //Asset loading
     fn ffi_asset_status(handle: u32) -> i32;
+    //Game loop
+    pub fn set_init(window_init: *mut FnMut() -> Window, state_init: *mut FnMut() -> Box<State>);
     //Logging
     pub fn log_num(x: i32);
     pub fn log(x: *mut i8);
