@@ -2,6 +2,7 @@ use std::io::ErrorKind as IOError;
 use graphics::Window;
 use state::{Application, State};
 
+#[allow(improper_ctypes)]
 extern "C" {
     //Windowing
     pub fn set_show_mouse(show: bool);
