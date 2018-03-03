@@ -66,6 +66,12 @@ impl Rectangle {
         v.x >= self.x && v.y >= self.y && v.x < self.x + self.width && v.y < self.y + self.height
     }
 
+    ///Check if a rectangle fully envelopes another
+    pub fn contains_rect(self, other: Rectangle) -> bool {
+        self.x <= other.x && self.x + self.width >= other.x + other.width && self.y <= other.y &&
+            self.y + self.height >= other.y + other.height
+    }
+
     ///Check if any of the area bounded by this rectangle is bounded by another
     pub fn overlaps_rect(self, b: Rectangle) -> bool {
         self.x < b.x + b.width && self.x + self.width > b.x && self.y < b.y + b.height &&
@@ -155,6 +161,15 @@ mod tests {
         let vec2 = Vector::new(33, 1);
         assert!(rect.contains(vec1));
         assert!(!rect.contains(vec2));
+    }
+
+    #[test]
+    fn contains_rect() {
+        let a = Rectangle::new_sized(32, 32);
+        let b = Rectangle::new(16, 16, 5, 5);
+        let c = Rectangle::new(16, 16, 50, 50);
+        assert!(a.contains_rect(b));
+        assert!(c.contains_rect(b));
     }
 
     #[test]
