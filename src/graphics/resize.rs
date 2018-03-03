@@ -32,8 +32,8 @@ impl ResizeStrategy {
         Rectangle::newv((new_size - content_area) / 2, content_area)
     }
 
-    pub(crate) fn get_window_size(self, offset: Vector, size: Vector) -> Vector {
-        size + offset * 2
+    pub(crate) fn get_window_size(self, screen_region: Rectangle) -> Vector {
+        screen_region.size() + screen_region.top_left() * 2
     }
 }
 

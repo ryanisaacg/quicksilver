@@ -37,48 +37,45 @@ Create a rust project and add this line to your `Cargo.toml` file under `[depend
 
     quicksilver = "*"
 
-Then replace `src/main.rs` with the following (the contents of quicksilver's example/pulsing_circle):
+Then replace `src/main.rs` with the following (the contents of quicksilver's examples/pulsing_circle):
 
+```rust
+// Draw a pulsing circle in the middle of the window
+extern crate quicksilver;
 
-    #[macro_use]
-    extern crate quicksilver;
+use quicksilver::{State, run};
+use quicksilver::geom::{Circle, Vector, Transform};
+use quicksilver::graphics::{Color, DrawCall, Window, WindowBuilder};
 
-    use quicksilver::geom::{Circle, Transform, Vector};
-    use quicksilver::graphics::{Canvas, Color, Window, WindowBuilder};
-    use std::time::Duration;
+struct PulsingCircle {
+    step: f32
+}
 
-    pub struct State {
-        window: Window,
-        canvas: Canvas,
-        scale: Vector
+impl State for PulsingCircle {
+    fn configure() -> Window {
+        WindowBuilder::new().build("Pulsing Circle", 800, 600)
     }
 
-    impl State {
-        pub fn new() -> State {
-            let (window, canvas) = WindowBuilder::new()
-                .with_show_cursor(false)
-                .build("Circle", 800, 600);
-            let scale = Vector::one();
-            State { window, canvas, scale }
-        }
+   fn new() -> PulsingCircle { 
+       PulsingCircle { step: 0.0 }
+   }
 
-        pub fn events(&mut self) -> bool {
-            self.window.poll_events()
-        }
+   fn update(&mut self, _window: &mut Window) {
+       self.step = (self.step + 1.0) % 360.0;
+   }
 
-        pub fn update(&mut self) -> Duration {
-            self.scale = self.scale.normalize() * ((self.scale.len() + 0.05) % 1.0 + 1.0);
-            Duration::from_millis(16)
-        }
+   fn draw(&mut self, window: &mut Window) {
+        window.clear(Color::black());
+        let scale = Transform::scale(Vector::one() * (1.0 + (self.step.to_radians().sin() / 2.0)));
+        window.draw(&[DrawCall::circle(Circle::new(400, 300, 50)).with_color(Color::green()).with_transform(scale)]);
+        window.present();
+   }
+}
 
-        pub fn draw(&mut self) {
-            self.canvas.clear(Color::black());
-            self.canvas.draw_circle_trans(Circle::newi(400, 300, 50), Color::white(), Transform::scale(self.scale));
-            self.canvas.present(&self.window);
-        }
-    }
-
-    game_loop!(State);
+fn main() {
+    run::<PulsingCircle>();
+}
+```
 
 Run this with `cargo run` or, if you have the wasm32 toolchain installed, build it for the web with `cargo +nightly build --target wasm32-unknown-unknown`. 
 You should see a black screen with a pulsing circle in the middle, and your cursor should not be visible within the window. Try tweaking parameters to see if you can speed up or slow down the growth of the circle.

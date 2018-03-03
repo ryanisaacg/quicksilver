@@ -1,8 +1,7 @@
 // Draw some multi-colored geometry to the screen
-#[macro_use]
 extern crate quicksilver;
 
-use quicksilver::State;
+use quicksilver::{State, run};
 use quicksilver::geom::{Circle, Rectangle, Transform};
 use quicksilver::graphics::{Color, DrawCall, Window, WindowBuilder};
 
@@ -27,5 +26,6 @@ impl State for DrawGeometry {
    }
 }
 
-//Run the application on both desktop and web
-run!(DrawGeometry);
+fn main() {
+    run::<DrawGeometry>();
+}

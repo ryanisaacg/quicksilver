@@ -1,4 +1,4 @@
-use geom::{about_equal, Scalar};
+use geom::{about_equal, Positioned, Rectangle, Scalar};
 use rand::{Rand, Rng};
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 use std::cmp::{Eq, PartialEq};
@@ -220,6 +220,16 @@ impl Rand for Vector {
             x: rand.gen(),
             y: rand.gen()
         }
+    }
+}
+
+impl Positioned for Vector {
+    fn center(&self) -> Vector {
+        *self
+    }
+    
+    fn bounding_box(&self) -> Rectangle {
+        Rectangle::newv(*self, Vector::zero())
     }
 }
 
