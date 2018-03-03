@@ -7,29 +7,25 @@
 //! The Tilemap allows 2D storage of data in a world-like grid, and also moving objects at given
 //! speeds around the map, which is highly useful for games like platformers.
 
+mod bounded;
 mod vector;
 mod line;
 mod rect;
 mod circ;
+mod quadtree;
 mod shape;
 mod tilemap;
 mod transform;
 mod util;
 mod scalar;
+pub use self::bounded::Bounded;
 pub use self::vector::Vector;
 pub use self::line::Line;
 pub use self::rect::Rectangle;
 pub use self::circ::Circle;
+pub use self::quadtree::QuadTree;
 pub use self::shape::Shape;
 pub use self::tilemap::{Tile, Tilemap};
 pub use self::transform::Transform;
 pub use self::util::{about_equal, lerp, lerp_angle};
 pub use self::scalar::Scalar;
-
-/// A trait that indicates something exists in space
-pub trait Positioned {
-    /// Its center as a vector
-    fn center(&self) -> Vector;
-    /// The smallest possible rectangle that fully contains the shape
-    fn bounding_box(&self) -> Rectangle;
-}

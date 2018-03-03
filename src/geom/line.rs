@@ -1,4 +1,4 @@
-use geom::{Positioned, Rectangle, Vector};
+use geom::{Bounded, Rectangle, Circle, Vector};
 use rand::{Rand, Rng};
 
 #[derive(Copy, Clone, Default, Debug, Eq, PartialEq, Deserialize, Serialize)]
@@ -18,8 +18,28 @@ impl Line {
         }
     }
 
-    ///Check if two line segments interact
-    pub fn intersects(self, other: Line) -> bool {
+    ///Create a line segment translated by a given vector
+    pub fn translate(self, other: Vector) -> Line {
+        Line::new(self.start + other, self.end + other)
+    }
+}
+
+impl Bounded for Line {
+    fn center(&self) -> Vector {
+        (self.start + self.end) / 2
+    }
+
+    fn with_center(&self, center: Vector) -> Self {
+        let difference = center - self.center();
+        Line::new(self.start + difference, self.end + difference)
+    }
+
+    fn contains(&self, other: Vector) -> bool {
+        self.start == other || self.end == other || 
+            self.start + (other - self.start).normalize() * (self.end - self.start).len() == self.end
+    }
+
+    fn intersects(&self, other: Line) -> bool {
         if self.start == other.start || self.end == other.end {
             true
         } else {
@@ -50,20 +70,21 @@ impl Line {
         }
     }
 
-    ///Check if a point falls on the line segment
-    pub fn contains(self, other: Vector) -> bool {
-        self.start == other || self.end == other || self.start + (other - self.start).normalize() * (self.end - self.start).len() == self.end
+    fn overlaps_circ(&self, circ: Circle) -> bool {
+        circ.intersects(*self)
     }
 
-    ///Create a line segment translated by a given vector
-    pub fn translate(self, other: Vector) -> Line {
-        Line::new(self.start + other, self.end + other)
+    fn overlaps_rect(&self, rect: Rectangle) -> bool {
+        rect.intersects(*self)
     }
-}
 
-impl Positioned for Line {
-    fn center(&self) -> Vector {
-        (self.start + self.end) / 2
+    fn overlaps(&self, other: &Bounded) -> bool {
+        other.intersects(*self)
+    }
+
+    fn constrain(&self, _bounds: Rectangle) -> Self {
+        //TODO: don't check this in!
+        unimplemented!();
     }
 
     fn bounding_box(&self) -> Rectangle {

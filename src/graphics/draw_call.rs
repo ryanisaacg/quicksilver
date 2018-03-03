@@ -1,4 +1,4 @@
-use geom::{Circle, Positioned, Rectangle, Scalar, Transform, Vector};
+use geom::{Bounded, Circle, Rectangle, Scalar, Transform, Vector};
 use graphics::{Backend, Color, Image, Vertex};
 use std::cmp::Ordering;
 

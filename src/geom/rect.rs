@@ -1,4 +1,4 @@
-use geom::{about_equal, Circle, Line, Positioned, Scalar, Vector};
+use geom::{about_equal, Bounded, Circle, Line, Scalar, Vector};
 use rand::{Rand, Rng};
 use std::cmp::{Eq, PartialEq};
 
@@ -56,43 +56,10 @@ impl Rectangle {
         Vector::new(self.width, self.height)
     }
 
-    ///Checks if a point falls within the rectangle
-    pub fn contains(self, v: Vector) -> bool {
-        v.x >= self.x && v.y >= self.y && v.x < self.x + self.width && v.y < self.y + self.height
-    }
-
     ///Check if a rectangle fully envelopes another
     pub fn contains_rect(self, other: Rectangle) -> bool {
         self.x <= other.x && self.x + self.width >= other.x + other.width && self.y <= other.y &&
             self.y + self.height >= other.y + other.height
-    }
-
-    ///Check if any of the area bounded by this rectangle is bounded by another
-    pub fn overlaps_rect(self, b: Rectangle) -> bool {
-        self.x < b.x + b.width && self.x + self.width > b.x && self.y < b.y + b.height &&
-            self.y + self.height > b.y
-    }
-
-    ///Check if any of the area bounded by this rectangle is bounded by a circle
-    pub fn overlaps_circ(self, c: Circle) -> bool {
-        (c.center().clamp(self.top_left(), self.top_left() + self.size()) - c.center()).len2() < c.radius.powi(2)
-    }
-
-    ///Move the rectangle so it is entirely contained with another
-    pub fn constrain(self, outer: Rectangle) -> Rectangle {
-        Rectangle::newv(self.top_left().clamp(
-            outer.top_left(), outer.top_left() + outer.size() - self.size()
-        ), self.size())
-    }
-
-    ///Translate the rectangle by a given vector
-    pub fn translate(self, v: Vector) -> Rectangle {
-        Rectangle::new(self.x + v.x, self.y + v.y, self.width, self.height)
-    }
-
-    ///Create a rectangle with the same size at a given center
-    pub fn with_center(self, v: Vector) -> Rectangle {
-        self.translate(v - self.center())
     }
 
     ///Get the top of the rectangle
@@ -114,11 +81,6 @@ impl Rectangle {
     pub fn right(self) -> Line {
         Line::new(self.top_left() + self.size().x_comp(), self.top_left() + self.size())
     }
-    ///Check if a line segment intersects a rectangle
-    pub fn intersects(self, l: Line) -> bool {
-        self.contains(l.start) || self.contains(l.end) || self.top().intersects(l) || 
-            self.left().intersects(l) || self.right().intersects(l) || self.bottom().intersects(l)
-    }
 }
 
 impl PartialEq for Rectangle {
@@ -136,13 +98,50 @@ impl Rand for Rectangle {
 
 impl Eq for Rectangle {}
 
-impl Positioned for Rectangle {
+impl Bounded for Rectangle {
     fn center(&self) -> Vector {
         self.top_left() + self.size() / 2
     }
 
+    fn contains(&self, v: Vector) -> bool {
+        v.x >= self.x && v.y >= self.y && v.x < self.x + self.width && v.y < self.y + self.height
+    }
+
     fn bounding_box(&self) -> Rectangle {
         *self
+    }
+
+    fn overlaps_rect(&self, b: Rectangle) -> bool {
+        self.x < b.x + b.width && self.x + self.width > b.x && self.y < b.y + b.height &&
+            self.y + self.height > b.y
+    }
+
+    fn overlaps_circ(&self, c: Circle) -> bool {
+        (c.center().clamp(self.top_left(), self.top_left() + self.size()) - c.center()).len2() < c.radius.powi(2)
+    }
+
+    fn overlaps(&self, other: &Bounded) -> bool {
+        other.overlaps_rect(*self)
+    }
+
+    fn constrain(&self, outer: Rectangle) -> Rectangle {
+        Rectangle::newv(self.top_left().clamp(
+            outer.top_left(), outer.top_left() + outer.size() - self.size()
+        ), self.size())
+    }
+
+    fn translate(&self, v: Vector) -> Rectangle {
+        Rectangle::new(self.x + v.x, self.y + v.y, self.width, self.height)
+    }
+
+    fn with_center(&self, v: Vector) -> Rectangle {
+        let v = v - self.center();
+        Rectangle::new(self.x + v.x, self.y + v.y, self.width, self.height)
+    }
+
+    fn intersects(&self, l: Line) -> bool {
+        self.contains(l.start) || self.contains(l.end) || self.top().intersects(l) || 
+            self.left().intersects(l) || self.right().intersects(l) || self.bottom().intersects(l)
     }
 }
 
