@@ -3,7 +3,7 @@ extern crate futures;
 use error::QuicksilverError;
 use futures::{Async, Future, Poll};
 use futures::future::{JoinAll, join_all};
-use geom::{Positioned, Rectangle, Vector};
+use geom::{Bounded, Rectangle, Vector};
 use graphics::{Image, ImageLoader, ImageError};
 use util::FileLoader;
 use std::cmp::Ordering;

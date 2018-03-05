@@ -1,4 +1,4 @@
-use geom::{about_equal, Positioned, Rectangle, Scalar};
+use geom::{about_equal, Bounded, Circle, Line, Rectangle, Scalar};
 use rand::{Rand, Rng};
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 use std::cmp::{Eq, PartialEq};
@@ -223,11 +223,39 @@ impl Rand for Vector {
     }
 }
 
-impl Positioned for Vector {
+impl Bounded for Vector {
     fn center(&self) -> Vector {
         *self
     }
+
+    fn with_center(&self, center: Vector) -> Self {
+        center
+    }
+
+    fn contains(&self, vec: Vector) -> bool {
+        *self == vec
+    }
+
+    fn intersects(&self, line: Line) -> bool {
+        line.contains(*self)
+    }
     
+    fn overlaps_circ(&self, circ: Circle) -> bool {
+        circ.contains(*self)
+    }
+
+    fn overlaps_rect(&self, rect: Rectangle) -> bool {
+        rect.contains(*self)
+    }
+
+    fn overlaps(&self, other: &Bounded) -> bool {
+        other.contains(*self)
+    }
+
+    fn constrain(&self, bounds: Rectangle) -> Self {
+        self.clamp(bounds.top_left(), bounds.top_left() + bounds.size())
+    }
+
     fn bounding_box(&self) -> Rectangle {
         Rectangle::newv(*self, Vector::zero())
     }

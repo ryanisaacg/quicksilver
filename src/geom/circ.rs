@@ -1,4 +1,4 @@
-use geom::{about_equal, Line, Positioned, Rectangle, Scalar, Vector};
+use geom::{about_equal, Bounded, Line, Rectangle, Scalar, Vector};
 use rand::{Rand, Rng};
 use std::cmp::{Eq, PartialEq};
 
@@ -31,14 +31,30 @@ impl Circle {
             radius: radius.float()
         }
     }
+}
 
-    ///Check to see if a circle contains a point
-    pub fn contains(self, v: Vector) -> bool {
+impl PartialEq for Circle {
+    fn eq(&self, other: &Circle) -> bool {
+        about_equal(self.x, other.x) && about_equal(self.y, other.y) && about_equal(self.radius, other.radius)
+    }
+}
+
+impl Eq for Circle {}
+
+impl Bounded for Circle {
+    fn center(&self) -> Vector {
+        Vector::new(self.x, self.y)
+    }
+
+    fn with_center(&self, center: Vector) -> Self {
+        Circle::new(center.x, center.y, self.radius)
+    }
+
+    fn contains(&self, v: Vector) -> bool {
         (v - self.center()).len2() < self.radius.powi(2)
     }
 
-    ///Check to see if a circle intersects a line
-    pub fn intersects(self, l: Line) -> bool {
+    fn intersects(&self, l: Line) -> bool {
         let line_direction = (l.end - l.start).normalize();
         //Check if the circle contains the closest point
         //The dot product of the distance to the start and the direction yields
@@ -50,38 +66,20 @@ impl Circle {
         })
     }
 
-    ///Check if a circle overlaps a rectangle
-    pub fn overlaps_rect(self, r: Rectangle) -> bool {
-        r.overlaps_circ(self)
-    }
-
-    ///Check if two circles overlap
-    pub fn overlaps_circ(self, c: Circle) -> bool {
+    fn overlaps_circ(&self, c: Circle) -> bool {
         (self.center() - c.center()).len2() < (self.radius + c.radius).powi(2)
     }
 
-    ///Translate a circle by a given vector
-    pub fn translate(self, v: Vector) -> Circle {
-        Circle::new(self.x + v.x, self.y + v.y, self.radius)
+    fn overlaps_rect(&self, rect: Rectangle) -> bool {
+        rect.overlaps_circ(*self)
     }
 
-    ///Move a circle so it is entirely contained within a Rectangle
-    pub fn constrain(self, outer: Rectangle) -> Circle {
-        Circle::newv(Rectangle::new(self.x - self.radius, self.y - self.radius, self.radius * 2.0, self.radius * 2.0).constrain(outer).center(), self.radius)
+    fn overlaps(&self, other: &Bounded) -> bool {
+        other.overlaps_circ(*self)
     }
-}
 
-impl PartialEq for Circle {
-    fn eq(&self, other: &Circle) -> bool {
-        about_equal(self.x, other.x) && about_equal(self.y, other.y) && about_equal(self.radius, other.radius)
-    }
-}
-
-impl Eq for Circle {}
-
-impl Positioned for Circle {
-    fn center(&self) -> Vector {
-        Vector::new(self.x, self.y)
+    fn constrain(&self, outer: Rectangle) -> Circle {
+        Circle::newv(self.bounding_box().constrain(outer).center(), self.radius)
     }
 
     fn bounding_box(&self) -> Rectangle {

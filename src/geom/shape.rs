@@ -1,4 +1,4 @@
-use geom::{Circle, Line, Positioned, Rectangle, Vector};
+use geom::{Bounded, Circle, Line, Rectangle, Vector};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize, Serialize)]
 ///A universal shape union
@@ -8,94 +8,61 @@ pub enum Shape {
 }
 
 impl Shape {
-    ///Check if the shape overlaps with a circle
-    pub fn overlaps_circ(&self, circ: Circle) -> bool {
-        match *self {
-            Shape::Circ(this) => this.overlaps_circ(circ),
-            Shape::Line(this) => circ.intersects(this),
-            Shape::Rect(this) => this.overlaps_circ(circ),
-            Shape::Vect(this) => circ.contains(this)
-        }
-    }
-
-    ///Check if the shape overlaps with a rectangle
-    pub fn overlaps_rect(&self, rect: Rectangle) -> bool {
-        match *self {
-            Shape::Circ(this) => this.overlaps_rect(rect),
-            Shape::Line(this) => rect.intersects(this),
-            Shape::Rect(this) => this.overlaps_rect(rect),
-            Shape::Vect(this) => rect.contains(this)
-        }
-    }
-
-    ///Check if the shape intersects with a line
-    pub fn intersects(&self, line: Line) -> bool {
-        match *self {
-            Shape::Circ(this) => this.intersects(line),
-            Shape::Line(this) => line.intersects(this),
-            Shape::Rect(this) => this.intersects(line),
-            Shape::Vect(this) => line.contains(this)
-        }
-    }
-
-    ///Check if the shape contains a vector
-    pub fn contains(&self, vec: Vector) -> bool {
-        match *self {
-            Shape::Circ(this) => this.contains(vec),
-            Shape::Line(this) => this.contains(vec),
-            Shape::Rect(this) => this.contains(vec),
-            Shape::Vect(this) => this == vec
-        }
-    }
-
-    ///Check if the shape overlaps with another shape
-    pub fn overlaps(&self, shape: Shape) -> bool {
-        match *self {
-            Shape::Circ(this) => shape.overlaps_circ(this),
-            Shape::Line(this) => shape.intersects(this),
-            Shape::Rect(this) => shape.overlaps_rect(this),
-            Shape::Vect(this) => shape.contains(this)
-        }
-    }
-
-    ///Create a shape moved by a given amount
-    pub fn translate(&self, vec: Vector) -> Shape {
-        match *self {
-            Shape::Circ(this) => Shape::Circ(this.translate(vec)),
-            Shape::Line(this) => Shape::Line(this.translate(vec)),
-            Shape::Rect(this) => Shape::Rect(this.translate(vec)),
-            Shape::Vect(this) => Shape::Vect(this + vec)
-        }
-    }
-
-    ///Create a copy of the shape with a given center
-    pub fn with_center(&self, vec: Vector) -> Shape {
-        match *self {
-            Shape::Circ(this) => Shape::Circ(Circle::new(vec.x, vec.y, this.radius)),
-            Shape::Line(this) => { let midlength = (this.end - this.start) / 2; Shape::Line(Line::new(vec - midlength, vec + midlength)) },
-            Shape::Rect(this) => Shape::Rect(this.with_center(vec)),
-            Shape::Vect(_) => Shape::Vect(vec)
-        }
-    }
-
-    fn as_positioned(&self) -> &Positioned {
+    fn as_bounds(&self) -> &Bounded {
         match self {
-            &Shape::Circ(ref this) => this as &Positioned,
-            &Shape::Line(ref this) => this as &Positioned,
-            &Shape::Rect(ref this) => this as &Positioned,
-            &Shape::Vect(ref this) => this as &Positioned,
+            &Shape::Circ(ref this) => this as &Bounded,
+            &Shape::Line(ref this) => this as &Bounded,
+            &Shape::Rect(ref this) => this as &Bounded,
+            &Shape::Vect(ref this) => this as &Bounded,
         }
 
     }
 }
 
-impl Positioned for Shape {
-    fn center(&self) -> Vector {
-        self.as_positioned().center()
+impl Bounded for Shape {
+    /// Its center as a vector
+    fn center(&self) -> Vector { self.as_bounds().center() }
+    /// Create a new copy of this shape with the given center
+    fn with_center(&self, center: Vector) -> Self {
+        match self {
+            &Shape::Circ(ref this) => Shape::Circ(this.with_center(center)),
+            &Shape::Line(ref this) => Shape::Line(this.with_center(center)),
+            &Shape::Rect(ref this) => Shape::Rect(this.with_center(center)),
+            &Shape::Vect(ref this) => Shape::Vect(this.with_center(center)),
+        }
     }
-
+    /// Check if a point is contained by this shape
+    fn contains(&self, vec: Vector) -> bool {
+        self.as_bounds().contains(vec)
+    }
+    /// Check if a line is intersected by this shape
+    fn intersects(&self, line: Line) -> bool {
+        self.as_bounds().intersects(line)
+    }
+    /// Check if a circle is overlapped by this shape
+    fn overlaps_circ(&self, circ: Circle) -> bool {
+        self.as_bounds().overlaps_circ(circ)
+    }
+    /// Check if a rect is overlapped by this shape
+    fn overlaps_rect(&self, rect: Rectangle) -> bool {
+        self.as_bounds().overlaps_rect(rect)
+    }
+    /// Check if this shapes overlaps with another
+    fn overlaps(&self, other: &Bounded) -> bool {
+        self.as_bounds().overlaps(other)
+    }
+    /// Move the shape to be within the region, if possible
+    fn constrain(&self, bounds: Rectangle) -> Self {
+        match self {
+            &Shape::Circ(ref this) => Shape::Circ(this.constrain(bounds)),
+            &Shape::Line(ref this) => Shape::Line(this.constrain(bounds)),
+            &Shape::Rect(ref this) => Shape::Rect(this.constrain(bounds)),
+            &Shape::Vect(ref this) => Shape::Vect(this.constrain(bounds)),
+        }
+    }
+    /// The smallest possible rectangle that fully contains the shape
     fn bounding_box(&self) -> Rectangle {
-        self.as_positioned().bounding_box()
+        self.as_bounds().bounding_box()
     }
 }
 
@@ -117,7 +84,7 @@ mod tests {
         for a in get_shapes().iter() {
             for b in get_shapes().iter() {
                 println!("{:?}, {:?}", a, b);
-                assert!(a.overlaps(*b));
+                assert!(a.overlaps(b));
             }
         }
     }
