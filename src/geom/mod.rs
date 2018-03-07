@@ -12,6 +12,7 @@ mod line;
 mod rect;
 mod circ;
 mod shape;
+mod positioned;
 mod tilemap;
 mod transform;
 mod util;
@@ -20,16 +21,9 @@ pub use self::vector::Vector;
 pub use self::line::Line;
 pub use self::rect::Rectangle;
 pub use self::circ::Circle;
+pub use self::positioned::Positioned;
 pub use self::shape::Shape;
 pub use self::tilemap::{Tile, Tilemap};
 pub use self::transform::Transform;
 pub use self::util::{about_equal, lerp, lerp_angle};
 pub use self::scalar::Scalar;
-
-/// A trait that indicates something exists in space
-pub trait Positioned {
-    /// Its center as a vector
-    fn center(&self) -> Vector;
-    /// The smallest possible rectangle that fully contains the shape
-    fn bounding_box(&self) -> Rectangle;
-}
