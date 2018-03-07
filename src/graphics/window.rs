@@ -182,7 +182,7 @@ pub struct Window {
     mouse: Mouse,
     view: View,
     previous_button: Option<(Button, ButtonState)>,
-    backend: Backend,
+    pub(crate) backend: Backend,
     draw_buffer: Vec<DrawCall>
 }
 
