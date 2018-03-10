@@ -77,17 +77,6 @@ pub use state::{State, run};
 #[cfg(target_arch="wasm32")]
 pub use state::{init, update, draw};
 
-#[cfg(not(target_arch="wasm32"))]
-//Play a silent sound so rodio startup doesn't interfere with application
-//Unfortunately this means even apps that don't use sound eat the startup penalty but it's not a
-//huge one
-fn initialize_sound() {
-    if let Some(ref endpoint) = rodio::default_endpoint() {
-        rodio::play_raw(endpoint, rodio::source::Empty::new())
-    }
-}
-
-
 #[no_mangle]
 #[cfg(target_arch="wasm32")]
 #[doc(hidden)]

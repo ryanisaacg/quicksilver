@@ -111,6 +111,16 @@ impl Sound {
             unsafe { wasm::play_sound(self.index, self.volume); }
         }
     }
+    
+    #[cfg(not(target_arch="wasm32"))]
+    //Play a silent sound so rodio startup doesn't interfere with application
+    //Unfortunately this means even apps that don't use sound eat the startup penalty but it's not a
+    //huge one
+    pub(crate) fn initialize() {
+        if let Some(ref endpoint) = rodio::default_endpoint() {
+            rodio::play_raw(endpoint, rodio::source::Empty::new())
+        }
+    }
 }
 
 /// A future for loading images
