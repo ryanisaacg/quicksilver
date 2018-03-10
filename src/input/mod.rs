@@ -5,12 +5,14 @@
 
 mod boolean;
 mod button;
+mod gamepad;
 mod key;
 mod keyboard;
 mod mouse;
 
 pub use self::boolean::*;
 pub use self::button::{Button, ButtonState};
+pub use self::gamepad::{Gamepad, GamepadButton};
 pub use self::key::Key;
 pub(crate) use self::key::KEY_LIST;
 pub use self::keyboard::Keyboard;
