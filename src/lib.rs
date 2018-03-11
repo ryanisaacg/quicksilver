@@ -63,19 +63,18 @@ extern crate serde_derive;
 
 mod error;
 mod ffi;
-mod state;
+#[cfg(feature="window")] mod state;
 mod timer;
-pub mod geom;
-pub mod graphics;
-pub mod input;
-pub mod saving;
-pub mod sound;
+#[cfg(feature="geometry")] pub mod geom;
+#[cfg(feature="window")]   pub mod graphics;
+#[cfg(feature="window")]   pub mod input;
+#[cfg(feature="saving")]   pub mod saving;
+#[cfg(feature="sounds")]   pub mod sound;
 pub mod util;
 pub use error::QuicksilverError;
 pub use timer::Timer;
-pub use state::{State, run};
-#[cfg(target_arch="wasm32")]
-pub use state::{init, update, draw};
+#[cfg(feature="window")]   pub use state::{State, run};
+#[cfg(feature="window")] #[cfg(target_arch="wasm32")] pub use state::{init, update, draw};
 
 #[no_mangle]
 #[cfg(target_arch="wasm32")]
