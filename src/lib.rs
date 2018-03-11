@@ -63,30 +63,18 @@ extern crate serde_derive;
 
 mod error;
 mod ffi;
-mod state;
+#[cfg(feature="window")] mod state;
 mod timer;
-pub mod geom;
-pub mod graphics;
-pub mod input;
-pub mod saving;
-pub mod sound;
+#[cfg(feature="geometry")] pub mod geom;
+#[cfg(feature="window")]   pub mod graphics;
+#[cfg(feature="window")]   pub mod input;
+#[cfg(feature="saving")]   pub mod saving;
+#[cfg(feature="sounds")]   pub mod sound;
 pub mod util;
 pub use error::QuicksilverError;
 pub use timer::Timer;
-pub use state::{State, run};
-#[cfg(target_arch="wasm32")]
-pub use state::{init, update, draw};
-
-#[cfg(not(target_arch="wasm32"))]
-//Play a silent sound so rodio startup doesn't interfere with application
-//Unfortunately this means even apps that don't use sound eat the startup penalty but it's not a
-//huge one
-fn initialize_sound() {
-    if let Some(ref endpoint) = rodio::default_endpoint() {
-        rodio::play_raw(endpoint, rodio::source::Empty::new())
-    }
-}
-
+#[cfg(feature="window")]   pub use state::{State, run};
+#[cfg(feature="window")] #[cfg(target_arch="wasm32")] pub use state::{init, update, draw};
 
 #[no_mangle]
 #[cfg(target_arch="wasm32")]
