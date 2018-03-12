@@ -6,18 +6,6 @@
 
 A 2D game framework written in pure Rust
 
-## What's included?
-
-- 2D geometry: Vectors, Transformation matrices, Rectangles, Circles, Line segments, and a generic Shape abstraction
-- Keyboard and 3-button mouse support
-- Viewport projection of the mouse to the world space automatically
-- Zero-cost camera transformations
-- OpenGL hardware-accelerated graphics
-- A variety of image formats
-- Multi-play sound clips
-- A looping music player
-- Asynchronous asset loading
-- Unified codebase across desktop and the web
 
 ## Supported Platforms
 
@@ -79,6 +67,33 @@ fn main() {
 
 Run this with `cargo run` or, if you have the wasm32 toolchain installed, build it for the web with `cargo +nightly build --target wasm32-unknown-unknown`. 
 You should see a black screen with a pulsing circle in the middle, and your cursor should not be visible within the window. Try tweaking parameters to see if you can speed up or slow down the growth of the circle.
+
+## What's included?
+
+- 2D geometry: Vectors, Transformation matrices, Rectangles, Circles, Line segments, and a generic Shape abstraction
+- Keyboard and 3-button mouse support
+- Viewport projection of the mouse to the world space automatically
+- Zero-cost camera transformations
+- OpenGL hardware-accelerated graphics
+- A variety of image formats
+- Multi-play sound clips
+- A looping music player
+- Asynchronous asset loading
+- Unified codebase across desktop and the web
+
+## Comparison with [ggez](https://github.com/ggez/ggez)
+
+| Quicksilver | GGEZ |
+|-|:-:|
+| 2D only game development framework | 2D focused game development framework |
+| Targets native and web | Targets native, plans to target mobile and web |
+| Built on OpenGL and WebGL | Built on gfx-rs |
+| Sound playback through rodio | Sound playback through rodio |
+| Font rendering with rusttype | Font rendering with rusttype |
+| Polling-based input handling | Event / callback based input handling |
+| No custom shader support | Custom shader support |
+| Pure rust | Dependency on SDL2, with plans to transition to glutin |
+| Configurable feature flags | Most features have no flags |
 
 ## Compiler versions
 
