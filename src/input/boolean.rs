@@ -1,9 +1,10 @@
-use input::{Button, ButtonState, Mouse, Keyboard};
+use graphics::Window;
+use input::{Button, ButtonState};
 
 /// A trait to see if a type can examine a mouse and keyboard and return a bool
 pub trait InputCheckable: Sized {
     /// Check against the mouse and keyboard
-    fn satisfied(&self, mouse: &Mouse, keyboard: &Keyboard) -> bool;
+    fn satisfied(&self, window: &Window) -> bool;
 
     /// Boolean and with another input check
     fn and<Other: InputCheckable>(self, other: Other) -> And<Self, Other> {
@@ -26,24 +27,49 @@ pub trait InputCheckable: Sized {
     }
 }
 
+//TODO: This part of the API needs to be better
+
 impl InputCheckable for Button {
-    fn satisfied(&self, mouse: &Mouse, keyboard: &Keyboard) -> bool {
-        match *self {
-            Button::Mouse(button) => mouse[button],
-            Button::Keyboard(button) => keyboard[button]
-        }.is_down()
+    fn satisfied(&self, window: &Window) -> bool {
+        (*self, ButtonState::Pressed).or((*self, ButtonState::Held)).satisfied(window)
     }
 }
 
 impl InputCheckable for (Button, ButtonState) {
-    fn satisfied(&self, mouse: &Mouse, keyboard: &Keyboard) -> bool {
+    fn satisfied(&self, window: &Window) -> bool {
         let state = match self.0 {
-            Button::Mouse(button) => mouse[button],
-            Button::Keyboard(button) => keyboard[button]
+            Button::GamepadButton((Some(id), button)) => {
+                let pad = window.gamepads().iter()
+                    .find(|pad| pad.id() == id);
+                if let Some(pad) = pad {
+                    pad[button]
+                } else {
+                    return false
+                }
+            }
+            Button::GamepadButton((None, button)) => {
+                return window.gamepads().iter()
+                    .any(|pad| pad[button] == self.1)
+            }
+            Button::GamepadAxis((Some(id), axis, min, max)) => {
+                let pad = window.gamepads().iter()
+                    .find(|pad| pad.id() == id);
+                match pad {
+                    Some(pad) => return pad[axis] > min && pad[axis] < max,
+                    None => return false
+                }
+            }
+            Button::GamepadAxis((None, axis, min, max)) => {
+                return window.gamepads().iter()
+                    .any(|pad| pad[axis] > min && pad[axis] < max)
+            }
+            Button::Mouse(button) => window.mouse()[button],
+            Button::Keyboard(button) => window.keyboard()[button]
         };
         state == self.1
     }
 }
+
 
 /// Check if any item is satisfied
 pub fn any<A, I>(list: I) -> Any<A> where A: InputCheckable, I: IntoIterator<Item = A> {
@@ -59,8 +85,8 @@ pub fn all<A, I>(list: I) -> All<A> where A: InputCheckable, I: IntoIterator<Ite
 pub struct Any<A: InputCheckable>(Vec<A>);
 
 impl<A: InputCheckable> InputCheckable for Any<A> {
-    fn satisfied(&self, mouse: &Mouse, keyboard: &Keyboard) -> bool {
-        self.0.iter().any(|x| x.satisfied(mouse, keyboard))
+    fn satisfied(&self, window: &Window) -> bool {
+        self.0.iter().any(|x| x.satisfied(window))
     }
 }
 
@@ -68,8 +94,8 @@ impl<A: InputCheckable> InputCheckable for Any<A> {
 pub struct All<A: InputCheckable>(Vec<A>);
 
 impl<A: InputCheckable> InputCheckable for All<A> {
-    fn satisfied(&self, mouse: &Mouse, keyboard: &Keyboard) -> bool {
-        self.0.iter().all(|x| x.satisfied(mouse, keyboard))
+    fn satisfied(&self, window: &Window) -> bool {
+        self.0.iter().all(|x| x.satisfied(window))
     }
 }
 
@@ -77,8 +103,8 @@ impl<A: InputCheckable> InputCheckable for All<A> {
 pub struct And<A: InputCheckable, B: InputCheckable>(A, B);
 
 impl<A: InputCheckable, B: InputCheckable> InputCheckable for And<A, B> {
-    fn satisfied(&self, mouse: &Mouse, keyboard: &Keyboard) -> bool {
-        self.0.satisfied(mouse, keyboard) && self.1.satisfied(mouse, keyboard)
+    fn satisfied(&self, window: &Window) -> bool {
+        self.0.satisfied(window) && self.1.satisfied(window)
     }
 }
 
@@ -86,8 +112,8 @@ impl<A: InputCheckable, B: InputCheckable> InputCheckable for And<A, B> {
 pub struct Or<A: InputCheckable, B: InputCheckable>(A, B);
 
 impl<A: InputCheckable, B: InputCheckable> InputCheckable for Or<A, B> {
-    fn satisfied(&self, mouse: &Mouse, keyboard: &Keyboard) -> bool {
-        self.0.satisfied(mouse, keyboard) || self.1.satisfied(mouse, keyboard)
+    fn satisfied(&self, window: &Window) -> bool {
+        self.0.satisfied(window) || self.1.satisfied(window)
     }
 }
 
@@ -95,8 +121,8 @@ impl<A: InputCheckable, B: InputCheckable> InputCheckable for Or<A, B> {
 pub struct Xor<A: InputCheckable, B: InputCheckable>(A, B);
 
 impl<A: InputCheckable, B: InputCheckable> InputCheckable for Xor<A, B> {
-    fn satisfied(&self, mouse: &Mouse, keyboard: &Keyboard) -> bool {
-        self.0.satisfied(mouse, keyboard) != self.1.satisfied(mouse, keyboard)
+    fn satisfied(&self, window: &Window) -> bool {
+        self.0.satisfied(window) != self.1.satisfied(window)
     }
 }
 
@@ -104,8 +130,8 @@ impl<A: InputCheckable, B: InputCheckable> InputCheckable for Xor<A, B> {
 pub struct Not<A:InputCheckable>(A);
 
 impl<A: InputCheckable> InputCheckable for Not<A> {
-    fn satisfied(&self, mouse: &Mouse, keyboard: &Keyboard) -> bool {
-        !self.0.satisfied(mouse, keyboard)
+    fn satisfied(&self, window: &Window) -> bool {
+        !self.0.satisfied(window)
     }
 }
 
@@ -113,7 +139,7 @@ impl<A: InputCheckable> InputCheckable for Not<A> {
 pub struct True;
 
 impl InputCheckable for True {
-    fn satisfied(&self, _mouse: &Mouse, _keyboard: &Keyboard) -> bool {
+    fn satisfied(&self, _window: &Window) -> bool {
         true
     }
 }
@@ -122,32 +148,7 @@ impl InputCheckable for True {
 pub struct False;
 
 impl InputCheckable for False {
-    fn satisfied(&self, _mouse: &Mouse, _keyboard: &Keyboard) -> bool {
+    fn satisfied(&self, _window: &Window) -> bool {
        false 
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use geom::Vector;
-
-    fn dummy() -> (Mouse, Keyboard) {
-        (Mouse {
-            pos: Vector::zero(),
-            buttons: [ButtonState::NotPressed; 3],
-            wheel: Vector::zero()
-        }, Keyboard {
-            keys: [ButtonState::NotPressed; 256]
-        })
-    }
-
-    #[test]
-    fn boolean_algebra() {
-        let (mouse, keyboard) = dummy();
-        assert!(True.satisfied(&mouse, &keyboard));
-        assert!(!False.satisfied(&mouse, &keyboard));
-        assert!(!True.and(False).satisfied(&mouse, &keyboard));
-        assert!(True.or(False).satisfied(&mouse, &keyboard));
     }
 }

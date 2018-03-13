@@ -5,14 +5,15 @@
 
 mod boolean;
 mod button;
-mod gamepad;
+#[cfg(feature="gamepads")] mod gamepad;
 mod key;
 mod keyboard;
 mod mouse;
 
 pub use self::boolean::*;
 pub use self::button::{Button, ButtonState};
-pub use self::gamepad::{Gamepad, GamepadButton};
+#[cfg(feature="gamepads")] pub(crate) use self::gamepad::GamepadManager;
+#[cfg(feature="gamepads")] pub use self::gamepad::{Gamepad, GamepadAxis, GamepadButton};
 pub use self::key::Key;
 pub(crate) use self::key::KEY_LIST;
 pub use self::keyboard::Keyboard;

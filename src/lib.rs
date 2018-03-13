@@ -50,6 +50,7 @@
 #![deny(missing_docs)]
 
 extern crate futures;
+#[cfg(not(target_arch="wasm32"))] extern crate gilrs;
 #[cfg(not(target_arch="wasm32"))] extern crate glutin;
 #[cfg(not(target_arch="wasm32"))] extern crate image;
 extern crate rand;
