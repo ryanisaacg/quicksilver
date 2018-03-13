@@ -1,8 +1,12 @@
-use input::{MouseButton, Key};
+use input::{GamepadAxis, GamepadButton, MouseButton, Key};
 
 /// A unified button input for mouse and keyboard
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub enum Button {
+    /// An optional ID and button for a gamepad
+    GamepadButton((Option<usize>, GamepadButton)),
+    /// An optional ID and axis bounds for a gamepad axis (min, mxa)
+    GamepadAxis((Option<usize>, GamepadAxis, f32, f32)),
     /// A mouse button
     Mouse(MouseButton),
     /// A keyboard key
