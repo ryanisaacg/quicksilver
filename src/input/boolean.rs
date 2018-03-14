@@ -61,7 +61,7 @@ impl InputCheckable for (Button, ButtonState) {
                 let pad = window.gamepads().iter()
                     .find(|pad| pad.id() == id);
                 match pad {
-                    Some(pad) => return pad[axis] > min && pad[axis] < max,
+                    Some(pad) => return pad[axis] >= min && pad[axis] <= max,
                     None => return false
                 }
             }
