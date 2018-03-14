@@ -35,6 +35,12 @@ impl InputCheckable for Button {
     }
 }
 
+impl<'a> InputCheckable for &'a Button {
+    fn satisfied(&self, window: &Window) -> bool {
+        (*self).satisfied(window)
+    }
+}
+
 impl InputCheckable for (Button, ButtonState) {
     fn satisfied(&self, window: &Window) -> bool {
         let state = match self.0 {
