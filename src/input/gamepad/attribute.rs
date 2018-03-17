@@ -1,4 +1,4 @@
-use gilrs::{Button};
+#[cfg(not(target_arch="wasm32"))] use gilrs::{Button};
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 /// The axes a gamepad can report
@@ -64,29 +64,28 @@ pub enum GamepadButton {
     Home
 }
 
-impl From<Button> for GamepadButton {
-    fn from(other: Button) -> GamepadButton {
-        match other {
-            Button::South => GamepadButton::FaceDown,
-            Button::East => GamepadButton::FaceRight,
-            Button::North => GamepadButton::FaceUp,
-            Button::West => GamepadButton::FaceLeft,
-            Button::C => GamepadButton::ShoulderLeft,
-            Button::Z => GamepadButton::TriggerLeft,
-            Button::LeftTrigger => GamepadButton::ShoulderLeft,
-            Button::LeftTrigger2 => GamepadButton::TriggerLeft,
-            Button::RightTrigger => GamepadButton::ShoulderRight,
-            Button::RightTrigger2 => GamepadButton::TriggerRight,
-            Button::Select => GamepadButton::Select,
-            Button::Start => GamepadButton::Start,
-            Button::Mode => GamepadButton::Home,
-            Button::LeftThumb => GamepadButton::StickButtonLeft,
-            Button::RightThumb => GamepadButton::StickButtonRight,
-            Button::DPadUp => GamepadButton::DpadUp,
-            Button::DPadDown => GamepadButton::DpadDown,
-            Button::DPadLeft => GamepadButton::DpadLeft,
-            Button::DPadRight => GamepadButton::DpadRight,
-            Button::Unknown => unreachable!(),
+#[cfg(not(target_arch="wasm32"))]
+impl Into<Button> for GamepadButton {
+    fn into(self) -> Button {
+        match self {
+            GamepadButton::FaceDown => Button::South,
+            GamepadButton::FaceRight => Button::East,
+            GamepadButton::FaceUp => Button::North,
+            GamepadButton::FaceLeft => Button::West,
+            GamepadButton::ShoulderLeft => Button::LeftTrigger,
+            GamepadButton::TriggerLeft => Button::LeftTrigger2,
+            GamepadButton::ShoulderRight => Button::RightTrigger,
+            GamepadButton::TriggerRight => Button::RightTrigger2,
+            GamepadButton::Select => Button::South,
+            GamepadButton::Start => Button::South,
+            GamepadButton::Home => Button::Mode,
+            GamepadButton::StickButtonLeft => Button::LeftThumb,
+            GamepadButton::StickButtonRight => Button::RightThumb,
+            GamepadButton::DpadUp => Button::DPadUp,
+            GamepadButton::DpadDown => Button::DPadDown,
+            GamepadButton::DpadLeft => Button::DPadLeft,
+            GamepadButton::DpadRight => Button::DPadRight,
         }
     }
 }
+

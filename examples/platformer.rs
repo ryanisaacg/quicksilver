@@ -33,7 +33,7 @@ impl State for Platformer {
        let right = any(&[
            Button::Keyboard(Key::D),
            Button::GamepadButton((None, GamepadButton::DpadRight)),
-           Button::GamepadAxis((None, GamepadAxis::LeftStickX, 0.2, 1.0))
+           Button::GamepadAxis((None, GamepadAxis::LeftStickX, 0.2, 1.5))
        ]);
        if left.satisfied(window) {
            velocity.x -= PLAYER_SPEED;

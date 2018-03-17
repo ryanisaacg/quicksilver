@@ -1,4 +1,4 @@
-use gilrs::Gilrs;
+#[cfg(not(target_arch="wasm32"))] use gilrs::Gilrs;
 use input::Gamepad;
 
 pub(crate) struct GamepadManager {
@@ -11,6 +11,7 @@ pub(crate) struct GamepadManager {
 impl GamepadManager {
     pub(crate) fn new() -> GamepadManager {
         GamepadManager {
+            #[cfg(not(target_arch="wasm32"))]
             gilrs: Gilrs::new().unwrap(),
             gamepads: Vec::new(),
             old: Vec::new()
@@ -18,15 +19,11 @@ impl GamepadManager {
     }
 
     pub(crate) fn update(&mut self) {
-        while let Some(ev) = self.gilrs.next_event() {
-            self.gilrs.update(&ev);
-        }
-        
         self.old.clear();
         self.old.append(&mut self.gamepads);
 
-        self.gamepads.extend(
-            self.gilrs.gamepads().map(|data| Gamepad::new(data)));
+        self.update_platform();
+        self.gamepads.sort();
         
         //Integrate old controller state into the new controllers
         let mut i = 0;
@@ -44,8 +41,25 @@ impl GamepadManager {
                 i += 1;
             }
         }
+    }
 
-        self.gamepads.sort();
+    #[cfg(not(target_arch="wasm32"))]
+    pub(crate) fn update_platform(&mut self) {
+        while let Some(ev) = self.gilrs.next_event() {
+            self.gilrs.update(&ev);
+        }
+
+        self.gamepads.extend(
+            self.gilrs.gamepads().map(|data| Gamepad::new(data)));
+    }
+
+    #[cfg(target_arch="wasm32")]
+    pub(crate) fn update_platform(&mut self) {
+        use ffi::wasm;
+
+        for i in 0..unsafe { wasm::gamepads_length() } {
+            self.gamepads.push(Gamepad::new(unsafe { wasm::gamepads_id(i) } ));
+        }
     }
 
     pub(crate) fn list(&self) -> &Vec<Gamepad> {

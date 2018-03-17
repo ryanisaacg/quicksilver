@@ -4,9 +4,9 @@ use input::{GamepadAxis, GamepadButton, MouseButton, Key};
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum Button {
     /// An optional ID and button for a gamepad
-    GamepadButton((Option<usize>, GamepadButton)),
+    GamepadButton((Option<u32>, GamepadButton)),
     /// An optional ID and axis bounds for a gamepad axis (min, mxa)
-    GamepadAxis((Option<usize>, GamepadAxis, f32, f32)),
+    GamepadAxis((Option<u32>, GamepadAxis, f32, f32)),
     /// A mouse button
     Mouse(MouseButton),
     /// A keyboard key

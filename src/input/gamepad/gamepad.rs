@@ -1,7 +1,5 @@
-extern crate gilrs;
+#[cfg(not(target_arch="wasm32"))] extern crate gilrs;
 
-use gilrs::{Axis, Button};
-use gilrs::ev::state::{AxisData, ButtonData};
 use input::{ButtonState, GamepadAxis, GamepadButton};
 use std::cmp::{Eq, Ord, Ordering, PartialEq, PartialOrd};
 use std::ops::Index;
@@ -9,29 +7,24 @@ use std::ops::Index;
 /// A queryable traditional 2-stick gamepad
 #[derive(Clone)]
 pub struct Gamepad {
-    id: usize,
+    id: u32,
     buttons: [ButtonState; 17],
     axes: [f32; 4],
 }
 
-fn axis_value(data: Option<&AxisData>) -> f32 {
-    match data {
-        Some(ref data) => data.value(),
-        None => 0.0
-    }
-}
-
-fn button_value(data: Option<&ButtonData>) -> bool {
-    match data {
-        Some(ref data) => data.is_pressed(),
-        None => false
-    }
-}
-
 impl Gamepad {
-    /// Construct a new gamepad
-    pub(crate) fn new(data: (usize, &gilrs::Gamepad)) -> Gamepad {
-        let (id, pad) = data;
+    #[cfg(not(target_arch="wasm32"))]
+    pub(crate) fn new((id, pad): (usize, &gilrs::Gamepad)) -> Gamepad {
+        use gilrs::Axis;
+        use gilrs::ev::state::AxisData;
+        fn axis_value(data: Option<&AxisData>) -> f32 {
+            match data {
+                Some(ref data) => data.value(),
+                None => 0.0
+            }
+        }
+
+        let id = id as u32;
         
         let axes = [
             axis_value(pad.axis_data(Axis::LeftStickX)),
@@ -43,17 +36,37 @@ impl Gamepad {
         let mut buttons = [ButtonState::NotPressed; 17];
         for i in 0..ALL_BUTTONS.len() {
             let button = ALL_BUTTONS[i];
-            let value = button_value(pad.button_data(button));
+            let value = match pad.button_data(button.into()) {
+                Some(ref data) => data.is_pressed(),
+                None => false
+            };
             let state = if value { ButtonState::Pressed } else { ButtonState::Released };
-            let gamepad_button: GamepadButton = button.into();
-            buttons[gamepad_button as usize] = state;
+            buttons[button as usize] = state;
         }
         
-        Gamepad {
-            id,
-            buttons,
-            axes
+        Gamepad { id, axes, buttons }
+    }
+
+    #[cfg(target_arch="wasm32")]
+    pub(crate) fn new(id: u32) -> Gamepad {
+        use ffi::wasm;
+
+        let axes = unsafe{[
+            wasm::gamepad_axis(GamepadAxis::LeftStickX as u32),
+            wasm::gamepad_axis(GamepadAxis::LeftStickY as u32),
+            wasm::gamepad_axis(GamepadAxis::RightStickX as u32),
+            wasm::gamepad_axis(GamepadAxis::RightStickY as u32)
+        ]};
+
+        let mut buttons = [ButtonState::NotPressed; 17];
+        for i in 0..ALL_BUTTONS.len() {
+            let button = ALL_BUTTONS[i];
+            let value = unsafe { wasm::gamepad_button(button as u32) };
+            let state = if value { ButtonState::Pressed } else { ButtonState::Released };
+            buttons[button as usize] = state;
         }
+
+        Gamepad { id, buttons, axes }          
     }
 
     pub(crate) fn set_previous(&mut self, previous: Gamepad) {
@@ -66,7 +79,7 @@ impl Gamepad {
     }
 
     /// Get the ID of the gamepad
-    pub fn id(&self) -> usize {
+    pub fn id(&self) -> u32 {
         self.id
     }
 }
@@ -107,24 +120,22 @@ impl PartialEq for Gamepad {
 
 impl Eq for Gamepad {}
 
-const ALL_BUTTONS: &[Button] = &[
-    Button::South,
-    Button::East,
-    Button::North,
-    Button::West,
-    Button::C,
-    Button::Z,
-    Button::LeftTrigger,
-    Button::LeftTrigger2,
-    Button::RightTrigger,
-    Button::RightTrigger2,
-    Button::Select,
-    Button::Start,
-    Button::Mode,
-    Button::LeftThumb,
-    Button::RightThumb,
-    Button::DPadUp,
-    Button::DPadDown,
-    Button::DPadLeft,
-    Button::DPadRight
+const ALL_BUTTONS: &[GamepadButton] = &[
+    GamepadButton::FaceDown,
+    GamepadButton::FaceRight,
+    GamepadButton::FaceUp,
+    GamepadButton::FaceLeft,
+    GamepadButton::ShoulderLeft,
+    GamepadButton::TriggerLeft,
+    GamepadButton::ShoulderRight,
+    GamepadButton::TriggerRight,
+    GamepadButton::Select,
+    GamepadButton::Start,
+    GamepadButton::Home,
+    GamepadButton::StickButtonLeft,
+    GamepadButton::StickButtonRight,
+    GamepadButton::DpadUp,
+    GamepadButton::DpadDown,
+    GamepadButton::DpadLeft,
+    GamepadButton::DpadRight,
 ];
