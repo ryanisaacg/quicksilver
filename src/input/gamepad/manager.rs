@@ -35,7 +35,7 @@ impl GamepadManager {
         while i < self.old.len() && j < self.gamepads.len() {
             if self.old[i].id() == self.gamepads[j].id() {
                 let gamepad = self.old[i].clone();
-                self.gamepads[i].set_previous(gamepad);
+                self.gamepads[j].set_previous(gamepad);
                 i += 1;
                 j += 1;
             } else if self.old[i].id() > self.gamepads[j].id() {
