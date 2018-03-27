@@ -52,16 +52,16 @@ impl Gamepad {
         use ffi::wasm;
 
         let axes = unsafe{[
-            wasm::gamepad_axis(GamepadAxis::LeftStickX as u32),
-            wasm::gamepad_axis(GamepadAxis::LeftStickY as u32),
-            wasm::gamepad_axis(GamepadAxis::RightStickX as u32),
-            wasm::gamepad_axis(GamepadAxis::RightStickY as u32)
+            wasm::gamepad_axis(id, GamepadAxis::LeftStickX as u32),
+            wasm::gamepad_axis(id, GamepadAxis::LeftStickY as u32),
+            wasm::gamepad_axis(id, GamepadAxis::RightStickX as u32),
+            wasm::gamepad_axis(id, GamepadAxis::RightStickY as u32)
         ]};
 
         let mut buttons = [ButtonState::NotPressed; 17];
         for i in 0..ALL_BUTTONS.len() {
             let button = ALL_BUTTONS[i];
-            let value = unsafe { wasm::gamepad_button(button as u32) };
+            let value = unsafe { wasm::gamepad_button(id, button as u32) };
             let state = if value { ButtonState::Pressed } else { ButtonState::Released };
             buttons[button as usize] = state;
         }

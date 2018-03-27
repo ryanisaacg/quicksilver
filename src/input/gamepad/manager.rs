@@ -57,8 +57,11 @@ impl GamepadManager {
     pub(crate) fn update_platform(&mut self) {
         use ffi::wasm;
 
-        for i in 0..unsafe { wasm::gamepads_length() } {
-            self.gamepads.push(Gamepad::new(unsafe { wasm::gamepads_id(i) } ));
+        unsafe { 
+            wasm::gamepads_update();
+            for i in 0..wasm::gamepads_length() {
+                self.gamepads.push(Gamepad::new(wasm::gamepads_id(i)));
+            }
         }
     }
 
