@@ -41,8 +41,8 @@ pub enum BlendMode {
 
 pub(crate) struct Backend {
     texture: u32,
-    pub(crate) vertices: Vec<f32>,
-    pub(crate) indices: Vec<u32>, 
+    vertices: Vec<f32>,
+    indices: Vec<u32>, 
     null: Image, 
     vertex_length: usize, 
     index_length: usize, 
