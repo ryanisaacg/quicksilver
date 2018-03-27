@@ -44,6 +44,9 @@ const mouse = { x: 0, y: 0, scroll_type: 0, scroll_x: 0, scroll_y: 0 };
 const mouse_queue = []
 const assets = []
 const music = { playing: null, volume: 1 }
+const gamepads = {}
+const gamepad_axes = []
+const gamepad_buttons = []
 //Establish all of the event hooks
 document.addEventListener('keydown', (event) => { 
     if(keycodes[event.code] !== undefined) { 
@@ -226,6 +229,22 @@ let env = {
     },
     file_contents: (index) => assets[index].contents,
     file_length: (index) => assets[index].length,
+    //Gamepads
+    gamepads_update: () => {
+        const gamepad_list = navigator.getGamepads();
+        gamepads.clear();
+        gamepad_axes.clear();
+        gamepad_buttons.clear();
+        for(let i = 0; i < gamepad_list.length; i++) {
+            gamepads[gamepad_list[i].index] = i; 
+            gamepad_axes.push(gamepad_list[i].axes.slice(0)); //clone the array
+            gamepad_buttons.push(gamepad_list[i].buttons.map(button => button.pressed));
+        }
+    },
+    gamepads_length: () => gamepads.length,
+    gamepads_id: (index) => gamepads[index],
+    gamepad_axis: (id, axis) => gamepad_axes[id][axis],
+    gamepad_button: (id, button) => gamepad_buttons[id][button]
     //Asset loading
     ffi_asset_status: (index) => assets[index].error ? 2 : (assets[index].loaded ? 1 : 0),
     //Game loop
