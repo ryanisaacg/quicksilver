@@ -40,6 +40,12 @@ extern "C" {
     pub fn load_file(name: *mut i8) -> u32;
     pub fn file_contents(handle: u32) -> *mut u8;
     pub fn file_length(handle: u32) -> u32;
+    //Gamepads
+    pub fn gamepads_update();
+    pub fn gamepads_length() -> u32;
+    pub fn gamepads_id(index: u32) -> u32;
+    pub fn gamepad_axis(id: u32, axis: u32) -> f32;
+    pub fn gamepad_button(id: u32, button: u32) -> bool;
     //Asset loading
     fn ffi_asset_status(handle: u32) -> i32;
     //Game loop

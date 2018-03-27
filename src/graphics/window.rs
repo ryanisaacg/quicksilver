@@ -1,10 +1,9 @@
 use ffi::gl;
-#[cfg(not(target_arch="wasm32"))]
-use glutin;
+#[cfg(not(target_arch="wasm32"))] use glutin;
 use geom::{ Rectangle, Transform, Vector};
-#[cfg(not(target_arch="wasm32"))]
-use glutin::{EventsLoop, GlContext};
+#[cfg(not(target_arch="wasm32"))] use glutin::{EventsLoop, GlContext};
 use graphics::{Backend, BlendMode, Color, DrawCall, ResizeStrategy, View};
+#[cfg(feature="gamepads")] use input::{Gamepad, GamepadManager};
 use input::{Button, ButtonState, Keyboard, Mouse};
 
 /// The way the images should change when drawn at a scale
@@ -150,6 +149,8 @@ impl WindowBuilder {
             gl_window,
             #[cfg(not(target_arch="wasm32"))]
             events,
+            #[cfg(feature="gamepads")]
+            gamepads: GamepadManager::new(),
             resize: self.resize,
             screen_region,
             scale_factor,
@@ -175,6 +176,8 @@ pub struct Window {
     pub(crate) gl_window: glutin::GlWindow,
     #[cfg(not(target_arch="wasm32"))]
     events: EventsLoop,
+    #[cfg(feature="gamepads")]
+    gamepads: GamepadManager,
     resize: ResizeStrategy,
     scale_factor: f32,
     screen_region: Rectangle,
@@ -186,9 +189,10 @@ pub struct Window {
     draw_buffer: Vec<DrawCall>
 }
 
-impl Window {    
+impl Window {
     ///Update the keyboard, mouse, and window state, and return if the window is still open
     pub fn poll_events(&mut self) -> bool {
+        self.gamepads.update();
         self.poll_events_impl()
     }
 
@@ -415,5 +419,10 @@ impl Window {
         self.backend.set_blend_mode(blend);
         self.draw(iter);
         self.backend.reset_blend_mode();
+    }
+
+    /// Get a reference to the connected gamepads
+    pub fn gamepads(&self) -> &Vec<Gamepad> {
+        self.gamepads.list()
     }
 }
