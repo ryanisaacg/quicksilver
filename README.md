@@ -19,6 +19,8 @@ It has not been tested extensively on desktop platforms other than x86, but ther
 
 There are no plans to support mobile / touch-primary platforms, as the paradigms are completely different. UI elements must be created differently, input is one or two points of contact rather than primarily through a keyboard, etc. 
 
+There is one exception: macOS does not currently support gamepads, see [gilrs issue #3](https://gitlab.com/Arvamer/gilrs/issues/3)
+
 ## A quick example
 
 Create a rust project and add this line to your `Cargo.toml` file under `[dependencies]`:
