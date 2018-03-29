@@ -1,5 +1,5 @@
 use geom::Vector;
-use graphics::{Color, Image, PixelFormat};
+use graphics::{Color, Image, PixelFormat, Vertex};
 use ffi::gl;
 use std::{
     ffi::CString,
@@ -8,17 +8,6 @@ use std::{
     ptr::null,
     str::from_utf8
 };
-
-#[derive(Clone, Copy)]
-/// A vertex for drawing items to the GPU
-pub struct Vertex {
-    /// The position of the vertex in space
-    pub pos: Vector,
-    /// If there is a texture attached to this vertex, where to get the texture data from
-    pub tex_pos: Option<Vector>,
-    /// The color to blend this vertex with
-    pub col: Color,
-}
 
 #[repr(u32)]
 #[derive(Clone, Copy)]

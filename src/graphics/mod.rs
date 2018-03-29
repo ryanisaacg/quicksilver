@@ -10,17 +10,20 @@ mod draw_call;
 mod image;
 mod resize;
 mod surface;
+mod vertex;
 mod view;
 mod window;
+
 pub use self::{
     animation::Animation,
     atlas::{Atlas, AtlasError, AtlasItem, AtlasLoader},
-    backend::{BlendMode, Vertex},
+    backend::BlendMode,
     color::Color,
     draw_call::DrawCall,
     image::{Image, ImageError, ImageLoader, PixelFormat},
     resize::ResizeStrategy,
     surface::Surface,
+    vertex::{Vertex, GpuTriangle},
     view::View,
     window::{ImageScaleStrategy, Window, WindowBuilder}
 };
