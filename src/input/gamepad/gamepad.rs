@@ -1,8 +1,10 @@
 #[cfg(not(target_arch="wasm32"))] extern crate gilrs;
 
 use input::{ButtonState, GamepadAxis, GamepadButton};
-use std::cmp::{Eq, Ord, Ordering, PartialEq, PartialOrd};
-use std::ops::Index;
+use std::{
+    cmp::{Eq, Ord, Ordering, PartialEq, PartialOrd},
+    ops::Index
+};
 
 /// A queryable traditional 2-stick gamepad
 #[derive(Clone)]

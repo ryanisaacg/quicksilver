@@ -1,8 +1,10 @@
 use geom::{about_equal, Positioned, Rectangle, Scalar};
 use rand::{Rand, Rng};
-use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
-use std::cmp::{Eq, PartialEq};
-use std::fmt;
+use std::{
+    ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign},
+    cmp::{Eq, PartialEq},
+    fmt
+};
 
 #[derive(Copy, Clone, Default, Debug, Deserialize, Serialize)]
 ///A 2D vector with an arbitrary numeric type

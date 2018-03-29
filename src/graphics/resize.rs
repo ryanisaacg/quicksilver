@@ -23,9 +23,9 @@ impl ResizeStrategy {
                 let target_ratio = old_size.x / old_size.y; 
                 let window_ratio = new_size.x / new_size.y;
                 if (self == ResizeStrategy::Fill) == (window_ratio < target_ratio) {
-                    Vector::new((target_ratio * new_size.y), new_size.y)
+                    Vector::new(target_ratio * new_size.y, new_size.y)
                 } else {
-                    Vector::new(new_size.x, (new_size.x / target_ratio))
+                    Vector::new(new_size.x, new_size.x / target_ratio)
                 } 
             }
         };
