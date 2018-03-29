@@ -1,6 +1,5 @@
 //! A module to draw 2D graphics in a window
-//! 
-//! It also includes image loading
+//!  It also includes image loading
 
 mod animation;
 mod atlas;
@@ -16,7 +15,7 @@ mod window;
 pub use self::{
     animation::Animation,
     atlas::{Atlas, AtlasError, AtlasItem, AtlasLoader},
-    backend::BlendMode,
+    backend::{BlendMode, Vertex},
     color::Color,
     draw_call::DrawCall,
     image::{Image, ImageError, ImageLoader, PixelFormat},
@@ -26,4 +25,4 @@ pub use self::{
     window::{ImageScaleStrategy, Window, WindowBuilder}
 };
 #[cfg(feature="fonts")] pub use self::font::{Font, FontLoader};
-pub(crate) use self::backend::{Backend, Vertex};
+pub(crate) use self::backend::Backend;

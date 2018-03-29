@@ -89,9 +89,8 @@ impl DrawCall {
                 let get_vertex = |v: Vector| {
                     Vertex {
                         pos: trans * v,
-                        tex_pos: normalized_pos + v.times(normalized_size),
-                        col: self.color,
-                        use_texture: true,
+                        tex_pos: Some(normalized_pos + v.times(normalized_size)),
+                        col: self.color
                     }
                 };
                 backend.add(
@@ -128,9 +127,8 @@ fn apply_polygon(vertices: &[Vector], col: Color, trans: Transform, backend: &mu
     for vertex in vertices {
         backend.add_vertex(&Vertex {
             pos: trans * vertex.clone(),
-            tex_pos: Vector::zero(),
-            col,
-            use_texture: false
+            tex_pos: None,
+            col
         });
     }
     let mut current = 1;

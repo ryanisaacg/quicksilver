@@ -10,11 +10,14 @@ use std::{
 };
 
 #[derive(Clone, Copy)]
-pub(crate) struct Vertex {
+/// A vertex for drawing items to the GPU
+pub struct Vertex {
+    /// The position of the vertex in space
     pub pos: Vector,
-    pub tex_pos: Vector,
+    /// If there is a texture attached to this vertex, where to get the texture data from
+    pub tex_pos: Option<Vector>,
+    /// The color to blend this vertex with
     pub col: Color,
-    pub use_texture: bool,
 }
 
 #[repr(u32)]
@@ -307,15 +310,14 @@ impl Backend {
     pub fn add_vertex(&mut self, vertex: &Vertex) {
         self.vertices.push(vertex.pos.x);
         self.vertices.push(vertex.pos.y);
-        self.vertices.push(vertex.tex_pos.x);
-        self.vertices.push(vertex.tex_pos.y);
+        let tex_pos = vertex.tex_pos.unwrap_or(Vector::zero());
+        self.vertices.push(tex_pos.x);
+        self.vertices.push(tex_pos.y);
         self.vertices.push(vertex.col.r);
         self.vertices.push(vertex.col.g);
         self.vertices.push(vertex.col.b);
         self.vertices.push(vertex.col.a);
-        self.vertices.push(
-            if vertex.use_texture { 1f32 } else { 0f32 },
-        );
+        self.vertices.push(if vertex.tex_pos.is_some() { 1f32 } else { 0f32 });
     }
 
     pub fn add_index(&mut self, index: u32) {
