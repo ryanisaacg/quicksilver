@@ -1,9 +1,11 @@
 // Draw some multi-colored geometry to the screen
 extern crate quicksilver;
 
-use quicksilver::{State, run};
-use quicksilver::geom::{Circle, Rectangle, Transform};
-use quicksilver::graphics::{Color, DrawCall, Window, WindowBuilder};
+use quicksilver::{
+    State, run,
+    geom::{Circle, Rectangle, Transform},
+    graphics::{Color, DrawCall, Window, WindowBuilder}
+};
 
 struct DrawGeometry;
 

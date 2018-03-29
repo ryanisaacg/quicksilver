@@ -10,11 +10,13 @@ mod key;
 mod keyboard;
 mod mouse;
 
-pub use self::boolean::*;
-pub use self::button::{Button, ButtonState};
-#[cfg(feature="gamepads")] pub(crate) use self::gamepad::GamepadManager;
+pub use self::{
+    boolean::*,
+    button::{Button, ButtonState},
+    key::Key,
+    keyboard::Keyboard,
+    mouse::{Mouse, MouseButton}
+};
 #[cfg(feature="gamepads")] pub use self::gamepad::{Gamepad, GamepadAxis, GamepadButton};
-pub use self::key::Key;
+#[cfg(feature="gamepads")] pub(crate) use self::gamepad::GamepadManager;
 pub(crate) use self::key::KEY_LIST;
-pub use self::keyboard::Keyboard;
-pub use self::mouse::{Mouse, MouseButton};

@@ -1,10 +1,12 @@
 // Draw a pulsing circle in the middle of the window
 extern crate quicksilver;
 
-use quicksilver::{State, run};
-use quicksilver::geom::{Circle, Vector, Transform};
-use quicksilver::graphics::{Color, DrawCall, Window, WindowBuilder};
-use quicksilver::input::{any, Button, Gamepad, GamepadAxis, GamepadButton, InputCheckable, Key, Keyboard};
+use quicksilver::{
+    State, run,
+    geom::{Circle, Vector, Transform},
+    graphics::{Color, DrawCall, Window, WindowBuilder},
+    input::{any, Button, Gamepad, GamepadAxis, GamepadButton, InputCheckable, Key, Keyboard}
+};
 
 struct Platformer {
     player: Circle

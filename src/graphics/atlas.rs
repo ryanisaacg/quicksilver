@@ -6,13 +6,15 @@ use futures::future::{JoinAll, join_all};
 use geom::{Positioned, Rectangle, Vector};
 use graphics::{Image, ImageLoader, ImageError};
 use util::FileLoader;
-use std::cmp::Ordering;
-use std::collections::HashMap;
-use std::fmt::Debug;
-use std::io::ErrorKind as IOError;
-use std::num::ParseIntError;
-use std::path::Path;
-use std::str::{FromStr, ParseBoolError, Split};
+use std::{
+    cmp::Ordering,
+    collections::HashMap,
+    fmt::Debug,
+    io::ErrorKind as IOError,
+    num::ParseIntError,
+    path::Path,
+    str::{FromStr, ParseBoolError, Split}
+};
 
 #[derive(Clone)]
 struct Region {
