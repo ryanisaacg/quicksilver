@@ -2,8 +2,10 @@
 // world!
 extern crate quicksilver;
 
-use quicksilver::{State, run};
-use quicksilver::graphics::{Window, WindowBuilder};
+use quicksilver::{
+    State, run,
+    graphics::{Window, WindowBuilder}
+};
 
 // An empty structure because we don't need to store any state
 struct BlackScreen;
@@ -12,8 +14,7 @@ impl State for BlackScreen {
     fn configure() -> Window {
         // Create a Window with the title "Hello world!" that is 800 x 600 pixels
         WindowBuilder::new()
-            .with_fullscreen(true)
-            .build("Hello world!", 500, 300)
+            .build("Hello world!", 800, 600)
     }
 
    fn new() -> BlackScreen { BlackScreen }

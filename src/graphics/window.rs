@@ -1,10 +1,9 @@
 use ffi::gl;
-#[cfg(not(target_arch="wasm32"))]
-use glutin;
+#[cfg(not(target_arch="wasm32"))] use glutin;
 use geom::{ Rectangle, Transform, Vector};
-#[cfg(not(target_arch="wasm32"))]
-use glutin::{EventsLoop, GlContext};
+#[cfg(not(target_arch="wasm32"))] use glutin::{EventsLoop, GlContext};
 use graphics::{Backend, BlendMode, Color, DrawCall, ResizeStrategy, View};
+#[cfg(feature="gamepads")] use input::{Gamepad, GamepadManager};
 use input::{Button, ButtonState, Keyboard, Mouse};
 
 /// The way the images should change when drawn at a scale
@@ -19,7 +18,9 @@ pub enum ImageScaleStrategy {
 ///A builder that constructs a Window
 pub struct WindowBuilder {
     show_cursor: bool,
+    #[cfg(not(target_arch="wasm32"))]
     min_size: Option<Vector>,
+    #[cfg(not(target_arch="wasm32"))]
     max_size: Option<Vector>,
     resize: ResizeStrategy,
     scale: ImageScaleStrategy,
@@ -31,7 +32,9 @@ impl WindowBuilder {
     pub fn new() -> WindowBuilder {
         WindowBuilder {
             show_cursor: true,
+            #[cfg(not(target_arch="wasm32"))]
             min_size: None,
+            #[cfg(not(target_arch="wasm32"))]
             max_size: None,
             resize: ResizeStrategy::Fit,
             scale: ImageScaleStrategy::Pixelate,
@@ -58,9 +61,10 @@ impl WindowBuilder {
     ///Set the minimum size for the window (no value by default)
     ///
     ///On the web, this does nothing.
-    pub fn with_minimum_size(self, min_size: Vector) -> WindowBuilder {
+    pub fn with_minimum_size(self, _min_size: Vector) -> WindowBuilder {
         WindowBuilder {
-            min_size: Some(min_size),
+            #[cfg(not(target_arch="wasm32"))]
+            min_size: Some(_min_size),
             ..self
         }
     }
@@ -68,9 +72,10 @@ impl WindowBuilder {
     ///Set the maximum size for the window (no value by default)
     ///
     ///On the web, this does nothing.
-    pub fn with_maximum_size(self, max_size: Vector) -> WindowBuilder {
+    pub fn with_maximum_size(self, _max_size: Vector) -> WindowBuilder {
         WindowBuilder {
-            max_size: Some(max_size),
+            #[cfg(not(target_arch="wasm32"))]
+            max_size: Some(_max_size),
             ..self
         }
     }
@@ -103,10 +108,12 @@ impl WindowBuilder {
             let window = glutin::WindowBuilder::new()
                 .with_decorations(!self.fullscreen)
                 .with_title(title);
+            #[cfg(not(target_arch="wasm32"))]
             let window = match self.min_size { 
                 Some(v) => window.with_min_dimensions(v.x as u32, v.y as u32),
                 None => window
             };
+            #[cfg(not(target_arch="wasm32"))]
             let window = match self.max_size {
                 Some(v) => window.with_max_dimensions(v.x as u32, v.y as u32),
                 None => window
@@ -150,6 +157,8 @@ impl WindowBuilder {
             gl_window,
             #[cfg(not(target_arch="wasm32"))]
             events,
+            #[cfg(feature="gamepads")]
+            gamepads: GamepadManager::new(),
             resize: self.resize,
             screen_region,
             scale_factor,
@@ -175,6 +184,8 @@ pub struct Window {
     pub(crate) gl_window: glutin::GlWindow,
     #[cfg(not(target_arch="wasm32"))]
     events: EventsLoop,
+    #[cfg(feature="gamepads")]
+    gamepads: GamepadManager,
     resize: ResizeStrategy,
     scale_factor: f32,
     screen_region: Rectangle,
@@ -186,9 +197,10 @@ pub struct Window {
     draw_buffer: Vec<DrawCall>
 }
 
-impl Window {    
+impl Window {
     ///Update the keyboard, mouse, and window state, and return if the window is still open
     pub fn poll_events(&mut self) -> bool {
+        self.gamepads.update();
         self.poll_events_impl()
     }
 
@@ -415,5 +427,10 @@ impl Window {
         self.backend.set_blend_mode(blend);
         self.draw(iter);
         self.backend.reset_blend_mode();
+    }
+
+    /// Get a reference to the connected gamepads
+    pub fn gamepads(&self) -> &Vec<Gamepad> {
+        self.gamepads.list()
     }
 }

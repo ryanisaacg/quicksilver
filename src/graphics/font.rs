@@ -48,7 +48,7 @@ impl Font {
         let width = glyphs.iter().rev()
             .map(|g| g.position().x as f32 + g.unpositioned().h_metrics().advance_width)
             .next().unwrap_or(0.0).ceil() as usize;
-        let mut pixels = vec![0 as u8; (4 * width * size as usize)];
+        let mut pixels = vec![0 as u8; 4 * width * size as usize];
         for glyph in glyphs {
             if let Some(bounds) = glyph.pixel_bounding_box() {
                 glyph.draw(|x, y, v| {

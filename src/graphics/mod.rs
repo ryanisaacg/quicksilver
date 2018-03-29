@@ -13,15 +13,17 @@ mod resize;
 mod surface;
 mod view;
 mod window;
-pub use self::animation::Animation;
-pub use self::atlas::{Atlas, AtlasError, AtlasItem, AtlasLoader};
-pub(crate) use self::backend::{Backend, Vertex};
-pub use self::backend::BlendMode;
-pub use self::color::Color;
-pub use self::draw_call::DrawCall;
+pub use self::{
+    animation::Animation,
+    atlas::{Atlas, AtlasError, AtlasItem, AtlasLoader},
+    backend::BlendMode,
+    color::Color,
+    draw_call::DrawCall,
+    image::{Image, ImageError, ImageLoader, PixelFormat},
+    resize::ResizeStrategy,
+    surface::Surface,
+    view::View,
+    window::{ImageScaleStrategy, Window, WindowBuilder}
+};
 #[cfg(feature="fonts")] pub use self::font::{Font, FontLoader};
-pub use self::image::{Image, ImageError, ImageLoader, PixelFormat};
-pub use self::resize::ResizeStrategy;
-pub use self::surface::Surface;
-pub use self::view::View;
-pub use self::window::{ImageScaleStrategy, Window, WindowBuilder};
+pub(crate) use self::backend::{Backend, Vertex};

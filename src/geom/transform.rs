@@ -1,9 +1,11 @@
 use geom::{about_equal, Scalar, Vector};
-use std::ops::Mul;
-use std::f32::consts::PI;
-use std::fmt;
-use std::default::Default;
-use std::cmp::{Eq, PartialEq};
+use std::{
+    ops::Mul,
+    f32::consts::PI,
+    fmt,
+    default::Default,
+    cmp::{Eq, PartialEq}
+};
 
 #[derive(Clone, Copy, Debug, Deserialize, Serialize)]
 ///A 2D transformation represented by a matrix

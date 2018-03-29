@@ -10,19 +10,24 @@ extern crate rodio;
 use error::QuicksilverError;
 use futures::{Async, Future, Poll};
 #[cfg(not(target_arch="wasm32"))]
-use rodio::{Decoder, Sink, Source};
+use rodio::{
+    Decoder, 
+    Sink, 
+    Source,
+    decoder::DecoderError,
+    source::{SamplesConverter, Amplify},
+
+};
 #[cfg(not(target_arch="wasm32"))]
-use rodio::decoder::DecoderError;
-#[cfg(not(target_arch="wasm32"))]
-use rodio::source::{SamplesConverter, Amplify};
-#[cfg(not(target_arch="wasm32"))]
-use std::fs::File;
-use std::path::Path;
-#[cfg(not(target_arch="wasm32"))]
-use std::io::{BufReader, Cursor, Error, Read};
-use std::io::ErrorKind as IOError;
-#[cfg(not(target_arch="wasm32"))]
-use std::sync::Arc;
+use std::{
+    fs::File,
+    io::{BufReader, Cursor, Error, Read},
+    sync::Arc
+};
+use std::{
+    io::ErrorKind as IOError,
+    path::Path
+};
 
 
 /// A clip of sound, which may be streamed from disc or stored in memory

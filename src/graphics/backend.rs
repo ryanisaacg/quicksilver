@@ -1,11 +1,13 @@
 use geom::Vector;
 use graphics::{Color, Image, PixelFormat};
 use ffi::gl;
-use std::ffi::CString;
-use std::mem::size_of;
-use std::os::raw::c_void;
-use std::ptr::null;
-use std::str::from_utf8;
+use std::{
+    ffi::CString,
+    mem::size_of,
+    os::raw::c_void,
+    ptr::null,
+    str::from_utf8
+};
 
 #[derive(Clone, Copy)]
 pub(crate) struct Vertex {

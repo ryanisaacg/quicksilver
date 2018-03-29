@@ -6,11 +6,13 @@ use error::QuicksilverError;
 use ffi::gl;
 use futures::{Async, Future, Poll};
 use geom::{Rectangle, Vector};
-use std::io::ErrorKind as IOError;
-use std::ops::Drop;
-use std::os::raw::c_void;
-use std::path::Path;
-use std::rc::Rc;
+use std::{
+    io::ErrorKind as IOError,
+    ops::Drop,
+    os::raw::c_void,
+    path::Path,
+    rc::Rc
+};
 
 ///Pixel formats for use with loading raw images
 pub enum PixelFormat {
