@@ -18,7 +18,9 @@ pub enum ImageScaleStrategy {
 ///A builder that constructs a Window
 pub struct WindowBuilder {
     show_cursor: bool,
+    #[cfg(not(target_arch="wasm32"))]
     min_size: Option<Vector>,
+    #[cfg(not(target_arch="wasm32"))]
     max_size: Option<Vector>,
     resize: ResizeStrategy,
     scale: ImageScaleStrategy,
@@ -30,7 +32,9 @@ impl WindowBuilder {
     pub fn new() -> WindowBuilder {
         WindowBuilder {
             show_cursor: true,
+            #[cfg(not(target_arch="wasm32"))]
             min_size: None,
+            #[cfg(not(target_arch="wasm32"))]
             max_size: None,
             resize: ResizeStrategy::Fit,
             scale: ImageScaleStrategy::Pixelate,
@@ -57,9 +61,10 @@ impl WindowBuilder {
     ///Set the minimum size for the window (no value by default)
     ///
     ///On the web, this does nothing.
-    pub fn with_minimum_size(self, min_size: Vector) -> WindowBuilder {
+    pub fn with_minimum_size(self, _min_size: Vector) -> WindowBuilder {
         WindowBuilder {
-            min_size: Some(min_size),
+            #[cfg(not(target_arch="wasm32"))]
+            min_size: Some(_min_size),
             ..self
         }
     }
@@ -67,9 +72,10 @@ impl WindowBuilder {
     ///Set the maximum size for the window (no value by default)
     ///
     ///On the web, this does nothing.
-    pub fn with_maximum_size(self, max_size: Vector) -> WindowBuilder {
+    pub fn with_maximum_size(self, _max_size: Vector) -> WindowBuilder {
         WindowBuilder {
-            max_size: Some(max_size),
+            #[cfg(not(target_arch="wasm32"))]
+            max_size: Some(_max_size),
             ..self
         }
     }
@@ -102,10 +108,12 @@ impl WindowBuilder {
             let window = glutin::WindowBuilder::new()
                 .with_decorations(!self.fullscreen)
                 .with_title(title);
+            #[cfg(not(target_arch="wasm32"))]
             let window = match self.min_size { 
                 Some(v) => window.with_min_dimensions(v.x as u32, v.y as u32),
                 None => window
             };
+            #[cfg(not(target_arch="wasm32"))]
             let window = match self.max_size {
                 Some(v) => window.with_max_dimensions(v.x as u32, v.y as u32),
                 None => window
