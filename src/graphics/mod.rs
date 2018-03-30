@@ -5,7 +5,7 @@ mod animation;
 mod atlas;
 mod backend;
 mod color;
-mod draw_call;
+mod drawable;
 #[cfg(feature="fonts")] mod font;
 mod image;
 mod resize;
@@ -19,7 +19,7 @@ pub use self::{
     atlas::{Atlas, AtlasError, AtlasItem, AtlasLoader},
     backend::BlendMode,
     color::Color,
-    draw_call::DrawCall,
+    drawable::{Drawable, Sprite},
     image::{Image, ImageError, ImageLoader, PixelFormat},
     resize::ResizeStrategy,
     surface::Surface,
