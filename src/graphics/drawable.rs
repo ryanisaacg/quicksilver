@@ -170,7 +170,7 @@ impl Drawable for Sprite {
                 let rotation = Transform::rotate(360f32 / points.len() as f32);
                 let mut arrow = Vector::new(0f32, -radius);
                 for i in 0..points.len() {
-                    points[i] = arrow;
+                    points[i] = arrow + self.position;
                     arrow = rotation * arrow;
                 }
                 let vertices = points.iter().map(|point| Vertex {
