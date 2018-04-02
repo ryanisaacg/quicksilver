@@ -202,7 +202,7 @@ impl Backend {
         self.texture = texture;
     }
 
-    pub fn flush(&mut self) { 
+    pub fn flush(&mut self) {
         if self.indices.len() != 0 {
             unsafe {
                 // Check if the index buffer is big enough and upload the data
@@ -241,7 +241,7 @@ impl Backend {
         vertices.iter().for_each(|vertex| self.add_vertex(vertex));
         let vertex_length = size_of::<f32>() * self.vertices.len();
         // If the GPU can't store all of our data, re-create the GPU buffers so they can
-        if vertex_length <= self.vertex_length {
+        if vertex_length > self.vertex_length {
             unsafe {
                 self.vertex_length = vertex_length * 2;
                 // Create strings for all of the shader attributes
