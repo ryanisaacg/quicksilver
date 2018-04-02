@@ -411,6 +411,8 @@ impl Window {
     pub fn present(&mut self) {
         self.triangles.sort();
         self.backend.draw(self.vertices.as_slice(), self.triangles.as_slice(), BlendMode::Additive);
+        self.vertices.clear();
+        self.triangles.clear();
         #[cfg(not(target_arch="wasm32"))]
         self.gl_window.swap_buffers().unwrap();
     }
