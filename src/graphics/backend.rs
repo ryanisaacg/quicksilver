@@ -236,7 +236,7 @@ impl Backend {
         }
     }
 
-    pub fn draw(&mut self, vertices: &[Vertex], triangles: &[GpuTriangle], blend: BlendMode) {
+    pub fn draw(&mut self, vertices: &[Vertex], triangles: &[GpuTriangle]) {
         // Turn the provided vertex data into stored vertex data
         vertices.iter().for_each(|vertex| self.add_vertex(vertex));
         let vertex_length = size_of::<f32>() * self.vertices.len();
@@ -302,6 +302,20 @@ impl Backend {
         self.vertices.push(vertex.col.b);
         self.vertices.push(vertex.col.a);
         self.vertices.push(if vertex.tex_pos.is_some() { 1f32 } else { 0f32 });
+    }
+
+    pub fn set_blend_mode(&mut self, blend: BlendMode) {
+        unsafe { 
+            gl::BlendFunc(gl::ONE, gl::ONE);
+            gl::BlendEquationSeparate(blend as u32, gl::FUNC_ADD);
+        }
+    }
+
+    pub fn reset_blend_mode(&mut self) {
+        unsafe {
+            gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
+            gl::BlendEquationSeparate(gl::FUNC_ADD, gl::FUNC_ADD);
+        }
     }
 }
 

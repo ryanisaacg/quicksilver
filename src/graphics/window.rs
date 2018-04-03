@@ -403,8 +403,14 @@ impl Window {
     }
     
     /// Clear the screen to a given color
+    ///
+    /// The blend mode is also automatically reset,
+    /// and any un-flushed draw calls are dropped.
     pub fn clear(&mut self, color: Color) {
+        self.vertices.clear();
+        self.triangles.clear();
         self.backend.clear(color);
+        self.backend.reset_blend_mode();
     }
 
     /// Draw the changes made to the screen
@@ -423,9 +429,26 @@ impl Window {
     /// the fewer times your application needs to flush the faster it will run.
     pub fn flush(&mut self) {
         self.triangles.sort();
-        self.backend.draw(self.vertices.as_slice(), self.triangles.as_slice(), BlendMode::Additive);
+        self.backend.draw(self.vertices.as_slice(), self.triangles.as_slice());
         self.vertices.clear();
         self.triangles.clear();
+    }
+
+    /// Set the blend mode for the window
+    ///
+    /// This will flush all of the drawn items to the screen and 
+    /// switch to the new blend mode.
+    pub fn set_blend_mode(&mut self, blend: BlendMode) {
+        self.flush();
+        self.backend.set_blend_mode(blend);
+    }
+
+    /// Reset the blend mode for the window to the default alpha blending
+    ///
+    /// This will flush all of the drawn items to the screen
+    pub fn reset_blend_mode(&mut self) {
+        self.flush();
+        self.backend.reset_blend_mode();
     }
 
     /// Draw a single object to the screen
