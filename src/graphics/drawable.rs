@@ -170,7 +170,7 @@ impl Drawable for Sprite {
                 let rotation = Transform::rotate(360f32 / points.len() as f32);
                 let mut arrow = Vector::new(0f32, -radius);
                 for i in 0..points.len() {
-                    points[i] = arrow;
+                    points[i] = arrow + self.position;
                     arrow = rotation * arrow;
                 }
                 let vertices = points.iter().map(|point| Vertex {
@@ -178,7 +178,7 @@ impl Drawable for Sprite {
                     tex_pos: None,
                     col: self.color
                 });
-                let indices = iter::repeat(self.z).take(points.len() - 2).enumerate().map(|(index, z)| GpuTriangle {
+                let indices = iter::repeat(self.z).take(points.len() - 1).enumerate().map(|(index, z)| GpuTriangle {
                     z,
                     indices: [0, index as u32, index as u32 + 1],
                     image: None

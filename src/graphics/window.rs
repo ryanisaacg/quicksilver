@@ -403,45 +403,57 @@ impl Window {
     }
     
     /// Clear the screen to a given color
+    ///
+    /// The blend mode is also automatically reset,
+    /// and any un-flushed draw calls are dropped.
     pub fn clear(&mut self, color: Color) {
+        self.vertices.clear();
+        self.triangles.clear();
         self.backend.clear(color);
+        self.backend.reset_blend_mode();
     }
 
     /// Draw the changes made to the screen
     pub fn present(&mut self) {
-        self.triangles.sort();
-        self.backend.draw(self.vertices.as_slice(), self.triangles.as_slice(), BlendMode::Additive);
+        self.flush();
         #[cfg(not(target_arch="wasm32"))]
         self.gl_window.swap_buffers().unwrap();
     }
 
-    ///Draw some amount of draw items
-    /*pub fn draw<'a, I: IntoIterator<Item = &'a DrawCall>>(&mut self, iter: I) {
-        self.draw_buffer.clear();
-        self.draw_buffer.extend(iter.into_iter().map(|x| x.clone()));
-        self.draw_buffer.sort();
-        for item in self.draw_buffer.iter() {
-            item.apply(self.view.opengl, &mut self.backend);
-        }
+    /// Flush the current buffered draw calls
+    ///
+    /// Until Window::present is called they won't be visible,
+    /// but the items will be behind all future items drawn.
+    ///
+    /// Generally it's a bad idea to call this manually; as a general rule,
+    /// the fewer times your application needs to flush the faster it will run.
+    pub fn flush(&mut self) {
+        self.triangles.sort();
+        self.backend.draw(self.vertices.as_slice(), self.triangles.as_slice());
+        self.vertices.clear();
+        self.triangles.clear();
     }
 
-    ///Draw some amount of draw items with a given blend mode
-    pub fn draw_blended<'a, I: IntoIterator<Item = &'a DrawCall>>(&mut self, iter: I, blend: BlendMode) {
+    /// Set the blend mode for the window
+    ///
+    /// This will flush all of the drawn items to the screen and 
+    /// switch to the new blend mode.
+    pub fn set_blend_mode(&mut self, blend: BlendMode) {
+        self.flush();
         self.backend.set_blend_mode(blend);
-        self.draw(iter);
+    }
+
+    /// Reset the blend mode for the window to the default alpha blending
+    ///
+    /// This will flush all of the drawn items to the screen
+    pub fn reset_blend_mode(&mut self) {
+        self.flush();
         self.backend.reset_blend_mode();
-    }*/
+    }
 
     /// Draw a single object to the screen
     pub fn draw<T: Drawable>(&mut self, item: &T) {
         item.draw(self);
-    }
-
-    /// Draw all objects from a collection to the screen
-    pub fn draw_all<'a, I, T: 'static>(&mut self, iter: I) where T: Drawable, I: IntoIterator<Item = &'a T> {
-        for x in iter.into_iter() {
-            x.draw(self)
-        }
     }
 
     /// Add vertices directly to the list without using a Drawable
