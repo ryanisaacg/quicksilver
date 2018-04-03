@@ -413,7 +413,7 @@ impl Window {
         self.backend.reset_blend_mode();
     }
 
-    /// Draw the changes made to the screen
+    /// Flush changes and also present the changes to the window
     pub fn present(&mut self) {
         self.flush();
         #[cfg(not(target_arch="wasm32"))]
@@ -452,11 +452,18 @@ impl Window {
     }
 
     /// Draw a single object to the screen
+    ///
+    /// It will not appear until Window::flush is called
     pub fn draw<T: Drawable>(&mut self, item: &T) {
         item.draw(self);
     }
 
     /// Add vertices directly to the list without using a Drawable
+    ///
+    /// Each vertex has a position in terms of the current view. The indices
+    /// of the given GPU triangles are specific to these vertices, so that
+    /// the index must be at least 0 and at most the number of vertices.
+    /// Other index values will have undefined behavior
     pub fn add_vertices<V, T>(&mut self, vertices: V, triangles: T) where V: Iterator<Item = Vertex>, T: Iterator<Item = GpuTriangle> {
         let offset = self.vertices.len() as u32;
         self.triangles.extend(triangles.map(|t| GpuTriangle {
