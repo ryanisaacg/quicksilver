@@ -409,30 +409,24 @@ impl Window {
 
     /// Draw the changes made to the screen
     pub fn present(&mut self) {
-        self.triangles.sort();
-        self.backend.draw(self.vertices.as_slice(), self.triangles.as_slice(), BlendMode::Additive);
-        self.vertices.clear();
-        self.triangles.clear();
+        self.flush();
         #[cfg(not(target_arch="wasm32"))]
         self.gl_window.swap_buffers().unwrap();
     }
 
-    ///Draw some amount of draw items
-    /*pub fn draw<'a, I: IntoIterator<Item = &'a DrawCall>>(&mut self, iter: I) {
-        self.draw_buffer.clear();
-        self.draw_buffer.extend(iter.into_iter().map(|x| x.clone()));
-        self.draw_buffer.sort();
-        for item in self.draw_buffer.iter() {
-            item.apply(self.view.opengl, &mut self.backend);
-        }
+    /// Flush the current buffered draw calls
+    ///
+    /// Until Window::present is called they won't be visible,
+    /// but the items will be behind all future items drawn.
+    ///
+    /// Generally it's a bad idea to call this manually; as a general rule,
+    /// the fewer times your application needs to flush the faster it will run.
+    pub fn flush(&mut self) {
+        self.triangles.sort();
+        self.backend.draw(self.vertices.as_slice(), self.triangles.as_slice(), BlendMode::Additive);
+        self.vertices.clear();
+        self.triangles.clear();
     }
-
-    ///Draw some amount of draw items with a given blend mode
-    pub fn draw_blended<'a, I: IntoIterator<Item = &'a DrawCall>>(&mut self, iter: I, blend: BlendMode) {
-        self.backend.set_blend_mode(blend);
-        self.draw(iter);
-        self.backend.reset_blend_mode();
-    }*/
 
     /// Draw a single object to the screen
     pub fn draw<T: Drawable>(&mut self, item: &T) {
