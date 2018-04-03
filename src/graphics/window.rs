@@ -439,13 +439,6 @@ impl Window {
         item.draw(self);
     }
 
-    /// Draw all objects from a collection to the screen
-    pub fn draw_all<'a, I, T: 'static>(&mut self, iter: I) where T: Drawable, I: IntoIterator<Item = &'a T> {
-        for x in iter.into_iter() {
-            x.draw(self)
-        }
-    }
-
     /// Add vertices directly to the list without using a Drawable
     pub fn add_vertices<V, T>(&mut self, vertices: V, triangles: T) where V: Iterator<Item = Vertex>, T: Iterator<Item = GpuTriangle> {
         let offset = self.vertices.len() as u32;
