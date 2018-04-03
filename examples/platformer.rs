@@ -3,9 +3,9 @@ extern crate quicksilver;
 
 use quicksilver::{
     State, run,
-    geom::{Circle, Vector, Transform},
-    graphics::{Color, Drawable, Sprite, Window, WindowBuilder},
-    input::{any, Button, Gamepad, GamepadAxis, GamepadButton, InputCheckable, Key, Keyboard}
+    geom::{Circle, Vector},
+    graphics::{Color, Sprite, Window, WindowBuilder},
+    input::{any, Button, GamepadAxis, GamepadButton, InputCheckable, Key}
 };
 
 struct Platformer {

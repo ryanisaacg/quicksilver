@@ -4,7 +4,7 @@ extern crate quicksilver;
 use quicksilver::{
     State, run,
     geom::{Circle, Rectangle, Transform},
-    graphics::{Color, Drawable, Sprite, Window, WindowBuilder}
+    graphics::{Color, Sprite, Window, WindowBuilder}
 };
 
 struct DrawGeometry;
