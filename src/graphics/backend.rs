@@ -281,9 +281,6 @@ impl Backend {
         // Upload all of the vertex data
         let vertex_data = self.vertices.as_ptr() as *const c_void;
         unsafe { gl::BufferSubData(gl::ARRAY_BUFFER, 0, vertex_length as isize, vertex_data) };
-        // Set the blend mode
-        unsafe { gl::BlendFunc(gl::ONE, gl::ONE) };
-        unsafe { gl::BlendEquationSeparate(blend as u32, gl::FUNC_ADD) };
         // Scan through the triangles, adding the indices to the index buffer (every time the
         // texture switches, flush and switch the bound texture)
         for triangle in triangles.iter() {
