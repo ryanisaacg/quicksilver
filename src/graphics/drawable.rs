@@ -178,7 +178,7 @@ impl Drawable for Sprite {
                     tex_pos: None,
                     col: self.color
                 });
-                let indices = iter::repeat(self.z).take(points.len() - 2).enumerate().map(|(index, z)| GpuTriangle {
+                let indices = iter::repeat(self.z).take(points.len() - 1).enumerate().map(|(index, z)| GpuTriangle {
                     z,
                     indices: [0, index as u32, index as u32 + 1],
                     image: None
