@@ -15,10 +15,12 @@ pub struct Gamepad {
 }
 
 impl Gamepad {
-    #[cfg(not(target_arch="wasm32"))]
-    pub(crate) fn new((id, pad): (usize, &gilrs::Gamepad)) -> Gamepad {
-        use gilrs::Axis;
-        use gilrs::ev::state::AxisData;
+    #[cfg(not(any(target_arch="wasm32", target_os="macos")))]
+    pub(crate) fn new((id, _pad): (usize, &gilrs::Gamepad)) -> Gamepad {
+        use gilrs::{
+            Axis,
+            ev::state::AxisData
+        };
         fn axis_value(data: Option<&AxisData>) -> f32 {
             match data {
                 Some(ref data) => data.value(),
@@ -29,16 +31,16 @@ impl Gamepad {
         let id = id as u32;
         
         let axes = [
-            axis_value(pad.axis_data(Axis::LeftStickX)),
-            axis_value(pad.axis_data(Axis::LeftStickY)),
-            axis_value(pad.axis_data(Axis::RightStickX)),
-            axis_value(pad.axis_data(Axis::RightStickY))
+            axis_value(_pad.axis_data(Axis::LeftStickX)),
+            axis_value(_pad.axis_data(Axis::LeftStickY)),
+            axis_value(_pad.axis_data(Axis::RightStickX)),
+            axis_value(_pad.axis_data(Axis::RightStickY))
         ];
 
         let mut buttons = [ButtonState::NotPressed; 17];
         for i in 0..ALL_BUTTONS.len() {
             let button = ALL_BUTTONS[i];
-            let value = match pad.button_data(button.into()) {
+            let value = match _pad.button_data(button.into()) {
                 Some(ref data) => data.is_pressed(),
                 None => false
             };
@@ -71,12 +73,13 @@ impl Gamepad {
         Gamepad { id, buttons, axes }          
     }
 
-    pub(crate) fn set_previous(&mut self, previous: Gamepad) {
+    pub(crate) fn set_previous(&mut self, _previous: Gamepad) {
+        #[cfg(not(target_os="macos"))]
         for i in 0..ALL_BUTTONS.len() {
             let button = ALL_BUTTONS[i];
             let gamepad_button: GamepadButton = button.into();
             let state = self.buttons[gamepad_button as usize];
-            self.buttons[gamepad_button as usize] = previous[gamepad_button].update(state);
+            self.buttons[gamepad_button as usize] = _previous[gamepad_button].update(state);
         }
     }
 
@@ -122,6 +125,7 @@ impl PartialEq for Gamepad {
 
 impl Eq for Gamepad {}
 
+#[cfg(not(target_os="macos"))]
 const ALL_BUTTONS: &[GamepadButton] = &[
     GamepadButton::FaceDown,
     GamepadButton::FaceRight,

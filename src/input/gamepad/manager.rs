@@ -1,8 +1,9 @@
-#[cfg(not(target_arch="wasm32"))] use gilrs::Gilrs;
+#[cfg(not(any(target_arch="wasm32", target_os="macos")))] 
+use gilrs::Gilrs;
 use input::Gamepad;
 
 pub(crate) struct GamepadManager {
-    #[cfg(not(target_arch="wasm32"))]
+    #[cfg(not(any(target_arch="wasm32", target_os="macos")))]
     gilrs: Gilrs,
     gamepads: Vec<Gamepad>,
     old: Vec<Gamepad>
@@ -11,7 +12,7 @@ pub(crate) struct GamepadManager {
 impl GamepadManager {
     pub(crate) fn new() -> GamepadManager {
         GamepadManager {
-            #[cfg(not(target_arch="wasm32"))]
+            #[cfg(not(any(target_arch="wasm32", target_os="macos")))]
             gilrs: Gilrs::new().unwrap(),
             gamepads: Vec::new(),
             old: Vec::new()
@@ -45,12 +46,14 @@ impl GamepadManager {
 
     #[cfg(not(target_arch="wasm32"))]
     pub(crate) fn update_platform(&mut self) {
-        while let Some(ev) = self.gilrs.next_event() {
-            self.gilrs.update(&ev);
-        }
+        #[cfg(not(target_os = "macos"))] {
+            while let Some(ev) = self.gilrs.next_event() {
+                self.gilrs.update(&ev);
+            }
 
-        self.gamepads.extend(
-            self.gilrs.gamepads().map(|data| Gamepad::new(data)));
+            self.gamepads.extend(
+                self.gilrs.gamepads().map(|data| Gamepad::new(data)));
+        }
     }
 
     #[cfg(target_arch="wasm32")]
