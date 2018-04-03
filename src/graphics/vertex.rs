@@ -43,12 +43,16 @@ impl Eq for GpuTriangle {}
 
 impl PartialOrd for GpuTriangle {
     fn partial_cmp(&self, other: &GpuTriangle) -> Option<Ordering> {
-        Some(match (&self.image, &other.image) {
-            (&Some(ref a), &Some(ref b)) => a.get_id().cmp(&b.get_id()),
-            (&Some(_), &None) => Ordering::Greater,
-            (&None, &Some(_)) => Ordering::Less,
-            (&None, &None) => Ordering::Equal,
-        })
+        match self.z.partial_cmp(&other.z) {
+            None | Some(Ordering::Equal) => 
+                Some(match (&self.image, &other.image) {
+                    (&Some(ref a), &Some(ref b)) => a.get_id().cmp(&b.get_id()),
+                    (&Some(_), &None) => Ordering::Greater,
+                    (&None, &Some(_)) => Ordering::Less,
+                    (&None, &None) => Ordering::Equal,
+                }),
+            result => result
+        }
     }
 }
 
