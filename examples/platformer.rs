@@ -3,9 +3,9 @@ extern crate quicksilver;
 
 use quicksilver::{
     State, run,
-    geom::{Circle, Vector, Transform},
-    graphics::{Color, DrawCall, Window, WindowBuilder},
-    input::{any, Button, Gamepad, GamepadAxis, GamepadButton, InputCheckable, Key, Keyboard}
+    geom::{Circle, Vector},
+    graphics::{Color, Sprite, Window, WindowBuilder},
+    input::{any, Button, GamepadAxis, GamepadButton, InputCheckable, Key}
 };
 
 struct Platformer {
@@ -48,7 +48,7 @@ impl State for Platformer {
 
    fn draw(&mut self, window: &mut Window) {
         window.clear(Color::black());
-        window.draw(&[DrawCall::circle(self.player).with_color(Color::blue())]);
+        window.draw(&Sprite::circle(self.player).with_color(Color::blue()));
         window.present();
    }
 }

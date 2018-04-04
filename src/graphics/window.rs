@@ -2,7 +2,7 @@ use ffi::gl;
 #[cfg(not(target_arch="wasm32"))] use glutin;
 use geom::{ Rectangle, Transform, Vector};
 #[cfg(not(target_arch="wasm32"))] use glutin::{EventsLoop, GlContext};
-use graphics::{Backend, BlendMode, Color, DrawCall, ResizeStrategy, View};
+use graphics::{Backend, BlendMode, Color, Drawable, GpuTriangle, ResizeStrategy, Vertex, View};
 #[cfg(feature="gamepads")] use input::{Gamepad, GamepadManager};
 use input::{Button, ButtonState, Keyboard, Mouse};
 
@@ -173,7 +173,8 @@ impl WindowBuilder {
             view,
             previous_button: None,
             backend: Backend::new(self.scale as u32),
-            draw_buffer: Vec::new()
+            vertices: Vec::new(),
+            triangles: Vec::new()
         }
     }
 }
@@ -194,7 +195,8 @@ pub struct Window {
     view: View,
     previous_button: Option<(Button, ButtonState)>,
     pub(crate) backend: Backend,
-    draw_buffer: Vec<DrawCall>
+    vertices: Vec<Vertex>,
+    triangles: Vec<GpuTriangle>
 }
 
 impl Window {
@@ -401,32 +403,78 @@ impl Window {
     }
     
     /// Clear the screen to a given color
+    ///
+    /// The blend mode is also automatically reset,
+    /// and any un-flushed draw calls are dropped.
     pub fn clear(&mut self, color: Color) {
+        self.vertices.clear();
+        self.triangles.clear();
         self.backend.clear(color);
+        self.backend.reset_blend_mode();
     }
 
-    /// Draw the changes made to the screen
+    /// Flush changes and also present the changes to the window
     pub fn present(&mut self) {
-        self.backend.flush();
+        self.flush();
         #[cfg(not(target_arch="wasm32"))]
         self.gl_window.swap_buffers().unwrap();
     }
 
-    ///Draw some amount of draw items
-    pub fn draw<'a, I: IntoIterator<Item = &'a DrawCall>>(&mut self, iter: I) {
-        self.draw_buffer.clear();
-        self.draw_buffer.extend(iter.into_iter().map(|x| x.clone()));
-        self.draw_buffer.sort();
-        for item in self.draw_buffer.iter() {
-            item.apply(self.view.opengl, &mut self.backend);
-        }
+    /// Flush the current buffered draw calls
+    ///
+    /// Until Window::present is called they won't be visible,
+    /// but the items will be behind all future items drawn.
+    ///
+    /// Generally it's a bad idea to call this manually; as a general rule,
+    /// the fewer times your application needs to flush the faster it will run.
+    pub fn flush(&mut self) {
+        self.triangles.sort();
+        self.backend.draw(self.vertices.as_slice(), self.triangles.as_slice());
+        self.vertices.clear();
+        self.triangles.clear();
     }
 
-    ///Draw some amount of draw items with a given blend mode
-    pub fn draw_blended<'a, I: IntoIterator<Item = &'a DrawCall>>(&mut self, iter: I, blend: BlendMode) {
+    /// Set the blend mode for the window
+    ///
+    /// This will flush all of the drawn items to the screen and 
+    /// switch to the new blend mode.
+    pub fn set_blend_mode(&mut self, blend: BlendMode) {
+        self.flush();
         self.backend.set_blend_mode(blend);
-        self.draw(iter);
+    }
+
+    /// Reset the blend mode for the window to the default alpha blending
+    ///
+    /// This will flush all of the drawn items to the screen
+    pub fn reset_blend_mode(&mut self) {
+        self.flush();
         self.backend.reset_blend_mode();
+    }
+
+    /// Draw a single object to the screen
+    ///
+    /// It will not appear until Window::flush is called
+    pub fn draw<T: Drawable>(&mut self, item: &T) {
+        item.draw(self);
+    }
+
+    /// Add vertices directly to the list without using a Drawable
+    ///
+    /// Each vertex has a position in terms of the current view. The indices
+    /// of the given GPU triangles are specific to these vertices, so that
+    /// the index must be at least 0 and at most the number of vertices.
+    /// Other index values will have undefined behavior
+    pub fn add_vertices<V, T>(&mut self, vertices: V, triangles: T) where V: Iterator<Item = Vertex>, T: Iterator<Item = GpuTriangle> {
+        let offset = self.vertices.len() as u32;
+        self.triangles.extend(triangles.map(|t| GpuTriangle {
+            indices: [t.indices[0] + offset, t.indices[1] + offset, t.indices[2] + offset],
+            ..t
+        }));
+        let opengl = self.view.opengl;
+        self.vertices.extend(vertices.map(|v| Vertex {
+            pos: opengl * v.pos,
+            ..v
+        }));
     }
 
     /// Get a reference to the connected gamepads
