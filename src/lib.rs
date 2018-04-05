@@ -77,6 +77,11 @@ pub use timer::Timer;
 #[cfg(feature="window")]   pub use state::{State, run};
 #[cfg(feature="window")] #[cfg(target_arch="wasm32")] pub use state::{init, update, draw};
 
+/// A type that can be loaded, resulting in an Item or an Error
+pub type Loadable<Item, Error> = futures::Future<Item = Item, Error = Error>;
+/// The result of a loading poll, either Ready(T) or NotReady
+pub type Loading<T> = futures::Async<T>;
+
 #[no_mangle]
 #[cfg(target_arch="wasm32")]
 #[doc(hidden)]
