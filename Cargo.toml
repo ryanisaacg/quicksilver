@@ -54,3 +54,8 @@ required-features = ["geometry", "window"]
 [[example]]
 name = "platformer"
 required-features = ["geometry", "window", "gamepads"]
+
+
+[[example]]
+name = "image"
+required-features = ["window"]

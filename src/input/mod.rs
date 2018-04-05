@@ -3,7 +3,6 @@
 //! The Keyboard is indexed by Keys, allowing polling of a button state. The Mouse tracks the
 //! standard three buttons, the mouse wheel, and the mouse position. 
 
-mod boolean;
 mod button;
 mod event;
 #[cfg(feature="gamepads")] mod gamepad;
@@ -12,7 +11,6 @@ mod keyboard;
 mod mouse;
 
 pub use self::{
-    boolean::*,
     button::{Button, ButtonState},
     event::Event,
     key::Key,

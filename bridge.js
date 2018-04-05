@@ -258,6 +258,7 @@ let env = {
     sinf: (x) => Math.sin(x),
     cosf: (x) => Math.cos(x),
     tanf: (x) => Math.tan(x),
+    roundf: (x) => Math.round(x),
     Math_acos: (x) => Math.acos(x),
     Math_asin: (x) => Math.asin(x),
     Math_atan: (x) => Math.atan(x),
