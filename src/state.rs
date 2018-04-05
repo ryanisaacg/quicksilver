@@ -1,8 +1,5 @@
-extern crate glutin;
-
-use glutin::EventsLoop;
 use graphics::{BuiltWindow, Window};
-use input::{Event, parse_events};
+use input::{Event, EventProvider};
 
 /// The structure responsible for managing the game loop state
 pub trait State {
@@ -17,8 +14,10 @@ pub trait State {
     ///
     /// By default it does nothing
     fn update(&mut self, &mut Window) {}
-    /// TODO: Documentation
-    fn event(&mut self, event: &Event, &mut Window) {}
+    /// Process an incoming event
+    ///
+    /// By default it does nothing
+    fn event(&mut self, &Event, &mut Window) {}
     /// Draw the state to the screen
     ///
     /// Will happen as often as possible, only limited by vysnc
@@ -43,7 +42,7 @@ pub fn run<T: 'static + State>() {
 pub struct Application {
     state: Box<State>, 
     window: Window,
-    events: EventsLoop,
+    events: EventProvider,
     event_buffer: Vec<Event>
 }
 
@@ -56,16 +55,19 @@ impl Application {
         self.state.draw(&mut self.window);
     }
 
-    fn process_events(&mut self) {
+    fn events(&mut self) -> bool {
+        let running = self.events.generate_events(&mut self.window, &mut self.event_buffer);
         for i in 0..self.event_buffer.len() {
             self.state.event(&self.event_buffer[i], &mut self.window);
         }
+        running
     }
 }
 
 #[cfg(not(target_arch="wasm32"))]
 fn run_impl<T: 'static + State>() {
-    let (window, events) = T::configure().build();
+    let (window, events_loop) = T::configure().build();
+    let events = EventProvider { events_loop };
     let state = Box::new(T::new());
     let mut app = Application { window, state, events, event_buffer: Vec::new() };
     use std::time::Duration;
@@ -74,8 +76,7 @@ fn run_impl<T: 'static + State>() {
     let mut timer = ::Timer::new();
     let mut running = true;
     while running {
-        running = parse_events(&mut app.events, &mut app.window, &mut app.event_buffer);
-        app.process_events();
+        running = app.events();
         timer.tick(||  { 
             app.update(); 
             Duration::from_millis(16) 

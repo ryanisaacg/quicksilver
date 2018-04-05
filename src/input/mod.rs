@@ -20,6 +20,6 @@ pub use self::{
 #[cfg(feature="gamepads")] pub use self::gamepad::{Gamepad, GamepadAxis, GamepadButton};
 #[cfg(feature="gamepads")] pub(crate) use self::gamepad::GamepadManager;
 pub(crate) use self::{
-    event::parse_events,
+    event::EventProvider,
     key::KEY_LIST
 };
