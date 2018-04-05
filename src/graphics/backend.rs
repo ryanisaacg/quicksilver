@@ -289,6 +289,7 @@ impl Backend {
         }
         // Flush any remaining triangles
         self.flush();
+        self.vertices.clear();
     }
 
     pub fn add_vertex(&mut self, vertex: &Vertex) {
