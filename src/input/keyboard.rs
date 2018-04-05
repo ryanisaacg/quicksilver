@@ -36,37 +36,3 @@ impl Index<Key> for Keyboard {
         &self.keys[index as usize]
     }
 }
-
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn keypress() {
-        let mut keyboard = Keyboard {
-            keys: [ButtonState::NotPressed; 256]
-        };
-        keyboard.process_event(Key::A as usize, true);
-        assert_eq!(keyboard[Key::A], ButtonState::Pressed);
-        keyboard.process_event(Key::A as usize, true);
-        assert_eq!(keyboard[Key::A], ButtonState::Pressed);
-        keyboard.process_event(Key::A as usize, false);
-        assert_eq!(keyboard[Key::A], ButtonState::Released);
-        keyboard.process_event(Key::A as usize, false);
-        assert_eq!(keyboard[Key::A], ButtonState::Released);
-    }
-
-    #[test]
-    fn clear_states() {
-        let mut keyboard = Keyboard {
-            keys: [ButtonState::NotPressed; 256].clone()
-        };
-        keyboard.process_event(Key::A as usize, true);
-        keyboard.clear_temporary_states();
-        assert_eq!(keyboard[Key::A], ButtonState::Held);
-        keyboard.process_event(Key::A as usize, false);
-        keyboard.clear_temporary_states();
-        assert_eq!(keyboard[Key::A], ButtonState::NotPressed);
-    }
-}

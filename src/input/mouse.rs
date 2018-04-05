@@ -97,29 +97,3 @@ impl Index<MouseButton> for Mouse {
         &self.buttons[index as usize]
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn button_presses() {
-        let mut mouse = Mouse {
-            pos: Vector::zero(),
-            buttons: [ButtonState::NotPressed; 3],
-            wheel: Vector::zero()
-        };
-        mouse.process_wheel_lines(1.0, 1.0);
-        for button in [glutin::MouseButton::Left, glutin::MouseButton::Right, glutin::MouseButton::Middle].iter() {
-            for state in [glutin::ElementState::Pressed, glutin::ElementState::Released].iter() {
-                mouse.process_button(state.clone(), button.clone());
-            }
-        }
-        mouse.clear_temporary_states();
-        assert_eq!(mouse[MouseButton::Left], ButtonState::NotPressed);
-        assert_eq!(mouse[MouseButton::Right], ButtonState::NotPressed);
-        assert_eq!(mouse[MouseButton::Middle], ButtonState::NotPressed);
-        assert_eq!(mouse.wheel, Vector::zero());
-    }
-}
-
