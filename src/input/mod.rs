@@ -5,6 +5,7 @@
 
 mod boolean;
 mod button;
+mod event;
 #[cfg(feature="gamepads")] mod gamepad;
 mod key;
 mod keyboard;
@@ -13,6 +14,7 @@ mod mouse;
 pub use self::{
     boolean::*,
     button::{Button, ButtonState},
+    event::Event,
     key::Key,
     keyboard::Keyboard,
     mouse::{Mouse, MouseButton}
