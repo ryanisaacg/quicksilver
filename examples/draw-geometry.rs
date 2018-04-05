@@ -4,13 +4,13 @@ extern crate quicksilver;
 use quicksilver::{
     State, run,
     geom::{Circle, Rectangle, Transform},
-    graphics::{Color, Sprite, Window, WindowBuilder}
+    graphics::{BuiltWindow, Color, Sprite, Window, WindowBuilder}
 };
 
 struct DrawGeometry;
 
 impl State for DrawGeometry {
-    fn configure() -> Window {
+    fn configure() -> BuiltWindow {
         WindowBuilder::new().build("Draw Geometry", 800, 600)
     }
 

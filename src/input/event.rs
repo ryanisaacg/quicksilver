@@ -1,5 +1,9 @@
-use input::{ButtonState, GamepadAxis, GamepadButton, Key, MouseButton};
+extern crate glutin;
+
+use input::{ButtonState, GamepadAxis, GamepadButton, Key, KEY_LIST, MouseButton};
 use geom::Vector;
+use graphics::Window;
+use glutin::{EventsLoop, Event::{WindowEvent}};
 
 /// An input event
 pub enum Event {
@@ -29,4 +33,68 @@ pub enum Event {
     GamepadConnected(u32),
     /// A gamepad has been disconnected
     GamepadDisconnected(u32)
+}
+
+const LINES_TO_PIXELS: f32 = 15.0;
+
+pub(crate) fn parse_events(events_loop: &mut EventsLoop, window: &mut Window, events: &mut Vec<Event>) -> bool {
+    let mut running = true;
+    //TODO: Make sure only novel events hit the user
+    events_loop.poll_events(|event| match event {
+        WindowEvent { event, .. } => match event {
+            glutin::WindowEvent::Closed => {
+                running = false;
+                events.push(Event::Closed);
+            }
+            glutin::WindowEvent::KeyboardInput { input: event, .. } => {
+                if let Some(keycode) = event.virtual_keycode {
+                    let state = match event.state {
+                        glutin::ElementState::Pressed => ButtonState::Pressed,
+                        glutin::ElementState::Released => ButtonState::Released
+                    };
+                    let key = KEY_LIST[keycode as usize];
+                    events.push(Event::Key(key, state));
+                }
+            }
+            glutin::WindowEvent::CursorMoved { position, .. } => {
+                let (x, y) = position;
+                let position = (Vector::new(x as f32, y as f32) - window.screen_offset()) / window.scale_factor;
+                events.push(Event::MouseMoved(position));
+            }
+            glutin::WindowEvent::MouseInput { state, button, .. } => {
+                let value = match state {
+                    glutin::ElementState::Pressed => ButtonState::Pressed,
+                    glutin::ElementState::Released => ButtonState::Released,
+                };
+                let index = match button {
+                    glutin::MouseButton::Left => MouseButton::Left,
+                    glutin::MouseButton::Right => MouseButton::Right,
+                    glutin::MouseButton::Middle => MouseButton::Middle,
+                    // Other mouse buttons just mean we should move on to the next glutin event
+                    _ => { return; },
+                };
+                events.push(Event::MouseButton(index, value));
+            }
+            glutin::WindowEvent::MouseWheel { delta, .. } => {
+                let (x, y) = match delta {
+                    glutin::MouseScrollDelta::LineDelta(x, y) => (x * LINES_TO_PIXELS, y * -LINES_TO_PIXELS),
+                    glutin::MouseScrollDelta::PixelDelta(x, y) => (x, y)
+                };
+                let vector = Vector::new(x, y);
+                events.push(Event::MouseMoved(vector));
+            }
+            glutin::WindowEvent::Closed => {
+                running = false;
+            }
+            glutin::WindowEvent::Resized(new_width, new_height) => {
+                window.adjust_size(Vector::new(new_width as f32, new_height as f32));
+            },
+            _ => ()
+        },
+        _ => ()
+    });
+    for event in events.iter() {
+        window.process_event(event);
+    }
+    running
 }

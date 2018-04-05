@@ -4,7 +4,7 @@ use geom::{ Rectangle, Transform, Vector};
 #[cfg(not(target_arch="wasm32"))] use glutin::{EventsLoop, GlContext};
 use graphics::{Backend, BlendMode, Color, Drawable, GpuTriangle, ResizeStrategy, Vertex, View};
 #[cfg(feature="gamepads")] use input::{Gamepad, GamepadManager};
-use input::{Button, ButtonState, Keyboard, Mouse};
+use input::{Button, ButtonState, Event, Keyboard, Mouse};
 
 /// The way the images should change when drawn at a scale
 #[repr(u32)]
@@ -99,80 +99,95 @@ impl WindowBuilder {
     }
 
     ///Create a window and canvas with the given configuration
-    pub fn build(self, title: &str, width: u32, height: u32) -> Window {
-        let mut actual_width = width;
-        let mut actual_height = height;
-        #[cfg(not(target_arch="wasm32"))]
-        let (gl_window, events) = {
-            let events = glutin::EventsLoop::new();
-            let window = glutin::WindowBuilder::new()
-                .with_decorations(!self.fullscreen)
-                .with_title(title);
-            #[cfg(not(target_arch="wasm32"))]
-            let window = match self.min_size { 
-                Some(v) => window.with_min_dimensions(v.x as u32, v.y as u32),
-                None => window
-            };
-            #[cfg(not(target_arch="wasm32"))]
-            let window = match self.max_size {
-                Some(v) => window.with_max_dimensions(v.x as u32, v.y as u32),
-                None => window
-            };
-            if self.fullscreen {
-                let (w, h) = events.get_primary_monitor().get_dimensions();
-                actual_width = w;
-                actual_height = h;
-            }
-            let window = window.with_dimensions(actual_width, actual_height);
-            let context = glutin::ContextBuilder::new().with_vsync(true);
-            let gl_window = glutin::GlWindow::new(window, context, &events).unwrap();
-            unsafe {
-                gl_window.make_current().unwrap();
-                gl::load_with(|symbol| gl_window.get_proc_address(symbol) as *const _);
-            }
-            gl_window.set_cursor_state(if self.show_cursor { 
-                glutin::CursorState::Normal } else { glutin::CursorState::Hide }).unwrap();
-            (gl_window, events)
+    pub fn build(self, title: &'static str, width: u32, height: u32) -> BuiltWindow {
+        BuiltWindow { props: self, title, width, height }
+    }
+}
+
+/// The data needed to create a window for the application
+pub struct BuiltWindow {
+    props: WindowBuilder, 
+    title: &'static str, 
+    width: u32, 
+    height: u32
+}
+
+impl BuiltWindow {
+    #[cfg(not(target_arch="wasm32"))]
+    pub(crate) fn build(self) -> (Window, EventsLoop) {
+        let mut actual_width = self.width;
+        let mut actual_height = self.height;
+        let events = glutin::EventsLoop::new();
+        let window = glutin::WindowBuilder::new()
+            .with_decorations(!self.props.fullscreen)
+            .with_title(self.title);
+        let window = match self.props.min_size { 
+            Some(v) => window.with_min_dimensions(v.x as u32, v.y as u32),
+            None => window
         };
-        #[cfg(target_arch="wasm32")] {
-            use ffi::wasm;
-            use std::ffi::CString;
-            unsafe { 
-                wasm::set_show_mouse(self.show_cursor);
-                if self.fullscreen {
-                    actual_width = wasm::get_page_width();
-                    actual_height = wasm::get_page_height();
-                }
-                wasm::create_context(CString::new(title).unwrap().into_raw(), actual_width, actual_height);
-            }
+        let window = match self.props.max_size {
+            Some(v) => window.with_max_dimensions(v.x as u32, v.y as u32),
+            None => window
+        };
+        if self.props.fullscreen {
+            let (w, h) = events.get_primary_monitor().get_dimensions();
+            actual_width = w;
+            actual_height = h;
         }
-        let screen_region = self.resize.resize(Vector::new(width, height), Vector::new(actual_width, actual_height)); 
-        #[cfg(not(target_arch="wasm32"))]
-        let scale_factor = gl_window.hidpi_factor();
-        #[cfg(target_arch="wasm32")]
-        let scale_factor = 1f32;
+        let window = window.with_dimensions(actual_width, actual_height);
+        let context = glutin::ContextBuilder::new().with_vsync(true);
+        let gl_window = glutin::GlWindow::new(window, context, &events).unwrap();
+        unsafe {
+            gl_window.make_current().unwrap();
+            gl::load_with(|symbol| gl_window.get_proc_address(symbol) as *const _);
+        }
+        gl_window.set_cursor_state(if self.props.show_cursor { 
+            glutin::CursorState::Normal } else { glutin::CursorState::Hide }).unwrap();
+        let scale_factor = gl_window.hidpi_factor(); // Need to be calculated before moving gl_window
+        let screen_region = self.props.resize.resize(Vector::new(self.width, self.height), Vector::new(actual_width, actual_height)); 
         let view = View::new(Rectangle::newv_sized(screen_region.size()));
-        Window {
-            #[cfg(not(target_arch="wasm32"))]
+        (Window {
             gl_window,
-            #[cfg(not(target_arch="wasm32"))]
-            events,
             #[cfg(feature="gamepads")]
             gamepads: GamepadManager::new(),
-            resize: self.resize,
+            resize: self.props.resize,
             screen_region,
             scale_factor,
-            keyboard: Keyboard {
-                keys: [ButtonState::NotPressed; 256]
-            },
-            mouse: Mouse {
-                pos: Vector::zero(),
-                buttons: [ButtonState::NotPressed; 3],
-                wheel: Vector::zero()
-            },
+            keyboard: Keyboard { keys: [ButtonState::NotPressed; 256] },
+            mouse: Mouse { pos: Vector::zero(), buttons: [ButtonState::NotPressed; 3], wheel: Vector::zero() },
             view,
-            previous_button: None,
-            backend: Backend::new(self.scale as u32),
+            backend: Backend::new(self.props.scale as u32),
+            vertices: Vec::new(),
+            triangles: Vec::new()
+        }, events)
+    }
+
+    #[cfg(target_arch="wasm32")]
+    pub(crate) fn build(self) -> Window {
+        let mut actual_width = self.width;
+        let mut actual_height = self.height;
+        use ffi::wasm;
+        use std::ffi::CString;
+        unsafe { 
+            wasm::set_show_mouse(self.show_cursor);
+            if self.fullscreen {
+                actual_width = wasm::get_page_width();
+                actual_height = wasm::get_page_height();
+            }
+            wasm::create_context(CString::new(self.title).unwrap().into_raw(), actual_width, actual_height);
+        }
+        let screen_region = self.resize.resize(Vector::new(width, height), Vector::new(actual_width, actual_height));
+        let view = View::new(Rectangle::newv_sized(screen_region.size()));
+        Window {
+            #[cfg(feature="gamepads")]
+            gamepads: GamepadManager::new(),
+            resize: self.props.resize,
+            screen_region,
+            scale_factor: 1.0,
+            keyboard: Keyboard { keys: [ButtonState::NotPressed; 256] },
+            mouse: Mouse { pos: Vector::zero(), buttons: [ButtonState::NotPressed; 3], wheel: Vector::zero() },
+            view,
+            backend: Backend::new(self.props.scale as u32),
             vertices: Vec::new(),
             triangles: Vec::new()
         }
@@ -183,99 +198,35 @@ impl WindowBuilder {
 pub struct Window {
     #[cfg(not(target_arch="wasm32"))]
     pub(crate) gl_window: glutin::GlWindow,
-    #[cfg(not(target_arch="wasm32"))]
-    events: EventsLoop,
     #[cfg(feature="gamepads")]
     gamepads: GamepadManager,
     resize: ResizeStrategy,
-    scale_factor: f32,
+    pub(crate) scale_factor: f32,
     screen_region: Rectangle,
     keyboard: Keyboard,
     mouse: Mouse,
     view: View,
-    previous_button: Option<(Button, ButtonState)>,
     pub(crate) backend: Backend,
     vertices: Vec<Vertex>,
     triangles: Vec<GpuTriangle>
 }
 
 impl Window {
-    ///Update the keyboard, mouse, and window state, and return if the window is still open
-    pub fn poll_events(&mut self) -> bool {
-        self.gamepads.update();
-        self.poll_events_impl()
+    pub(crate) fn process_event(&mut self, event: &Event) {
+        match event {
+            &Event::Key(key, state) => self.keyboard.process_event(key as usize, state),
+            &Event::MouseMoved(pos) => self.mouse = Mouse { pos, ..self.mouse },
+            &Event::MouseWheel(wheel) => self.mouse = Mouse { wheel, ..self.mouse },
+            &Event::MouseButton(button, state) => self.mouse.process_button(button, state),
+            // TODO: handle gamepads
+            _ => ()
+        }
     }
-
+    
     ///Transition temporary input states (Pressed, Released) into sustained ones (Held, NotPressed)
     pub fn clear_temporary_states(&mut self) {
         self.keyboard.clear_temporary_states();
         self.mouse.clear_temporary_states();
-    }
-
-    #[cfg(not(target_arch="wasm32"))]
-    fn poll_events_impl(&mut self) -> bool {
-        let scale_factor = self.gl_window.hidpi_factor();
-        let mut running = true;
-        let mut keyboard = self.keyboard.clone();
-        let mut mouse = self.mouse.clone();
-        let mut resized = None;
-        let offset = self.screen_region.top_left();
-        let mut button_change = None;
-        self.events.poll_events(|event| match event {
-            glutin::Event::WindowEvent { event, .. } => {
-                match event {
-                    glutin::WindowEvent::KeyboardInput {
-                        device_id: _,
-                        input: event,
-                    } => {
-                        if let Some(keycode) = event.virtual_keycode {
-                            let state = match event.state {
-                                glutin::ElementState::Pressed => true,
-                                glutin::ElementState::Released => false
-                            };
-                            let change = keyboard.process_event(keycode as usize, state);
-                            if let Some((button, state)) = change {
-                                button_change = Some((Button::Keyboard(button), state));
-                            }
-                        }
-                    }
-                    glutin::WindowEvent::CursorMoved { position, .. } => {
-                        let (x, y) = position;
-                        mouse = Mouse {
-                            pos: (Vector::new(x as f32, y as f32) - offset) / scale_factor,
-                            ..mouse
-                        };
-                    }
-                    glutin::WindowEvent::MouseInput { state, button, .. } => {
-                        let change = mouse.process_button(state, button);
-                        if let Some((button, state)) = change {
-                            button_change = Some((Button::Mouse(button), state));
-                        }
-                    }
-                    glutin::WindowEvent::MouseWheel { delta, .. } => {
-                        match delta {
-                            glutin::MouseScrollDelta::LineDelta(x, y) => mouse.process_wheel_lines(x, -y),
-                            glutin::MouseScrollDelta::PixelDelta(x, y) => mouse.process_wheel_pixels(x, y)
-                        }
-                    }
-                    glutin::WindowEvent::Closed => {
-                        running = false;
-                    }
-                    glutin::WindowEvent::Resized(new_width, new_height) => {
-                        resized = Some(Vector::new(new_width as f32, new_height as f32));
-                    }
-                    _ => (),
-                }
-            }
-            _ => (),
-        });
-        if let Some(vector) = resized {
-            self.adjust_size(vector);
-        }
-        self.keyboard = keyboard;
-        self.mouse = mouse;
-        self.previous_button = button_change;
-        running
     }
     
     #[cfg(target_arch="wasm32")]
@@ -314,7 +265,7 @@ impl Window {
     }
 
     ///Handle the available size for the window changing
-    fn adjust_size(&mut self, available: Vector) {
+    pub(crate) fn adjust_size(&mut self, available: Vector) {
         self.screen_region = self.resize.resize(self.screen_region.size(), available);
         unsafe { gl::Viewport(self.screen_region.x as i32, self.screen_region.y as i32, 
                               self.screen_region.width as i32, self.screen_region.height as i32); }
@@ -346,6 +297,11 @@ impl Window {
         self.adjust_size(available);
     }
 
+    // Get the screen offset
+    pub(crate) fn screen_offset(&self) -> Vector {
+        self.screen_region.top_left()
+    }
+
     ///Get the screen size
     pub fn screen_size(&self) -> Vector {
         self.screen_region.size()
@@ -373,16 +329,6 @@ impl Window {
             pos: self.project() * self.mouse.pos,
             ..self.mouse.clone()
         }
-    }
-
-    ///Get the button that changed its state and its current state
-    pub fn last_button(&self) -> Option<(Button, ButtonState)> {
-        self.previous_button
-    }
-
-    ///Clear the last button state
-    pub fn clear_last_button(&mut self) {
-        self.previous_button = None;
     }
 
     ///Set the title of the Window

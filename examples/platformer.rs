@@ -4,7 +4,7 @@ extern crate quicksilver;
 use quicksilver::{
     State, run,
     geom::{Circle, Vector},
-    graphics::{Color, Sprite, Window, WindowBuilder},
+    graphics::{BuiltWindow, Color, Sprite, Window, WindowBuilder},
     input::{any, Button, GamepadAxis, GamepadButton, InputCheckable, Key}
 };
 
@@ -15,7 +15,7 @@ struct Platformer {
 const PLAYER_SPEED: f32 = 3.0;
 
 impl State for Platformer {
-    fn configure() -> Window {
+    fn configure() -> BuiltWindow {
         WindowBuilder::new().build("Basic Platformer", 800, 600)
     }
 

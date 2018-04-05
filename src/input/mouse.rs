@@ -5,8 +5,6 @@ use geom::Vector;
 use input::ButtonState;
 use std::ops::Index;
 
-const LINES_TO_PIXELS: f32 = 15.0;
-
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 /// The different buttons a user can press on a mouse
 pub enum MouseButton {
@@ -29,7 +27,11 @@ pub struct Mouse {
 }
 
 impl Mouse {
-    #[cfg(target_arch="wasm32")]
+    pub(crate) fn process_button(&mut self, button: MouseButton, state: ButtonState) {
+        self.buttons[button as usize] = self.buttons[button as usize].update(state);
+    }
+
+    /*#[cfg(target_arch="wasm32")]
     pub(crate) fn process_button(&mut self, button: u32, state: bool) -> Option<(MouseButton, ButtonState)> {
         if button < 3 {
             let value = if state { ButtonState::Pressed } else { ButtonState::Released };
@@ -68,17 +70,7 @@ impl Mouse {
         } else {
             None
         }
-    }
-
-    pub(crate) fn process_wheel_lines(&mut self, x: f32, y: f32) {
-        let x = if x == 0.0 { x } else { x.signum() };
-        let y = if y == 0.0 { y } else { y.signum() };
-        self.process_wheel_pixels(x * LINES_TO_PIXELS, y * LINES_TO_PIXELS);
-    }
-    
-    pub(crate) fn process_wheel_pixels(&mut self, x: f32, y: f32) {
-        self.wheel = Vector::new(x, y);
-    }
+    }*/
 
     pub(crate) fn clear_temporary_states(&mut self) {
         self.wheel = Vector::zero();

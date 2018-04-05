@@ -1,9 +1,13 @@
-use graphics::Window;
+extern crate glutin;
+
+use glutin::EventsLoop;
+use graphics::{BuiltWindow, Window};
+use input::{Event, parse_events};
 
 /// The structure responsible for managing the game loop state
 pub trait State {
     /// Create a Window to be used in the application
-    fn configure() -> Window where Self: Sized;
+    fn configure() -> BuiltWindow where Self: Sized;
     /// Create the state given the window and canvas
     fn new() -> Self where Self: Sized;
     /// Tick the State forward one frame
@@ -13,6 +17,8 @@ pub trait State {
     ///
     /// By default it does nothing
     fn update(&mut self, &mut Window) {}
+    /// TODO: Documentation
+    fn event(&mut self, event: &Event, &mut Window) {}
     /// Draw the state to the screen
     ///
     /// Will happen as often as possible, only limited by vysnc
@@ -37,13 +43,11 @@ pub fn run<T: 'static + State>() {
 pub struct Application {
     state: Box<State>, 
     window: Window,
+    events: EventsLoop,
+    event_buffer: Vec<Event>
 }
 
 impl Application {
-    fn events(&mut self) -> bool {
-        self.window.poll_events()
-    }
-
     fn update(&mut self) {
         self.state.update(&mut self.window);
     }
@@ -51,18 +55,27 @@ impl Application {
     fn draw(&mut self) {
         self.state.draw(&mut self.window);
     }
+
+    fn process_events(&mut self) {
+        for i in 0..self.event_buffer.len() {
+            self.state.event(&self.event_buffer[i], &mut self.window);
+        }
+    }
 }
 
 #[cfg(not(target_arch="wasm32"))]
 fn run_impl<T: 'static + State>() {
-    let window = T::configure();
+    let (window, events) = T::configure().build();
     let state = Box::new(T::new());
-    let mut app = Application { window, state };
+    let mut app = Application { window, state, events, event_buffer: Vec::new() };
     use std::time::Duration;
     use sound::Sound;
     Sound::initialize();
     let mut timer = ::Timer::new();
-    while app.events() {
+    let mut running = true;
+    while running {
+        running = parse_events(&mut app.events, &mut app.window, &mut app.event_buffer);
+        app.process_events();
         timer.tick(||  { 
             app.update(); 
             Duration::from_millis(16) 
