@@ -1,0 +1,144 @@
+use input::ButtonState;
+use std::ops::Index;
+
+/// A queryable traditional 2-stick gamepad
+#[derive(Clone)]
+pub struct Gamepad {
+    id: u32,
+    buttons: [ButtonState; 17],
+    axes: [f32; 4],
+}
+
+impl Gamepad {
+    pub(crate) fn new(id: u32) -> Gamepad {
+        Gamepad { id, buttons: [ButtonState::NotPressed; 17], axes: [0.0; 4] }
+    }
+
+    pub(crate) fn clear_temporary_states(&mut self) {
+        for button in self.buttons.iter_mut() {
+            *button =  button.clear_temporary();
+        }
+    }
+
+    pub(crate) fn set_axis(&mut self, axis: GamepadAxis, val: f32) {
+        self.axes[axis as usize] = val;
+    }
+
+    pub(crate) fn set_button(&mut self, button: GamepadButton, val: ButtonState) {
+        self.buttons[button as usize] = val;
+    }
+
+    /// Get the ID of the gamepad
+    pub fn id(&self) -> u32 {
+        self.id
+    }
+}
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+/// The axes a gamepad can report
+pub enum GamepadAxis {
+    /// The horizontal tilt of the left stick
+    LeftStickX = 0,
+    /// The vertical tilt of the left stick
+    LeftStickY = 1,
+    /// The horizontal tilt of the right stick
+    RightStickX = 2,
+    /// The vertical tilt of the right stick
+    RightStickY = 3
+}
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+/// A button on a gamepad
+pub enum GamepadButton {
+    /// The bottom face button
+    ///
+    /// This would be X on a Playstation controller, 
+    /// or A on an XBOX controller
+    FaceDown,
+    /// The right face button
+    ///
+    /// This would be O on a Playstation controller,
+    /// or B on an XBOX controller
+    FaceRight,
+    /// The left face button
+    ///
+    /// This would be Square on a Playstation controller,
+    /// or X on an XBOX controller
+    FaceLeft,
+    /// The top face button
+    ///
+    /// This would be Triangle on a Playstation controller,
+    /// or Y on an XBOX controller
+    FaceUp,
+    /// The shoulder button on the left of the controller
+    ShoulderLeft,
+    /// The shoulder button on the right of the controller
+    ShoulderRight,
+    /// The trigger button on the left of the controller
+    TriggerLeft,
+    /// The trigger button on the right of the controller
+    TriggerRight,
+    /// The left-most of the center buttons
+    Select,
+    /// The right-most of the center buttons
+    Start,
+    /// The button press that pushing in the left stick causes
+    StickButtonLeft,
+    /// The button press that pushing in the right stick causes
+    StickButtonRight,
+    /// The up button on the dpad
+    DpadUp,
+    /// The down button on the dpad
+    DpadDown,
+    /// The left button on the dpad
+    DpadLeft,
+    /// The right button on the dpad
+    DpadRight,
+    /// The middle of the center buttons
+    Home
+}
+
+
+
+impl Index<GamepadAxis> for Gamepad {
+    type Output = f32;
+
+    fn index(&self, index: GamepadAxis) -> &f32 {
+        &self.axes[index as usize]
+    }
+}
+
+impl Index<GamepadButton> for Gamepad {
+    type Output = ButtonState;
+
+    fn index(&self, index: GamepadButton) -> &ButtonState {
+        &self.buttons[index as usize]
+    }
+}
+
+pub const GAMEPAD_BUTTON_LIST: &[GamepadButton] = &[
+    GamepadButton::FaceDown,
+    GamepadButton::FaceRight,
+    GamepadButton::FaceUp,
+    GamepadButton::FaceLeft,
+    GamepadButton::ShoulderLeft,
+    GamepadButton::TriggerLeft,
+    GamepadButton::ShoulderRight,
+    GamepadButton::TriggerRight,
+    GamepadButton::Select,
+    GamepadButton::Start,
+    GamepadButton::Home,
+    GamepadButton::StickButtonLeft,
+    GamepadButton::StickButtonRight,
+    GamepadButton::DpadUp,
+    GamepadButton::DpadDown,
+    GamepadButton::DpadLeft,
+    GamepadButton::DpadRight,
+];
+
+pub const GAMEPAD_AXIS_LIST: &[GamepadAxis] = &[
+    GamepadAxis::LeftStickX,
+    GamepadAxis::LeftStickY,
+    GamepadAxis::RightStickX,
+    GamepadAxis::RightStickY,
+];

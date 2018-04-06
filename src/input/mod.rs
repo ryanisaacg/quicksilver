@@ -21,7 +21,7 @@ pub use self::{
 pub(crate) use self::{
     button::BUTTON_STATE_LIST,
     event::EventProvider,
-    gamepad::{GamepadManager, GAMEPAD_AXIS_LIST, GAMEPAD_BUTTON_LIST},
+    gamepad::{GAMEPAD_AXIS_LIST, GAMEPAD_BUTTON_LIST},
     key::KEY_LIST,
     mouse::MOUSE_BUTTON_LIST
 };

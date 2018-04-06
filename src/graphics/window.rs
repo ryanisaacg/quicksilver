@@ -3,8 +3,7 @@ use ffi::gl;
 use geom::{ Rectangle, Transform, Vector};
 #[cfg(not(target_arch="wasm32"))] use glutin::{EventsLoop, GlContext};
 use graphics::{Backend, BlendMode, Color, Drawable, GpuTriangle, ResizeStrategy, Vertex, View};
-#[cfg(feature="gamepads")] use input::{Gamepad, GamepadManager};
-use input::{Button, ButtonState, Event, Keyboard, Mouse};
+use input::{ButtonState, Event, Gamepad, Keyboard, Mouse};
 
 /// The way the images should change when drawn at a scale
 #[repr(u32)]
@@ -148,8 +147,7 @@ impl BuiltWindow {
         let view = View::new(Rectangle::newv_sized(screen_region.size()));
         (Window {
             gl_window,
-            #[cfg(feature="gamepads")]
-            gamepads: GamepadManager::new(),
+            gamepads: Vec::new(),
             resize: self.props.resize,
             screen_region,
             scale_factor,
@@ -179,8 +177,7 @@ impl BuiltWindow {
         let screen_region = self.props.resize.resize(Vector::new(self.width, self.height), Vector::new(actual_width, actual_height));
         let view = View::new(Rectangle::newv_sized(screen_region.size()));
         Window {
-            #[cfg(feature="gamepads")]
-            gamepads: GamepadManager::new(),
+            gamepads: Vec::new(),
             resize: self.props.resize,
             screen_region,
             scale_factor: 1.0,
@@ -198,8 +195,7 @@ impl BuiltWindow {
 pub struct Window {
     #[cfg(not(target_arch="wasm32"))]
     pub(crate) gl_window: glutin::GlWindow,
-    #[cfg(feature="gamepads")]
-    gamepads: GamepadManager,
+    gamepads: Vec<Gamepad>,
     resize: ResizeStrategy,
     pub(crate) scale_factor: f32,
     screen_region: Rectangle,
@@ -218,7 +214,30 @@ impl Window {
             &Event::MouseMoved(pos) => self.mouse = Mouse { pos, ..self.mouse },
             &Event::MouseWheel(wheel) => self.mouse = Mouse { wheel, ..self.mouse },
             &Event::MouseButton(button, state) => self.mouse.process_button(button, state),
-            // TODO: handle gamepads
+            &Event::GamepadAxis(id, axis, val) => self.gamepads
+                .iter_mut()
+                .filter(|gamepad| id == gamepad.id())
+                .next()
+                .iter_mut()
+                .for_each(|gamepad| gamepad.set_axis(axis, val)),
+            &Event::GamepadButton(id, button, state) => self.gamepads
+                .iter_mut()
+                .filter(|gamepad| id == gamepad.id())
+                .next()
+                .iter_mut()
+                .for_each(|gamepad| gamepad.set_button(button, state)),
+            &Event::GamepadConnected(id) => {
+                match self.gamepads.binary_search_by(|gamepad| gamepad.id().cmp(&id)) {
+                    Ok(_) => {} // This means we're inserting a gamepad that we already have, so it's a no-op
+                    Err(index) => { self.gamepads.insert(index, Gamepad::new(id)); }
+                }
+            } 
+            &Event::GamepadDisconnected(id) => {
+                match self.gamepads.binary_search_by(|gamepad| gamepad.id().cmp(&id)) {
+                    Ok(index) => { self.gamepads.remove(index); }
+                    Err(_) => {} // This means we're deleting a gamepad that we don't have, so it's no-op
+                }
+            }
             _ => ()
         }
     }
@@ -227,6 +246,9 @@ impl Window {
     pub fn clear_temporary_states(&mut self) {
         self.keyboard.clear_temporary_states();
         self.mouse.clear_temporary_states();
+        for gamepad in self.gamepads.iter_mut() {
+            gamepad.clear_temporary_states();
+        }
     }
 
     ///Handle the available size for the window changing
@@ -390,6 +412,6 @@ impl Window {
 
     /// Get a reference to the connected gamepads
     pub fn gamepads(&self) -> &Vec<Gamepad> {
-        self.gamepads.list()
+        &self.gamepads
     }
 }
