@@ -18,9 +18,9 @@ pub use self::{
     keyboard::Keyboard,
     mouse::{Mouse, MouseButton}
 };
+#[cfg(not(target_arch="wasm32"))] pub(crate) use self::event::EventProvider;
 pub(crate) use self::{
     button::BUTTON_STATE_LIST,
-    event::EventProvider,
     gamepad::{GAMEPAD_AXIS_LIST, GAMEPAD_BUTTON_LIST},
     key::KEY_LIST,
     mouse::MOUSE_BUTTON_LIST

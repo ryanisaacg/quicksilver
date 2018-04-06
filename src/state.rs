@@ -1,6 +1,6 @@
 use geom::Vector;
 use graphics::{BuiltWindow, Window};
-use input::{Event, EventProvider, BUTTON_STATE_LIST, GAMEPAD_AXIS_LIST, GAMEPAD_BUTTON_LIST, KEY_LIST, MOUSE_BUTTON_LIST};
+use input::{Event, BUTTON_STATE_LIST, GAMEPAD_AXIS_LIST, GAMEPAD_BUTTON_LIST, KEY_LIST, MOUSE_BUTTON_LIST};
 
 /// The structure responsible for managing the game loop state
 pub trait State {
@@ -62,8 +62,9 @@ impl Application {
 
 #[cfg(not(target_arch="wasm32"))]
 fn run_impl<T: 'static + State>() {
+    use input::EventProvider;
     let (window, events_loop) = T::configure().build();
-    let mut events = EventProvider { events_loop };
+    let mut events = EventProvider::new(events_loop);
     let mut event_buffer = Vec::new();
     let state = Box::new(T::new());
     let mut app = Application { window, state };

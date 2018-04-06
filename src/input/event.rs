@@ -1,5 +1,7 @@
 #[cfg(not(target_arch="wasm32"))]
 extern crate glutin;
+#[cfg(all(not(target_arch="wasm32"), not(target_os="macos"), feature="gamepads"))]
+extern crate gilrs;
 
 use input::{ButtonState, GamepadAxis, GamepadButton, Key, KEY_LIST, MouseButton};
 use geom::Vector;
@@ -39,13 +41,23 @@ pub enum Event {
 
 const LINES_TO_PIXELS: f32 = 15.0;
 
+#[cfg(not(target_arch="wasm32"))]
 pub(crate) struct EventProvider {
-    #[cfg(not(target_arch="wasm32"))]
-    pub(crate) events_loop: EventsLoop
+    events_loop: EventsLoop,
+    #[cfg(all(not(target_os="macos"), feature="gamepads"))]
+    gilrs: gilrs::Gilrs
 }
 
+#[cfg(not(target_arch="wasm32"))]
 impl EventProvider {
-    #[cfg(not(target_arch="wasm32"))]
+    pub(crate) fn new(events_loop: EventsLoop) -> EventProvider {
+        EventProvider { 
+            events_loop, 
+            #[cfg(all(not(target_os="macos"), feature="gamepads"))]
+            gilrs: gilrs::Gilrs::new().unwrap()
+        }
+    }
+
     pub(crate) fn generate_events(&mut self, window: &mut Window, events: &mut Vec<Event>) -> bool {
         let mut running = true;
         //TODO: Make sure only novel events hit the user
@@ -99,6 +111,31 @@ impl EventProvider {
             },
             _ => ()
         });
+        #[cfg(all(not(target_os="macos"), feature="gamepads"))]
+        while let Some(gilrs::Event { id, event, .. }) = self.gilrs.next_event() {
+            use input::GAMEPAD_BUTTON_LIST;
+            use gilrs::{Axis, EventType};
+            let id = id as u32;
+            match event {
+                EventType::ButtonPressed(button, _) => if (button as usize) < GAMEPAD_BUTTON_LIST.len() { 
+                    events.push(Event::GamepadButton(id, GAMEPAD_BUTTON_LIST[button as usize], ButtonState::Pressed));
+                },
+                EventType::ButtonReleased(button, _) => if (button as usize) < GAMEPAD_BUTTON_LIST.len() { 
+                    events.push(Event::GamepadButton(id, GAMEPAD_BUTTON_LIST[button as usize], ButtonState::Released));
+                },
+
+                EventType::AxisChanged(axis, value, _) => events.push(Event::GamepadAxis(id, match axis {
+                    Axis::LeftStickX => GamepadAxis::LeftStickX,
+                    Axis::LeftStickY => GamepadAxis::LeftStickY,
+                    Axis::RightStickX => GamepadAxis::RightStickX,
+                    Axis::RightStickY => GamepadAxis::RightStickY,
+                    _ => continue
+                }, value)),
+                EventType::Connected => events.push(Event::GamepadConnected(id)),
+                EventType::Disconnected => events.push(Event::GamepadDisconnected(id)),
+                _ => ()
+            }
+        }
         running
     }
 }
