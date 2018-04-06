@@ -5,7 +5,7 @@ use quicksilver::{
     State, run,
     geom::{Circle, Vector},
     graphics::{BuiltWindow, Color, Sprite, Window, WindowBuilder},
-    input::{Button, GamepadAxis, GamepadButton, Key}
+    input::{GamepadAxis, GamepadButton, Key}
 };
 
 struct Platformer {
