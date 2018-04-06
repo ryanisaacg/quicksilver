@@ -4,6 +4,7 @@ extern crate glutin;
 use input::{ButtonState, GamepadAxis, GamepadButton, Key, KEY_LIST, MouseButton};
 use geom::Vector;
 use graphics::Window;
+#[cfg(not(target_arch="wasm32"))]
 use glutin::{EventsLoop, Event::{WindowEvent}};
 
 /// An input event
@@ -44,12 +45,8 @@ pub(crate) struct EventProvider {
 }
 
 impl EventProvider {
-    pub(crate) fn generate_events(&mut self, window: &mut Window, events: &mut Vec<Event>) -> bool {
-        self.generate_events_impl(window, events)
-    }
-
     #[cfg(not(target_arch="wasm32"))]
-    pub(crate) fn generate_events_impl(&mut self, window: &mut Window, events: &mut Vec<Event>) -> bool {
+    pub(crate) fn generate_events(&mut self, window: &mut Window, events: &mut Vec<Event>) -> bool {
         let mut running = true;
         //TODO: Make sure only novel events hit the user
         self.events_loop.poll_events(|event| match event {
@@ -102,14 +99,7 @@ impl EventProvider {
             },
             _ => ()
         });
-        for event in events.iter() {
-            window.process_event(event);
-        }
         running
-    }
-    
-    #[cfg(target_arch="wasm32")]
-    pub(crate) fn generate_events_impl(&mut self, window: &mut Window, events: &mut Vec<Event>) -> bool {
     }
 }
 

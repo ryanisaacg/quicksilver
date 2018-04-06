@@ -169,14 +169,14 @@ impl BuiltWindow {
         use ffi::wasm;
         use std::ffi::CString;
         unsafe { 
-            wasm::set_show_mouse(self.show_cursor);
-            if self.fullscreen {
+            wasm::set_show_mouse(self.props.show_cursor);
+            if self.props.fullscreen {
                 actual_width = wasm::get_page_width();
                 actual_height = wasm::get_page_height();
             }
             wasm::create_context(CString::new(self.title).unwrap().into_raw(), actual_width, actual_height);
         }
-        let screen_region = self.resize.resize(Vector::new(width, height), Vector::new(actual_width, actual_height));
+        let screen_region = self.props.resize.resize(Vector::new(self.width, self.height), Vector::new(actual_width, actual_height));
         let view = View::new(Rectangle::newv_sized(screen_region.size()));
         Window {
             #[cfg(feature="gamepads")]
@@ -227,41 +227,6 @@ impl Window {
     pub fn clear_temporary_states(&mut self) {
         self.keyboard.clear_temporary_states();
         self.mouse.clear_temporary_states();
-    }
-    
-    #[cfg(target_arch="wasm32")]
-    fn poll_events_impl(&mut self) -> bool {
-        use ffi::wasm;
-        let mut key = unsafe { wasm::pump_key_queue() };
-        while key != 0 {
-            let change = self.keyboard.process_event(key.abs() as usize - 1, key > 0);
-            if let Some((button, state)) = change {
-                self.previous_button = Some((Button::Keyboard(button), state));
-            }
-            key = unsafe { wasm::pump_key_queue() };
-        }
-        self.mouse = Mouse {
-            pos: unsafe { Vector::new(wasm::get_mouse_x(), wasm::get_mouse_y()) } - self.screen_region.top_left(),
-            ..self.mouse
-        };
-        let mut button = unsafe { wasm::pump_mouse_queue() };
-        while button != 0 {
-            let change = self.mouse.process_button(button.abs() as u32 - 1, button > 0);
-            if let Some((button, state)) = change {
-                self.previous_button = Some((Button::Mouse(button), state));
-            }
-            button = unsafe { wasm::pump_mouse_queue() };
-        }
-        let scroll = unsafe { wasm::mouse_scroll_type() };
-        let x = unsafe { wasm::mouse_scroll_x() };
-        let y = unsafe { wasm::mouse_scroll_y() };
-        if scroll == 0 {
-            self.mouse.process_wheel_pixels(x, y);
-        } else {
-            self.mouse.process_wheel_lines(x, y);
-        }
-        unsafe { wasm::mouse_scroll_clear(); }
-        true
     }
 
     ///Handle the available size for the window changing

@@ -75,7 +75,7 @@ pub mod util;
 pub use error::QuicksilverError;
 pub use timer::Timer;
 #[cfg(feature="window")]   pub use state::{State, run};
-#[cfg(feature="window")] #[cfg(target_arch="wasm32")] pub use state::{init, update, draw};
+#[cfg(feature="window")] #[cfg(target_arch="wasm32")] pub use state::{init, update, draw, event};
 
 /// Necessary types from futures-rs
 pub use futures::{Future, Async};

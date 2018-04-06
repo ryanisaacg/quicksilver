@@ -14,12 +14,14 @@ pub use self::{
     button::{Button, ButtonState},
     event::Event,
     key::Key,
+    gamepad::{Gamepad, GamepadAxis, GamepadButton},
     keyboard::Keyboard,
     mouse::{Mouse, MouseButton}
 };
-#[cfg(feature="gamepads")] pub use self::gamepad::{Gamepad, GamepadAxis, GamepadButton};
-#[cfg(feature="gamepads")] pub(crate) use self::gamepad::GamepadManager;
 pub(crate) use self::{
+    button::BUTTON_STATE_LIST,
     event::EventProvider,
-    key::KEY_LIST
+    gamepad::{GamepadManager, GAMEPAD_AXIS_LIST, GAMEPAD_BUTTON_LIST},
+    key::KEY_LIST,
+    mouse::MOUSE_BUTTON_LIST
 };

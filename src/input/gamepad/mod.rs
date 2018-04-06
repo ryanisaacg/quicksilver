@@ -6,4 +6,7 @@ pub use self::{
     attribute::{GamepadAxis, GamepadButton},
     gamepad::Gamepad
 };
-pub(crate) use self::manager::GamepadManager;
+pub(crate) use self::{
+    attribute::{GAMEPAD_AXIS_LIST, GAMEPAD_BUTTON_LIST},
+    manager::GamepadManager
+};

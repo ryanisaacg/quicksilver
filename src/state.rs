@@ -1,5 +1,6 @@
+use geom::Vector;
 use graphics::{BuiltWindow, Window};
-use input::{Event, EventProvider};
+use input::{Event, EventProvider, BUTTON_STATE_LIST, GAMEPAD_AXIS_LIST, GAMEPAD_BUTTON_LIST, KEY_LIST, MOUSE_BUTTON_LIST};
 
 /// The structure responsible for managing the game loop state
 pub trait State {
@@ -42,8 +43,6 @@ pub fn run<T: 'static + State>() {
 pub struct Application {
     state: Box<State>, 
     window: Window,
-    events: EventProvider,
-    event_buffer: Vec<Event>
 }
 
 impl Application {
@@ -55,28 +54,29 @@ impl Application {
         self.state.draw(&mut self.window);
     }
 
-    fn events(&mut self) -> bool {
-        let running = self.events.generate_events(&mut self.window, &mut self.event_buffer);
-        for i in 0..self.event_buffer.len() {
-            self.state.event(&self.event_buffer[i], &mut self.window);
-        }
-        running
+    fn event(&mut self, event: &Event) {
+        self.window.process_event(event);
+        self.state.event(event, &mut self.window);
     }
 }
 
 #[cfg(not(target_arch="wasm32"))]
 fn run_impl<T: 'static + State>() {
     let (window, events_loop) = T::configure().build();
-    let events = EventProvider { events_loop };
+    let mut events = EventProvider { events_loop };
+    let mut event_buffer = Vec::new();
     let state = Box::new(T::new());
-    let mut app = Application { window, state, events, event_buffer: Vec::new() };
+    let mut app = Application { window, state };
     use std::time::Duration;
     use sound::Sound;
     Sound::initialize();
     let mut timer = ::Timer::new();
     let mut running = true;
     while running {
-        running = app.events();
+        running = events.generate_events(&mut app.window, &mut event_buffer);
+        for event in event_buffer.iter() {
+            app.event(event);
+        }
         timer.tick(||  { 
             app.update(); 
             Duration::from_millis(16) 
@@ -88,7 +88,7 @@ fn run_impl<T: 'static + State>() {
 #[cfg(target_arch="wasm32")]
 fn run_impl<T: 'static + State>() {
     use ffi::wasm;
-    let window_init = Box::new(T::configure);
+    let window_init = Box::new(|| T::configure().build());
     let state_init = Box::new(|| Box::new(T::new()) as Box<State>);
     unsafe { wasm::set_init(Box::into_raw(window_init), Box::into_raw(state_init)) };
 }
@@ -108,7 +108,6 @@ pub extern "C" fn init(window_init: *mut FnMut() -> Window, state_init: *mut FnM
 #[cfg(target_arch="wasm32")]
 pub extern "C" fn update(app: *mut Application) {
     let mut app = unsafe { Box::from_raw(app) };
-    app.events();
     app.update();
     Box::into_raw(app);
 }
@@ -122,3 +121,32 @@ pub extern "C" fn draw(app: *mut Application) {
     Box::into_raw(app);
 }
 
+#[doc(hidden)]
+#[no_mangle]
+#[cfg(target_arch="wasm32")]
+pub unsafe extern "C" fn event(app: *mut Application, event_tag: u32) {
+    use ffi::wasm;
+    let mut app = Box::from_raw(app);
+    // TODO: Convert u32 to the enums
+    let event = match event_tag {
+        0 => Event::Closed,
+        1 => Event::Focused,
+        2 => Event::Unfocused,
+        3 => Event::Key(KEY_LIST[wasm::event_data_button() as usize], BUTTON_STATE_LIST[wasm::event_data_state() as usize]),
+        4 => Event::MouseMoved(Vector::new(wasm::event_data_f1(), wasm::event_data_f2())),
+        5 => Event::MouseEntered,
+        6 => Event::MouseExited,
+        7 => Event::MouseWheel(Vector::new(wasm::event_data_f1(), wasm::event_data_f2())),
+        8 => Event::MouseButton(MOUSE_BUTTON_LIST[wasm::event_data_button() as usize], BUTTON_STATE_LIST[wasm::event_data_state() as usize]),
+        9 => Event::GamepadAxis(wasm::event_data_id(), GAMEPAD_AXIS_LIST[wasm::event_data_button() as usize], wasm::event_data_f1()),
+        10 => Event::GamepadButton(wasm::event_data_id(), GAMEPAD_BUTTON_LIST[wasm::event_data_button() as usize], BUTTON_STATE_LIST[wasm::event_data_state() as usize]),
+        11 => Event::GamepadConnected(wasm::event_data_id()),
+        12 => Event::GamepadDisconnected(wasm::event_data_id()),
+        _ => {
+            Box::into_raw(app);
+            return;
+        }
+    };
+    app.event(&event);
+    Box::into_raw(app);
+}

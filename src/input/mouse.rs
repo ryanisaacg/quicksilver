@@ -97,3 +97,9 @@ impl Index<MouseButton> for Mouse {
         &self.buttons[index as usize]
     }
 }
+
+pub const MOUSE_BUTTON_LIST: &[MouseButton] = &[
+    MouseButton::Left,
+    MouseButton::Middle,
+    MouseButton::Right
+];

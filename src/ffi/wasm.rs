@@ -10,16 +10,12 @@ extern "C" {
     pub fn get_page_height() -> u32;
     pub fn create_context(title: *mut i8, width: u32, height: u32);
     pub fn set_title(title: *mut i8);
-    //Mouse input
-    pub fn get_mouse_x() -> f32;
-    pub fn get_mouse_y() -> f32;
-    pub fn pump_mouse_queue() -> i32;
-    pub fn mouse_scroll_clear();
-    pub fn mouse_scroll_type() -> u32;
-    pub fn mouse_scroll_x() -> f32;
-    pub fn mouse_scroll_y() -> f32;
-    //Keyboard input
-    pub fn pump_key_queue() -> i32;
+    //Event data
+    pub fn event_data_button() -> u32;
+    pub fn event_data_state() -> u32;
+    pub fn event_data_f1() -> f32;
+    pub fn event_data_f2() -> f32;
+    pub fn event_data_id() -> u32;
     //Saving / loading
     pub fn save_cookie(key: *const i8, val: *const i8);
     pub fn load_cookie(key: *const i8) -> *mut i8;

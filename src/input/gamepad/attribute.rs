@@ -89,3 +89,29 @@ impl Into<Button> for GamepadButton {
     }
 }
 
+pub const GAMEPAD_BUTTON_LIST: &[GamepadButton] = &[
+    GamepadButton::FaceDown,
+    GamepadButton::FaceRight,
+    GamepadButton::FaceUp,
+    GamepadButton::FaceLeft,
+    GamepadButton::ShoulderLeft,
+    GamepadButton::TriggerLeft,
+    GamepadButton::ShoulderRight,
+    GamepadButton::TriggerRight,
+    GamepadButton::Select,
+    GamepadButton::Start,
+    GamepadButton::Home,
+    GamepadButton::StickButtonLeft,
+    GamepadButton::StickButtonRight,
+    GamepadButton::DpadUp,
+    GamepadButton::DpadDown,
+    GamepadButton::DpadLeft,
+    GamepadButton::DpadRight,
+];
+
+pub const GAMEPAD_AXIS_LIST: &[GamepadAxis] = &[
+    GamepadAxis::LeftStickX,
+    GamepadAxis::LeftStickY,
+    GamepadAxis::RightStickX,
+    GamepadAxis::RightStickY,
+];
