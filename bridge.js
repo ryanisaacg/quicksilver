@@ -323,6 +323,7 @@ fetch("wasm.wasm")
     .then(bytes =>  WebAssembly.instantiate(bytes, { env } ))
     .then(results => {
         instance = results.instance;
+        instance.exports.main();
         let state_ptr = instance.exports.init(init.window, init.state);
         setInterval(() => instance.exports.update(state_ptr), 16);
         function draw() {
