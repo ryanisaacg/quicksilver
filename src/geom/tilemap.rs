@@ -267,7 +267,7 @@ mod tests {
 
     fn setup() -> Tilemap<i32> {
         let mut map = Tilemap::new(Vector::new(640, 480), Vector::new(32, 32));
-        map.set(Vector::new(35, 35), Tile::solid(Some(5)));
+        map.set(Vector::new(32, 32), Tile::solid(Some(5)));
         map
     }
 
@@ -278,10 +278,10 @@ mod tests {
             None => true,
             _ => false,
         });
-        assert!(map.get(Vector::new(35, 0)).unwrap().empty);
-        assert!(!map.get(Vector::new(35, 35)).unwrap().empty);
-        assert!(!map.get(Vector::new(35, 35)).unwrap().empty);
-        assert_eq!(map.get(Vector::new(35, 35)).unwrap().value.unwrap(), 5);
+        assert!(map.get(Vector::new(32, 0)).unwrap().empty);
+        assert!(!map.get(Vector::new(32, 32)).unwrap().empty);
+        assert!(!map.get(Vector::new(32, 32)).unwrap().empty);
+        assert_eq!(map.get(Vector::new(32, 32)).unwrap().value.unwrap(), 5);
     }
 
     #[test]
@@ -290,6 +290,12 @@ mod tests {
         //Each test case has a starting rectangle, starting speed, expected top-left and expected
         //speed
         let test_cases = [
+            (
+                Rectangle::new(64, 64, 10, 10),
+                Vector::new(-1, -1),
+                Vector::new(64, 64),
+                Vector::zero()
+            ),
             (
                 Rectangle::new(300, 5, 32, 32),
                 Vector::new(0, -10),
