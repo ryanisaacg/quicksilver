@@ -179,68 +179,26 @@ impl<T: Clone> Tilemap<T> {
 
     ///Find the furthest a shape can move along a vector, and what its future speed should be
     pub fn move_until_contact(&self, bounds: Shape, speed: Vector) -> (Shape, Vector) {
-        if !self.shape_empty(bounds) {
-            (bounds, Vector::zero())
-        } else {
-            //  If it is less than the total speed, mod the total speed by the tile size
-            // Find how far can be moved beyond the last tile
-            //  If it less than the remainder of the speed, set the total speed to zero
-            let mut speed = speed;
-            let mut bounds = bounds;
-            let mut i = 1;
-            // Find the largest number of tiles that can be moved
-            let chunk = Vector::x() * speed.x.signum() * self.tile_width();
-            while (chunk * (i + 1)).x.abs() < speed.x.abs() &&
-                self.shape_empty(bounds.translate(chunk * (i + 1)))
-            {
-                i += 1;
+        let rectangle = Shape::Rect(bounds.bounding_box());
+        let attempt = Vector::zero();
+        let slide_x = |diff: f32, mut attempt: Vector| {
+            while diff.abs() > 0.0 && (attempt.x + diff).abs() <= speed.x.abs() && self.shape_empty(rectangle.translate(attempt + Vector::x() * diff)) {
+                attempt.x += diff;
             }
-            let incomplete = if (chunk * (i + 1)).x.abs() <= speed.x.abs() {
-                bounds = bounds.translate(chunk * i);
-                speed.x %= self.tile_width();
-                true
-            } else {
-                false
-            };
-            //If the remainder cannot be moved
-            if incomplete || !self.shape_empty(bounds.translate(speed.x_comp())) {
-                let mut bbox = bounds.bounding_box();
-                if speed.x > 0f32 {
-                    bbox.x = self.align_right(bbox.x + bbox.width) - bbox.width;
-                } else {
-                    bbox.x = self.align_left(bbox.x);
-                }
-                bounds = bounds.with_center(bbox.center());
-                speed.x = 0f32;
+            attempt
+        };
+        let slide_y = |diff: f32, mut attempt: Vector| {
+            while diff.abs() > 0.0 && (attempt.y + diff).abs() <= speed.y.abs() && self.shape_empty(rectangle.translate(attempt + Vector::y() * diff)) {
+                attempt.y += diff;
             }
-            i = 1;
-            // Find the largest number of tiles that can be moved
-            let chunk = Vector::y() * speed.y.signum() * self.tile_height();
-            while (chunk * (i + 1)).y.abs() < speed.y.abs() &&
-                self.shape_empty(bounds.translate(chunk * (i + 1)))
-            {
-                i += 1;
-            }
-            let incomplete = if (chunk * (i + 1)).y.abs() <= speed.y.abs() {
-                bounds = bounds.translate(chunk * i);
-                speed.y %= self.tile_height();
-                true
-            } else {
-                false
-            };
-            //If the remainder cannot be moved
-            if incomplete || !self.shape_empty(bounds.translate(speed)) {
-                let mut bbox = bounds.bounding_box();
-                if speed.y > 0f32 {
-                    bbox.y = self.align_bottom(bbox.y + bbox.height) - bbox.height;
-                } else {
-                    bbox.y = self.align_top(bbox.y);
-                }
-                bounds = bounds.with_center(bbox.center());
-                speed.y = 0f32;
-            }
-            (bounds.translate(speed), speed)
-        }
+            attempt
+        };
+        let attempt = slide_x(speed.x.signum(), attempt);
+        let attempt = slide_x(speed.x.fract(), attempt);
+        let attempt = slide_y(speed.y.signum(), attempt);
+        let attempt = slide_y(speed.y.fract(), attempt);
+        let returned_speed = Vector::new(if attempt.x == speed.x { attempt.x } else { 0.0 }, if attempt.y == speed.y { attempt.y } else { 0.0 });
+        (bounds.translate(attempt), returned_speed)
     }
 
     ///Convert a Tilemap into a map of a different type
@@ -292,9 +250,9 @@ mod tests {
         let test_cases = [
             (
                 Rectangle::new(64, 64, 10, 10),
-                Vector::new(-1, -1),
-                Vector::new(64, 64),
-                Vector::zero()
+                Vector::new(-2, -1),
+                Vector::new(62, 64),
+                Vector::new(-2, 0)
             ),
             (
                 Rectangle::new(300, 5, 32, 32),
