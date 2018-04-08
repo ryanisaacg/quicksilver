@@ -91,19 +91,15 @@ canvas.onmousedown = (event) => {
         send_event(8);
     }
 }
+window.ongamepadconnected = (event) => {
+    event_data.id = event.gamepad.id;
+    send_event(11);
+}
+window.ongamepaddisconnected = (event) => {
+    event_data.id = event.gamepad.id;
+    send_event(12);
+}
 //TODO: gamepads
-/*canvas.addEventListener('mousedown', (event) => {
-    if(event.button < 3) {
-        mouse_queue.push(event.button + 1);
-        event.preventDefault();
-    }
-})
-canvas.addEventListener('mouseup', (event) => {
-    if(event.button < 3) {
-        mouse_queue.push(-event.button - 1);
-        event.preventDefault();
-    }
-})*/
 let env = {
     // Windowing
     set_show_mouse: (show) => canvas.style.cursor = show ? "auto" : "none",
