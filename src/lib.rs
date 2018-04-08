@@ -75,7 +75,7 @@ pub mod util;
 pub use error::QuicksilverError;
 pub use timer::Timer;
 #[cfg(feature="window")]   pub use state::{State, run};
-#[cfg(feature="window")] #[cfg(target_arch="wasm32")] pub use state::{init, update, draw};
+#[cfg(feature="window")] #[cfg(target_arch="wasm32")] pub use state::{update, draw};
 
 /// A type that can be loaded, resulting in an Item or an Error
 pub type Loadable<Item, Error> = futures::Future<Item = Item, Error = Error>;

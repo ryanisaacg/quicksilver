@@ -74,19 +74,9 @@ fn run_impl<T: 'static + State>() {
 #[cfg(target_arch="wasm32")]
 fn run_impl<T: 'static + State>() {
     use ffi::wasm;
-    let window_init = Box::new(T::configure);
-    let state_init = Box::new(|| Box::new(T::new()) as Box<State>);
-    unsafe { wasm::set_init(Box::into_raw(window_init), Box::into_raw(state_init)) };
-}
-
-#[doc(hidden)]
-#[no_mangle]
-#[cfg(target_arch="wasm32")]
-pub extern "C" fn init(window_init: *mut FnMut() -> Window, state_init: *mut FnMut() -> Box<State>) -> *mut Application {
-    let mut window_init = unsafe { Box::from_raw(window_init) };
-    let mut state_init = unsafe { Box::from_raw(state_init) };
-    let app = Box::new(Application { window: window_init(), state: state_init() });
-    Box::into_raw(app)
+    use std::os::raw::c_void;
+    let app = Box::new(Application { window: T::configure(), state: Box::new(T::new()) });
+    unsafe { wasm::set_app(Box::into_raw(app) as *mut c_void) };
 }
 
 #[doc(hidden)]

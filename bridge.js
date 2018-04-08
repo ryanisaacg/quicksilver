@@ -249,9 +249,13 @@ let env = {
     //Asset loading
     ffi_asset_status: (index) => assets[index].error ? 2 : (assets[index].loaded ? 1 : 0),
     //Game loop
-    set_init: (window_init, state_init) => {
-        init.window = window_init;
-        init.state = state_init;
+    set_app: (app) => {
+        setInterval(() => instance.exports.update(app), 16);
+        function draw() {
+            instance.exports.draw(app);
+            requestAnimationFrame(draw);
+        }
+        requestAnimationFrame(draw);
     },
     //Rust runtime
     fmodf: (a, b) => a % b,
@@ -323,11 +327,5 @@ fetch("wasm.wasm")
     .then(bytes =>  WebAssembly.instantiate(bytes, { env } ))
     .then(results => {
         instance = results.instance;
-        let state_ptr = instance.exports.init(init.window, init.state);
-        setInterval(() => instance.exports.update(state_ptr), 16);
-        function draw() {
-            instance.exports.draw(state_ptr);
-            requestAnimationFrame(draw);
-        }
-        requestAnimationFrame(draw);
+        instance.exports.main();
     })

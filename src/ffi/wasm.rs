@@ -1,6 +1,5 @@
+use std::os::raw::c_void;
 use std::io::ErrorKind as IOError;
-use graphics::Window;
-use state::State;
 
 #[allow(improper_ctypes)]
 extern "C" {
@@ -49,7 +48,7 @@ extern "C" {
     //Asset loading
     fn ffi_asset_status(handle: u32) -> i32;
     //Game loop
-    pub fn set_init(window_init: *mut FnMut() -> Window, state_init: *mut FnMut() -> Box<State>);
+    pub fn set_app(app: *mut c_void);
 }
 
 pub fn asset_status(handle: u32) -> Result<bool, IOError> {
