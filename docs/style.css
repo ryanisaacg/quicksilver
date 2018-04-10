@@ -1,7 +1,14 @@
 html {
+    color: #d5d5d5;
     background-color: #2d2d2d;
     font-family: 'Rubik', sans-serif;
 }
 code {
     display: block;
+}
+a {
+    color: #d5d5d5;
+}
+a:visited {
+    color: #d5d5d5;
 }

@@ -10,31 +10,21 @@
     <body>
         <h1> Quicksilver </h1>
 
-        <h3> A 2D game framework written in pure Rust </h3>
+        <h2> A 2D game framework written in pure Rust </h2>
 
-        <h4> Supported platforms </h4>
+        Quicksilver allows you to create 2D applications targeting Windows, macOS, Linux, and the Web 
+        all from the same codebase, using only Rust. 
 
-        The engine is supported on Windows, macOS, (somewhat) Linux, and the web via WebAssembly. 
-        Linux is supported inasmuch as the libraries used for 
-        graphics (glutin, gl) and sound (rodio) work correctly, 
-        but no extra attempts to support exotic setups will be made. 
-        The web is only supported via the `wasm32-unknown-unknown` 
-        Rust target, not through emscripten. It might work with 
-        emscripten but this is not an ongoing guarantee.
-        <br>
-        It has not been tested extensively on desktop platforms 
-        other than x86, but there is no reason it should fail to 
-        work. If the dependencies and the Rust compiler support a 
-        platform, quicksilver should as well.
-        <br>
-        There are no plans to support mobile / touch-primary 
-        platforms, as the paradigms are completely different. UI 
-        elements must be created differently, input is one or two points
-        of contact rather than primarily through a keyboard, etc. 
-        <br>
-        There is one exception: macOS does not currently support gamepads, see <a href = "https://gitlab.com/Arvamer/gilrs/issues/3">gilrs issue #3</a>
-
-        <h4> A quick example </h4>
+        <h4> What's included? </h4>
+        <ul>
+            <li> 2D geometry: Vectors, Transformation matrices, Rectangles, Circles, Line segments, and a generic Shape abstraction
+            <li> Keyboard and 3-button mouse support
+            <li> OpenGL hardware-accelerated graphics
+            <li> A variety of image formats
+            <li> Sound clips and a looping music player
+            <li> Asynchronous asset loading
+            <li> Unified codebase across desktop and the web
+        </ul>
 
         <pre>
             <code class="language-rust">
@@ -76,20 +66,6 @@ fn main() {
                     
             </code>
         </pre>
-        
-        <h4> What's included? </h4>
-        <ul>
-            <li> 2D geometry: Vectors, Transformation matrices, Rectangles, Circles, Line segments, and a generic Shape abstraction
-            <li> Keyboard and 3-button mouse support
-            <li> Viewport projection of the mouse to the world space automatically
-            <li> Zero-cost camera transformations
-            <li> OpenGL hardware-accelerated graphics
-            <li> A variety of image formats
-            <li> Multi-play sound clips
-            <li> A looping music player
-            <li> Asynchronous asset loading
-            <li> Unified codebase across desktop and the web
-        </ul>
 
         <h4> Comparison with <a href ="github.com/ggez/ggez">ggez</a> </h4>
         <table>
@@ -138,6 +114,28 @@ fn main() {
                 <td>Most features have no flags</td>
             </tr>
         </table>
+
+        <h4> Supported platforms </h4>
+
+        The engine is supported on Windows, macOS, (somewhat) Linux, and the web via WebAssembly. 
+        Linux is supported inasmuch as the libraries used for 
+        graphics (glutin, gl) and sound (rodio) work correctly, 
+        but no extra attempts to support exotic setups will be made. 
+        The web is only supported via the `wasm32-unknown-unknown` 
+        Rust target, not through emscripten. It might work with 
+        emscripten but this is not an ongoing guarantee.
+        <br>
+        It has not been tested extensively on desktop platforms 
+        other than x86, but there is no reason it should fail to 
+        work. If the dependencies and the Rust compiler support a 
+        platform, quicksilver should as well.
+        <br>
+        There are no plans to support mobile / touch-primary 
+        platforms, as the paradigms are completely different. UI 
+        elements must be created differently, input is one or two points
+        of contact rather than primarily through a keyboard, etc. 
+        <br>
+        There is one exception: macOS does not currently support gamepads, see <a href = "https://gitlab.com/Arvamer/gilrs/issues/3">gilrs issue #3</a>
         
         <h4> Supported Compiler Versions </h4>
         The desktop targets should always compile and run on the latest
