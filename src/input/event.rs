@@ -114,14 +114,42 @@ impl EventProvider {
         #[cfg(all(not(target_os="macos"), feature="gamepads"))]
         while let Some(gilrs::Event { id, event, .. }) = self.gilrs.next_event() {
             use input::GAMEPAD_BUTTON_LIST;
-            use gilrs::{Axis, EventType};
+            use gilrs::{Axis, Button, EventType};
             let id = id as u32;
+            fn convert_button(button: Button) -> Option<GamepadButton> {
+                Some(match button {
+                    Button::South => GamepadButton::FaceDown,
+                    Button::East => GamepadButton::FaceRight,
+                    Button::North => GamepadButton::FaceUp,
+                    Button::West => GamepadButton::FaceLeft,
+                    Button::LeftTrigger => GamepadButton::ShoulderLeft,
+                    Button::LeftTrigger2 => GamepadButton::TriggerLeft,
+                    Button::RightTrigger => GamepadButton::ShoulderRight,
+                    Button::RightTrigger2 => GamepadButton::TriggerRight,
+                    Button::Select => GamepadButton::Select,
+                    Button::Start => GamepadButton::Start,
+                    Button::Mode => GamepadButton::Home,
+                    Button::LeftThumb => GamepadButton::StickButtonLeft,
+                    Button::RightThumb => GamepadButton::StickButtonRight,
+                    Button::DPadUp => GamepadButton::DpadUp,
+                    Button::DPadDown => GamepadButton::DpadDown,
+                    Button::DPadLeft => GamepadButton::DpadLeft,
+                    Button::DPadRight => GamepadButton::DpadRight,
+                    _ => return None
+                })
+            }
             match event {
-                EventType::ButtonPressed(button, _) => if (button as usize) < GAMEPAD_BUTTON_LIST.len() { 
-                    events.push(Event::GamepadButton(id, GAMEPAD_BUTTON_LIST[button as usize], ButtonState::Pressed));
+                EventType::ButtonPressed(button, _) => {
+                    match convert_button(button) {
+                        Some(button) => events.push(Event::GamepadButton(id, button, ButtonState::Pressed)),
+                        None => continue
+                    }
                 },
-                EventType::ButtonReleased(button, _) => if (button as usize) < GAMEPAD_BUTTON_LIST.len() { 
-                    events.push(Event::GamepadButton(id, GAMEPAD_BUTTON_LIST[button as usize], ButtonState::Released));
+                EventType::ButtonReleased(button, _) => { 
+                    match convert_button(button) {
+                        Some(button) => events.push(Event::GamepadButton(id, button, ButtonState::Released)),
+                        None => continue
+                    }
                 },
 
                 EventType::AxisChanged(axis, value, _) => events.push(Event::GamepadAxis(id, match axis {
