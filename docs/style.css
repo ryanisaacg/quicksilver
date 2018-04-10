@@ -1,4 +1,7 @@
 html {
-    background-color: #DDD;
+    background-color: #2d2d2d;
     font-family: 'Rubik', sans-serif;
+}
+code {
+    display: block;
 }

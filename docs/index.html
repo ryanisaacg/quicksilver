@@ -3,7 +3,9 @@
         <title>Quicksilver</title>        
         <link href="https://fonts.googleapis.com/css?family=Rubik" rel="stylesheet">
         <link rel="stylesheet" href="prism.css"></link>
+        <script src="prism.js"></script>
         <link rel="stylesheet" href="style.css"></link>
+
     </head>
     <body>
         <h1> Quicksilver </h1>
@@ -34,43 +36,46 @@
 
         <h4> A quick example </h4>
 
-        <code style="white-space: pre; display: block;" class="language-rust">
-// Draw a pulsing circle in the middle of the window
+        <pre>
+            <code class="language-rust">
+// Draw some multi-colored geometry to the screen
 extern crate quicksilver;
 
-use quicksilver::{State, run};
-use quicksilver::geom::{Circle, Vector, Transform};
-use quicksilver::graphics::{Color, DrawCall, Window, WindowBuilder};
+use quicksilver::{
+    State, run,
+    geom::{Circle, Rectangle, Transform},
+    graphics::{Color, Sprite, Window, WindowBuilder}
+};
 
-struct PulsingCircle {
-    step: f32
-}
+struct DrawGeometry;
 
-impl State for PulsingCircle {
+impl State for DrawGeometry {
     fn configure() -> Window {
-        WindowBuilder::new().build("Pulsing Circle", 800, 600)
+        WindowBuilder::new().build("Draw Geometry", 800, 600)
     }
 
-    fn new() -> PulsingCircle { 
-        PulsingCircle { step: 0.0 }
-    }
-
-    fn update(&mut self, _window: &mut Window) {
-        self.step = (self.step + 1.0) % 360.0;
-    }
+    fn new() -> DrawGeometry { DrawGeometry }
 
     fn draw(&mut self, window: &mut Window) {
         window.clear(Color::black());
-        let scale = Transform::scale(Vector::one() * (1.0 + (self.step.to_radians().sin() / 2.0)));
-        window.draw(&[DrawCall::circle(Circle::new(400, 300, 50)).with_color(Color::green()).with_transform(scale)]);
+        window.draw(&Sprite::rectangle(Rectangle::new(100, 100, 32, 32))
+            .with_color(Color::red()));
+        window.draw(&Sprite::rectangle(Rectangle::new(400, 300, 32, 32))
+            .with_color(Color::blue())
+            .with_transform(Transform::rotate(45))
+            .with_z(10));
+        window.draw(&Sprite::circle(Circle::new(400, 300, 100))
+            .with_color(Color::green()));
         window.present();
     }
 }
 
 fn main() {
-    run::&lt;PulsingCircle&gt;();
+    run::&lt;DrawGeometry&gt;();
 }
-        </code>
+                    
+            </code>
+        </pre>
         
         <h4> What's included? </h4>
         <ul>
@@ -141,5 +146,4 @@ fn main() {
         the WASM target that does not require emscripten is limited 
         to nightly.
     </body>
-    <script src="prism.js"></script>
 </html>
