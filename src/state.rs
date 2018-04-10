@@ -78,11 +78,13 @@ fn run_impl<T: 'static + State>() {
         for event in event_buffer.iter() {
             app.event(event);
         }
+        event_buffer.clear();
         timer.tick(||  { 
             app.update(); 
             Duration::from_millis(16) 
         });
         app.draw();
+        app.window.clear_temporary_states();
     }
 }
 
