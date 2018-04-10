@@ -2,6 +2,7 @@
     <head>
         <title>Quicksilver</title>        
         <link href="https://fonts.googleapis.com/css?family=Rubik" rel="stylesheet">
+        <link rel="stylesheet" href="prism.css"></link>
         <link rel="stylesheet" href="style.css"></link>
     </head>
     <body>
@@ -33,7 +34,7 @@
 
         <h4> A quick example </h4>
 
-        <code style="white-space: pre;">
+        <code style="white-space: pre; display: block;" class="language-rust">
 // Draw a pulsing circle in the middle of the window
 extern crate quicksilver;
 
@@ -65,10 +66,10 @@ impl State for PulsingCircle {
         window.present();
     }
 }
-    
-    fn main() {
-        run::&lt;PulsingCircle&gt;();
-    }
+
+fn main() {
+    run::&lt;PulsingCircle&gt;();
+}
         </code>
         
         <h4> What's included? </h4>
@@ -139,7 +140,6 @@ impl State for PulsingCircle {
         Currently the web target is limited to nightly rust, because 
         the WASM target that does not require emscripten is limited 
         to nightly.
-            
-            
     </body>
+    <script src="prism.js"></script>
 </html>
