@@ -214,18 +214,18 @@ impl Window {
             &Event::MouseMoved(pos) => self.mouse = Mouse { pos, ..self.mouse },
             &Event::MouseWheel(wheel) => self.mouse = Mouse { wheel, ..self.mouse },
             &Event::MouseButton(button, state) => self.mouse.process_button(button, state),
-            &Event::GamepadAxis(id, axis, val) => self.gamepads
-                .iter_mut()
-                .filter(|gamepad| id == gamepad.id())
-                .next()
-                .iter_mut()
-                .for_each(|gamepad| gamepad.set_axis(axis, val)),
-            &Event::GamepadButton(id, button, state) => self.gamepads
-                .iter_mut()
-                .filter(|gamepad| id == gamepad.id())
-                .next()
-                .iter_mut()
-                .for_each(|gamepad| gamepad.set_button(button, state)),
+            &Event::GamepadAxis(id, axis, val) => match self.gamepads.binary_search_by(|gamepad| gamepad.id().cmp(&id)) {
+                Ok(index) => self.gamepads[index].set_axis(axis, val),
+                Err(_) => ()
+            },
+            &Event::GamepadButton(id, button, state) => {
+                match self.gamepads.binary_search_by(|gamepad| gamepad.id().cmp(&id)) {
+                    Ok(index) => {
+                        self.gamepads[index].set_button(button, state);
+                    },
+                    Err(_) => ()
+                }
+            }
             &Event::GamepadConnected(id) => {
                 match self.gamepads.binary_search_by(|gamepad| gamepad.id().cmp(&id)) {
                     Ok(_) => {} // This means we're inserting a gamepad that we already have, so it's a no-op
