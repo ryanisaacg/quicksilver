@@ -14,7 +14,7 @@ categories = ["game-engines"]
 
 fonts = ["window", "rusttype"]
 gamepads = ["gilrs", "window"]
-geometry = ["rand"]
+geometry = ["rand", "serde", "serde_derive"]
 window = ["geometry", "gl", "glutin", "image", "futures", "rusttype"]
 saving = ["serde", "serde_derive", "serde_json"]
 sounds = ["futures", "rodio"]

@@ -1,4 +1,4 @@
-#[cfg(feature="serde")] extern crate serde_json;
+#[cfg(feature="serde_json")] extern crate serde_json;
 
 #[cfg(feature="window")] use graphics::{AtlasError, ImageError};
 use std::io::ErrorKind as IOError;
@@ -49,7 +49,7 @@ impl From<IOError> for QuicksilverError {
     }
 }
 
-#[cfg(feature="serde")]
+#[cfg(feature="serde_json")]
 impl From<serde_json::Error> for QuicksilverError {
     fn from(err: serde_json::Error) -> QuicksilverError {
         QuicksilverError::SerdeError(err.classify())
