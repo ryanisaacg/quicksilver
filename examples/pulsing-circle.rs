@@ -4,7 +4,7 @@ extern crate quicksilver;
 use quicksilver::{
     State, run,
     geom::{Circle, Vector, Transform},
-    graphics::{BuiltWindow, Color, Sprite, Window, WindowBuilder}
+    graphics::{Color, Sprite, Window, WindowBuilder}
 };
 
 struct PulsingCircle {
@@ -12,8 +12,8 @@ struct PulsingCircle {
 }
 
 impl State for PulsingCircle {
-    fn configure() -> BuiltWindow {
-        WindowBuilder::new().build("Pulsing Circle", 800, 600)
+    fn configure() -> WindowBuilder {
+        WindowBuilder::new("Pulsing Circle", 800, 600)
     }
 
    fn new() -> PulsingCircle { 

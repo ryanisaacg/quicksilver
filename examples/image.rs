@@ -4,7 +4,7 @@ extern crate quicksilver;
 use quicksilver::{
     Async, Future, State, run,
     geom::Vector,
-    graphics::{BuiltWindow, Color, Image, ImageLoader, Sprite, Window, WindowBuilder}
+    graphics::{Color, Image, ImageLoader, Sprite, Window, WindowBuilder}
 };
 
 enum ImageViewer {
@@ -13,8 +13,8 @@ enum ImageViewer {
 }
 
 impl State for ImageViewer {
-    fn configure() -> BuiltWindow {
-        WindowBuilder::new().build("Image Example", 800, 600)
+    fn configure() -> WindowBuilder {
+        WindowBuilder::new("Image Example", 800, 600)
     }
 
    fn new() -> ImageViewer { ImageViewer::Loading(Image::load("examples/assets/image.png")) }

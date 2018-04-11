@@ -16,6 +16,9 @@ pub enum ImageScaleStrategy {
 
 ///A builder that constructs a Window
 pub struct WindowBuilder {
+    title: &'static str, 
+    width: u32, 
+    height: u32,
     show_cursor: bool,
     #[cfg(not(target_arch="wasm32"))]
     min_size: Option<Vector>,
@@ -28,8 +31,11 @@ pub struct WindowBuilder {
 
 impl WindowBuilder {
     ///Create a default window builder
-    pub fn new() -> WindowBuilder {
+    pub fn new(title: &'static str, width: u32, height: u32) -> WindowBuilder {
         WindowBuilder {
+            title,
+            width,
+            height,
             show_cursor: true,
             #[cfg(not(target_arch="wasm32"))]
             min_size: None,
@@ -97,38 +103,23 @@ impl WindowBuilder {
         }
     }
 
-    ///Create a window and canvas with the given configuration
-    pub fn build(self, title: &'static str, width: u32, height: u32) -> BuiltWindow {
-        BuiltWindow { props: self, title, width, height }
-    }
-}
-
-/// The data needed to create a window for the application
-pub struct BuiltWindow {
-    props: WindowBuilder, 
-    title: &'static str, 
-    width: u32, 
-    height: u32
-}
-
-impl BuiltWindow {
     #[cfg(not(target_arch="wasm32"))]
     pub(crate) fn build(self) -> (Window, EventsLoop) {
         let mut actual_width = self.width;
         let mut actual_height = self.height;
         let events = glutin::EventsLoop::new();
         let window = glutin::WindowBuilder::new()
-            .with_decorations(!self.props.fullscreen)
+            .with_decorations(!self.fullscreen)
             .with_title(self.title);
-        let window = match self.props.min_size { 
+        let window = match self.min_size { 
             Some(v) => window.with_min_dimensions(v.x as u32, v.y as u32),
             None => window
         };
-        let window = match self.props.max_size {
+        let window = match self.max_size {
             Some(v) => window.with_max_dimensions(v.x as u32, v.y as u32),
             None => window
         };
-        if self.props.fullscreen {
+        if self.fullscreen {
             let (w, h) = events.get_primary_monitor().get_dimensions();
             actual_width = w;
             actual_height = h;
@@ -140,21 +131,21 @@ impl BuiltWindow {
             gl_window.make_current().unwrap();
             gl::load_with(|symbol| gl_window.get_proc_address(symbol) as *const _);
         }
-        gl_window.set_cursor_state(if self.props.show_cursor { 
+        gl_window.set_cursor_state(if self.show_cursor { 
             glutin::CursorState::Normal } else { glutin::CursorState::Hide }).unwrap();
         let scale_factor = gl_window.hidpi_factor(); // Need to be calculated before moving gl_window
-        let screen_region = self.props.resize.resize(Vector::new(self.width, self.height), Vector::new(actual_width, actual_height)); 
+        let screen_region = self.resize.resize(Vector::new(self.width, self.height), Vector::new(actual_width, actual_height)); 
         let view = View::new(Rectangle::newv_sized(screen_region.size()));
         (Window {
             gl_window,
             gamepads: Vec::new(),
-            resize: self.props.resize,
+            resize: self.resize,
             screen_region,
             scale_factor,
             keyboard: Keyboard { keys: [ButtonState::NotPressed; 256] },
             mouse: Mouse { pos: Vector::zero(), buttons: [ButtonState::NotPressed; 3], wheel: Vector::zero() },
             view,
-            backend: Backend::new(self.props.scale as u32),
+            backend: Backend::new(self.scale as u32),
             vertices: Vec::new(),
             triangles: Vec::new()
         }, events)
@@ -167,24 +158,24 @@ impl BuiltWindow {
         use ffi::wasm;
         use std::ffi::CString;
         unsafe { 
-            wasm::set_show_mouse(self.props.show_cursor);
-            if self.props.fullscreen {
+            wasm::set_show_mouse(self.show_cursor);
+            if self.fullscreen {
                 actual_width = wasm::get_page_width();
                 actual_height = wasm::get_page_height();
             }
             wasm::create_context(CString::new(self.title).unwrap().into_raw(), actual_width, actual_height);
         }
-        let screen_region = self.props.resize.resize(Vector::new(self.width, self.height), Vector::new(actual_width, actual_height));
+        let screen_region = self.resize.resize(Vector::new(self.width, self.height), Vector::new(actual_width, actual_height));
         let view = View::new(Rectangle::newv_sized(screen_region.size()));
         Window {
             gamepads: Vec::new(),
-            resize: self.props.resize,
+            resize: self.resize,
             screen_region,
             scale_factor: 1.0,
             keyboard: Keyboard { keys: [ButtonState::NotPressed; 256] },
             mouse: Mouse { pos: Vector::zero(), buttons: [ButtonState::NotPressed; 3], wheel: Vector::zero() },
             view,
-            backend: Backend::new(self.props.scale as u32),
+            backend: Backend::new(self.scale as u32),
             vertices: Vec::new(),
             triangles: Vec::new()
         }

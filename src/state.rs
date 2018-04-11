@@ -1,11 +1,11 @@
 use geom::Vector;
-use graphics::{BuiltWindow, Window};
+use graphics::{Window, WindowBuilder};
 use input::{Event, BUTTON_STATE_LIST, GAMEPAD_AXIS_LIST, GAMEPAD_BUTTON_LIST, KEY_LIST, MOUSE_BUTTON_LIST};
 
 /// The structure responsible for managing the game loop state
 pub trait State {
     /// Create a Window to be used in the application
-    fn configure() -> BuiltWindow where Self: Sized;
+    fn configure() -> WindowBuilder where Self: Sized;
     /// Create the state given the window and canvas
     fn new() -> Self where Self: Sized;
     /// Tick the State forward one frame

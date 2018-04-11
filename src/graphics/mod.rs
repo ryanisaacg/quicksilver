@@ -25,7 +25,7 @@ pub use self::{
     surface::Surface,
     vertex::{Vertex, GpuTriangle},
     view::View,
-    window::{BuiltWindow, ImageScaleStrategy, Window, WindowBuilder}
+    window::{ImageScaleStrategy, Window, WindowBuilder}
 };
 #[cfg(feature="fonts")] pub use self::font::{Font, FontLoader};
 pub(crate) use self::backend::Backend;
