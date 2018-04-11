@@ -2,8 +2,14 @@ html {
     color: #d5d5d5;
     background-color: #2d2d2d;
     font-family: 'Rubik', sans-serif;
+    font-size: 1.1em;
 }
-code {
+body {
+    max-width: 75em;
+    padding: 0 1em;
+    margin: 0 auto;
+}
+pre {
     display: block;
 }
 a {
@@ -11,4 +17,26 @@ a {
 }
 a:visited {
     color: #d5d5d5;
+}
+h1 {
+    font-size: 3em;
+}
+h2 {
+    font-size: 2em;
+}
+h3 {
+    font-size: 1.5em;
+    text-align: center;
+    margin-bottom: 0.5em;
+    margin-top: 1.2em;
+}
+h4 {
+    text-align: center;
+    max-width: 40em;
+    margin: 0 auto;
+    font-weight: normal;
+    font-size: 1.3em;
+}
+p {
+    line-height: 1.175em;
 }
