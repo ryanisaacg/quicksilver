@@ -62,3 +62,7 @@ required-features = ["window"]
 [[example]]
 name = "font"
 required-features = ["window", "fonts"]
+
+[[example]]
+name = "sound"
+required-features = ["geometry", "window", "sounds"]
