@@ -1,7 +1,5 @@
 #[cfg(not(target_arch="wasm32"))]
 extern crate glutin;
-#[cfg(all(not(target_arch="wasm32"), not(target_os="macos"), feature="gamepads"))]
-extern crate gilrs;
 
 use input::{ButtonState, GamepadAxis, GamepadButton, Key, KEY_LIST, MouseButton};
 use geom::Vector;
@@ -43,18 +41,14 @@ const LINES_TO_PIXELS: f32 = 15.0;
 
 #[cfg(not(target_arch="wasm32"))]
 pub(crate) struct EventProvider {
-    events_loop: EventsLoop,
-    #[cfg(all(not(target_os="macos"), feature="gamepads"))]
-    gilrs: gilrs::Gilrs
+    events_loop: EventsLoop
 }
 
 #[cfg(not(target_arch="wasm32"))]
 impl EventProvider {
     pub(crate) fn new(events_loop: EventsLoop) -> EventProvider {
         EventProvider { 
-            events_loop, 
-            #[cfg(all(not(target_os="macos"), feature="gamepads"))]
-            gilrs: gilrs::Gilrs::new().unwrap()
+            events_loop
         }
     }
 
@@ -111,59 +105,6 @@ impl EventProvider {
             },
             _ => ()
         });
-        #[cfg(all(not(target_os="macos"), feature="gamepads"))]
-        while let Some(gilrs::Event { id, event, .. }) = self.gilrs.next_event() {
-            use input::GAMEPAD_BUTTON_LIST;
-            use gilrs::{Axis, Button, EventType};
-            let id = id as u32;
-            fn convert_button(button: Button) -> Option<GamepadButton> {
-                Some(match button {
-                    Button::South => GamepadButton::FaceDown,
-                    Button::East => GamepadButton::FaceRight,
-                    Button::North => GamepadButton::FaceUp,
-                    Button::West => GamepadButton::FaceLeft,
-                    Button::LeftTrigger => GamepadButton::ShoulderLeft,
-                    Button::LeftTrigger2 => GamepadButton::TriggerLeft,
-                    Button::RightTrigger => GamepadButton::ShoulderRight,
-                    Button::RightTrigger2 => GamepadButton::TriggerRight,
-                    Button::Select => GamepadButton::Select,
-                    Button::Start => GamepadButton::Start,
-                    Button::Mode => GamepadButton::Home,
-                    Button::LeftThumb => GamepadButton::StickButtonLeft,
-                    Button::RightThumb => GamepadButton::StickButtonRight,
-                    Button::DPadUp => GamepadButton::DpadUp,
-                    Button::DPadDown => GamepadButton::DpadDown,
-                    Button::DPadLeft => GamepadButton::DpadLeft,
-                    Button::DPadRight => GamepadButton::DpadRight,
-                    _ => return None
-                })
-            }
-            match event {
-                EventType::ButtonPressed(button, _) => {
-                    match convert_button(button) {
-                        Some(button) => events.push(Event::GamepadButton(id, button, ButtonState::Pressed)),
-                        None => continue
-                    }
-                },
-                EventType::ButtonReleased(button, _) => { 
-                    match convert_button(button) {
-                        Some(button) => events.push(Event::GamepadButton(id, button, ButtonState::Released)),
-                        None => continue
-                    }
-                },
-
-                EventType::AxisChanged(axis, value, _) => events.push(Event::GamepadAxis(id, match axis {
-                    Axis::LeftStickX => GamepadAxis::LeftStickX,
-                    Axis::LeftStickY => GamepadAxis::LeftStickY,
-                    Axis::RightStickX => GamepadAxis::RightStickX,
-                    Axis::RightStickY => GamepadAxis::RightStickY,
-                    _ => continue
-                }, value)),
-                EventType::Connected => events.push(Event::GamepadConnected(id)),
-                EventType::Disconnected => events.push(Event::GamepadDisconnected(id)),
-                _ => ()
-            }
-        }
         running
     }
 }

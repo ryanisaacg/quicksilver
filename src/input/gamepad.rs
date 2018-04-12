@@ -1,4 +1,4 @@
-use input::ButtonState;
+use input::{ButtonState, Event};
 use std::ops::Index;
 
 /// A queryable traditional 2-stick gamepad
@@ -26,6 +26,24 @@ impl Gamepad {
 
     pub(crate) fn set_button(&mut self, button: GamepadButton, val: ButtonState) {
         self.buttons[button as usize] = val;
+    }
+
+    pub(crate) fn set_previous(&mut self, previous: &Gamepad, events: &mut Vec<Event>) {
+        for button in GAMEPAD_BUTTON_LIST.iter() {
+            if self[*button].is_down() != previous[*button].is_down() {
+                self.buttons[*button as usize] = if self[*button].is_down() {
+                    ButtonState::Pressed
+                } else {
+                    ButtonState::Released
+                };
+                events.push(Event::GamepadButton(self.id(), *button, self[*button]));
+            }
+        }
+        for axis in GAMEPAD_AXIS_LIST.iter() {
+            if self[*axis] != previous[*axis] {
+                events.push(Event::GamepadAxis(self.id(), *axis, self[*axis]));
+            }
+        }
     }
 
     /// Get the ID of the gamepad

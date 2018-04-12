@@ -139,6 +139,7 @@ impl WindowBuilder {
         (Window {
             gl_window,
             gamepads: Vec::new(),
+            gamepad_buffer: Vec::new(),
             resize: self.resize,
             screen_region,
             scale_factor,
@@ -169,6 +170,7 @@ impl WindowBuilder {
         let view = View::new(Rectangle::newv_sized(screen_region.size()));
         Window {
             gamepads: Vec::new(),
+            gamepad_buffer: Vec::new(),
             resize: self.resize,
             screen_region,
             scale_factor: 1.0,
@@ -187,6 +189,7 @@ pub struct Window {
     #[cfg(not(target_arch="wasm32"))]
     pub(crate) gl_window: glutin::GlWindow,
     gamepads: Vec<Gamepad>,
+    gamepad_buffer: Vec<Gamepad>, //used as a temporary buffer for storing new gamepads
     resize: ResizeStrategy,
     pub(crate) scale_factor: f32,
     screen_region: Rectangle,
@@ -205,33 +208,40 @@ impl Window {
             &Event::MouseMoved(pos) => self.mouse = Mouse { pos, ..self.mouse },
             &Event::MouseWheel(wheel) => self.mouse = Mouse { wheel, ..self.mouse },
             &Event::MouseButton(button, state) => self.mouse.process_button(button, state),
-            &Event::GamepadAxis(id, axis, val) => match self.gamepads.binary_search_by(|gamepad| gamepad.id().cmp(&id)) {
-                Ok(index) => self.gamepads[index].set_axis(axis, val),
-                Err(_) => ()
-            },
-            &Event::GamepadButton(id, button, state) => {
-                match self.gamepads.binary_search_by(|gamepad| gamepad.id().cmp(&id)) {
-                    Ok(index) => {
-                        self.gamepads[index].set_button(button, state);
-                    },
-                    Err(_) => ()
-                }
-            }
-            &Event::GamepadConnected(id) => {
-                match self.gamepads.binary_search_by(|gamepad| gamepad.id().cmp(&id)) {
-                    Ok(_) => {} // This means we're inserting a gamepad that we already have, so it's a no-op
-                    Err(index) => { self.gamepads.insert(index, Gamepad::new(id)); }
-                }
-            } 
-            &Event::GamepadDisconnected(id) => {
-                match self.gamepads.binary_search_by(|gamepad| gamepad.id().cmp(&id)) {
-                    Ok(index) => { self.gamepads.remove(index); }
-                    Err(_) => {} // This means we're deleting a gamepad that we don't have, so it's no-op
-                }
-            }
             _ => ()
         }
     }
+
+    pub(crate) fn update_gamepads(&mut self, events: &mut Vec<Event>) {
+        self.update_gamepads_impl();
+        let (mut i, mut j) = (0, 0);
+        while i < self.gamepads.len() && j < self.gamepad_buffer.len() {
+            if self.gamepads[i].id() == self.gamepad_buffer[j].id() {
+                self.gamepad_buffer[j].set_previous(&self.gamepads[i], events);
+                i += 1;
+                j += 1;
+            } else if self.gamepads[i].id() > self.gamepad_buffer[j].id() {
+                events.push(Event::GamepadDisconnected(self.gamepad_buffer[j].id()));
+                j += 1;
+            } else {
+                events.push(Event::GamepadConnected(self.gamepads[i].id()));
+                i += 1;
+            }
+        }
+        self.gamepads.clear();
+        self.gamepads.append(&mut self.gamepad_buffer);
+    }
+
+    #[cfg(not(target_arch="wasm32"))]
+    fn update_gamepads_impl(&mut self) {
+        
+    }
+
+    #[cfg(target_arch="wasm32")]
+    fn update_gamepads_impl(&mut self) {
+            
+    }
+    
     
     ///Transition temporary input states (Pressed, Released) into sustained ones (Held, NotPressed)
     pub fn clear_temporary_states(&mut self) {
