@@ -232,8 +232,7 @@ pub const GAMEPAD_AXIS_LIST: &[GamepadAxis] = &[
     GamepadAxis::RightStickY,
 ];
 
-#[cfg(all(not(target_arch="wasm32"), feature = "gamepads"))]
-impl Into<gilrs::Button> for GamepadButton {
+#[cfg(all(not(any(target_arch="wasm32", target_os="macos")), feature = "gamepads"))]impl Into<gilrs::Button> for GamepadButton {
     fn into(self) -> gilrs::Button {
         use gilrs::Button;
         match self {
