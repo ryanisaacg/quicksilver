@@ -75,6 +75,7 @@ fn run_impl<T: 'static + State>() {
     let mut running = true;
     while running {
         running = events.generate_events(&mut app.window, &mut event_buffer);
+        app.window.update_gamepads(&mut event_buffer);
         for event in event_buffer.iter() {
             app.event(event);
         }

@@ -3,7 +3,7 @@ use ffi::gl;
 use geom::{ Rectangle, Transform, Vector};
 #[cfg(not(target_arch="wasm32"))] use glutin::{EventsLoop, GlContext};
 use graphics::{Backend, BlendMode, Color, Drawable, GpuTriangle, ResizeStrategy, Vertex, View};
-use input::{ButtonState, Event, Gamepad, Keyboard, Mouse};
+use input::{ButtonState, Event, Gamepad, GamepadProvider, Keyboard, Mouse};
 
 /// The way the images should change when drawn at a scale
 #[repr(u32)]
@@ -140,6 +140,7 @@ impl WindowBuilder {
             gl_window,
             gamepads: Vec::new(),
             gamepad_buffer: Vec::new(),
+            provider: GamepadProvider::new(),
             resize: self.resize,
             screen_region,
             scale_factor,
@@ -171,6 +172,7 @@ impl WindowBuilder {
         Window {
             gamepads: Vec::new(),
             gamepad_buffer: Vec::new(),
+            provider: GamepadProvider::new(),
             resize: self.resize,
             screen_region,
             scale_factor: 1.0,
@@ -188,6 +190,7 @@ impl WindowBuilder {
 pub struct Window {
     #[cfg(not(target_arch="wasm32"))]
     pub(crate) gl_window: glutin::GlWindow,
+    provider: GamepadProvider,
     gamepads: Vec<Gamepad>,
     gamepad_buffer: Vec<Gamepad>, //used as a temporary buffer for storing new gamepads
     resize: ResizeStrategy,
@@ -213,7 +216,7 @@ impl Window {
     }
 
     pub(crate) fn update_gamepads(&mut self, events: &mut Vec<Event>) {
-        self.update_gamepads_impl();
+        self.provider.provide_gamepads(&mut self.gamepad_buffer);
         let (mut i, mut j) = (0, 0);
         while i < self.gamepads.len() && j < self.gamepad_buffer.len() {
             if self.gamepads[i].id() == self.gamepad_buffer[j].id() {
@@ -231,17 +234,6 @@ impl Window {
         self.gamepads.clear();
         self.gamepads.append(&mut self.gamepad_buffer);
     }
-
-    #[cfg(not(target_arch="wasm32"))]
-    fn update_gamepads_impl(&mut self) {
-        
-    }
-
-    #[cfg(target_arch="wasm32")]
-    fn update_gamepads_impl(&mut self) {
-            
-    }
-    
     
     ///Transition temporary input states (Pressed, Released) into sustained ones (Held, NotPressed)
     pub fn clear_temporary_states(&mut self) {
