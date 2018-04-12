@@ -10,13 +10,11 @@ keywords = ["game", "audio", "graphics", "gamedev"]
 categories = ["game-engines"]
 
 [features]
-#default = ["fonts", "gamepads", "geometry", "window", "saving", "sounds"]
-
 fonts = ["window", "rusttype"]
 gamepads = ["gilrs", "window"]
 geometry = ["rand", "serde", "serde_derive"]
 window = ["geometry", "gl", "glutin", "image", "futures", "rusttype"]
-saving = ["serde", "serde_derive", "serde_json"]
+saving = ["serde", "serde_json"]
 sounds = ["futures", "rodio"]
 
 [badges]
