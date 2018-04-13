@@ -2,6 +2,7 @@ use input::{GamepadAxis, GamepadButton, MouseButton, Key};
 
 /// The current state of a button
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[repr(u8)]
 pub enum ButtonState {
     /// The button was activated this frame
     Pressed = 0,

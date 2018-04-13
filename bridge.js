@@ -115,28 +115,21 @@ let env = {
     event_data_id: () => event_data.id,
     //Gamepads
     gamepad_count: () => navigator.getGamepads().length,
-    gamepad_data: (id, buttons, axes, next_id) => {
-        const buttons_offset = buttons - id;
-        const axes_offset = axes - buttons;
-        const gamepad_offset = next_id - id;
+    gamepad_data: (start, id, buttons, axes, next) => {
         const gamepads = navigator.getGamepads();
-        let pointer = id;
         const data = get_data_view();
         for(let i = 0; i < gamepads.length; i++) {
+            const offset = (next - start) * i;
             const gamepad = gamepads[i];
-            data.setUint32(pointer, gamepad.index);
-            pointer += buttons_offset;
+            data.setUint32(id + offset, gamepad.index);
+            //TODO: prevent garbage data from happening
             for(let j = 0; j < gamepad.buttons.length && j < 17; j++) {
                 const value = gamepad.buttons[j].pressed ? 1 : 3;
-                data.setUint32(pointer, value);
-                pointer += 4;
+                data.setUint8(buttons + j + offset, value);
+            }         
+            for(let j = 0; j < gamepad.axes.length && j < 1; j++) {
+                data.setFloat32(axes + j * 4 + offset, gamepad.axes[j]);
             }
-            pointer += axes_offset;
-            for(let j = 0; j < gamepad.axes.length && j < 4; j++) {
-                data.setFloat32(pointer, gamepad.axes[j]);
-                pointer += 4;
-            }
-            pointer += gamepad_offset;
         }
     },
     // Saving / loading
@@ -267,6 +260,7 @@ let env = {
     ffi_asset_status: (index) => assets[index].error ? 2 : (assets[index].loaded ? 1 : 0),
     //Logging
     log_string: (ptr) => console.log(rust_str_to_js(ptr)),
+    log_float: (x) => console.log(x),
     //Game loop
     set_app: (app) => {
         setInterval(() => instance.exports.update(app), 16);

@@ -114,17 +114,20 @@ impl GamepadProvider {
 
     #[cfg(target_arch="wasm32")]
     fn provide_gamepads_impl(&self, buffer: &mut Vec<Gamepad>) {
+        use std::os::raw::c_void;
         use ffi::wasm;
         buffer.push(Gamepad::new(0));
         buffer.push(Gamepad::new(0));
-        let id_ptr = &mut buffer[0].id as *mut u32;
-        let button_ptr = &mut buffer[0].buttons[0] as *mut ButtonState as *mut u32;
-        let axis_ptr = &mut buffer[0].axes[0] as *mut f32;
-        let next_id_ptr = &mut buffer[1].id as *mut u32;
         unsafe {
             let gamepad_count = wasm::gamepad_count() as usize;
             buffer.reserve(gamepad_count);
-            wasm::gamepad_data(id_ptr, button_ptr, axis_ptr, next_id_ptr);
+            let start = &mut buffer[0] as *mut Gamepad as *mut c_void;
+            let id_ptr = &mut buffer[0].id as *mut u32;
+            let button_ptr = &mut buffer[0].buttons[0] as *mut ButtonState as *mut u32;
+            let axis_ptr = &mut buffer[0].axes[0] as *mut f32;
+            let next_id = &mut buffer[1] as *mut Gamepad as *mut c_void;
+            wasm::gamepad_data(start, id_ptr, button_ptr, axis_ptr, next_id);
+            wasm::log_float(buffer[0].axes[0]);
             buffer.set_len(gamepad_count);
             if gamepad_count < 2 {
                 buffer.truncate(2 - gamepad_count);

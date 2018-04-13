@@ -17,7 +17,7 @@ extern "C" {
     pub fn event_data_id() -> u32;
     //Gamepads
     pub fn gamepad_count() -> u32;
-    pub fn gamepad_data(id: *mut u32, buttons: *mut u32, axes: *mut f32, next_id: *mut u32);
+    pub fn gamepad_data(start: *mut c_void, id: *mut u32, buttons: *mut u32, axes: *mut f32, next: *mut c_void);
     //Saving / loading
     pub fn save_cookie(key: *const i8, val: *const i8);
     pub fn load_cookie(key: *const i8) -> *mut i8;
@@ -42,6 +42,7 @@ extern "C" {
     fn ffi_asset_status(handle: u32) -> i32;
     //Logging
     fn log_string(string: *mut i8);
+    pub fn log_float(x: f32);
     //Game loop
     pub fn set_app(app: *mut c_void);
 }
