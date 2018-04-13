@@ -43,6 +43,7 @@ pub fn run<T: 'static + State>() {
 pub struct Application {
     state: Box<State>, 
     window: Window,
+    event_buffer: Vec<Event>
 }
 
 impl Application {
@@ -58,6 +59,15 @@ impl Application {
         self.window.process_event(event);
         self.state.event(event, &mut self.window);
     }
+
+    fn process_events(&mut self) {
+        self.window.update_gamepads(&mut self.event_buffer);
+        for i in 0..self.event_buffer.len() {
+            self.window.process_event(&self.event_buffer[i]);
+            self.state.event(&self.event_buffer[i], &mut self.window);
+        }
+        self.event_buffer.clear();
+    }
 }
 
 #[cfg(not(target_arch="wasm32"))]
@@ -67,19 +77,15 @@ fn run_impl<T: 'static + State>() {
     let mut events = EventProvider::new(events_loop);
     let mut event_buffer = Vec::new();
     let state = Box::new(T::new());
-    let mut app = Application { window, state };
+    let mut app = Application { window, state, event_buffer };
     use std::time::Duration;
     use sound::Sound;
     Sound::initialize();
     let mut timer = ::Timer::new();
     let mut running = true;
     while running {
-        running = events.generate_events(&mut app.window, &mut event_buffer);
-        app.window.update_gamepads(&mut event_buffer);
-        for event in event_buffer.iter() {
-            app.event(event);
-        }
-        event_buffer.clear();
+        running = events.generate_events(&mut app.window, &mut app.event_buffer);
+        app.process_events();
         timer.tick(||  { 
             app.update(); 
             Duration::from_millis(16) 
@@ -93,7 +99,11 @@ fn run_impl<T: 'static + State>() {
 fn run_impl<T: 'static + State>() {
     use ffi::wasm;
     use std::os::raw::c_void;
-    let app = Box::new(Application { window: T::configure().build(), state: Box::new(T::new()) });
+    let app = Box::new(Application { 
+        window: T::configure().build(), 
+        state: Box::new(T::new()),
+        event_buffer: Vec::new()
+    });
     unsafe { wasm::set_app(Box::into_raw(app) as *mut c_void) };
 }
 
@@ -102,6 +112,7 @@ fn run_impl<T: 'static + State>() {
 #[cfg(target_arch="wasm32")]
 pub extern "C" fn update(app: *mut Application) {
     let mut app = unsafe { Box::from_raw(app) };
+    app.process_events();
     app.update();
     Box::into_raw(app);
 }

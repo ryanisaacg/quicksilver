@@ -114,12 +114,27 @@ impl GamepadProvider {
 
     #[cfg(target_arch="wasm32")]
     fn provide_gamepads_impl(&self, buffer: &mut Vec<Gamepad>) {
-
+        use ffi::wasm;
+        buffer.push(Gamepad::new(0));
+        buffer.push(Gamepad::new(0));
+        let id_ptr = &mut buffer[0].id as *mut u32;
+        let button_ptr = &mut buffer[0].buttons[0] as *mut ButtonState as *mut u32;
+        let axis_ptr = &mut buffer[0].axes[0] as *mut f32;
+        let next_id_ptr = &mut buffer[1].id as *mut u32;
+        unsafe {
+            let gamepad_count = wasm::gamepad_count() as usize;
+            buffer.reserve(gamepad_count);
+            wasm::gamepad_data(id_ptr, button_ptr, axis_ptr, next_id_ptr);
+            buffer.set_len(gamepad_count);
+            if gamepad_count < 2 {
+                buffer.truncate(2 - gamepad_count);
+            }
+        }
     }
 
     #[cfg(any(target_os="macos", not(feature = "gamepads")))]
     fn provide_gamepads_impl(&self, buffer: &mut Vec<Gamepad>) {
-
+        //Inentionally a no-op
     }
 }
 
@@ -136,6 +151,7 @@ pub enum GamepadAxis {
     RightStickY = 3
 }
 
+#[repr(u32)]
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 /// A button on a gamepad
 pub enum GamepadButton {

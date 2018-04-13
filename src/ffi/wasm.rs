@@ -15,6 +15,9 @@ extern "C" {
     pub fn event_data_f1() -> f32;
     pub fn event_data_f2() -> f32;
     pub fn event_data_id() -> u32;
+    //Gamepads
+    pub fn gamepad_count() -> u32;
+    pub fn gamepad_data(id: *mut u32, buttons: *mut u32, axes: *mut f32, next_id: *mut u32);
     //Saving / loading
     pub fn save_cookie(key: *const i8, val: *const i8);
     pub fn load_cookie(key: *const i8) -> *mut i8;

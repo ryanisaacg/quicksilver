@@ -3,6 +3,9 @@ let gl = canvas.getContext('webgl2');
 let gl_objects = [];
 let instance = {};
 const init = { window: null, state: null };
+function get_data_view() {
+    return new DataView(instance.exports.memory.buffer);
+}
 function rust_ptr_to_buffer(pointer) {
     return new Uint8Array(instance.exports.memory.buffer, pointer);
 }
@@ -91,15 +94,6 @@ canvas.onmousedown = (event) => {
         send_event(8);
     }
 }
-window.ongamepadconnected = (event) => {
-    event_data.id = event.gamepad.id;
-    send_event(11);
-}
-window.ongamepaddisconnected = (event) => {
-    event_data.id = event.gamepad.id;
-    send_event(12);
-}
-//TODO: gamepads
 let env = {
     // Windowing
     set_show_mouse: (show) => canvas.style.cursor = show ? "auto" : "none",
@@ -119,6 +113,32 @@ let env = {
     event_data_f1: () => event_data.f1,
     event_data_f2: () => event_data.f2,
     event_data_id: () => event_data.id,
+    //Gamepads
+    gamepad_count: () => navigator.getGamepads().length,
+    gamepad_data: (id, buttons, axes, next_id) => {
+        const buttons_offset = buttons - id;
+        const axes_offset = axes - buttons;
+        const gamepad_offset = next_id - id;
+        const gamepads = navigator.getGamepads();
+        let pointer = id;
+        const data = get_data_view();
+        for(let i = 0; i < gamepads.length; i++) {
+            const gamepad = gamepads[i];
+            data.setUint32(pointer, gamepad.index);
+            pointer += buttons_offset;
+            for(let j = 0; j < gamepad.buttons.length && j < 17; j++) {
+                const value = gamepad.buttons[j].pressed ? 1 : 3;
+                data.setUint32(pointer, value);
+                pointer += 4;
+            }
+            pointer += axes_offset;
+            for(let j = 0; j < gamepad.axes.length && j < 4; j++) {
+                data.setFloat32(pointer, gamepad.axes[j]);
+                pointer += 4;
+            }
+            pointer += gamepad_offset;
+        }
+    },
     // Saving / loading
     save_cookie: (key_ptr, val_ptr) => document.cookie = rust_str_to_js(key_ptr) + "=" + rust_str_to_js(val_ptr) + ";",
     load_cookie: (key_ptr) => {
@@ -251,7 +271,6 @@ let env = {
     set_app: (app) => {
         setInterval(() => instance.exports.update(app), 16);
         send_event = (event) => {
-            console.log(event);
             instance.exports.event(app, event);
         };
         function draw() {

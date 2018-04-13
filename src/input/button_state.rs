@@ -4,13 +4,13 @@ use input::{GamepadAxis, GamepadButton, MouseButton, Key};
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum ButtonState {
     /// The button was activated this frame
-    Pressed,
+    Pressed = 0,
     /// The button is active but was not activated this frame
-    Held,
+    Held = 1,
     /// The button was released this frame
-    Released,
+    Released = 2,
     /// The button is not active but was not released this frame
-    NotPressed,
+    NotPressed = 3,
 }
 
 pub(crate) const BUTTON_STATE_LIST: [ButtonState; 4] = [ButtonState::Pressed, ButtonState::Held, ButtonState::Released, ButtonState::NotPressed];
