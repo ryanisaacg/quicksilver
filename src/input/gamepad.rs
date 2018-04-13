@@ -127,7 +127,6 @@ impl GamepadProvider {
             let axis_ptr = &mut buffer[0].axes[0] as *mut f32;
             let next_id = &mut buffer[1] as *mut Gamepad as *mut c_void;
             wasm::gamepad_data(start, id_ptr, button_ptr, axis_ptr, next_id);
-            wasm::log_float(buffer[0].axes[0]);
             buffer.set_len(gamepad_count);
             if gamepad_count < 2 {
                 buffer.truncate(2 - gamepad_count);

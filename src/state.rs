@@ -132,7 +132,6 @@ pub extern "C" fn draw(app: *mut Application) {
 pub unsafe extern "C" fn event(app: *mut Application, event_tag: u32) {
     use ffi::wasm;
     let mut app = Box::from_raw(app);
-    // TODO: Convert u32 to the enums
     let event = match event_tag {
         0 => Event::Closed,
         1 => Event::Focused,

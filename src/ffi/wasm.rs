@@ -42,7 +42,6 @@ extern "C" {
     fn ffi_asset_status(handle: u32) -> i32;
     //Logging
     fn log_string(string: *mut i8);
-    pub fn log_float(x: f32);
     //Game loop
     pub fn set_app(app: *mut c_void);
 }

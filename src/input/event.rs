@@ -8,6 +8,7 @@ use graphics::Window;
 use glutin::{EventsLoop, Event::{WindowEvent}};
 
 /// An input event
+#[derive(Copy, Clone, Debug)]
 pub enum Event {
     /// The application has been closed
     Closed,

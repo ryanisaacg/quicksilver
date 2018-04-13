@@ -53,7 +53,6 @@ window.onblur = () => send_event(2);
 document.onkeydown = (event) => {
     if(keycodes[event.code] !== undefined) {
         event_data.button = keycodes[event.code];
-        console.log(event_data.button);
         event_data.state = 0;
         send_event(3);
         event.preventDefault();
@@ -126,9 +125,9 @@ let env = {
             for(let j = 0; j < gamepad.buttons.length && j < 17; j++) {
                 const value = gamepad.buttons[j].pressed ? 1 : 3;
                 data.setUint8(buttons + j + offset, value);
-            }         
-            for(let j = 0; j < gamepad.axes.length && j < 1; j++) {
-                data.setFloat32(axes + j * 4 + offset, gamepad.axes[j]);
+            }
+            for(let j = 0; j < gamepad.axes.length && j < 4; j++) {
+                data.setFloat32(axes + 3 + j * 4 + offset, gamepad.axes[j]);
             }
         }
     },
@@ -260,7 +259,6 @@ let env = {
     ffi_asset_status: (index) => assets[index].error ? 2 : (assets[index].loaded ? 1 : 0),
     //Logging
     log_string: (ptr) => console.log(rust_str_to_js(ptr)),
-    log_float: (x) => console.log(x),
     //Game loop
     set_app: (app) => {
         setInterval(() => instance.exports.update(app), 16);
