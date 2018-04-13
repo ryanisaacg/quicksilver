@@ -1,4 +1,4 @@
-use input::{ButtonState, Key, KEY_LIST};
+use input::{ButtonState, Key};
 use std::ops::Index;
 
 #[derive(Copy)]

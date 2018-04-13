@@ -40,8 +40,6 @@ extern "C" {
     pub fn file_length(handle: u32) -> u32;
     //Asset loading
     fn ffi_asset_status(handle: u32) -> i32;
-    //Logging
-    fn log_string(string: *mut i8);
     //Game loop
     pub fn set_app(app: *mut c_void);
 }
@@ -54,9 +52,4 @@ pub fn asset_status(handle: u32) -> Result<bool, IOError> {
         2 => Err(ErrorKind::NotFound),
         _ => unreachable!()
     }
-}
-
-pub fn log(string: &str) {
-    use std::ffi::CString;
-    unsafe { log_string(CString::new(string).unwrap().into_raw()) };
 }

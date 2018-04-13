@@ -2,10 +2,7 @@
 // world!
 extern crate quicksilver;
 
-use quicksilver::{
-    State, run,
-    graphics::{Window, WindowBuilder}
-};
+use quicksilver::{State, run, graphics::WindowBuilder};
 
 // An empty structure because we don't need to store any state
 struct BlackScreen;

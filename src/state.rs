@@ -1,6 +1,7 @@
+#[cfg(target_arch="wasm32")]
 use geom::Vector;
 use graphics::{Window, WindowBuilder};
-use input::{Event, BUTTON_STATE_LIST, GAMEPAD_AXIS_LIST, GAMEPAD_BUTTON_LIST, KEY_LIST, MOUSE_BUTTON_LIST};
+use input::Event;
 
 /// The structure responsible for managing the game loop state
 pub trait State {
@@ -55,6 +56,7 @@ impl Application {
         self.state.draw(&mut self.window);
     }
 
+    #[cfg(target_arch="wasm32")]
     fn event(&mut self, event: &Event) {
         self.window.process_event(event);
         self.state.event(event, &mut self.window);
@@ -75,7 +77,7 @@ fn run_impl<T: 'static + State>() {
     use input::EventProvider;
     let (window, events_loop) = T::configure().build();
     let mut events = EventProvider::new(events_loop);
-    let mut event_buffer = Vec::new();
+    let event_buffer = Vec::new();
     let state = Box::new(T::new());
     let mut app = Application { window, state, event_buffer };
     use std::time::Duration;
@@ -132,6 +134,7 @@ pub extern "C" fn draw(app: *mut Application) {
 pub unsafe extern "C" fn event(app: *mut Application, event_tag: u32) {
     use ffi::wasm;
     let mut app = Box::from_raw(app);
+    use input::{BUTTON_STATE_LIST, GAMEPAD_AXIS_LIST, GAMEPAD_BUTTON_LIST, KEY_LIST, MOUSE_BUTTON_LIST};
     let event = match event_tag {
         0 => Event::Closed,
         1 => Event::Focused,

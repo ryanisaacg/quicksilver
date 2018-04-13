@@ -13,22 +13,10 @@ pub struct Gamepad {
 }
 
 impl Gamepad {
-    pub(crate) fn new(id: u32) -> Gamepad {
-        Gamepad { id, buttons: [ButtonState::NotPressed; 17], axes: [0.0; 4] }
-    }
-
     pub(crate) fn clear_temporary_states(&mut self) {
         for button in self.buttons.iter_mut() {
             *button =  button.clear_temporary();
         }
-    }
-
-    pub(crate) fn set_axis(&mut self, axis: GamepadAxis, val: f32) {
-        self.axes[axis as usize] = val;
-    }
-
-    pub(crate) fn set_button(&mut self, button: GamepadButton, val: ButtonState) {
-        self.buttons[button as usize] = val;
     }
 
     pub(crate) fn set_previous(&mut self, previous: &Gamepad, events: &mut Vec<Event>) {
@@ -114,10 +102,13 @@ impl GamepadProvider {
 
     #[cfg(target_arch="wasm32")]
     fn provide_gamepads_impl(&self, buffer: &mut Vec<Gamepad>) {
+        fn new(id: u32) -> Gamepad {
+            Gamepad { id, buttons: [ButtonState::NotPressed; 17], axes: [0.0; 4] }
+        }
         use std::os::raw::c_void;
         use ffi::wasm;
-        buffer.push(Gamepad::new(0));
-        buffer.push(Gamepad::new(0));
+        buffer.push(new(0));
+        buffer.push(new(0));
         unsafe {
             let gamepad_count = wasm::gamepad_count() as usize;
             buffer.reserve(gamepad_count);

@@ -1,8 +1,9 @@
 #[cfg(not(target_arch="wasm32"))]
 extern crate glutin;
 
-use input::{ButtonState, GamepadAxis, GamepadButton, Key, KEY_LIST, MouseButton};
+use input::{ButtonState, GamepadAxis, GamepadButton, Key, MouseButton};
 use geom::Vector;
+#[cfg(not(target_arch="wasm32"))]
 use graphics::Window;
 #[cfg(not(target_arch="wasm32"))]
 use glutin::{EventsLoop, Event::{WindowEvent}};
@@ -38,6 +39,7 @@ pub enum Event {
     GamepadDisconnected(u32)
 }
 
+#[cfg(not(target_arch="wasm32"))]
 const LINES_TO_PIXELS: f32 = 15.0;
 
 #[cfg(not(target_arch="wasm32"))]
@@ -55,7 +57,6 @@ impl EventProvider {
 
     pub(crate) fn generate_events(&mut self, window: &mut Window, events: &mut Vec<Event>) -> bool {
         let mut running = true;
-        //TODO: Make sure only novel events hit the user
         self.events_loop.poll_events(|event| match event {
             WindowEvent { event, .. } => match event {
                 glutin::WindowEvent::Closed => {
@@ -68,7 +69,7 @@ impl EventProvider {
                             glutin::ElementState::Pressed => ButtonState::Pressed,
                             glutin::ElementState::Released => ButtonState::Released
                         };
-                        let key = KEY_LIST[keycode as usize];
+                        let key = ::input::KEY_LIST[keycode as usize];
                         events.push(Event::Key(key, state));
                     }
                 }

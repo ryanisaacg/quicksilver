@@ -1,5 +1,3 @@
-use input::{GamepadAxis, GamepadButton, MouseButton, Key};
-
 /// The current state of a button
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 #[repr(u8)]
@@ -14,6 +12,7 @@ pub enum ButtonState {
     NotPressed = 3,
 }
 
+#[cfg(target_arch="wasm32")]
 pub(crate) const BUTTON_STATE_LIST: [ButtonState; 4] = [ButtonState::Pressed, ButtonState::Held, ButtonState::Released, ButtonState::NotPressed];
 
 impl ButtonState {

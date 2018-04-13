@@ -18,10 +18,13 @@ pub use self::{
     keyboard::Keyboard,
     mouse::{Mouse, MouseButton}
 };
-#[cfg(not(target_arch="wasm32"))] pub(crate) use self::event::EventProvider;
 pub(crate) use self::{
+    gamepad::GamepadProvider,
+    key::KEY_LIST
+};
+#[cfg(not(target_arch="wasm32"))] pub(crate) use self::event::EventProvider;
+#[cfg(target_arch="wasm32")] pub(crate) use self::{
     button_state::BUTTON_STATE_LIST,
-    gamepad::{GamepadProvider, GAMEPAD_AXIS_LIST, GAMEPAD_BUTTON_LIST},
-    key::KEY_LIST,
+    gamepad::{GAMEPAD_AXIS_LIST, GAMEPAD_BUTTON_LIST},
     mouse::MOUSE_BUTTON_LIST
 };

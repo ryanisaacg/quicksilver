@@ -257,8 +257,6 @@ let env = {
     file_length: (index) => assets[index].length,
     //Asset loading
     ffi_asset_status: (index) => assets[index].error ? 2 : (assets[index].loaded ? 1 : 0),
-    //Logging
-    log_string: (ptr) => console.log(rust_str_to_js(ptr)),
     //Game loop
     set_app: (app) => {
         setInterval(() => instance.exports.update(app), 16);

@@ -278,6 +278,7 @@ impl Window {
     }
 
     // Get the screen offset
+    #[cfg(not(target_arch="wasm32"))]
     pub(crate) fn screen_offset(&self) -> Vector {
         self.screen_region.top_left()
     }
