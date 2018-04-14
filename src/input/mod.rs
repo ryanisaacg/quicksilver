@@ -5,7 +5,7 @@
 
 mod button_state;
 mod event;
-#[cfg(feature="gamepads")] mod gamepad;
+mod gamepad;
 mod key;
 mod keyboard;
 mod mouse;

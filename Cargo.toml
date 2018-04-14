@@ -10,6 +10,8 @@ keywords = ["game", "audio", "graphics", "gamedev"]
 categories = ["game-engines"]
 
 [features]
+default = ["fonts", "gamepads", "geometry", "window", "saving", "sounds"]
+
 fonts = ["window", "rusttype"]
 gamepads = ["gilrs", "window"]
 geometry = ["rand", "serde", "serde_derive"]

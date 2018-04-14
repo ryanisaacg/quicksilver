@@ -89,6 +89,7 @@ pub use timer::Timer;
 #[cfg(all(feature="window", target_arch="wasm32"))] pub use state::{update, draw, event};
 
 /// Necessary types from futures-rs
+#[cfg(feature="futures")] 
 pub use futures::{Future, Async};
 
 #[no_mangle]
