@@ -5,7 +5,7 @@ use quicksilver::{
     State, run,
     geom::{Circle, Vector},
     graphics::{Color, Sprite, Window, WindowBuilder},
-    input::{Button, GamepadAxis, GamepadButton, Key}
+    input::{GamepadAxis, GamepadButton, Key}
 };
 
 struct Platformer {
@@ -19,8 +19,8 @@ fn between(value: f32, min: f32, max: f32) -> bool {
 }
 
 impl State for Platformer {
-    fn configure() -> Window {
-        WindowBuilder::new().build("Basic Platformer", 800, 600)
+    fn configure() -> WindowBuilder {
+        WindowBuilder::new("Basic Platformer", 800, 600)
     }
 
    fn new() -> Platformer { 
