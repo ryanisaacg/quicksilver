@@ -3,7 +3,7 @@ extern crate rusttype;
 
 use graphics::{Color, Image, PixelFormat};
 use error::QuicksilverError;
-use util::FileLoader;
+use FileLoader;
 
 use futures::{Async, Future, Map, Poll};
 use rusttype::{Font as RTFont, FontCollection, PositionedGlyph, Scale, point};

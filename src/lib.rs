@@ -49,20 +49,31 @@
 
 #![deny(missing_docs)]
 
+#[cfg(feature="futures")] 
 extern crate futures;
-#[cfg(not(target_arch="wasm32"))] extern crate gilrs;
-#[cfg(not(target_arch="wasm32"))] extern crate glutin;
-#[cfg(not(target_arch="wasm32"))] extern crate image;
+#[cfg(all(feature="gilrs", not(target_arch="wasm32")))] 
+extern crate gilrs;
+#[cfg(all(feature="glutin", not(target_arch="wasm32")))] 
+extern crate glutin;
+#[cfg(all(feature="image", not(target_arch="wasm32")))] 
+extern crate image;
+#[cfg(feature="rand")] 
 extern crate rand;
-#[cfg(not(target_arch="wasm32"))] extern crate rodio;
+#[cfg(all(feature="rodio", not(target_arch="wasm32")))] 
+extern crate rodio;
+#[cfg(feature="rusttype")] 
 extern crate rusttype;
+#[cfg(feature="serde")] 
 extern crate serde;
+#[cfg(feature="serde_json")] 
 extern crate serde_json;
 
+#[cfg(feature="serde_derive")]
 #[macro_use]
 extern crate serde_derive;
 
 mod error;
+#[cfg(feature="futures")] mod file;
 mod ffi;
 #[cfg(feature="window")] mod state;
 mod timer;
@@ -71,13 +82,14 @@ mod timer;
 #[cfg(feature="window")]   pub mod input;
 #[cfg(feature="saving")]   pub mod saving;
 #[cfg(feature="sounds")]   pub mod sound;
-pub mod util;
+#[cfg(feature="futures")] pub use file::FileLoader;
 pub use error::QuicksilverError;
 pub use timer::Timer;
 #[cfg(feature="window")]   pub use state::{State, run};
 #[cfg(all(feature="window", target_arch="wasm32"))] pub use state::{update, draw, event};
 
 /// Necessary types from futures-rs
+#[cfg(feature="futures")] 
 pub use futures::{Future, Async};
 
 #[no_mangle]

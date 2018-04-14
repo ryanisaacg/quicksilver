@@ -81,8 +81,10 @@ fn run_impl<T: 'static + State>() {
     let state = Box::new(T::new());
     let mut app = Application { window, state, event_buffer };
     use std::time::Duration;
-    use sound::Sound;
-    Sound::initialize();
+    #[cfg(feature="sounds")] {
+        use sound::Sound;
+        Sound::initialize();
+    }
     let mut timer = ::Timer::new();
     let mut running = true;
     while running {
