@@ -12,8 +12,8 @@ struct PulsingCircle {
 }
 
 impl State for PulsingCircle {
-    fn configure() -> Window {
-        WindowBuilder::new().build("Pulsing Circle", 800, 600)
+    fn configure() -> WindowBuilder {
+        WindowBuilder::new("Pulsing Circle", 800, 600)
     }
 
    fn new() -> PulsingCircle { 

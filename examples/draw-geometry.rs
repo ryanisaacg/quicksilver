@@ -10,8 +10,8 @@ use quicksilver::{
 struct DrawGeometry;
 
 impl State for DrawGeometry {
-    fn configure() -> Window {
-        WindowBuilder::new().build("Draw Geometry", 800, 600)
+    fn configure() -> WindowBuilder {
+        WindowBuilder::new("Draw Geometry", 800, 600)
     }
 
    fn new() -> DrawGeometry { DrawGeometry }

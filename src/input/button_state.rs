@@ -1,30 +1,19 @@
-use input::{GamepadAxis, GamepadButton, MouseButton, Key};
-
-/// A unified button input for mouse and keyboard
-#[derive(Copy, Clone, Debug, PartialEq)]
-pub enum Button {
-    /// An optional ID and button for a gamepad
-    GamepadButton((Option<u32>, GamepadButton)),
-    /// An optional ID and axis bounds for a gamepad axis (min, mxa)
-    GamepadAxis((Option<u32>, GamepadAxis, f32, f32)),
-    /// A mouse button
-    Mouse(MouseButton),
-    /// A keyboard key
-    Keyboard(Key)
-}
-
 /// The current state of a button
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[repr(u8)]
 pub enum ButtonState {
     /// The button was activated this frame
-    Pressed,
+    Pressed = 0,
     /// The button is active but was not activated this frame
-    Held,
+    Held = 1,
     /// The button was released this frame
-    Released,
+    Released = 2,
     /// The button is not active but was not released this frame
-    NotPressed,
+    NotPressed = 3,
 }
+
+#[cfg(target_arch="wasm32")]
+pub(crate) const BUTTON_STATE_LIST: [ButtonState; 4] = [ButtonState::Pressed, ButtonState::Held, ButtonState::Released, ButtonState::NotPressed];
 
 impl ButtonState {
     pub(crate) fn update(&self, new: ButtonState) -> ButtonState {

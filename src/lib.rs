@@ -75,12 +75,10 @@ pub mod util;
 pub use error::QuicksilverError;
 pub use timer::Timer;
 #[cfg(feature="window")]   pub use state::{State, run};
-#[cfg(feature="window")] #[cfg(target_arch="wasm32")] pub use state::{update, draw};
+#[cfg(all(feature="window", target_arch="wasm32"))] pub use state::{update, draw, event};
 
-/// A type that can be loaded, resulting in an Item or an Error
-pub type Loadable<Item, Error> = futures::Future<Item = Item, Error = Error>;
-/// The result of a loading poll, either Ready(T) or NotReady
-pub type Loading<T> = futures::Async<T>;
+/// Necessary types from futures-rs
+pub use futures::{Future, Async};
 
 #[no_mangle]
 #[cfg(target_arch="wasm32")]

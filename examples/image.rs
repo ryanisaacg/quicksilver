@@ -1,10 +1,8 @@
 // Draw an image to the screen
-extern crate futures;
 extern crate quicksilver;
 
-use futures::{Async, Future};
 use quicksilver::{
-    State, run,
+    Async, Future, State, run,
     geom::Vector,
     graphics::{Color, Image, ImageLoader, Sprite, Window, WindowBuilder}
 };
@@ -15,8 +13,8 @@ enum ImageViewer {
 }
 
 impl State for ImageViewer {
-    fn configure() -> Window {
-        WindowBuilder::new().build("Image Example", 800, 600)
+    fn configure() -> WindowBuilder {
+        WindowBuilder::new("Image Example", 800, 600)
     }
 
    fn new() -> ImageViewer { ImageViewer::Loading(Image::load("examples/assets/image.png")) }
