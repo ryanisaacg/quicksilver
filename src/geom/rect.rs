@@ -1,3 +1,11 @@
+#[cfg(feature="nalgebra")] use nalgebra::{
+    core::Vector2,
+    geometry::Point2
+};
+#[cfg(feature="ncollide")] use ncollide::{
+    bounding_volume::AABB,
+    shape::Cuboid
+};
 use geom::{about_equal, Circle, Line, Positioned, Scalar, Vector};
 use rand::{Rand, Rng};
 use std::cmp::{Eq, PartialEq};
@@ -137,6 +145,20 @@ impl Positioned for Rectangle {
 
     fn bounding_box(&self) -> Rectangle {
         *self
+    }
+}
+
+impl Into<Cuboid<Vector2<f32>>> for Rectangle {
+    fn into(self) -> Cuboid<Vector2<f32>> {
+        Cuboid::new((self.size() / 2).into())
+    }
+}
+
+impl Into<AABB<Point2<f32>>> for Rectangle {
+    fn into(self) -> AABB<Point2<f32>> {
+        let min: Point2<f32> = self.top_left().into(); 
+        let max: Point2<f32> = (self.top_left() + self.size()).into();
+        AABB::new(min, max)
     }
 }
 
