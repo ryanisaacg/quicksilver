@@ -1,3 +1,4 @@
+#[cfg(feature="ncollide")] use ncollide::shape::Segment2;
 use geom::{Positioned, Rectangle, Vector};
 use rand::{Rand, Rng};
 
@@ -73,6 +74,19 @@ impl Positioned for Line {
     }
 }
 
+impl Rand for Line {
+    fn rand<R: Rng>(rand: &mut R) -> Self {
+        Line::new(rand.gen(), rand.gen())
+    }
+}
+
+
+impl Into<Segment2<f32>> for Line {
+    fn into(self) -> Segment2<f32> {
+        Segment2::new(self.start.into(), self.end.into())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -97,11 +111,5 @@ mod tests {
         assert!(line1.contains(Vector::new(5, 5)));
         assert!(!line1.contains(Vector::new(6, 5)));
         assert!(line2.contains(Vector::new(0, 32)));
-    }
-}
-
-impl Rand for Line {
-    fn rand<R: Rng>(rand: &mut R) -> Self {
-        Line::new(rand.gen(), rand.gen())
     }
 }

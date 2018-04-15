@@ -1,7 +1,3 @@
-#[cfg(feature="nalgebra")] use nalgebra::{
-    core::Vector2,
-    geometry::Point2
-};
 #[cfg(feature="ncollide")] use ncollide::{
     bounding_volume::AABB2,
     shape::Cuboid2
