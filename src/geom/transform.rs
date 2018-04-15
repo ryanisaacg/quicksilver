@@ -1,3 +1,5 @@
+#[cfg(feature="nalgebra")] use nalgebra::core::Matrix3;
+
 use geom::{about_equal, Scalar, Vector};
 use std::{
     ops::Mul,
@@ -144,6 +146,16 @@ impl PartialEq for Transform {
 }
 
 impl Eq for Transform {}
+
+impl Into<Matrix3<f32>> for Transform {
+    fn into(self) -> Matrix3<f32> {
+        Matrix3::new(
+            self.0[0][0], self.0[0][1], self.0[0][2],
+            self.0[1][0], self.0[1][1], self.0[1][2],
+            self.0[2][0], self.0[2][1], self.0[2][2],
+        )
+    }
+}
 
 #[cfg(test)]
 mod tests {
