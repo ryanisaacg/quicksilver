@@ -1,4 +1,7 @@
-#[cfg(feature="nalgebra")] use nalgebra::core::Vector2;
+#[cfg(feature="nalgebra")] use nalgebra::{
+    core::Vector2,
+    geometry::Point2
+};
 
 use geom::{about_equal, Positioned, Rectangle, Scalar};
 use rand::{Rand, Rng};
@@ -241,6 +244,13 @@ impl Positioned for Vector {
 impl Into<Vector2<f32>> for Vector {
     fn into(self) -> Vector2<f32> {
         Vector2::new(self.x, self.y)
+    }
+}
+
+#[cfg(feature="nalgebra")]
+impl Into<Point2<f32>> for Vector {
+    fn into(self) -> Point2<f32> {
+        Point2::new(self.x, self.y)
     }
 }
 
