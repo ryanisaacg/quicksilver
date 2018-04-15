@@ -80,7 +80,7 @@ impl Rand for Line {
     }
 }
 
-
+#[cfg(feature="ncollide")]
 impl Into<Segment2<f32>> for Line {
     fn into(self) -> Segment2<f32> {
         Segment2::new(self.start.into(), self.end.into())

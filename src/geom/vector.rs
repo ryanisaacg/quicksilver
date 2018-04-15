@@ -254,6 +254,20 @@ impl Into<Point2<f32>> for Vector {
     }
 }
 
+#[cfg(feature="nalgebra")]
+impl From<Vector2<f32>> for Vector {
+    fn from(other: Vector2<f32>) -> Vector {
+        Vector::new(other.x, other.y)
+    }
+}
+
+#[cfg(feature="nalgebra")]
+impl From<Point2<f32>> for Vector {
+    fn from(other: Point2<f32>) -> Vector {
+        Vector::new(other.x, other.y)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

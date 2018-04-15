@@ -147,6 +147,7 @@ impl PartialEq for Transform {
 
 impl Eq for Transform {}
 
+#[cfg(feature="nalgebra")]
 impl Into<Matrix3<f32>> for Transform {
     fn into(self) -> Matrix3<f32> {
         Matrix3::new(

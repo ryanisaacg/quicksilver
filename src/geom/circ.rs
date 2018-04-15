@@ -90,6 +90,7 @@ impl Positioned for Circle {
     }
 }
 
+#[cfg(feature="ncollide")]
 impl Into<Ball<f32>> for Circle {
     fn into(self) -> Ball<f32> {
         Ball::new(self.radius)
