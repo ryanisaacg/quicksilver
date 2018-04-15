@@ -15,8 +15,8 @@ enum SampleText {
 }
 
 impl State for SampleText {
-    fn configure() -> Window {
-        WindowBuilder::new().build("Font Example", 800, 600)
+    fn configure() -> WindowBuilder {
+        WindowBuilder::new("Font Example", 800, 600)
     }
 
    fn new() -> SampleText { SampleText::Loading(Font::load("examples/assets/font.ttf")) }

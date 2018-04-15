@@ -33,17 +33,19 @@ Then replace `src/main.rs` with the following (the contents of quicksilver's exa
 // Draw a pulsing circle in the middle of the window
 extern crate quicksilver;
 
-use quicksilver::{State, run};
-use quicksilver::geom::{Circle, Vector, Transform};
-use quicksilver::graphics::{Color, DrawCall, Window, WindowBuilder};
+use quicksilver::{
+    State, run,
+    geom::{Circle, Vector, Transform},
+    graphics::{Color, Sprite, Window, WindowBuilder}
+};
 
 struct PulsingCircle {
     step: f32
 }
 
 impl State for PulsingCircle {
-    fn configure() -> Window {
-        WindowBuilder::new().build("Pulsing Circle", 800, 600)
+    fn configure() -> WindowBuilder {
+        WindowBuilder::new("Pulsing Circle", 800, 600)
     }
 
    fn new() -> PulsingCircle { 
@@ -57,7 +59,7 @@ impl State for PulsingCircle {
    fn draw(&mut self, window: &mut Window) {
         window.clear(Color::black());
         let scale = Transform::scale(Vector::one() * (1.0 + (self.step.to_radians().sin() / 2.0)));
-        window.draw(&[DrawCall::circle(Circle::new(400, 300, 50)).with_color(Color::green()).with_transform(scale)]);
+        window.draw(&Sprite::circle(Circle::new(400, 300, 50)).with_color(Color::green()).with_transform(scale));
         window.present();
    }
 }

@@ -5,7 +5,7 @@ use futures::{Async, Future, Poll};
 use futures::future::{JoinAll, join_all};
 use geom::{Positioned, Rectangle, Vector};
 use graphics::{Image, ImageLoader, ImageError};
-use util::FileLoader;
+use FileLoader;
 use std::{
     cmp::Ordering,
     collections::HashMap,

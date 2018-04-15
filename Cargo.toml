@@ -14,11 +14,11 @@ default = ["fonts", "gamepads", "geometry", "collision", "window", "saving", "so
 
 fonts = ["window", "rusttype"]
 gamepads = ["gilrs", "window"]
-geometry = ["rand"]
+geometry = ["rand", "serde", "serde_derive"]
 collision = ["nalgebra", "ncollide"]
 window = ["geometry", "gl", "glutin", "image", "futures", "rusttype"]
-saving = ["serde", "serde_derive", "serde_json"]
-sounds = ["rodio"]
+saving = ["serde", "serde_json"]
+sounds = ["futures", "rodio"]
 
 [badges]
 

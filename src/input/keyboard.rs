@@ -1,4 +1,4 @@
-use input::{ButtonState, Key, KEY_LIST};
+use input::{ButtonState, Key};
 use std::ops::Index;
 
 #[derive(Copy)]
@@ -12,15 +12,8 @@ pub struct Keyboard {
 
 impl Keyboard {
     /// Return if there was a state change, and if so what was changed
-    pub(crate) fn process_event(&mut self, keycode: usize, pressed: bool) -> Option<(Key, ButtonState)> {
-        let updated = self.keys[keycode].update(if pressed { ButtonState::Pressed } 
-                                                       else { ButtonState::Released });
-        if updated != self.keys[keycode] {
-            self.keys[keycode] = updated;
-            Some((KEY_LIST[keycode], updated))
-        } else {
-            None
-        }
+    pub(crate) fn process_event(&mut self, keycode: usize, pressed: ButtonState) {
+        self.keys[keycode] = self.keys[keycode].update(pressed);
     }
 
     pub(crate) fn clear_temporary_states(&mut self) {
@@ -41,39 +34,5 @@ impl Index<Key> for Keyboard {
 
     fn index(&self, index: Key) -> &ButtonState {
         &self.keys[index as usize]
-    }
-}
-
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn keypress() {
-        let mut keyboard = Keyboard {
-            keys: [ButtonState::NotPressed; 256]
-        };
-        keyboard.process_event(Key::A as usize, true);
-        assert_eq!(keyboard[Key::A], ButtonState::Pressed);
-        keyboard.process_event(Key::A as usize, true);
-        assert_eq!(keyboard[Key::A], ButtonState::Pressed);
-        keyboard.process_event(Key::A as usize, false);
-        assert_eq!(keyboard[Key::A], ButtonState::Released);
-        keyboard.process_event(Key::A as usize, false);
-        assert_eq!(keyboard[Key::A], ButtonState::Released);
-    }
-
-    #[test]
-    fn clear_states() {
-        let mut keyboard = Keyboard {
-            keys: [ButtonState::NotPressed; 256].clone()
-        };
-        keyboard.process_event(Key::A as usize, true);
-        keyboard.clear_temporary_states();
-        assert_eq!(keyboard[Key::A], ButtonState::Held);
-        keyboard.process_event(Key::A as usize, false);
-        keyboard.clear_temporary_states();
-        assert_eq!(keyboard[Key::A], ButtonState::NotPressed);
     }
 }

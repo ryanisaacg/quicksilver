@@ -9,16 +9,15 @@ extern "C" {
     pub fn get_page_height() -> u32;
     pub fn create_context(title: *mut i8, width: u32, height: u32);
     pub fn set_title(title: *mut i8);
-    //Mouse input
-    pub fn get_mouse_x() -> f32;
-    pub fn get_mouse_y() -> f32;
-    pub fn pump_mouse_queue() -> i32;
-    pub fn mouse_scroll_clear();
-    pub fn mouse_scroll_type() -> u32;
-    pub fn mouse_scroll_x() -> f32;
-    pub fn mouse_scroll_y() -> f32;
-    //Keyboard input
-    pub fn pump_key_queue() -> i32;
+    //Event data
+    pub fn event_data_button() -> u32;
+    pub fn event_data_state() -> u32;
+    pub fn event_data_f1() -> f32;
+    pub fn event_data_f2() -> f32;
+    pub fn event_data_id() -> u32;
+    //Gamepads
+    pub fn gamepad_count() -> u32;
+    pub fn gamepad_data(start: *mut c_void, id: *mut u32, buttons: *mut u32, axes: *mut f32, next: *mut c_void);
     //Saving / loading
     pub fn save_cookie(key: *const i8, val: *const i8);
     pub fn load_cookie(key: *const i8) -> *mut i8;
@@ -39,12 +38,6 @@ extern "C" {
     pub fn load_file(name: *mut i8) -> u32;
     pub fn file_contents(handle: u32) -> *mut u8;
     pub fn file_length(handle: u32) -> u32;
-    //Gamepads
-    pub fn gamepads_update();
-    pub fn gamepads_length() -> u32;
-    pub fn gamepads_id(index: u32) -> u32;
-    pub fn gamepad_axis(id: u32, axis: u32) -> f32;
-    pub fn gamepad_button(id: u32, button: u32) -> bool;
     //Asset loading
     fn ffi_asset_status(handle: u32) -> i32;
     //Game loop

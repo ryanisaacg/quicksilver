@@ -3,6 +3,9 @@ let gl = canvas.getContext('webgl2');
 let gl_objects = [];
 let instance = {};
 const init = { window: null, state: null };
+function get_data_view() {
+    return new DataView(instance.exports.memory.buffer);
+}
 function rust_ptr_to_buffer(pointer) {
     return new Uint8Array(instance.exports.memory.buffer, pointer);
 }
@@ -39,49 +42,57 @@ const keynames = ["Digit1", "Digit2", "Digit3", "Digit4", "Digit5", "Digit6", "D
     "Sysrq", "Tab", "Underline", "Unlabeled", "AudioVolumeDown", "AudioVolumeUp", "Wake", "WebBack", "WebFavorites", "WebForward", "WebHome", 
     "WebRefresh", "WebSearch", "WebStop", "Yen"];
 const keycodes = keynames.reduce((map, value, index) => { map[value] = index; return map }, {})
-const key_queue = []
-const mouse = { x: 0, y: 0, scroll_type: 0, scroll_x: 0, scroll_y: 0 };
-const mouse_queue = []
 const assets = []
 const music = { playing: null, volume: 1 }
-const gamepads = []
-const gamepad_axes = []
-const gamepad_buttons = []
+const event_data = { button: 0, state: 0, f1: 0, f2: 0, id: 0 };
+let send_event = () => {};
 //Establish all of the event hooks
-document.addEventListener('keydown', (event) => { 
-    if(keycodes[event.code] !== undefined) { 
-        key_queue.push(keycodes[event.code] + 1);
-        event.preventDefault();
-    }
-})
-document.addEventListener('keyup', (event) => {
+window.onclose = () => send_event(0);
+window.onfocus = () => send_event(1);
+window.onblur = () => send_event(2);
+document.onkeydown = (event) => {
     if(keycodes[event.code] !== undefined) {
-        key_queue.push(-keycodes[event.code] - 1);
+        event_data.button = keycodes[event.code];
+        event_data.state = 0;
+        send_event(3);
         event.preventDefault();
     }
-})
-canvas.addEventListener('mousemove', (event) => {
-    mouse.x = event.clientX;
-    mouse.y = event.clientY;
-})
-canvas.addEventListener('mousedown', (event) => {
-    if(event.button < 3) {
-        mouse_queue.push(event.button + 1);
+};
+document.onkeyup = (event) => {
+    if(keycodes[event.code] !== undefined) {
+        event_data.button = keycodes[event.code];
+        event_data.state = 2;
+        send_event(3);
         event.preventDefault();
     }
-})
-canvas.addEventListener('mouseup', (event) => {
-    if(event.button < 3) {
-        mouse_queue.push(-event.button - 1);
-        event.preventDefault();
-    }
-})
-canvas.addEventListener('wheel', (event) => {
-    mouse.scroll_type = event.deltaMode;
-    mouse.scroll_x = event.deltaX;
-    mouse.scroll_y = event.deltaY;
+};
+canvas.onmousemove = (event) => {
+    event_data.f1 = event.clientX;
+    event_data.f2 = event.clientY;
+    send_event(4);
+};
+canvas.onmouseenter = () => send_event(5);
+canvas.onmouseleave = () => send_event(6);
+canvas.onwheel = (event) => {
+    event_data.f1 = event.deltaX;
+    event_data.f2 = event.deltaY;
+    send_event(7);
     event.preventDefault();
-})
+}
+canvas.omousedown = (event) => {
+    if(event.button < 3) {
+        event_data.button = event.button;
+        event_data.state = 0;
+        send_event(8);
+    }
+}
+canvas.onmousedown = (event) => {
+    if(event.button < 3) {
+        event_data.button = event.button;
+        event_data.state = 2;
+        send_event(8);
+    }
+}
 let env = {
     // Windowing
     set_show_mouse: (show) => canvas.style.cursor = show ? "auto" : "none",
@@ -95,16 +106,31 @@ let env = {
         gl.viewportHeight = height;
     },
     set_title: (title) => document.title = rust_str_to_js(title),
-    // Mouse input
-    get_mouse_x: () => mouse.x,
-    get_mouse_y: () => mouse.y,
-    pump_mouse_queue: () => mouse_queue.length > 0 ? mouse_queue.shift() : 0,
-    mouse_scroll_clear: () => { mouse.scroll_x = 0; mouse.scroll_y = 0; },
-    mouse_scroll_type: () => mouse.scroll_type,
-    mouse_scroll_x: () => mouse.scroll_x,
-    mouse_scroll_y: () => mouse.scroll_y,
-    // Keyboard input
-    pump_key_queue: () => key_queue.length > 0 ? key_queue.shift() : 0,
+    //Event data
+    event_data_button: () => event_data.button,
+    event_data_state: () => event_data.state,
+    event_data_f1: () => event_data.f1,
+    event_data_f2: () => event_data.f2,
+    event_data_id: () => event_data.id,
+    //Gamepads
+    gamepad_count: () => navigator.getGamepads().length,
+    gamepad_data: (start, id, buttons, axes, next) => {
+        const gamepads = navigator.getGamepads();
+        const data = get_data_view();
+        for(let i = 0; i < gamepads.length; i++) {
+            const offset = (next - start) * i;
+            const gamepad = gamepads[i];
+            data.setUint32(id + offset, gamepad.index);
+            //TODO: prevent garbage data from happening
+            for(let j = 0; j < gamepad.buttons.length && j < 17; j++) {
+                const value = gamepad.buttons[j].pressed ? 1 : 3;
+                data.setUint8(buttons + j + offset, value);
+            }
+            for(let j = 0; j < gamepad.axes.length && j < 4; j++) {
+                data.setFloat32(axes + 3 + j * 4 + offset, gamepad.axes[j]);
+            }
+        }
+    },
     // Saving / loading
     save_cookie: (key_ptr, val_ptr) => document.cookie = rust_str_to_js(key_ptr) + "=" + rust_str_to_js(val_ptr) + ";",
     load_cookie: (key_ptr) => {
@@ -229,28 +255,14 @@ let env = {
     },
     file_contents: (index) => assets[index].contents,
     file_length: (index) => assets[index].length,
-    //Gamepads
-    gamepads_update: () => {
-        const gamepad_list = navigator.getGamepads();
-        gamepads.length = 0;
-        gamepad_axes.length = 0;
-        gamepad_buttons.length = 0;
-        for(let i = 0; i < gamepad_list.length; i++) {
-            if(!gamepad_list[i]) continue;
-            gamepads[gamepad_list[i].index] = i; 
-            gamepad_axes.push(gamepad_list[i].axes.slice(0)); //clone the array
-            gamepad_buttons.push(gamepad_list[i].buttons.map(button => button.pressed));
-        }
-    },
-    gamepads_length: () => gamepads.length,
-    gamepads_id: (index) => gamepads[index],
-    gamepad_axis: (id, axis) => gamepad_axes[id][axis],
-    gamepad_button: (id, button) => gamepad_buttons[id][button],
     //Asset loading
     ffi_asset_status: (index) => assets[index].error ? 2 : (assets[index].loaded ? 1 : 0),
     //Game loop
     set_app: (app) => {
         setInterval(() => instance.exports.update(app), 16);
+        send_event = (event) => {
+            instance.exports.event(app, event);
+        };
         function draw() {
             instance.exports.draw(app);
             requestAnimationFrame(draw);

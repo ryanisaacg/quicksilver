@@ -19,8 +19,8 @@ enum SoundPlayer {
 const BUTTON_AREA: Rectangle = Rectangle { x: 350.0, y: 250.0, width: 100.0, height: 100.0 };
 
 impl State for SoundPlayer {
-    fn configure() -> Window {
-        WindowBuilder::new().build("Sound Example", 800, 600)
+    fn configure() -> WindowBuilder {
+        WindowBuilder::new("Sound Example", 800, 600)
     }
 
    fn new() -> SoundPlayer { SoundPlayer::Loading(Sound::load("examples/assets/boop.ogg")) }
