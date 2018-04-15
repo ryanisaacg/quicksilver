@@ -3,8 +3,8 @@
     geometry::Point2
 };
 #[cfg(feature="ncollide")] use ncollide::{
-    bounding_volume::AABB,
-    shape::Cuboid
+    bounding_volume::AABB2,
+    shape::Cuboid2
 };
 use geom::{about_equal, Circle, Line, Positioned, Scalar, Vector};
 use rand::{Rand, Rng};
@@ -148,17 +148,17 @@ impl Positioned for Rectangle {
     }
 }
 
-impl Into<Cuboid<Vector2<f32>>> for Rectangle {
-    fn into(self) -> Cuboid<Vector2<f32>> {
-        Cuboid::new((self.size() / 2).into())
+impl Into<Cuboid2<f32>> for Rectangle {
+    fn into(self) -> Cuboid2<f32> {
+        Cuboid2::new((self.size() / 2).into())
     }
 }
 
-impl Into<AABB<Point2<f32>>> for Rectangle {
-    fn into(self) -> AABB<Point2<f32>> {
-        let min: Point2<f32> = self.top_left().into(); 
-        let max: Point2<f32> = (self.top_left() + self.size()).into();
-        AABB::new(min, max)
+impl Into<AABB2<f32>> for Rectangle {
+    fn into(self) -> AABB2<f32> {
+        let min = self.top_left().into(); 
+        let max = (self.top_left() + self.size()).into();
+        AABB2::new(min, max)
     }
 }
 
