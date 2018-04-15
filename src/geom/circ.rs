@@ -1,3 +1,4 @@
+#[cfg(feature="ncollide")] use ncollide::shape::Ball;
 use geom::{about_equal, Line, Positioned, Rectangle, Scalar, Vector};
 use rand::{Rand, Rng};
 use std::cmp::{Eq, PartialEq};
@@ -86,6 +87,12 @@ impl Positioned for Circle {
 
     fn bounding_box(&self) -> Rectangle {
         Rectangle::new(self.x - self.radius, self.y - self.radius, self.radius * 2.0, self.radius * 2.0)
+    }
+}
+
+impl Into<Ball<f32>> for Circle {
+    fn into(self) -> Ball<f32> {
+        Ball::new(self.radius)
     }
 }
 
