@@ -87,6 +87,13 @@ impl Into<Segment2<f32>> for Line {
     }
 }
 
+#[cfg(feature="ncollide")]
+impl From<Segment2<f32>> for Line {
+    fn from(other: Segment2<f32>) -> Line {
+        Line::new(other.a().clone().into(), other.b().clone().into())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
