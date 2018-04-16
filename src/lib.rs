@@ -49,6 +49,8 @@
 
 #![deny(missing_docs)]
 
+#[cfg(feature="alga")]
+extern crate alga;
 #[cfg(feature="futures")] 
 extern crate futures;
 #[cfg(all(feature="gilrs", not(target_arch="wasm32")))] 
