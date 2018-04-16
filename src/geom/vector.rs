@@ -1,3 +1,8 @@
+#[cfg(feature="nalgebra")] use nalgebra::{
+    core::Vector2,
+    geometry::Point2
+};
+
 use geom::{about_equal, Positioned, Rectangle, Scalar};
 use rand::{Rand, Rng};
 use std::{
@@ -232,6 +237,34 @@ impl Positioned for Vector {
     
     fn bounding_box(&self) -> Rectangle {
         Rectangle::newv(*self, Vector::zero())
+    }
+}
+
+#[cfg(feature="nalgebra")]
+impl Into<Vector2<f32>> for Vector {
+    fn into(self) -> Vector2<f32> {
+        Vector2::new(self.x, self.y)
+    }
+}
+
+#[cfg(feature="nalgebra")]
+impl Into<Point2<f32>> for Vector {
+    fn into(self) -> Point2<f32> {
+        Point2::new(self.x, self.y)
+    }
+}
+
+#[cfg(feature="nalgebra")]
+impl From<Vector2<f32>> for Vector {
+    fn from(other: Vector2<f32>) -> Vector {
+        Vector::new(other.x, other.y)
+    }
+}
+
+#[cfg(feature="nalgebra")]
+impl From<Point2<f32>> for Vector {
+    fn from(other: Point2<f32>) -> Vector {
+        Vector::new(other.x, other.y)
     }
 }
 

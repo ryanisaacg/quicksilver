@@ -49,6 +49,8 @@
 
 #![deny(missing_docs)]
 
+#[cfg(feature="alga")]
+extern crate alga;
 #[cfg(feature="futures")] 
 extern crate futures;
 #[cfg(all(feature="gilrs", not(target_arch="wasm32")))] 
@@ -57,6 +59,10 @@ extern crate gilrs;
 extern crate glutin;
 #[cfg(all(feature="image", not(target_arch="wasm32")))] 
 extern crate image;
+#[cfg(feature="nalgebra")]
+extern crate nalgebra;
+#[cfg(feature="ncollide")]
+extern crate ncollide;
 #[cfg(feature="rand")] 
 extern crate rand;
 #[cfg(all(feature="rodio", not(target_arch="wasm32")))] 
