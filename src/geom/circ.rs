@@ -33,6 +33,12 @@ impl Circle {
         }
     }
 
+    ///Construct a circle from a center and a Ball
+    #[cfg(feature="ncollide")]
+    pub fn from_ball(position: Vector, ball: Ball<f32>) -> Circle {
+        Circle::newv(position, ball.radius())
+    }
+
     ///Check to see if a circle contains a point
     pub fn contains(self, v: Vector) -> bool {
         (v - self.center()).len2() < self.radius.powi(2)
