@@ -1,3 +1,4 @@
+#[cfg(feature="ncollide")] use ncollide::shape::Ball;
 use geom::{about_equal, Line, Positioned, Rectangle, Scalar, Vector};
 use rand::{Rand, Rng};
 use std::cmp::{Eq, PartialEq};
@@ -30,6 +31,12 @@ impl Circle {
             y: position.y,
             radius: radius.float()
         }
+    }
+
+    ///Construct a circle from a center and a Ball
+    #[cfg(feature="ncollide")]
+    pub fn from_ball(position: Vector, ball: Ball<f32>) -> Circle {
+        Circle::newv(position, ball.radius())
     }
 
     ///Check to see if a circle contains a point
@@ -86,6 +93,13 @@ impl Positioned for Circle {
 
     fn bounding_box(&self) -> Rectangle {
         Rectangle::new(self.x - self.radius, self.y - self.radius, self.radius * 2.0, self.radius * 2.0)
+    }
+}
+
+#[cfg(feature="ncollide")]
+impl Into<Ball<f32>> for Circle {
+    fn into(self) -> Ball<f32> {
+        Ball::new(self.radius)
     }
 }
 

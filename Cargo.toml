@@ -10,11 +10,12 @@ keywords = ["game", "audio", "graphics", "gamedev"]
 categories = ["game-engines"]
 
 [features]
-default = ["fonts", "gamepads", "geometry", "window", "saving", "sounds"]
+default = ["fonts", "gamepads", "geometry", "collision", "window", "saving", "sounds"]
 
 fonts = ["window", "rusttype"]
 gamepads = ["gilrs", "window"]
 geometry = ["rand", "serde", "serde_derive"]
+collision = ["alga", "nalgebra", "ncollide"]
 window = ["geometry", "gl", "glutin", "image", "futures", "rusttype"]
 saving = ["serde", "serde_json"]
 sounds = ["futures", "rodio"]
@@ -25,8 +26,11 @@ travis-ci = { repository = "ryanisaacg/quicksilver", branch = "master" }
 maintenance = { status = "actively-developed" }
 
 [dependencies]
+alga = { version = "0.5", optional = true }
 futures = { version = "0.1", optional = true }
 gl = { version = "0.10", optional = true }
+nalgebra = { version = "0.14", optional = true }
+ncollide = { version = "0.14", optional = true }
 rand = { version = "0.4.2", optional = true }
 rusttype = { version = "0.3", optional = true }
 serde = { version = "1.0", optional = true }

@@ -1,3 +1,5 @@
+#[cfg(feature="nalgebra")] use nalgebra::core::Matrix3;
+
 use geom::{about_equal, Scalar, Vector};
 use std::{
     ops::Mul,
@@ -145,6 +147,26 @@ impl PartialEq for Transform {
 
 impl Eq for Transform {}
 
+#[cfg(feature="nalgebra")]
+impl Into<Matrix3<f32>> for Transform {
+    fn into(self) -> Matrix3<f32> {
+        Matrix3::new(
+            self.0[0][0], self.0[0][1], self.0[0][2],
+            self.0[1][0], self.0[1][1], self.0[1][2],
+            self.0[2][0], self.0[2][1], self.0[2][2],
+        )
+    }
+}
+
+#[cfg(feature="nalgebra")]
+impl From<Matrix3<f32>> for Transform {
+    fn from(other: Matrix3<f32>) -> Transform {
+        Transform([[other[0], other[1], other[2]],
+                  [other[3], other[4], other[5]],
+                  [other[6], other[7], other[8]]])
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -196,4 +218,15 @@ mod tests {
         assert_eq!(vec, a_inv * a * vec);
     }
 
+    #[test]
+    #[cfg(feature="nalgebra")]
+    fn conversion() {
+        use alga::linear::Transformation;
+        use nalgebra::core::Vector2;
+        let transform = Transform::rotate(5);
+        let vector = Vector::new(1, 2);
+        let na_matrix: Matrix3<f32> = transform.into();
+        let na_vector: Vector2<f32> = vector.into();
+        assert_eq!(transform * vector, (na_matrix.transform_vector(&na_vector)).into());
+    }
 }
