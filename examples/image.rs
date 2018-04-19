@@ -13,11 +13,7 @@ enum ImageViewer {
 }
 
 impl State for ImageViewer {
-    fn configure() -> WindowBuilder {
-        WindowBuilder::new("Image Example", 800, 600)
-    }
-
-   fn new() -> ImageViewer { ImageViewer::Loading(Image::load("examples/assets/image.png")) }
+    fn new() -> ImageViewer { ImageViewer::Loading(Image::load("examples/assets/image.png")) }
 
    fn update(&mut self, _: &mut Window) {
        // Check to see the progress of the loading image
@@ -42,5 +38,5 @@ impl State for ImageViewer {
 }
 
 fn main() {
-    run::<ImageViewer>();
+    run::<ImageViewer>(WindowBuilder::new("Image Example", 800, 600));
 }

@@ -19,11 +19,9 @@ enum SoundPlayer {
 const BUTTON_AREA: Rectangle = Rectangle { x: 350.0, y: 250.0, width: 100.0, height: 100.0 };
 
 impl State for SoundPlayer {
-    fn configure() -> WindowBuilder {
-        WindowBuilder::new("Sound Example", 800, 600)
+   fn new() -> SoundPlayer { 
+       SoundPlayer::Loading(Sound::load("examples/assets/boop.ogg"))
     }
-
-   fn new() -> SoundPlayer { SoundPlayer::Loading(Sound::load("examples/assets/boop.ogg")) }
 
    fn update(&mut self, window: &mut Window) {
        // Check to see the progress of the loading sound 
@@ -53,5 +51,5 @@ impl State for SoundPlayer {
 }
 
 fn main() {
-    run::<SoundPlayer>();
+    run::<SoundPlayer>(WindowBuilder::new("Sound Example", 800, 600));
 }

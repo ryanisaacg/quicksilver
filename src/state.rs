@@ -5,8 +5,6 @@ use input::Event;
 
 /// The structure responsible for managing the game loop state
 pub trait State {
-    /// Create a Window to be used in the application
-    fn configure() -> WindowBuilder where Self: Sized;
     /// Create the state given the window and canvas
     fn new() -> Self where Self: Sized;
     /// Tick the State forward one frame
@@ -36,8 +34,8 @@ pub trait State {
 ///
 /// On desktop platforms, this yields control to a simple game loop controlled by a Timer. On wasm,
 /// this yields control to the browser functions setInterval and requestAnimationFrame
-pub fn run<T: 'static + State>() {
-    run_impl::<T>()
+pub fn run<T: 'static + State>(window: WindowBuilder) {
+    run_impl::<T>(window)
 }
 
 #[doc(hidden)]
@@ -73,9 +71,9 @@ impl Application {
 }
 
 #[cfg(not(target_arch="wasm32"))]
-fn run_impl<T: 'static + State>() {
+fn run_impl<T: 'static + State>(window: WindowBuilder) {
     use input::EventProvider;
-    let (window, events_loop) = T::configure().build();
+    let (window, events_loop) = window.build();
     let mut events = EventProvider::new(events_loop);
     let event_buffer = Vec::new();
     let state = Box::new(T::new());
@@ -100,11 +98,12 @@ fn run_impl<T: 'static + State>() {
 }
 
 #[cfg(target_arch="wasm32")]
-fn run_impl<T: 'static + State>() {
+fn run_impl<T: 'static + State>(window: WindowBuilder) {
     use ffi::wasm;
     use std::os::raw::c_void;
+    let window = window.build();
     let app = Box::new(Application { 
-        window: T::configure().build(), 
+        window,
         state: Box::new(T::new()),
         event_buffer: Vec::new()
     });

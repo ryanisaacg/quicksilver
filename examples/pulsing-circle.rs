@@ -12,10 +12,6 @@ struct PulsingCircle {
 }
 
 impl State for PulsingCircle {
-    fn configure() -> WindowBuilder {
-        WindowBuilder::new("Pulsing Circle", 800, 600)
-    }
-
    fn new() -> PulsingCircle { 
        PulsingCircle { step: 0.0 }
    }
@@ -33,5 +29,5 @@ impl State for PulsingCircle {
 }
 
 fn main() {
-    run::<PulsingCircle>();
+    run::<PulsingCircle>(WindowBuilder::new("Pulsing Circle", 800, 600));
 }

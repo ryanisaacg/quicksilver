@@ -19,10 +19,6 @@ fn between(value: f32, min: f32, max: f32) -> bool {
 }
 
 impl State for Platformer {
-    fn configure() -> WindowBuilder {
-        WindowBuilder::new("Basic Platformer", 800, 600)
-    }
-
    fn new() -> Platformer { 
        Platformer { 
            player: Circle::new(100, 100, 50)
@@ -52,5 +48,5 @@ impl State for Platformer {
 }
 
 fn main() {
-    run::<Platformer>();
+    run::<Platformer>(WindowBuilder::new("Basic Platformer", 800, 600));
 }
