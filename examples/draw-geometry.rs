@@ -10,11 +10,7 @@ use quicksilver::{
 struct DrawGeometry;
 
 impl State for DrawGeometry {
-    fn configure() -> WindowBuilder {
-        WindowBuilder::new("Draw Geometry", 800, 600)
-    }
-
-   fn new() -> DrawGeometry { DrawGeometry }
+    fn new() -> DrawGeometry { DrawGeometry }
 
    fn draw(&mut self, window: &mut Window) {
         window.clear(Color::black());
@@ -26,5 +22,5 @@ impl State for DrawGeometry {
 }
 
 fn main() {
-    run::<DrawGeometry>();
+    run::<DrawGeometry>(WindowBuilder::new("Draw Geometry", 800, 600));
 }

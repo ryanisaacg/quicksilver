@@ -15,11 +15,7 @@ enum SampleText {
 }
 
 impl State for SampleText {
-    fn configure() -> WindowBuilder {
-        WindowBuilder::new("Font Example", 800, 600)
-    }
-
-   fn new() -> SampleText { SampleText::Loading(Font::load("examples/assets/font.ttf")) }
+    fn new() -> SampleText { SampleText::Loading(Font::load("examples/assets/font.ttf")) }
 
    fn update(&mut self, _: &mut Window) {
        // Check to see the progress of the loading font 
@@ -44,5 +40,5 @@ impl State for SampleText {
 }
 
 fn main() {
-    run::<SampleText>();
+    run::<SampleText>(WindowBuilder::new("Font Example", 800, 600));
 }
