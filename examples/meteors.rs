@@ -1,13 +1,46 @@
 // A tribute to a certain Atari arcade game
+extern crate futures;
 extern crate quicksilver;
 
+use futures::{
+    Future, Async
+};
 use quicksilver::{
     State, run,
-    geom::{Circle, Positioned, Rectangle, Vector},
-    graphics::{Color, Sprite, Window, WindowBuilder, View},
+    geom::{Circle, Positioned, Rectangle, Transform, Vector},
+    graphics::{Color, Sprite, Image, ImageLoader, Window, WindowBuilder, View},
     input::Key
 };
 
+enum Meteors {
+    Loading(ImageLoader),
+    Loaded(GameState)
+}
+
+impl State for Meteors {
+    fn new() -> Meteors {
+        Meteors::Loading(Image::load("examples/assets/spaceship.png"))
+    }
+
+    fn update(&mut self, window: &mut Window) {
+       let result = match self {
+           &mut Meteors::Loading(ref mut loader) => loader.poll().unwrap(),
+           _ => Async::NotReady
+       };
+       if let Async::Ready(asset) = result {
+           *self = Meteors::Loaded(GameState::new(asset));
+       }
+       if let &mut Meteors::Loaded(ref mut state) = self {
+           state.update(window);
+       }
+    }
+
+    fn draw(&mut self, window: &mut Window) {
+        if let &mut Meteors::Loaded(ref mut state) = self {
+           state.draw(window);
+       }
+    }
+}
 
 struct Entity {
     bounds: Circle,
@@ -27,19 +60,25 @@ impl Entity {
     fn tick(&mut self) {
         self.bounds = self.bounds.translate(self.velocity);
     }
+
+    fn draw(&self, image: &Image, window: &mut Window) {
+        window.draw(&Sprite::image(image, self.bounds.center())
+            .with_transform(Transform::rotate(self.facing)));
+    }
 }
 
 struct GameState {
     player: Entity,
-    camera: Rectangle
+    camera: Rectangle,
+    player_image: Image
 }
 
-
-impl State for GameState {
-    fn new() -> GameState {
+impl GameState {
+    fn new(player_image: Image) -> GameState {
         GameState {
             player: Entity::new(Circle::newv(Vector::zero(), 16)),
-            camera: Rectangle::new_sized(SCREEN_WIDTH, SCREEN_HEIGHT)
+            camera: Rectangle::new_sized(SCREEN_WIDTH, SCREEN_HEIGHT),
+            player_image
         }
     }
 
@@ -63,10 +102,12 @@ impl State for GameState {
 
     fn draw(&mut self, window: &mut Window) {
         window.clear(Color::black());
-        window.draw(&Sprite::circle(self.player.bounds).with_color(Color::white()));
+        self.player.draw(&self.player_image, window);
         window.present();
     }
 }
+
+
 
 const SCREEN_WIDTH: u32 = 800;
 const SCREEN_HEIGHT: u32 = 600;
@@ -75,5 +116,5 @@ const PLAYER_IMPULSE: f32 = 0.1;
 const PLAYER_BREAK_FACTOR: f32 = 0.95;
 
 fn main() {
-    run::<GameState>(WindowBuilder::new("GameState", SCREEN_WIDTH, SCREEN_HEIGHT));
+    run::<Meteors>(WindowBuilder::new("Meteors", SCREEN_WIDTH, SCREEN_HEIGHT));
 }
