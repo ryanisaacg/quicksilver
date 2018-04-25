@@ -1,5 +1,5 @@
 /// The current state of a button
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
 #[repr(u8)]
 pub enum ButtonState {
     /// The button was activated this frame

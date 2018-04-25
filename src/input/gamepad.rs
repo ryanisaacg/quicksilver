@@ -5,7 +5,7 @@ use input::{ButtonState, Event};
 use std::ops::Index;
 
 /// A queryable traditional 2-stick gamepad
-#[derive(Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct Gamepad {
     id: u32,
     buttons: [ButtonState; 17],
@@ -131,7 +131,7 @@ impl GamepadProvider {
     }
 }
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 /// The axes a gamepad can report
 pub enum GamepadAxis {
     /// The horizontal tilt of the left stick
@@ -145,7 +145,7 @@ pub enum GamepadAxis {
 }
 
 #[repr(u32)]
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 /// A button on a gamepad
 pub enum GamepadButton {
     /// The bottom face button
