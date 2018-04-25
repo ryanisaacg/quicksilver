@@ -5,7 +5,7 @@ use geom::Vector;
 use input::ButtonState;
 use std::ops::Index;
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 /// The different buttons a user can press on a mouse
 pub enum MouseButton {
     /// The left mouse button

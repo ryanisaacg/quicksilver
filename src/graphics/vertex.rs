@@ -2,7 +2,7 @@ use geom::Vector;
 use graphics::{Color, Image};
 use std::cmp::Ordering;
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 /// A vertex for drawing items to the GPU
 pub struct Vertex {
     /// The position of the vertex in space
