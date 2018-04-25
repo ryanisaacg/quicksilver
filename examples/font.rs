@@ -6,7 +6,7 @@ use futures::{Async, Future};
 use quicksilver::{
     State, run,
     geom::Vector,
-    graphics::{Color, Font, FontLoader, Image, Sprite, Window, WindowBuilder}
+    graphics::{Color, Font, FontLoader, Image, Draw, Window, WindowBuilder}
 };
 
 enum SampleText {
@@ -33,7 +33,7 @@ impl State for SampleText {
         window.clear(Color::white());
         // If the image is loaded draw it
         if let &mut SampleText::Loaded(ref image) = self {
-            window.draw(&Sprite::image(image, Vector::new(400, 300)));
+            window.draw(&Draw::image(image, Vector::new(400, 300)));
         }
         window.present();
    }
