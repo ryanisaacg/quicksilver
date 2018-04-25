@@ -138,8 +138,8 @@ impl<T: Clone> Tilemap<T> {
     pub fn shape_empty(&self, shape: Shape) -> bool {
         let bounds = shape.bounding_box(); 
         match shape {
-            Shape::Vect(_) => self.point_empty(shape.center()),
-            Shape::Rect(_) | Shape::Circ(_) | Shape::Line(_) => {
+            Shape::Vector(_) => self.point_empty(shape.center()),
+            Shape::Rectangle(_) | Shape::Circle(_) | Shape::Line(_) => {
                 let x_start = (self.align_left(bounds.x) / self.tile_width()) as i32;
                 let y_start = (self.align_top(bounds.y) / self.tile_height()) as i32;
                 let x_end = (self.align_right(bounds.x + bounds.width) / self.tile_width()) as i32;
@@ -179,7 +179,7 @@ impl<T: Clone> Tilemap<T> {
 
     ///Find the furthest a shape can move along a vector, and what its future speed should be
     pub fn move_until_contact(&self, bounds: Shape, speed: Vector) -> (Shape, Vector) {
-        let rectangle = Shape::Rect(bounds.bounding_box());
+        let rectangle = Shape::Rectangle(bounds.bounding_box());
         let attempt = Vector::zero();
         let slide_x = |diff: f32, mut attempt: Vector| {
             while diff.abs() > 0.0 && (attempt.x + diff).abs() <= speed.x.abs() && self.shape_empty(rectangle.translate(attempt + Vector::x() * diff)) {
@@ -317,9 +317,9 @@ mod tests {
         ];
         for case in test_cases.iter() {
             let (region, speed, expected_tl, expected_speed) = *case;
-            let (region_new, speed_new) = map.move_until_contact(Shape::Rect(region), speed);
+            let (region_new, speed_new) = map.move_until_contact(Shape::Rectangle(region), speed);
             match region_new {
-                Shape::Rect(region_new) => {
+                Shape::Rectangle(region_new) => {
                     assert_eq!(region_new.top_left(), expected_tl);
                     assert_eq!(speed_new, expected_speed);
                 },
