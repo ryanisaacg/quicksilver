@@ -266,6 +266,7 @@ impl From<Point2<f32>> for Vector {
     }
 }
 
+
 #[cfg(test)]
 mod tests {
     use super::*;
