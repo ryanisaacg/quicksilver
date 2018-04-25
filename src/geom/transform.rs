@@ -44,6 +44,16 @@ impl Transform {
                   [0f32, vec.y, 0f32],
                   [0f32, 0f32, 1f32]])
     }
+   
+    #[cfg(feature="nalgebra")]
+    ///Convert the Transform into an nalgebra Matrix3
+    pub fn into_matrix(self) -> Matrix3<f32> {
+        Matrix3::new(
+            self.0[0][0], self.0[0][1], self.0[0][2],
+            self.0[1][0], self.0[1][1], self.0[1][2],
+            self.0[2][0], self.0[2][1], self.0[2][2],
+        )
+    }
  
     ///Find the inverse of a Transform
     pub fn inverse(&self) -> Transform {
@@ -147,16 +157,6 @@ impl PartialEq for Transform {
 
 impl Eq for Transform {}
 
-#[cfg(feature="nalgebra")]
-impl Into<Matrix3<f32>> for Transform {
-    fn into(self) -> Matrix3<f32> {
-        Matrix3::new(
-            self.0[0][0], self.0[0][1], self.0[0][2],
-            self.0[1][0], self.0[1][1], self.0[1][2],
-            self.0[2][0], self.0[2][1], self.0[2][2],
-        )
-    }
-}
 
 #[cfg(feature="nalgebra")]
 impl From<Matrix3<f32>> for Transform {
@@ -222,11 +222,10 @@ mod tests {
     #[cfg(feature="nalgebra")]
     fn conversion() {
         use alga::linear::Transformation;
-        use nalgebra::core::Vector2;
         let transform = Transform::rotate(5);
         let vector = Vector::new(1, 2);
-        let na_matrix: Matrix3<f32> = transform.into();
-        let na_vector: Vector2<f32> = vector.into();
+        let na_matrix = transform.into_matrix();
+        let na_vector = vector.into_vector();
         assert_eq!(transform * vector, (na_matrix.transform_vector(&na_vector)).into());
     }
 }

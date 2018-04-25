@@ -39,6 +39,12 @@ impl Circle {
         Circle::newv(position, ball.radius())
     }
 
+    ///Convert the circle into an ncollide Ball
+    #[cfg(feature="ncollide")]
+    pub fn into_ball(self) -> Ball<f32> {
+        Ball::new(self.radius)
+    }
+
     ///Check to see if a circle contains a point
     pub fn contains(self, v: Vector) -> bool {
         (v - self.center()).len2() < self.radius.powi(2)
@@ -93,13 +99,6 @@ impl Positioned for Circle {
 
     fn bounding_box(&self) -> Rectangle {
         Rectangle::new(self.x - self.radius, self.y - self.radius, self.radius * 2.0, self.radius * 2.0)
-    }
-}
-
-#[cfg(feature="ncollide")]
-impl Into<Ball<f32>> for Circle {
-    fn into(self) -> Ball<f32> {
-        Ball::new(self.radius)
     }
 }
 

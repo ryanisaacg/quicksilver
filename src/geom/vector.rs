@@ -46,6 +46,18 @@ impl Vector {
         Vector { x: x.float(), y: y.float() }
     }
 
+    ///Convert this vector into an nalgebra Vector2
+    #[cfg(feature="nalgebra")]
+    pub fn into_vector(self) -> Vector2<f32> {
+        Vector2::new(self.x, self.y)
+    }
+   
+    ///Convert this vector into an nalgebra Point2
+    #[cfg(feature="nalgebra")]
+    pub fn into_point(self) -> Point2<f32> {
+        Point2::new(self.x, self.y)
+    }
+
     ///Create a unit vector at a given angle
     pub fn from_angle<T: Scalar>(angle: T) -> Vector {
         Vector::new(angle.float().to_radians().cos(), angle.float().to_radians().sin())
@@ -237,20 +249,6 @@ impl Positioned for Vector {
     
     fn bounding_box(&self) -> Rectangle {
         Rectangle::newv(*self, Vector::zero())
-    }
-}
-
-#[cfg(feature="nalgebra")]
-impl Into<Vector2<f32>> for Vector {
-    fn into(self) -> Vector2<f32> {
-        Vector2::new(self.x, self.y)
-    }
-}
-
-#[cfg(feature="nalgebra")]
-impl Into<Point2<f32>> for Vector {
-    fn into(self) -> Point2<f32> {
-        Point2::new(self.x, self.y)
     }
 }
 
