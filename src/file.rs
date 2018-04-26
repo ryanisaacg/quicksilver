@@ -10,6 +10,7 @@ use std::path::Path;
 ///
 /// It exists for loading files from the server with Javascript on the web, and providing a unified
 /// API between desktop and the web when it comes to file loading
+#[derive(Debug)]
 pub struct FileLoader {
     #[cfg(not(target_arch="wasm32"))]
     data: Result<Vec<u8>, QuicksilverError>,

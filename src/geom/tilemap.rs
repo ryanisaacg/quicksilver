@@ -1,7 +1,7 @@
 use geom::{Positioned, Rectangle, Vector, Shape};
 use std::ops::Fn;
 
-#[derive(Clone, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 ///An individual tile
 pub struct Tile<T: Clone> {
     ///The value stored in this tile
@@ -28,7 +28,7 @@ impl<T: Clone> Tile<T> {
     }
 }
 
-#[derive(Clone, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 ///A grid of Tile values
 pub struct Tilemap<T: Clone> {
     data: Vec<Tile<T>>,

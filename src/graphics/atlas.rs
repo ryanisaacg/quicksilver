@@ -26,7 +26,7 @@ struct Region {
     index: i32
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 /// An image atlas that allows a single image file to represent multiple individual images
 ///
 /// It uses the libgdx / spine atlas format and groups them by name and index if applicable 
@@ -185,7 +185,7 @@ fn parse<P: AsRef<Path>>(data: Result<String, QuicksilverError>, path: P) -> Man
 }
 
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 /// An individual named item of an Atlas
 ///
 /// If there is only one frame / no index for an Atlas item, it will be an Image, otherwise, it
