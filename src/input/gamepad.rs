@@ -1,6 +1,9 @@
 #[cfg(all(not(any(target_arch="wasm32", target_os="macos")), feature = "gamepads"))]
 extern crate gilrs;
 
+#[cfg(all(not(any(target_arch="wasm32", target_os="macos")), feature = "gamepads"))]
+use gilrs::Button;
+
 use input::{ButtonState, Event};
 use std::ops::Index;
 
