@@ -27,6 +27,7 @@ pub enum PixelFormat {
     BGRA = gl::BGRA as isize,
 }
 
+#[derive(Debug)]
 struct ImageData {
     id: u32,
     width: i32,
@@ -41,7 +42,7 @@ impl Drop for ImageData {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 ///An image that can be drawn to the screen
 pub struct Image {
     source: Rc<ImageData>,

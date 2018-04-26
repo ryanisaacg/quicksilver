@@ -8,7 +8,7 @@ pub trait Drawable {
     fn draw(&self, &mut Window);
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 enum DrawPayload {
     Image(Image),
     Rectangle(Vector),
@@ -16,7 +16,7 @@ enum DrawPayload {
 }
 
 /// A single drawable item, with a transform, a blend color, and a depth
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Draw {
     item: DrawPayload,
     position: Vector,

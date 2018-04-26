@@ -35,7 +35,7 @@ use std::{
 /// It can be played an arbitrary amount of times and concurrently with itself, meaning you don't
 /// need more than one instance of a clip. However, if you want different clips with different
 /// volumes, you can clone the Sound.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Sound {
     #[cfg(not(target_arch="wasm32"))]
     val: Arc<Vec<u8>>,
