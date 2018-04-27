@@ -61,6 +61,7 @@ impl Error for QuicksilverError {
     }
 }
 
+#[doc(hidden)]
 #[cfg(feature="window")]
 impl From<ImageError> for QuicksilverError {
     fn from(err: ImageError) -> QuicksilverError {
@@ -68,6 +69,7 @@ impl From<ImageError> for QuicksilverError {
     }
 }
 
+#[doc(hidden)]
 #[cfg(feature="sounds")]
 impl From<SoundError> for QuicksilverError {
     fn from(err: SoundError) -> QuicksilverError {
@@ -75,6 +77,7 @@ impl From<SoundError> for QuicksilverError {
     }
 }
 
+#[doc(hidden)]
 #[cfg(feature="window")]
 impl From<AtlasError> for QuicksilverError {
     fn from(err: AtlasError) -> QuicksilverError {
@@ -95,6 +98,7 @@ impl From<SerdeError> for QuicksilverError {
     }
 }
 
+#[doc(hidden)]
 #[cfg(all(feature="window", not(target_arch="wasm32")))]
 impl From<image::ImageError> for QuicksilverError {
     fn from(img: image::ImageError) -> QuicksilverError {
@@ -103,6 +107,7 @@ impl From<image::ImageError> for QuicksilverError {
     }
 }
 
+#[doc(hidden)]
 #[cfg(all(feature="sounds", not(target_arch="wasm32")))]
 impl From<rodio::decoder::DecoderError> for QuicksilverError {
     fn from(snd: rodio::decoder::DecoderError) -> QuicksilverError {

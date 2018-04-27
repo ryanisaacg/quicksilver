@@ -29,6 +29,7 @@ pub struct GpuTriangle {
     pub image: Option<Image>
 }
 
+#[doc(hidden)]
 impl PartialEq for GpuTriangle {
     fn eq(&self, other: &GpuTriangle) -> bool {
         match (&self.image, &other.image) {
@@ -39,8 +40,10 @@ impl PartialEq for GpuTriangle {
     }
 }
 
+#[doc(hidden)]
 impl Eq for GpuTriangle {}
 
+#[doc(hidden)]
 impl PartialOrd for GpuTriangle {
     fn partial_cmp(&self, other: &GpuTriangle) -> Option<Ordering> {
         match self.z.partial_cmp(&other.z) {
@@ -56,6 +59,7 @@ impl PartialOrd for GpuTriangle {
     }
 }
 
+#[doc(hidden)]
 impl Ord for GpuTriangle {
     fn cmp(&self, other: &GpuTriangle) -> Ordering {
         self.partial_cmp(other).unwrap()

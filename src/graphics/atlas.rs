@@ -248,24 +248,28 @@ impl Error for AtlasError {
 }
 
 
+#[doc(hidden)]
 impl From<ImageError> for AtlasError {
     fn from(err: ImageError) -> AtlasError {
         AtlasError::ImageError(err)
     }
 }
 
+#[doc(hidden)]
 impl From<ParseIntError> for AtlasError {
     fn from(_: ParseIntError) -> AtlasError {
         AtlasError::ParseError("Failed to parse an int")
     }
 }
 
+#[doc(hidden)]
 impl From<ParseBoolError> for AtlasError {
     fn from(_: ParseBoolError) -> AtlasError {
         AtlasError::ParseError("Failed to parse an bool")
     }
 }
 
+#[doc(hidden)]
 impl From<IOError> for AtlasError {
     fn from(err: IOError) -> AtlasError {
         AtlasError::IOError(err)

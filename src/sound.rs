@@ -276,6 +276,7 @@ impl Error for SoundError {
 
 }
 
+#[doc(hidden)]
 #[cfg(not(target_arch="wasm32"))]
 impl From<DecoderError> for SoundError {
     fn from(err: DecoderError) -> SoundError {
@@ -285,7 +286,7 @@ impl From<DecoderError> for SoundError {
     }
 }
 
-#[cfg(not(target_arch="wasm32"))]
+#[doc(hidden)]
 impl From<IOError> for SoundError {
     fn from(err: IOError) -> SoundError {
         SoundError::IOError(err)
