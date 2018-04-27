@@ -287,17 +287,6 @@ impl From<DecoderError> for SoundError {
 }
 
 #[doc(hidden)]
-#[cfg(not(target_arch="wasm32"))]
-<<<<<<< Updated upstream
-=======
-impl From<Error> for SoundError {
-    fn from(err: Error) -> SoundError {
-        err.kind().into()
-    }
-}
-
-#[doc(hidden)]
->>>>>>> Stashed changes
 impl From<IOError> for SoundError {
     fn from(err: IOError) -> SoundError {
         SoundError::IOError(err)
