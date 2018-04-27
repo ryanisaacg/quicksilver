@@ -7,10 +7,12 @@ use ffi::gl;
 use futures::{Async, Future, Poll};
 use geom::{Rectangle, Vector};
 use std::{
-    io::ErrorKind as IOError,
+    error::Error,
+    fmt,
+    io::Error as IOError,
     ops::Drop,
     os::raw::c_void,
-    path::Path,
+    path::{Path, PathBuf},
     rc::Rc
 };
 
@@ -74,14 +76,8 @@ impl Image {
     
     #[cfg(not(target_arch="wasm32"))]
     fn load_impl<P: AsRef<Path>>(path: P) -> ImageLoader {
-        let img = match image::open(path) {
-            Ok(img) => img,
-            Err(err) => return ImageLoader { image: Err(err.into()) }
-        }.to_rgba();
-        let width = img.width() as i32;
-        let height = img.height() as i32;
-        ImageLoader {
-            image: Ok(Image::from_raw(img.into_raw().as_slice(), width, height, PixelFormat::RGBA))
+        ImageLoader { 
+            path: PathBuf::from(path.as_ref())
         }
     }
 
@@ -148,7 +144,7 @@ impl Image {
 /// A future for loading images
 pub struct ImageLoader { 
     #[cfg(not(target_arch="wasm32"))]
-    image: Result<Image, ImageError>,
+    path: PathBuf,
     #[cfg(target_arch="wasm32")]
     id: u32
 }
@@ -159,7 +155,10 @@ impl Future for ImageLoader {
     
     #[cfg(not(target_arch="wasm32"))]
     fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
-        Ok(Async::Ready(self.image.clone()?))
+        let img = image::open(&self.path)?.to_rgba();
+        let width = img.width() as i32;
+        let height = img.height() as i32; 
+        Ok(Async::Ready(Image::from_raw(img.into_raw().as_slice(), width, height, PixelFormat::RGBA)))
     }
 
     #[cfg(target_arch="wasm32")]
@@ -176,7 +175,7 @@ impl Future for ImageLoader {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 ///An error generated while loading an image
 pub enum ImageError {
     ///There was an error in the image format
@@ -210,8 +209,35 @@ impl From<image::ImageError> for ImageError {
             image::ImageError::UnsupportedError(string) => ImageError::UnsupportedError(string),
             image::ImageError::UnsupportedColor(_) => ImageError::UnsupportedColor,
             image::ImageError::NotEnoughData => ImageError::NotEnoughData,
-            image::ImageError::IoError(err) => ImageError::IOError(err.kind()),
+            image::ImageError::IoError(err) => ImageError::IOError(err),
             image::ImageError::ImageEnd => ImageError::ImageEnd
+        }
+    }
+}
+
+impl fmt::Display for ImageError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.description())
+    }
+}
+
+impl Error for ImageError {
+    fn description(&self) -> &str {
+        match self {
+            &ImageError::FormatError(ref string) => string,
+            &ImageError::DimensionError => "Invalid dimensions",
+            &ImageError::UnsupportedError(ref string) => string,
+            &ImageError::UnsupportedColor => "Unsupported colorspace",
+            &ImageError::NotEnoughData => "Not enough image data",
+            &ImageError::IOError(ref err) => err.description(),
+            &ImageError::ImageEnd => "Image data ended unexpectedly"
+        }
+    }
+    
+    fn cause(&self) -> Option<&Error> {
+        match self {
+            &ImageError::IOError(ref err) => Some(err),
+            _ => None
         }
     }
 }
