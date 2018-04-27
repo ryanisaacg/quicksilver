@@ -21,12 +21,14 @@ use rodio::{
 #[cfg(not(target_arch="wasm32"))]
 use std::{
     fs::File,
-    io::{BufReader, Cursor, Error, Read},
+    io::{BufReader, Cursor, Read},
     sync::Arc
 };
 use std::{
-    io::ErrorKind as IOError,
-    path::Path
+    error::Error,
+    fmt,
+    io::Error as IOError,
+    path::{Path, PathBuf}
 };
 
 
@@ -52,19 +54,8 @@ impl Sound {
 
     #[cfg(not(target_arch="wasm32"))]
     fn load_impl<P: AsRef<Path>>(path: P) -> SoundLoader {
-        fn load_impl_data<P: AsRef<Path>>(path: P) -> Result<Sound, SoundError> {
-            let mut bytes = Vec::new();
-            BufReader::new(File::open(path)?).read_to_end(&mut bytes)?;
-            let val = Arc::new(bytes);
-            let sound = Sound {
-                val,
-                volume: 1f32
-            };
-            Decoder::new(Cursor::new(sound.clone()))?;
-            Ok(sound)
-        }
         SoundLoader {
-            sound: load_impl_data(path)
+            path: PathBuf::from(path.as_ref())
         }
     }
 
@@ -131,7 +122,7 @@ impl Sound {
 /// A future for loading images
 pub struct SoundLoader { 
     #[cfg(not(target_arch="wasm32"))]
-    sound: Result<Sound, SoundError>,
+    path: PathBuf,
     #[cfg(target_arch="wasm32")]
     id: u32
 }
@@ -142,7 +133,15 @@ impl Future for SoundLoader {
 
     #[cfg(not(target_arch="wasm32"))]
     fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
-        Ok(Async::Ready(self.sound.clone()?))
+        let mut bytes = Vec::new();
+        BufReader::new(File::open(&self.path)?).read_to_end(&mut bytes)?;
+        let val = Arc::new(bytes);
+        let sound = Sound {
+            val,
+            volume: 1f32
+        };
+        Decoder::new(Cursor::new(sound.clone()))?;
+        Ok(Async::Ready(sound))
     }
 
     #[cfg(target_arch="wasm32")]
@@ -245,13 +244,36 @@ impl MusicPlayer {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 ///An error generated when loading a sound
 pub enum SoundError {
     ///The sound file is not in an format that can be played
     UnrecognizedFormat,
     ///The Sound was not found or could not be loaded
     IOError(IOError)
+}
+
+impl fmt::Display for SoundError  {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.description())
+    }
+}
+
+impl Error for SoundError {
+    fn description(&self) -> &str {
+        match self {
+            &SoundError::UnrecognizedFormat => "The sound file format was not recognized",
+            &SoundError::IOError(ref err) => err.description()
+        }
+    }
+
+    fn cause(&self) -> Option<&Error> {
+        match self {
+            &SoundError::UnrecognizedFormat => None,
+            &SoundError::IOError(ref err) => Some(err)
+        }
+    }
+
 }
 
 #[cfg(not(target_arch="wasm32"))]
@@ -264,14 +286,9 @@ impl From<DecoderError> for SoundError {
 }
 
 #[cfg(not(target_arch="wasm32"))]
-impl From<Error> for SoundError {
-    fn from(err: Error) -> SoundError {
-        err.kind().into()
-    }
-}
-
 impl From<IOError> for SoundError {
     fn from(err: IOError) -> SoundError {
         SoundError::IOError(err)
     }
 }
+
