@@ -194,12 +194,14 @@ pub enum ImageError {
     ImageEnd,
 }
 
+#[doc(hidden)]
 impl From<IOError> for ImageError {
     fn from(err: IOError) -> ImageError {
         ImageError::IOError(err)
     }
 }
 
+#[doc(hidden)]
 #[cfg(not(target_arch="wasm32"))]
 impl From<image::ImageError> for ImageError {
     fn from(img: image::ImageError) -> ImageError {
