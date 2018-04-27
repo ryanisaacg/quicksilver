@@ -3,6 +3,7 @@ use geom::{Transform, Vector};
 use graphics::{Image, PixelFormat, Window, View};
 use std::rc::Rc;
 
+#[derive(Debug)]
 struct SurfaceData {
     framebuffer: u32
 }
@@ -13,7 +14,7 @@ impl Drop for SurfaceData {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 ///A possible render target that can be drawn to the screen
 pub struct Surface {
     image: Image,

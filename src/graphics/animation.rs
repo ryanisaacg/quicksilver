@@ -2,11 +2,12 @@ use geom::Rectangle;
 use graphics::Image;
 use std::rc::Rc;
 
+#[derive(Debug)]
 struct AnimationData {
     frames: Vec<Image>
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 /// A linear series of images with a constant frame delay
 ///
 /// Frames advance by discrete ticks, which should be run in the `update` section of a 

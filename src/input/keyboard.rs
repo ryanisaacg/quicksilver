@@ -1,5 +1,6 @@
 use input::{ButtonState, Key};
 use std::ops::Index;
+use std::fmt::{Debug, Error, Formatter};
 
 #[derive(Copy)]
 /// A structure that stores each key's state
@@ -34,5 +35,15 @@ impl Index<Key> for Keyboard {
 
     fn index(&self, index: Key) -> &ButtonState {
         &self.keys[index as usize]
+    }
+}
+
+impl Debug for Keyboard {
+    fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
+        write!(f, "Keyboard {{ keys: [")?;
+        for key in self.keys.iter() {
+            write!(f, "{:?}, ", key)?;
+        }
+        write!(f, "] }}")
     }
 }

@@ -18,6 +18,12 @@ impl Line {
             end: end,
         }
     }
+   
+    #[cfg(feature="ncollide")]
+    ///Convert the line into an equivalent ncollide Segment2
+    pub fn into_segment(self) -> Segment2<f32> {
+        Segment2::new(self.start.into_point(), self.end.into_point())
+    }
 
     ///Check if two line segments interact
     pub fn intersects(self, other: Line) -> bool {
@@ -77,13 +83,6 @@ impl Positioned for Line {
 impl Rand for Line {
     fn rand<R: Rng>(rand: &mut R) -> Self {
         Line::new(rand.gen(), rand.gen())
-    }
-}
-
-#[cfg(feature="ncollide")]
-impl Into<Segment2<f32>> for Line {
-    fn into(self) -> Segment2<f32> {
-        Segment2::new(self.start.into(), self.end.into())
     }
 }
 

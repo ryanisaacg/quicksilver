@@ -9,8 +9,8 @@
 
 mod vector;
 mod line;
-mod rect;
-mod circ;
+mod rectangle;
+mod circle;
 mod shape;
 mod positioned;
 mod tilemap;
@@ -20,8 +20,8 @@ mod scalar;
 pub use self::{
     vector::Vector,
     line::Line,
-    rect::Rectangle,
-    circ::Circle,
+    rectangle::Rectangle,
+    circle::Circle,
     positioned::Positioned,
     shape::Shape,
     tilemap::{Tile, Tilemap},

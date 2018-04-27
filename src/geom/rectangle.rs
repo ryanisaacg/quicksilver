@@ -56,6 +56,20 @@ impl Rectangle {
         let half_size = cuboid.half_extents().clone().into();
         Rectangle::newv(center - half_size, half_size * 2)
     }
+   
+    ///Convert this rect into an ncollide Cuboid2
+    #[cfg(feature="ncollide")]
+    pub fn into_cuboid(self) -> Cuboid2<f32> {
+        Cuboid2::new((self.size() / 2).into_vector())
+    }
+    
+    ///Convert this rect into an ncollide AABB2
+    #[cfg(feature="ncollide")]
+    pub fn into_aabb(self) -> AABB2<f32> { 
+        let min = self.top_left().into_point(); 
+        let max = (self.top_left() + self.size()).into_point();
+        AABB2::new(min, max)
+    }
 
     ///Get the top left coordinate of the Rectangle
     pub fn top_left(self) -> Vector {
@@ -148,22 +162,6 @@ impl Positioned for Rectangle {
 
     fn bounding_box(&self) -> Rectangle {
         *self
-    }
-}
-
-#[cfg(feature="ncollide")]
-impl Into<Cuboid2<f32>> for Rectangle {
-    fn into(self) -> Cuboid2<f32> {
-        Cuboid2::new((self.size() / 2).into())
-    }
-}
-
-#[cfg(feature="ncollide")]
-impl Into<AABB2<f32>> for Rectangle {
-    fn into(self) -> AABB2<f32> {
-        let min = self.top_left().into(); 
-        let max = (self.top_left() + self.size()).into();
-        AABB2::new(min, max)
     }
 }
 
