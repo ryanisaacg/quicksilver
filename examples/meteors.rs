@@ -4,7 +4,8 @@ extern crate quicksilver;
 extern crate rand;
 
 use futures::{
-    Future, Async
+    Future, Async,
+    future::{JoinAll, join_all}
 };
 use quicksilver::{
     State, run,
@@ -15,13 +16,17 @@ use quicksilver::{
 use rand::Rng;
 
 enum Meteors {
-    Loading(ImageLoader),
+    Loading(JoinAll<Vec<ImageLoader>>),
     Loaded(GameState)
 }
 
 impl State for Meteors {
     fn new() -> Meteors {
-        Meteors::Loading(Image::load("examples/assets/spaceship.png"))
+        let assets = vec![
+            Image::load("examples/assets/spaceship.png"),
+            Image::load("examples/assets/space.png")
+        ];
+        Meteors::Loading(join_all(assets))
     }
 
     fn update(&mut self, window: &mut Window) {
@@ -73,15 +78,19 @@ struct GameState {
     player: Entity,
     camera: Rectangle,
     player_image: Image,
+    space_image: Image,
     meteors: Vec<Entity>
 }
 
 impl GameState {
-    fn new(player_image: Image) -> GameState {
+    fn new(images: Vec<Image>) -> GameState {
+        let player_image = images[0].clone();
+        let space_image = images[1].clone();
         GameState {
             player: Entity::new(Circle::newv(Vector::zero(), 16)),
             camera: Rectangle::new_sized(SCREEN_WIDTH, SCREEN_HEIGHT),
             player_image,
+            space_image,
             meteors: Vec::new()
         }
     }
@@ -121,6 +130,14 @@ impl GameState {
 
     fn draw(&mut self, window: &mut Window) {
         window.clear(Color::black());
+        let camera = self.camera.top_left();
+        let scroll_offset = Vector::new(camera.x % 64.0, camera.y % 64.0);
+        for x in 0..(SCREEN_WIDTH / 64) + 3 {
+            for y in 0..(SCREEN_HEIGHT / 64) + 3 {
+                let location = camera + Vector::new(x as i32 - 1, y as i32 - 1) * 64 - scroll_offset;
+                window.draw(&Draw::image(&self.space_image, location).with_z(-10));
+            }
+        }
         self.player.draw(&self.player_image, window);
         for meteor in self.meteors.iter() {
             window.draw(&Draw::circle(meteor.bounds).with_color(Color { r: 0.5, g: 0.5, b: 0.0, a: 1.0 }));
