@@ -79,7 +79,8 @@ struct GameState {
     camera: Rectangle,
     player_image: Image,
     space_image: Image,
-    meteors: Vec<Entity>
+    meteors: Vec<Entity>,
+    aliens: Vec<Entity>
 }
 
 impl GameState {
@@ -91,7 +92,8 @@ impl GameState {
             camera: Rectangle::new_sized(SCREEN_WIDTH, SCREEN_HEIGHT),
             player_image,
             space_image,
-            meteors: Vec::new()
+            meteors: Vec::new(),
+            aliens: vec![Entity::new(Circle::new(50, 50, 20))]
         }
     }
 
@@ -100,6 +102,12 @@ impl GameState {
         for meteor in self.meteors.iter_mut() {
             meteor.facing += meteor.velocity.x + meteor.velocity.y;
             meteor.tick();
+        }
+        for alien in self.aliens.iter_mut() {
+            alien.facing += 1.5;
+            alien.velocity = if (alien.bounds.center() - self.player.bounds.center()).len() > 1500.0 { alien.velocity / 2 } else { alien.velocity };
+            alien.velocity += (self.player.bounds.center() - alien.bounds.center()).with_len(ENEMY_IMPULSE);
+            alien.tick();
         }
         let player_center = self.player.bounds.center();
         self.meteors.retain(|meteor| (meteor.bounds.center() - player_center).len() < 1500.0);
@@ -131,14 +139,17 @@ impl GameState {
     fn draw(&mut self, window: &mut Window) {
         window.clear(Color::black());
         let camera = self.camera.top_left();
-        let scroll_offset = Vector::new(camera.x % 64.0, camera.y % 64.0);
-        for x in 0..(SCREEN_WIDTH / 64) + 3 {
-            for y in 0..(SCREEN_HEIGHT / 64) + 3 {
-                let location = camera + Vector::new(x as i32 - 1, y as i32 - 1) * 64 - scroll_offset;
+        let scroll_offset = Vector::new(camera.x % BACKGROUND_TILE_SIZE as f32, camera.y % BACKGROUND_TILE_SIZE as f32);
+        for x in 0..(SCREEN_WIDTH / BACKGROUND_TILE_SIZE) + 3 {
+            for y in 0..(SCREEN_HEIGHT / BACKGROUND_TILE_SIZE) + 3 {
+                let location = camera + Vector::new(x as i32 - 1, y as i32 - 1) * BACKGROUND_TILE_SIZE as i32 - scroll_offset;
                 window.draw(&Draw::image(&self.space_image, location).with_z(-10));
             }
         }
         self.player.draw(&self.player_image, window);
+        for alien in self.aliens.iter() {
+            window.draw(&Draw::circle(alien.bounds).with_color(Color::green()));
+        }
         for meteor in self.meteors.iter() {
             window.draw(&Draw::circle(meteor.bounds).with_color(Color { r: 0.5, g: 0.5, b: 0.0, a: 1.0 }));
         }
@@ -147,12 +158,13 @@ impl GameState {
 }
 
 
-
+const BACKGROUND_TILE_SIZE: u32 = 64;
 const SCREEN_WIDTH: u32 = 800;
 const SCREEN_HEIGHT: u32 = 600;
 const PLAYER_ROTATION: f32 = 5.0;
 const PLAYER_IMPULSE: f32 = 0.1;
 const PLAYER_BREAK_FACTOR: f32 = 0.95;
+const ENEMY_IMPULSE: f32 = 0.05;
 
 fn main() {
     run::<Meteors>(WindowBuilder::new("Meteors", SCREEN_WIDTH, SCREEN_HEIGHT));
