@@ -163,61 +163,38 @@ impl SubAssign for Vector {
     }
 }
 
-impl Div<f32> for Vector {
+impl<T: Scalar> Div<T> for Vector {
     type Output = Vector;
 
-    fn div(self, rhs: f32) -> Vector {
+    fn div(self, rhs: T) -> Vector {
+        let rhs = rhs.float();
         Vector::new(self.x / rhs, self.y / rhs)
     }
 }
 
-impl DivAssign<f32> for Vector {
-    fn div_assign(&mut self, rhs: f32) -> () {
+impl<T: Scalar> DivAssign<T> for Vector {
+    fn div_assign(&mut self, rhs: T) -> () {
+        let rhs = rhs.float();
         *self = *self / rhs;
     }
 }
 
-impl Mul<f32> for Vector {
+impl<T: Scalar> Mul<T> for Vector {
     type Output = Vector;
 
-    fn mul(self, rhs: f32) -> Vector {
+    fn mul(self, rhs: T) -> Vector {
+        let rhs = rhs.float();
         Vector::new(self.x * rhs, self.y * rhs)
     }
 }
 
-impl MulAssign<f32> for Vector {
-    fn mul_assign(&mut self, rhs: f32) -> () {
+impl<T: Scalar> MulAssign<T> for Vector {
+    fn mul_assign(&mut self, rhs: T) -> () {
+        let rhs = rhs.float();
         *self = *self * rhs;
     }
 }
 
-impl Div<i32> for Vector {
-    type Output = Vector;
-
-    fn div(self, rhs: i32) -> Vector {
-        Vector::new(self.x / rhs as f32, self.y / rhs as f32)
-    }
-}
-
-impl DivAssign<i32> for Vector {
-    fn div_assign(&mut self, rhs: i32) -> () {
-        *self = *self / rhs;
-    }
-}
-
-impl Mul<i32> for Vector {
-    type Output = Vector;
-
-    fn mul(self, rhs: i32) -> Vector {
-        Vector::new(self.x * rhs as f32, self.y * rhs as f32)
-    }
-}
-
-impl MulAssign<i32> for Vector {
-    fn mul_assign(&mut self, rhs: i32) -> () {
-        *self = *self * rhs;
-    }
-}
 
 impl PartialEq for Vector {
     fn eq(&self, other: &Vector) -> bool {
