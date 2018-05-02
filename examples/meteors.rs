@@ -52,7 +52,8 @@ impl State for Meteors {
 struct Entity {
     bounds: Circle,
     facing: f32,
-    velocity: Vector
+    velocity: Vector,
+    cooldown: u32
 }
 
 impl Entity {
@@ -60,17 +61,29 @@ impl Entity {
         Entity {
             bounds,
             facing: 0.0,
-            velocity: Vector::zero()
+            velocity: Vector::zero(),
+            cooldown: 0
         }
     }
 
     fn tick(&mut self) {
         self.bounds = self.bounds.translate(self.velocity);
+        if self.cooldown > 0 {
+            self.cooldown -= 1;
+        }
     }
 
     fn draw(&self, image: &Image, window: &mut Window) {
         window.draw(&Draw::image(image, self.bounds.center())
             .with_transform(Transform::rotate(self.facing)));
+    }
+
+    fn distance(&self, other: &Entity) -> f32 {
+        (self.bounds.center() - other.bounds.center()).len()
+    }
+
+    fn center(&self) -> Vector {
+        self.bounds.center()
     }
 }
 
@@ -80,7 +93,8 @@ struct GameState {
     player_image: Image,
     space_image: Image,
     meteors: Vec<Entity>,
-    aliens: Vec<Entity>
+    aliens: Vec<Entity>,
+    alien_bullets: Vec<Entity>
 }
 
 impl GameState {
@@ -93,7 +107,8 @@ impl GameState {
             player_image,
             space_image,
             meteors: Vec::new(),
-            aliens: vec![Entity::new(Circle::new(50, 50, 20))]
+            aliens: vec![Entity::new(Circle::new(50, 50, 20))],
+            alien_bullets: Vec::new()
         }
     }
 
@@ -105,16 +120,25 @@ impl GameState {
         }
         for alien in self.aliens.iter_mut() {
             alien.facing += 1.5;
-            alien.velocity = if (alien.bounds.center() - self.player.bounds.center()).len() > 1500.0 { alien.velocity / 2 } else { alien.velocity };
-            alien.velocity += (self.player.bounds.center() - alien.bounds.center()).with_len(ENEMY_IMPULSE);
+            alien.velocity = if alien.distance(&self.player) > 1500.0 { alien.velocity / 2 } else { alien.velocity };
+            alien.velocity += (self.player.center() - alien.center()).with_len(ENEMY_IMPULSE);
             alien.tick();
+            if alien.cooldown <= 0 {
+                let mut bullet = Entity::new(Circle::newv(alien.center(), 4));
+                bullet.velocity = (self.player.center() - alien.center()).with_len(BULLET_SPEED) + alien.velocity;
+                bullet.cooldown = 60;
+                alien.cooldown = 120;
+                self.alien_bullets.push(bullet);
+            }
         }
+        self.alien_bullets.iter_mut().for_each(Entity::tick);
+        self.alien_bullets.retain(|bullet| bullet.cooldown > 0);
         let player_center = self.player.bounds.center();
-        self.meteors.retain(|meteor| (meteor.bounds.center() - player_center).len() < 1500.0);
+        self.meteors.retain(|meteor| (meteor.center() - player_center).len() < 1500.0);
         while self.meteors.len() < 20 {
             let diff_x = rng.gen_range(450, 650) * rng.choose(&[-1, 1]).unwrap();
             let diff_y = rng.gen_range(350, 550) * rng.choose(&[-1, 1]).unwrap();
-            let center = self.player.bounds.center()  + Vector::new(diff_x, diff_y);
+            let center = self.player.center()  + Vector::new(diff_x, diff_y);
             let mut entity = Entity::new(Circle::newv(center, 20));
             entity.velocity = Vector::new(rng.gen_range(-5, 5), rng.gen_range(-5, 5));
             self.meteors.push(entity);
@@ -132,7 +156,7 @@ impl GameState {
             self.player.velocity *= PLAYER_BREAK_FACTOR;
         }
         self.player.tick();
-        self.camera = self.camera.with_center((self.camera.center() + self.player.bounds.center()) / 2);
+        self.camera = self.camera.with_center((self.camera.center() + self.player.center()) / 2);
         window.set_view(View::new(self.camera));
     }
 
@@ -150,6 +174,9 @@ impl GameState {
         for alien in self.aliens.iter() {
             window.draw(&Draw::circle(alien.bounds).with_color(Color::green()));
         }
+        for bullet in self.alien_bullets.iter() {
+            window.draw(&Draw::circle(bullet.bounds).with_color(Color::red()));
+        }
         for meteor in self.meteors.iter() {
             window.draw(&Draw::circle(meteor.bounds).with_color(Color { r: 0.5, g: 0.5, b: 0.0, a: 1.0 }));
         }
@@ -165,6 +192,7 @@ const PLAYER_ROTATION: f32 = 5.0;
 const PLAYER_IMPULSE: f32 = 0.1;
 const PLAYER_BREAK_FACTOR: f32 = 0.95;
 const ENEMY_IMPULSE: f32 = 0.05;
+const BULLET_SPEED: f32 = 6.5;
 
 fn main() {
     run::<Meteors>(WindowBuilder::new("Meteors", SCREEN_WIDTH, SCREEN_HEIGHT));
