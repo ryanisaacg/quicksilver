@@ -94,7 +94,8 @@ struct GameState {
     space_image: Image,
     meteors: Vec<Entity>,
     aliens: Vec<Entity>,
-    alien_bullets: Vec<Entity>
+    alien_bullets: Vec<Entity>,
+    bullets: Vec<Entity>
 }
 
 impl GameState {
@@ -108,7 +109,8 @@ impl GameState {
             space_image,
             meteors: Vec::new(),
             aliens: vec![Entity::new(Circle::new(50, 50, 20))],
-            alien_bullets: Vec::new()
+            alien_bullets: Vec::new(),
+            bullets: Vec::new(),
         }
     }
 
@@ -131,6 +133,8 @@ impl GameState {
                 self.alien_bullets.push(bullet);
             }
         }
+        self.bullets.iter_mut().for_each(Entity::tick);
+        self.bullets.retain(|bullet| bullet.cooldown > 0);
         self.alien_bullets.iter_mut().for_each(Entity::tick);
         self.alien_bullets.retain(|bullet| bullet.cooldown > 0);
         let player_center = self.player.bounds.center();
@@ -155,6 +159,13 @@ impl GameState {
         if window.keyboard()[Key::S].is_down() {
             self.player.velocity *= PLAYER_BREAK_FACTOR;
         }
+        if self.player.cooldown <= 0 && window.keyboard()[Key::Space].is_down() {
+            self.player.cooldown = 25;
+            let mut entity = Entity::new(Circle::newv(self.player.center(), 5));
+            entity.velocity = Vector::from_angle(self.player.facing) * 15 + self.player.velocity;
+            entity.cooldown = 120;
+            self.bullets.push(entity);
+        }
         self.player.tick();
         self.camera = self.camera.with_center((self.camera.center() + self.player.center()) / 2);
         window.set_view(View::new(self.camera));
@@ -176,6 +187,9 @@ impl GameState {
         }
         for bullet in self.alien_bullets.iter() {
             window.draw(&Draw::circle(bullet.bounds).with_color(Color::red()));
+        }
+        for bullet in self.bullets.iter() {
+            window.draw(&Draw::circle(bullet.bounds).with_color(Color::cyan()));
         }
         for meteor in self.meteors.iter() {
             window.draw(&Draw::circle(meteor.bounds).with_color(Color { r: 0.5, g: 0.5, b: 0.0, a: 1.0 }));
