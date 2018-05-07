@@ -31,10 +31,6 @@ impl State for Raycast {
         }
     }
 
-    fn configure() -> WindowBuilder {
-        WindowBuilder::new("Raycast", 800, 600)
-    }
-
     fn event(&mut self, event: &Event, _: &mut Window) {
         if let &Event::MouseMoved(mouse) = event {
             self.vertices.clear();
@@ -48,7 +44,9 @@ impl State for Raycast {
             // Raycast towards all targets and find the vertices
             for i in 0..self.raycast_targets.len() {
                 // Create a Ray from the mouse to the target
-                let ray = Ray::new(mouse.into(), (self.raycast_targets[i] - mouse).normalize().into());
+                let start = mouse.into_point();
+                let direction = (self.raycast_targets[i] - mouse).normalize().into_vector();
+                let ray = Ray::new(start, direction);
                 // Perform the actual raycast, returning the target and an iterator of collisions
                 let collisions = self.world.interferences_with_ray(&ray, &all_objects);
                 let pos = collisions
@@ -81,5 +79,5 @@ impl State for Raycast {
 }
 
 fn main() {
-    run::<Raycast>();
+    run::<Raycast>(WindowBuilder::new("Raycast", 800, 600));
 }
