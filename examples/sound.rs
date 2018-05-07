@@ -6,7 +6,7 @@ use futures::{Async, Future};
 use quicksilver::{
     State, run,
     geom::Rectangle,
-    graphics::{Color, Sprite, Window, WindowBuilder},
+    graphics::{Color, Draw, Window, WindowBuilder},
     input::{ButtonState, MouseButton},
     sound::{Sound, SoundLoader}
 };
@@ -19,11 +19,9 @@ enum SoundPlayer {
 const BUTTON_AREA: Rectangle = Rectangle { x: 350.0, y: 250.0, width: 100.0, height: 100.0 };
 
 impl State for SoundPlayer {
-    fn configure() -> WindowBuilder {
-        WindowBuilder::new("Sound Example", 800, 600)
+   fn new() -> SoundPlayer { 
+       SoundPlayer::Loading(Sound::load("examples/assets/boop.ogg"))
     }
-
-   fn new() -> SoundPlayer { SoundPlayer::Loading(Sound::load("examples/assets/boop.ogg")) }
 
    fn update(&mut self, window: &mut Window) {
        // Check to see the progress of the loading sound 
@@ -46,12 +44,12 @@ impl State for SoundPlayer {
         window.clear(Color::white());
         // If the sound is loaded, draw the button
         if let &mut SoundPlayer::Loaded(_) = self {
-            window.draw(&Sprite::rectangle(BUTTON_AREA).with_color(Color::blue()));
+            window.draw(&Draw::rectangle(BUTTON_AREA).with_color(Color::blue()));
         }
         window.present();
    }
 }
 
 fn main() {
-    run::<SoundPlayer>();
+    run::<SoundPlayer>(WindowBuilder::new("Sound Example", 800, 600));
 }

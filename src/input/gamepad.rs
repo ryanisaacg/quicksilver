@@ -1,11 +1,14 @@
 #[cfg(all(not(any(target_arch="wasm32", target_os="macos")), feature = "gamepads"))]
 extern crate gilrs;
 
+#[cfg(all(not(any(target_arch="wasm32", target_os="macos")), feature = "gamepads"))]
+use gilrs::Button;
+
 use input::{ButtonState, Event};
 use std::ops::Index;
 
 /// A queryable traditional 2-stick gamepad
-#[derive(Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct Gamepad {
     id: u32,
     buttons: [ButtonState; 17],
@@ -88,7 +91,7 @@ impl GamepadProvider {
             let mut buttons = [ButtonState::NotPressed; 17];
             for i in 0..GAMEPAD_BUTTON_LIST.len() {
                 let button = GAMEPAD_BUTTON_LIST[i];
-                let value = match gamepad.button_data(button.into()) {
+                let value = match gamepad.button_data(GILRS_GAMEPAD_LIST[i]) {
                     Some(ref data) => data.is_pressed(),
                     None => false
                 };
@@ -131,7 +134,7 @@ impl GamepadProvider {
     }
 }
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 /// The axes a gamepad can report
 pub enum GamepadAxis {
     /// The horizontal tilt of the left stick
@@ -145,7 +148,7 @@ pub enum GamepadAxis {
 }
 
 #[repr(u32)]
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 /// A button on a gamepad
 pub enum GamepadButton {
     /// The bottom face button
@@ -196,8 +199,6 @@ pub enum GamepadButton {
     Home
 }
 
-
-
 impl Index<GamepadAxis> for Gamepad {
     type Output = f32;
 
@@ -214,6 +215,7 @@ impl Index<GamepadButton> for Gamepad {
     }
 }
 
+#[doc(hidden)]
 pub const GAMEPAD_BUTTON_LIST: &[GamepadButton] = &[
     GamepadButton::FaceDown,
     GamepadButton::FaceRight,
@@ -234,6 +236,29 @@ pub const GAMEPAD_BUTTON_LIST: &[GamepadButton] = &[
     GamepadButton::DpadRight,
 ];
 
+#[doc(hidden)]
+#[cfg(all(not(any(target_arch="wasm32", target_os="macos")), feature = "gamepads"))]
+const GILRS_GAMEPAD_LIST: &[gilrs::Button] = &[
+    Button::South,
+    Button::East,
+    Button::North,
+    Button::West,
+    Button::LeftTrigger,
+    Button::LeftTrigger2,
+    Button::RightTrigger,
+    Button::RightTrigger2,
+    Button::South,
+    Button::South,
+    Button::Mode,
+    Button::LeftThumb,
+    Button::RightThumb,
+    Button::DPadUp,
+    Button::DPadDown,
+    Button::DPadLeft,
+    Button::DPadRight,
+];
+
+#[doc(hidden)]
 pub const GAMEPAD_AXIS_LIST: &[GamepadAxis] = &[
     GamepadAxis::LeftStickX,
     GamepadAxis::LeftStickY,
@@ -241,27 +266,3 @@ pub const GAMEPAD_AXIS_LIST: &[GamepadAxis] = &[
     GamepadAxis::RightStickY,
 ];
 
-#[cfg(all(not(any(target_arch="wasm32", target_os="macos")), feature = "gamepads"))]impl Into<gilrs::Button> for GamepadButton {
-    fn into(self) -> gilrs::Button {
-        use gilrs::Button;
-        match self {
-            GamepadButton::FaceDown => Button::South,
-            GamepadButton::FaceRight => Button::East,
-            GamepadButton::FaceUp => Button::North,
-            GamepadButton::FaceLeft => Button::West,
-            GamepadButton::ShoulderLeft => Button::LeftTrigger,
-            GamepadButton::TriggerLeft => Button::LeftTrigger2,
-            GamepadButton::ShoulderRight => Button::RightTrigger,
-            GamepadButton::TriggerRight => Button::RightTrigger2,
-            GamepadButton::Select => Button::South,
-            GamepadButton::Start => Button::South,
-            GamepadButton::Home => Button::Mode,
-            GamepadButton::StickButtonLeft => Button::LeftThumb,
-            GamepadButton::StickButtonRight => Button::RightThumb,
-            GamepadButton::DpadUp => Button::DPadUp,
-            GamepadButton::DpadDown => Button::DPadDown,
-            GamepadButton::DpadLeft => Button::DPadLeft,
-            GamepadButton::DpadRight => Button::DPadRight,
-        }
-    }
-}

@@ -1,5 +1,5 @@
 use std::os::raw::c_void;
-use std::io::ErrorKind as IOError;
+use std::io::{Error as IOError, ErrorKind};
 
 #[allow(improper_ctypes)]
 extern "C" {
@@ -44,12 +44,20 @@ extern "C" {
     pub fn set_app(app: *mut c_void);
 }
 
+struct WasmIOError;
+
+impl Error for WasmIOError {
+    fn description(&self) -> &str {
+        "An error occurred during a file IO operation"
+    }
+}
+
 pub fn asset_status(handle: u32) -> Result<bool, IOError> {
     use std::io::ErrorKind;
     match unsafe { ffi_asset_status(handle) } {
         0 => Ok(false),
         1 => Ok(true),
-        2 => Err(ErrorKind::NotFound),
+        2 => IOError::new(ErrorKind::NotFound, Box::new(WasmIOError)),
         _ => unreachable!()
     }
 }

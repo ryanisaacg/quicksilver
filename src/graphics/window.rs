@@ -7,6 +7,7 @@ use input::{ButtonState, Event, Gamepad, GamepadProvider, Keyboard, Mouse};
 
 /// The way the images should change when drawn at a scale
 #[repr(u32)]
+#[derive(Debug)]
 pub enum ImageScaleStrategy {
     /// The image should attempt to preserve each pixel as accurately as possible
     Pixelate = gl::NEAREST,
@@ -15,6 +16,7 @@ pub enum ImageScaleStrategy {
 }
 
 ///A builder that constructs a Window
+#[derive(Debug)]
 pub struct WindowBuilder {
     title: &'static str, 
     width: u32, 

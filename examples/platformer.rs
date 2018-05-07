@@ -4,7 +4,7 @@ extern crate quicksilver;
 use quicksilver::{
     State, run,
     geom::{Circle, Vector},
-    graphics::{Color, Sprite, Window, WindowBuilder},
+    graphics::{Color, Draw, Window, WindowBuilder},
     input::{GamepadAxis, GamepadButton, Key}
 };
 
@@ -19,10 +19,6 @@ fn between(value: f32, min: f32, max: f32) -> bool {
 }
 
 impl State for Platformer {
-    fn configure() -> WindowBuilder {
-        WindowBuilder::new("Basic Platformer", 800, 600)
-    }
-
    fn new() -> Platformer { 
        Platformer { 
            player: Circle::new(100, 100, 50)
@@ -46,11 +42,11 @@ impl State for Platformer {
 
    fn draw(&mut self, window: &mut Window) {
         window.clear(Color::black());
-        window.draw(&Sprite::circle(self.player).with_color(Color::blue()));
+        window.draw(&Draw::circle(self.player).with_color(Color::blue()));
         window.present();
    }
 }
 
 fn main() {
-    run::<Platformer>();
+    run::<Platformer>(WindowBuilder::new("Basic Platformer", 800, 600));
 }
