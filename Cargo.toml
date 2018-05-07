@@ -70,3 +70,7 @@ required-features = ["window", "fonts"]
 [[example]]
 name = "sound"
 required-features = ["geometry", "window", "sounds"]
+
+[[example]]
+name = "meteors"
+required-features = ["geometry", "window"]
