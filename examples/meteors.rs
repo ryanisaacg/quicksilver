@@ -147,6 +147,8 @@ impl GameState {
             entity.velocity = Vector::new(rng.gen_range(-5, 5), rng.gen_range(-5, 5));
             self.meteors.push(entity);
         }
+        bullet_checks(&mut self.bullets, &mut self.meteors);
+        bullet_checks(&mut self.bullets, &mut self.aliens);
         if window.keyboard()[Key::A].is_down() {
             self.player.facing -= PLAYER_ROTATION;
         }
@@ -195,6 +197,23 @@ impl GameState {
             window.draw(&Draw::circle(meteor.bounds).with_color(Color { r: 0.5, g: 0.5, b: 0.0, a: 1.0 }));
         }
         window.present();
+    }
+}
+
+fn bullet_checks(bullets: &mut Vec<Entity>, targets: &mut Vec<Entity>) {
+    let mut i: i32 = 0;
+    while (i as usize) < bullets.len() {
+        let mut j: i32 = 0;
+        while (j as usize) < targets.len() {
+            if bullets[i as usize].bounds.overlaps_circ(targets[j as usize].bounds) {
+                bullets.swap_remove(i as usize);
+                targets.swap_remove(j as usize);
+                i -= 1;
+                break;
+            }
+            j += 1;
+        }
+        i += 1;
     }
 }
 
