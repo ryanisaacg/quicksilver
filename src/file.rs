@@ -4,7 +4,9 @@ extern crate futures;
 
 use error::QuicksilverError;
 use futures::{Async, Future, Poll};
-use std::path::{Path, PathBuf};
+use std::path::Path;
+#[cfg(not(target_arch="wasm32"))]
+use std::path::PathBuf;
 
 /// A Future that loads a file into an owned Vec of bytes
 ///

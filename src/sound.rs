@@ -22,13 +22,14 @@ use rodio::{
 use std::{
     fs::File,
     io::{BufReader, Cursor, Read},
+    path::PathBuf,
     sync::Arc
 };
 use std::{
     error::Error,
     fmt,
     io::Error as IOError,
-    path::{Path, PathBuf}
+    path::Path
 };
 
 

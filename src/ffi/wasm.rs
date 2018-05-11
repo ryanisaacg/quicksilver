@@ -1,5 +1,11 @@
-use std::os::raw::c_void;
-use std::io::{Error as IOError, ErrorKind};
+use std::{
+    error::Error,
+    fmt,
+    io::Error as IOError,
+    os::raw::c_void,
+};
+#[cfg(not(target_arch="wasm32"))]
+use std::io::ErrorKind;
 
 #[allow(improper_ctypes)]
 extern "C" {
@@ -44,7 +50,14 @@ extern "C" {
     pub fn set_app(app: *mut c_void);
 }
 
+#[derive(Debug)]
 struct WasmIOError;
+
+impl fmt::Display for WasmIOError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.description())
+    }
+}
 
 impl Error for WasmIOError {
     fn description(&self) -> &str {
@@ -57,7 +70,7 @@ pub fn asset_status(handle: u32) -> Result<bool, IOError> {
     match unsafe { ffi_asset_status(handle) } {
         0 => Ok(false),
         1 => Ok(true),
-        2 => IOError::new(ErrorKind::NotFound, Box::new(WasmIOError)),
+        2 => Err(IOError::new(ErrorKind::NotFound, Box::new(WasmIOError))),
         _ => unreachable!()
     }
 }
