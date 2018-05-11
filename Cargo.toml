@@ -15,7 +15,7 @@ default = ["fonts", "gamepads", "geometry", "collision", "window", "saving", "so
 fonts = ["window", "rusttype"]
 gamepads = ["gilrs", "window"]
 geometry = ["rand", "serde", "serde_derive"]
-collision = ["alga", "nalgebra", "ncollide"]
+collision = ["alga", "nalgebra", "ncollide2d"]
 window = ["geometry", "gl", "glutin", "image", "futures", "rusttype"]
 saving = ["serde", "serde_json"]
 sounds = ["futures", "rodio"]
@@ -30,7 +30,7 @@ alga = { version = "0.5", optional = true }
 futures = { version = "0.1", optional = true }
 gl = { version = "0.10", optional = true }
 nalgebra = { version = "0.14", optional = true }
-ncollide = { version = "0.14", optional = true }
+ncollide2d = { version = "0.15", optional = true }
 rand = { version = "0.4.2", optional = true }
 rusttype = { version = "0.3", optional = true }
 serde = { version = "1.0", optional = true }

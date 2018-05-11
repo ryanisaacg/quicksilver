@@ -1,8 +1,8 @@
-#[cfg(feature="window")] 
+#[cfg(all(not(target_arch="wasm32"), feature="image"))] 
 extern crate image;
 #[cfg(feature="serde_json")] 
 extern crate serde_json;
-#[cfg(feature="sounds")]
+#[cfg(all(not(target_arch="wasm32"), feature="rodio"))] 
 extern crate rodio;
 
 #[cfg(feature="window")] use graphics::{AtlasError, ImageError};
