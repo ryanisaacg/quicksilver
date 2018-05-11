@@ -12,9 +12,11 @@ use std::{
     io::Error as IOError,
     ops::Drop,
     os::raw::c_void,
-    path::{Path, PathBuf},
+    path::Path,
     rc::Rc
 };
+#[cfg(not(target_arch="wasm32"))]
+use std::path::PathBuf;
 
 ///Pixel formats for use with loading raw images
 #[derive(Debug, Eq, PartialEq, Hash)]
