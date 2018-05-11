@@ -1,4 +1,4 @@
-#[cfg(feature="ncollide")] use ncollide::shape::Segment2;
+#[cfg(feature="ncollide2d")] use ncollide2d::shape::Segment;
 use geom::{Positioned, Rectangle, Vector};
 use rand::{Rand, Rng};
 
@@ -19,10 +19,10 @@ impl Line {
         }
     }
    
-    #[cfg(feature="ncollide")]
+    #[cfg(feature="ncollide2d")]
     ///Convert the line into an equivalent ncollide Segment2
-    pub fn into_segment(self) -> Segment2<f32> {
-        Segment2::new(self.start.into_point(), self.end.into_point())
+    pub fn into_segment(self) -> Segment<f32> {
+        Segment::new(self.start.into_point(), self.end.into_point())
     }
 
     ///Check if two line segments interact
@@ -86,9 +86,9 @@ impl Rand for Line {
     }
 }
 
-#[cfg(feature="ncollide")]
-impl From<Segment2<f32>> for Line {
-    fn from(other: Segment2<f32>) -> Line {
+#[cfg(feature="ncollide2d")]
+impl From<Segment<f32>> for Line {
+    fn from(other: Segment<f32>) -> Line {
         Line::new(other.a().clone().into(), other.b().clone().into())
     }
 }

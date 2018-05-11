@@ -61,8 +61,8 @@ extern crate glutin;
 extern crate image;
 #[cfg(feature="nalgebra")]
 extern crate nalgebra;
-#[cfg(feature="ncollide")]
-extern crate ncollide;
+#[cfg(feature="ncollide2d")]
+extern crate ncollide2d;
 #[cfg(feature="rand")] 
 extern crate rand;
 #[cfg(all(feature="rodio", not(target_arch="wasm32")))] 

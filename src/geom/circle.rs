@@ -1,4 +1,4 @@
-#[cfg(feature="ncollide")] use ncollide::shape::Ball;
+#[cfg(feature="ncollide2d")] use ncollide2d::shape::Ball;
 use geom::{about_equal, Line, Positioned, Rectangle, Scalar, Vector};
 use rand::{Rand, Rng};
 use std::cmp::{Eq, PartialEq};
@@ -34,13 +34,13 @@ impl Circle {
     }
 
     ///Construct a circle from a center and a Ball
-    #[cfg(feature="ncollide")]
+    #[cfg(feature="ncollide2d")]
     pub fn from_ball(position: Vector, ball: Ball<f32>) -> Circle {
         Circle::newv(position, ball.radius())
     }
 
     ///Convert the circle into an ncollide Ball
-    #[cfg(feature="ncollide")]
+    #[cfg(feature="ncollide2d")]
     pub fn into_ball(self) -> Ball<f32> {
         Ball::new(self.radius)
     }

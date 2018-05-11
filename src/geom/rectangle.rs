@@ -1,6 +1,6 @@
-#[cfg(feature="ncollide")] use ncollide::{
-    bounding_volume::AABB2,
-    shape::Cuboid2
+#[cfg(feature="ncollide2d")] use ncollide2d::{
+    bounding_volume::AABB,
+    shape::Cuboid
 };
 use geom::{about_equal, Circle, Line, Positioned, Scalar, Vector};
 use rand::{Rand, Rng};
@@ -50,25 +50,25 @@ impl Rectangle {
         Rectangle::newv(Vector::zero(), size)
     }
 
-    #[cfg(feature="ncollide")]
+    #[cfg(feature="ncollide2d")]
     ///Create a rectangle with a given center and Cuboid from ncollide
-    pub fn from_cuboid(center: Vector, cuboid: &Cuboid2<f32>) -> Rectangle {
+    pub fn from_cuboid(center: Vector, cuboid: &Cuboid<f32>) -> Rectangle {
         let half_size = cuboid.half_extents().clone().into();
         Rectangle::newv(center - half_size, half_size * 2)
     }
    
     ///Convert this rect into an ncollide Cuboid2
-    #[cfg(feature="ncollide")]
-    pub fn into_cuboid(self) -> Cuboid2<f32> {
-        Cuboid2::new((self.size() / 2).into_vector())
+    #[cfg(feature="ncollide2d")]
+    pub fn into_cuboid(self) -> Cuboid<f32> {
+        Cuboid::new((self.size() / 2).into_vector())
     }
     
     ///Convert this rect into an ncollide AABB2
-    #[cfg(feature="ncollide")]
-    pub fn into_aabb(self) -> AABB2<f32> { 
+    #[cfg(feature="ncollide2d")]
+    pub fn into_aabb(self) -> AABB<f32> { 
         let min = self.top_left().into_point(); 
         let max = (self.top_left() + self.size()).into_point();
-        AABB2::new(min, max)
+        AABB::new(min, max)
     }
 
     ///Get the top left coordinate of the Rectangle
@@ -165,9 +165,9 @@ impl Positioned for Rectangle {
     }
 }
 
-#[cfg(feature="ncollide")]
-impl From<AABB2<f32>> for Rectangle {
-    fn from(other: AABB2<f32>) -> Rectangle {
+#[cfg(feature="ncollide2d")]
+impl From<AABB<f32>> for Rectangle {
+    fn from(other: AABB<f32>) -> Rectangle {
         Rectangle::newv(other.mins().clone().into(), other.maxs().clone().into())
     }
 }
