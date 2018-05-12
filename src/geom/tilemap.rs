@@ -139,7 +139,7 @@ impl<T: Clone> Tilemap<T> {
         let bounds = shape.bounding_box(); 
         match shape {
             Shape::Vector(_) => self.point_empty(shape.center()),
-            Shape::Rectangle(_) | Shape::Circle(_) | Shape::Line(_) => {
+            Shape::Rectangle(_) | Shape::Circle(_) => {
                 let x_start = (self.align_left(bounds.x) / self.tile_width()) as i32;
                 let y_start = (self.align_top(bounds.y) / self.tile_height()) as i32;
                 let x_end = (self.align_right(bounds.x + bounds.width) / self.tile_width()) as i32;

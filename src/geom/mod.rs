@@ -8,7 +8,6 @@
 //! speeds around the map, which is highly useful for games like platformers.
 
 mod vector;
-mod line;
 mod rectangle;
 mod circle;
 mod shape;
@@ -19,7 +18,6 @@ mod util;
 mod scalar;
 pub use self::{
     vector::Vector,
-    line::Line,
     rectangle::Rectangle,
     circle::Circle,
     positioned::Positioned,

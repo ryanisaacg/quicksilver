@@ -1,4 +1,4 @@
-use geom::{Circle, Positioned, Rectangle, Scalar, Transform, Vector};
+use geom::{Circle, Positioned, Rectangle, Scalar, Shape, Transform, Vector};
 use graphics::{Color, GpuTriangle, Image, Vertex, Window};
 use std::iter;
 
@@ -35,6 +35,21 @@ impl Draw {
             transform: Transform::identity(),
             z: 0.0
         }
+    }
+
+    /// Create a sprite from a given shape
+    pub fn shape(shape: Shape) -> Draw {
+        match shape {
+            Shape::Circle(circ) => Draw::circle(circ),
+            Shape::Rectangle(rect) => Draw::rectangle(rect),
+            Shape::Vector(v) => Draw::point(v),
+
+        }
+    }
+
+    /// Create a sprite with a point
+    pub fn point(position: Vector) -> Draw {
+        Draw::rectangle(Rectangle::newv(position, Vector::one()))
     }
 
     /// Create a sprite with a rectangle

@@ -2,7 +2,7 @@
     bounding_volume::AABB,
     shape::Cuboid
 };
-use geom::{about_equal, Circle, Line, Positioned, Scalar, Vector};
+use geom::{about_equal, Circle, Positioned, Scalar, Vector};
 use rand::{Rand, Rng};
 use std::cmp::{Eq, PartialEq};
 
@@ -113,31 +113,6 @@ impl Rectangle {
     pub fn with_center(self, v: Vector) -> Rectangle {
         self.translate(v - self.center())
     }
-
-    ///Get the top of the rectangle
-    pub fn top(self) -> Line {
-        Line::new(self.top_left(), self.top_left() + self.size().x_comp())
-    }
-
-    ///Get the left of the rectangle
-    pub fn left(self) -> Line {
-        Line::new(self.top_left(), self.top_left() + self.size().y_comp())
-    }
-     
-    ///Get the bottom of the rectangle
-    pub fn bottom(self) -> Line {
-        Line::new(self.top_left() + self.size().y_comp(), self.top_left() + self.size())
-    }
-    
-    ///Get the right of the rectangle
-    pub fn right(self) -> Line {
-        Line::new(self.top_left() + self.size().x_comp(), self.top_left() + self.size())
-    }
-    ///Check if a line segment intersects a rectangle
-    pub fn intersects(self, l: Line) -> bool {
-        self.contains(l.start) || self.contains(l.end) || self.top().intersects(l) || 
-            self.left().intersects(l) || self.right().intersects(l) || self.bottom().intersects(l)
-    }
 }
 
 impl PartialEq for Rectangle {
@@ -211,18 +186,5 @@ mod tests {
         let v = Vector::new(1, -1);
         let translated = a.translate(v);
         assert_eq!(a.top_left() + v, translated.top_left());
-    }
-
-    #[test]
-    fn intersect() {
-        let line1 = Line::new(Vector::new(0, 0), Vector::new(32, 32));
-        let line2 = Line::new(Vector::new(0, 32), Vector::new(32, 0));
-        let line3 = Line::new(Vector::new(32, 32), Vector::new(64, 64));
-        let line4 = Line::new(Vector::new(100, 100), Vector::new(1000, 1000));
-        let rect = Rectangle::newv_sized(Vector::new(32, 32));
-        assert!(rect.intersects(line1));
-        assert!(rect.intersects(line2));
-        assert!(rect.intersects(line3));
-        assert!(!rect.intersects(line4));
     }
 }
