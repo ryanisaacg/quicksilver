@@ -8,13 +8,7 @@
 //! 
 //! ## A quick example
 //! 
-//! Create a rust project and add this line to your `Cargo.toml` file under `[dependencies]`:
-//! 
-//!     quicksilver = "*"
-//! 
-//! Then replace `src/main.rs` with the following (the contents of quicksilver's examples/draw-geometry.rs):
-//! 
-//! ```rust
+//! ```no_run
 //! // Draw some multi-colored geometry to the screen
 //! extern crate quicksilver;
 //! 
