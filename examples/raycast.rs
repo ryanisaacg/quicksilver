@@ -1,5 +1,5 @@
 extern crate nalgebra;
-extern crate ncollide;
+extern crate ncollide2d;
 extern crate quicksilver;
 
 use quicksilver::{
@@ -9,7 +9,7 @@ use quicksilver::{
     graphics::{Color, GpuTriangle, WindowBuilder, Window, Vertex}
 };
 use nalgebra::{Isometry2, zero};
-use ncollide::{
+use ncollide2d::{
     query::{Ray, RayCast}
 };
 use std::{
