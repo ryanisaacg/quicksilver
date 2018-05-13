@@ -43,28 +43,29 @@ rodio = { version = "0.6", optional = true }
 
 [[example]]
 name = "basic"
-required-features = ["window"]
+required-features = []
 
 [[example]]
 name = "draw-geometry"
-required-features = ["geometry", "window"]
+required-features = []
 
 [[example]]
 name = "pulsing-circle"
-required-features = ["geometry", "window"]
+required-features = []
 
 [[example]]
 name = "platformer"
-required-features = ["geometry", "window", "gamepads"]
+required-features = ["gamepads"]
 
 [[example]]
 name = "image"
-required-features = ["window"]
+required-features = []
 
 [[example]]
 name = "font"
-required-features = ["window", "fonts"]
+required-features = ["fonts"]
 
 [[example]]
 name = "sound"
-required-features = ["geometry", "window", "sounds"]
+required-features = ["sounds"]
+
