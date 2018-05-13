@@ -1,8 +1,8 @@
-#[cfg(feature="ncollide")] use ncollide::{
-    bounding_volume::AABB2,
-    shape::Cuboid2
+#[cfg(feature="ncollide2d")] use ncollide2d::{
+    bounding_volume::AABB,
+    shape::Cuboid
 };
-use geom::{about_equal, Circle, Line, Positioned, Scalar, Vector};
+use geom::{about_equal, Circle, Positioned, Scalar, Vector};
 use rand::{Rand, Rng};
 use std::cmp::{Eq, PartialEq};
 
@@ -50,25 +50,25 @@ impl Rectangle {
         Rectangle::newv(Vector::zero(), size)
     }
 
-    #[cfg(feature="ncollide")]
+    #[cfg(feature="ncollide2d")]
     ///Create a rectangle with a given center and Cuboid from ncollide
-    pub fn from_cuboid(center: Vector, cuboid: &Cuboid2<f32>) -> Rectangle {
+    pub fn from_cuboid(center: Vector, cuboid: &Cuboid<f32>) -> Rectangle {
         let half_size = cuboid.half_extents().clone().into();
         Rectangle::newv(center - half_size, half_size * 2)
     }
    
     ///Convert this rect into an ncollide Cuboid2
-    #[cfg(feature="ncollide")]
-    pub fn into_cuboid(self) -> Cuboid2<f32> {
-        Cuboid2::new((self.size() / 2).into_vector())
+    #[cfg(feature="ncollide2d")]
+    pub fn into_cuboid(self) -> Cuboid<f32> {
+        Cuboid::new((self.size() / 2).into_vector())
     }
     
     ///Convert this rect into an ncollide AABB2
-    #[cfg(feature="ncollide")]
-    pub fn into_aabb(self) -> AABB2<f32> { 
+    #[cfg(feature="ncollide2d")]
+    pub fn into_aabb(self) -> AABB<f32> { 
         let min = self.top_left().into_point(); 
         let max = (self.top_left() + self.size()).into_point();
-        AABB2::new(min, max)
+        AABB::new(min, max)
     }
 
     ///Get the top left coordinate of the Rectangle
@@ -113,31 +113,6 @@ impl Rectangle {
     pub fn with_center(self, v: Vector) -> Rectangle {
         self.translate(v - self.center())
     }
-
-    ///Get the top of the rectangle
-    pub fn top(self) -> Line {
-        Line::new(self.top_left(), self.top_left() + self.size().x_comp())
-    }
-
-    ///Get the left of the rectangle
-    pub fn left(self) -> Line {
-        Line::new(self.top_left(), self.top_left() + self.size().y_comp())
-    }
-     
-    ///Get the bottom of the rectangle
-    pub fn bottom(self) -> Line {
-        Line::new(self.top_left() + self.size().y_comp(), self.top_left() + self.size())
-    }
-    
-    ///Get the right of the rectangle
-    pub fn right(self) -> Line {
-        Line::new(self.top_left() + self.size().x_comp(), self.top_left() + self.size())
-    }
-    ///Check if a line segment intersects a rectangle
-    pub fn intersects(self, l: Line) -> bool {
-        self.contains(l.start) || self.contains(l.end) || self.top().intersects(l) || 
-            self.left().intersects(l) || self.right().intersects(l) || self.bottom().intersects(l)
-    }
 }
 
 impl PartialEq for Rectangle {
@@ -165,9 +140,9 @@ impl Positioned for Rectangle {
     }
 }
 
-#[cfg(feature="ncollide")]
-impl From<AABB2<f32>> for Rectangle {
-    fn from(other: AABB2<f32>) -> Rectangle {
+#[cfg(feature="ncollide2d")]
+impl From<AABB<f32>> for Rectangle {
+    fn from(other: AABB<f32>) -> Rectangle {
         Rectangle::newv(other.mins().clone().into(), other.maxs().clone().into())
     }
 }
@@ -211,18 +186,5 @@ mod tests {
         let v = Vector::new(1, -1);
         let translated = a.translate(v);
         assert_eq!(a.top_left() + v, translated.top_left());
-    }
-
-    #[test]
-    fn intersect() {
-        let line1 = Line::new(Vector::new(0, 0), Vector::new(32, 32));
-        let line2 = Line::new(Vector::new(0, 32), Vector::new(32, 0));
-        let line3 = Line::new(Vector::new(32, 32), Vector::new(64, 64));
-        let line4 = Line::new(Vector::new(100, 100), Vector::new(1000, 1000));
-        let rect = Rectangle::newv_sized(Vector::new(32, 32));
-        assert!(rect.intersects(line1));
-        assert!(rect.intersects(line2));
-        assert!(rect.intersects(line3));
-        assert!(!rect.intersects(line4));
     }
 }

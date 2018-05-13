@@ -108,10 +108,11 @@ impl Mul<Vector> for Transform {
     }
 }
 
-impl Mul<f32> for Transform {
+impl<T: Scalar> Mul<T> for Transform {
     type Output = Transform;
 
-    fn mul(self, other: f32) -> Transform {
+    fn mul(self, other: T) -> Transform {
+        let other = other.float();
         let mut ret = Transform::identity();
         for i in 0..3 {
             for j in 0..3 {

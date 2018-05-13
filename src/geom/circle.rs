@@ -1,5 +1,5 @@
-#[cfg(feature="ncollide")] use ncollide::shape::Ball;
-use geom::{about_equal, Line, Positioned, Rectangle, Scalar, Vector};
+#[cfg(feature="ncollide2d")] use ncollide2d::shape::Ball;
+use geom::{about_equal, Positioned, Rectangle, Scalar, Vector};
 use rand::{Rand, Rng};
 use std::cmp::{Eq, PartialEq};
 
@@ -15,7 +15,7 @@ pub struct Circle {
 }
 
 impl Circle {
-    ///Create a new circle with the given dimensions
+    /// Create a new circle with the given dimensions
     pub fn new<T: Scalar>(x: T, y: T, radius: T) -> Circle {
         Circle {
             x: x.float(),
@@ -24,43 +24,30 @@ impl Circle {
         }
     }
 
-    ///Create a circle with the center as a vector
-    pub fn newv<T: Scalar>(position: Vector, radius: T) -> Circle {
+    /// Create a circle with the center as a vector
+    pub fn newv<T: Scalar>(center: Vector, radius: T) -> Circle {
         Circle {
-            x: position.x,
-            y: position.y,
+            x: center.x,
+            y: center.y,
             radius: radius.float()
         }
     }
 
     ///Construct a circle from a center and a Ball
-    #[cfg(feature="ncollide")]
-    pub fn from_ball(position: Vector, ball: Ball<f32>) -> Circle {
-        Circle::newv(position, ball.radius())
+    #[cfg(feature="ncollide2d")]
+    pub fn from_ball(center: Vector, ball: Ball<f32>) -> Circle {
+        Circle::newv(center, ball.radius())
     }
 
     ///Convert the circle into an ncollide Ball
-    #[cfg(feature="ncollide")]
+    #[cfg(feature="ncollide2d")]
     pub fn into_ball(self) -> Ball<f32> {
         Ball::new(self.radius)
     }
 
-    ///Check to see if a circle contains a point
+    /// Check to see if a circle contains a point
     pub fn contains(self, v: Vector) -> bool {
         (v - self.center()).len2() < self.radius.powi(2)
-    }
-
-    ///Check to see if a circle intersects a line
-    pub fn intersects(self, l: Line) -> bool {
-        let line_direction = (l.end - l.start).normalize();
-        //Check if the circle contains the closest point
-        //The dot product of the distance to the start and the direction yields
-        //the normalized distance along the line
-        self.contains(match (self.center() - l.start).dot(line_direction) {
-            x if x <= 0f32 => l.start,
-            x if x >= 1f32 => l.end,
-            x => l.start + line_direction * x
-        })
     }
 
     ///Check if a circle overlaps a rectangle
@@ -144,22 +131,6 @@ mod tests {
         assert!(rec1.overlaps_circ(circ));
         assert!(!circ.overlaps_rect(rec2));
         assert!(!rec2.overlaps_circ(circ));
-    }
-
-    #[test]
-    fn intersects() {
-        let line1 = Line::new(Vector::new(0, 0), Vector::new(32, 32));
-        let line2 = Line::new(Vector::new(0, 32), Vector::new(32, 0));
-        let line3 = Line::new(Vector::new(32, 32), Vector::new(64, 64));
-        let line4 = Line::new(Vector::new(100, 100), Vector::new(1000, 1000));
-        //TODO: fix this test
-//        let line5 = Line::new(Vector::new(-100, 32), Vector::new(100, 32));
-        let circ = Circle::new(0, 0, 33);
-        assert!(circ.intersects(line1));
-        assert!(circ.intersects(line2));
-        assert!(!circ.intersects(line3));
-        assert!(!circ.intersects(line4));
-//        assert!(circ.intersects(line5));
     }
 
     #[test]

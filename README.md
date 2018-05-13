@@ -6,6 +6,57 @@
 
 A 2D game framework written in pure Rust
 
+## A quick example
+
+Create a rust project and add this line to your `Cargo.toml` file under `[dependencies]`:
+
+    quicksilver = "*"
+
+Then replace `src/main.rs` with the following (the contents of quicksilver's examples/draw-geometry.rs):
+
+```rust
+// Draw some multi-colored geometry to the screen
+extern crate quicksilver;
+
+use quicksilver::{
+    State, run,
+    geom::{Circle, Rectangle, Transform},
+    graphics::{Color, Draw, Window, WindowBuilder}
+};
+
+struct DrawGeometry;
+
+impl State for DrawGeometry {
+    fn new() -> DrawGeometry { DrawGeometry }
+
+   fn draw(&mut self, window: &mut Window) {
+        window.clear(Color::black());
+        window.draw(&Draw::rectangle(Rectangle::new(100, 100, 32, 32)).with_color(Color::red()));
+        window.draw(&Draw::rectangle(Rectangle::new(400, 300, 32, 32)).with_color(Color::blue()).with_transform(Transform::rotate(45)).with_z(10));
+        window.draw(&Draw::circle(Circle::new(400, 300, 100)).with_color(Color::green()));
+        window.present();
+   }
+}
+
+fn main() {
+    run::<DrawGeometry>(WindowBuilder::new("Draw Geometry", 800, 600));
+}
+```
+
+Run this with `cargo run` or, if you have the wasm32 toolchain installed, build it for the web with `cargo +nightly build --target wasm32-unknown-unknown`. 
+You should see a black screen with a pulsing circle in the middle, and your cursor should not be visible within the window. Try tweaking parameters to see if you can speed up or slow down the growth of the circle.
+
+## Optional Features
+
+Quicksilver by default tries to provide all features a 2D application may need, but not all applications need these features. 
+The optional features available are 
+collision support (via [ncollide2d](https://github.com/sebcrozet/ncollide)), 
+font support (via [rusttype](https://github.com/redox-os/rusttype)), 
+gamepad support (via [gilrs](https://gitlab.com/gilrs-project/gilrs)), 
+saving (via [serde_json](https://github.com/serde-rs/json)),
+and sounds (via [rodio](https://github.com/tomaka/rodio)). 
+
+Each are enabled by default, but you can [specify which features](https://doc.rust-lang.org/cargo/reference/specifying-dependencies.html#choosing-features) you actually want to use. 
 
 ## Supported Platforms
 
@@ -19,58 +70,7 @@ It has not been tested extensively on desktop platforms other than x86, but ther
 
 There are no plans to support mobile / touch-primary platforms, as the paradigms are completely different. UI elements must be created differently, input is one or two points of contact rather than primarily through a keyboard, etc. 
 
-There is one exception: macOS does not currently support gamepads, see [gilrs issue #3](https://gitlab.com/Arvamer/gilrs/issues/3)
-
-## A quick example
-
-Create a rust project and add this line to your `Cargo.toml` file under `[dependencies]`:
-
-    quicksilver = "*"
-
-Then replace `src/main.rs` with the following (the contents of quicksilver's examples/pulsing_circle):
-
-```rust
-// Draw a pulsing circle in the middle of the window
-extern crate quicksilver;
-
-use quicksilver::{
-    State, run,
-    geom::{Circle, Vector, Transform},
-    graphics::{Color, Sprite, Window, WindowBuilder}
-};
-
-struct PulsingCircle {
-    step: f32
-}
-
-impl State for PulsingCircle {
-    fn configure() -> WindowBuilder {
-        WindowBuilder::new("Pulsing Circle", 800, 600)
-    }
-
-   fn new() -> PulsingCircle { 
-       PulsingCircle { step: 0.0 }
-   }
-
-   fn update(&mut self, _window: &mut Window) {
-       self.step = (self.step + 1.0) % 360.0;
-   }
-
-   fn draw(&mut self, window: &mut Window) {
-        window.clear(Color::black());
-        let scale = Transform::scale(Vector::one() * (1.0 + (self.step.to_radians().sin() / 2.0)));
-        window.draw(&Sprite::circle(Circle::new(400, 300, 50)).with_color(Color::green()).with_transform(scale));
-        window.present();
-   }
-}
-
-fn main() {
-    run::<PulsingCircle>();
-}
-```
-
-Run this with `cargo run` or, if you have the wasm32 toolchain installed, build it for the web with `cargo +nightly build --target wasm32-unknown-unknown`. 
-You should see a black screen with a pulsing circle in the middle, and your cursor should not be visible within the window. Try tweaking parameters to see if you can speed up or slow down the growth of the circle.
+There is one exception: macOS does not currently support gamepads, see [gilrs-core issue #1](https://gitlab.com/gilrs-project/gilrs-core/issues/1)
 
 ## What's included?
 
