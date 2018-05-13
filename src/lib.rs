@@ -52,6 +52,7 @@
 //! 
 //! Each are enabled by default, but you can [specify which features](https://doc.rust-lang.org/cargo/reference/specifying-dependencies.html#choosing-features) you actually want to use. 
 
+#![doc(html_root_url = "https://docs.rs/quicksilver/0.1.1")]
 #![deny(missing_docs)]
 
 extern crate futures;
