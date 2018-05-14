@@ -42,20 +42,20 @@ impl Surface {
     ///Render data to the surface
     ///
     ///Do not attempt to use the surface or its image within the function, because it is undefined behavior
-    pub fn render_to<F>(&self, func: F, window: &mut Window) where F: FnOnce(&mut Window) {
+    pub fn render_to<F>(&self, window: &mut Window, func: F) where F: FnOnce(&mut Window) {
         let viewport = &mut [0, 0, 0, 0];
         let view = window.view();
         unsafe {
             gl::GetViewport(viewport.as_mut_ptr());
             gl::BindFramebuffer(gl::FRAMEBUFFER, self.data.framebuffer);
             gl::Viewport(0, 0, self.image.source_width(), self.image.source_height());
-            window.backend.flush();
+            window.flush();
             window.set_view(View::new_transformed(self.image.area(), Transform::scale(Vector::new(1, -1))));
         }
         func(window);
         window.set_view(view);
         unsafe {
-            window.backend.flush();
+            window.flush();
             gl::BindFramebuffer(gl::FRAMEBUFFER, 0); 
             gl::Viewport(viewport[0], viewport[1], viewport[2], viewport[3]);
         }
