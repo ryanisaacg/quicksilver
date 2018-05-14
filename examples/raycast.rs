@@ -6,7 +6,7 @@ use quicksilver::{
     State, run,
     geom::{Rectangle, Vector},
     input::Event,
-    graphics::{Color, GpuTriangle, WindowBuilder, Window, Vertex}
+    graphics::{BlendMode, Color, Draw, GpuTriangle, Surface, WindowBuilder, Window, Vertex}
 };
 use nalgebra::{Isometry2, zero};
 use ncollide2d::{
@@ -23,11 +23,15 @@ struct Raycast {
     // the points to send rays to
     targets: Vec<Vector>,
     // the vertices to draw to the screen
-    vertices: Vec<Vertex>
+    vertices: Vec<Vertex>,
+    // a temporary buffer to write to
+    sketch: Surface,
+    // the sum total of lighting effects
+    lightmap: Surface
 }
 
 impl Raycast {
-    fn lightsource(&mut self, source: Vector) {
+    fn lightsource(&mut self, source: Vector, window: &mut Window) {
         self.vertices.clear();
         let distance_to = |point: &Vector| (*point - source).len();
         let angle_to = |point: &Vertex| (point.pos - source).angle();
@@ -54,7 +58,7 @@ impl Raycast {
                 self.vertices.push(Vertex {
                     pos,
                     tex_pos: None,
-                    col: Color::white()
+                    col: Color { r: 0.2, g: 0.2, b: 0.2, a: 1.0 }
                 });
             };
             cast_ray(angle - 0.001);
@@ -69,7 +73,27 @@ impl Raycast {
         self.vertices.insert(0, Vertex {
             pos: source,
             tex_pos: None,
-            col: Color::white()
+            col: Color { r: 0.2, g: 0.2, b: 0.2, a: 1.0 }
+        });
+        self.sketch.render_to(window, |window| {
+            window.reset_blend_mode();
+            window.clear(Color::black());
+            let triangle_count = self.vertices.len() as u32 - 1;
+            let indices = repeat(0.0)
+                .take(triangle_count as usize)
+                .enumerate()
+                .map(|(index, z)| GpuTriangle {
+                    z,
+                    indices: [0, 
+                        index as u32 + 1,
+                        (index as u32 + 1) % triangle_count + 1],
+                    image: None
+                });
+            window.add_vertices(self.vertices.iter().cloned(), indices);
+        });
+        self.lightmap.render_to(window, |window| {
+            window.set_blend_mode(BlendMode::Additive);
+            window.draw(&Draw::image(&self.sketch.image(), Vector::new(400, 300)));
         });
     }
 }
@@ -94,30 +118,27 @@ impl State for Raycast {
         Raycast {
             regions,
             targets,
+            lightmap: Surface::new(800, 600),
+            sketch: Surface::new(800, 600),
             vertices: Vec::new()
         }
     }
 
-    fn event(&mut self, event: &Event, _: &mut Window) {
+    fn event(&mut self, event: &Event, window: &mut Window) {
         if let &Event::MouseMoved(mouse) = event {
-            self.lightsource(mouse);
+            self.lightmap.render_to(window, |window| window.clear(Color::black()));
+            for i in 0..6 {
+                let angle = i * 360 / 6;
+                let offset = Vector::from_angle(angle) * 8;
+                let source = mouse + offset;
+                self.lightsource(source.clamp(Vector::zero(), Vector::new(800, 600)), window);
+            }
         }
     }
 
     fn draw(&mut self, window: &mut Window) {
         window.clear(Color::black());
-        let triangle_count = self.vertices.len() as u32 - 1;
-        let indices = repeat(0.0)
-            .take(triangle_count as usize)
-            .enumerate()
-            .map(|(index, z)| GpuTriangle {
-                z,
-                indices: [0, 
-                    index as u32 + 1,
-                    (index as u32 + 1) % triangle_count + 1],
-                image: None
-            });
-        window.add_vertices(self.vertices.iter().cloned(), indices);
+        window.draw(&Draw::image(self.sketch.image(), Vector::new(400, 300)));
         window.present();
     }
 }
