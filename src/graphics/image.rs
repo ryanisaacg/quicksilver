@@ -34,8 +34,8 @@ pub enum PixelFormat {
 #[derive(Debug)]
 struct ImageData {
     id: u32,
-    width: i32,
-    height: i32,
+    width: u32,
+    height: u32,
 }
 
 impl Drop for ImageData {
@@ -83,7 +83,7 @@ impl Image {
         }
     }
 
-    fn from_ptr(data: *const c_void, width: i32, height: i32, format: PixelFormat) -> Image {
+    fn from_ptr(data: *const c_void, width: u32, height: u32, format: PixelFormat) -> Image {
         unsafe {
             let id = gl::GenTexture();
             gl::BindTexture(gl::TEXTURE_2D, id);
@@ -91,20 +91,20 @@ impl Image {
             gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_T, gl::CLAMP_TO_EDGE as i32);
             gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::NEAREST as i32);
             gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::NEAREST as i32);
-            gl::TexImage2D(gl::TEXTURE_2D, 0, gl::RGBA as i32, width, height, 0, format as u32, 
-                           gl::UNSIGNED_BYTE, data);
+            gl::TexImage2D(gl::TEXTURE_2D, 0, gl::RGBA as i32, width as i32, 
+                           height as i32, 0, format as u32, gl::UNSIGNED_BYTE, data);
             gl::GenerateMipmap(gl::TEXTURE_2D);
             Image::new(ImageData { id, width, height })
         }
     }
 
-    pub(crate) fn new_null(width: i32, height: i32, format: PixelFormat) -> Image {
+    pub(crate) fn new_null(width: u32, height: u32, format: PixelFormat) -> Image {
         use std::ptr::null;
         Image::from_ptr(null(), width, height, format)
     }
 
     ///Load an image from raw bytes
-    pub fn from_raw(data: &[u8], width: i32, height: i32, format: PixelFormat) -> Image {
+    pub fn from_raw(data: &[u8], width: u32, height: u32, format: PixelFormat) -> Image {
         Image::from_ptr(data.as_ptr() as *const c_void, width, height, format)
     }
     
@@ -112,11 +112,11 @@ impl Image {
         self.source.id
     }
 
-    pub(crate) fn source_width(&self) -> i32 {
+    pub(crate) fn source_width(&self) -> u32 {
         self.source.width
     }
 
-    pub(crate) fn source_height(&self) -> i32 {
+    pub(crate) fn source_height(&self) -> u32 {
         self.source.height
     }
 
@@ -158,8 +158,8 @@ impl Future for ImageLoader {
     #[cfg(not(target_arch="wasm32"))]
     fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
         let img = image::open(&self.path)?.to_rgba();
-        let width = img.width() as i32;
-        let height = img.height() as i32; 
+        let width = img.width();
+        let height = img.height(); 
         Ok(Async::Ready(Image::from_raw(img.into_raw().as_slice(), width, height, PixelFormat::RGBA)))
     }
 

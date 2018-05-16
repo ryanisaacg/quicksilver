@@ -23,7 +23,7 @@ pub struct Surface {
 
 impl Surface {
     ///Create a new surface with a given width and height
-    pub fn new(width: i32, height: i32) -> Surface {
+    pub fn new(width: u32, height: u32) -> Surface {
         let image = Image::new_null(width, height, PixelFormat::RGBA);
         let surface = SurfaceData {
             framebuffer: unsafe { gl::GenFramebuffer() }
@@ -48,7 +48,7 @@ impl Surface {
         unsafe {
             gl::GetViewport(viewport.as_mut_ptr());
             gl::BindFramebuffer(gl::FRAMEBUFFER, self.data.framebuffer);
-            gl::Viewport(0, 0, self.image.source_width(), self.image.source_height());
+            gl::Viewport(0, 0, self.image.source_width() as i32, self.image.source_height() as i32);
             window.flush();
             window.set_view(View::new_transformed(self.image.area(), Transform::scale(Vector::new(1, -1))));
         }

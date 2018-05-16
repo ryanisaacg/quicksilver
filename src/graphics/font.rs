@@ -63,7 +63,7 @@ impl Font {
                 });
             }
         }
-        Image::from_raw(pixels.as_slice(), width as i32, size as i32, PixelFormat::RGBA)
+        Image::from_raw(pixels.as_slice(), width as u32, size as u32, PixelFormat::RGBA)
     }
 }
 
