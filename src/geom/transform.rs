@@ -23,14 +23,15 @@ use std::{
 /// This property allows encoding multiple transformations in a single matrix. A transformation
 /// that involves rotating a shape 30 degrees and then moving it six units up could be written as
 /// ```no_run
-/// # use geom::{Transform, Vector};
+/// use quicksilver::geom::{Transform, Vector};
 /// let transform = Transform::rotate(30) * Transform::translate(Vector::new(0, -6));
 /// ```
 /// and then applied to a Vector
 /// ```no_run
-/// # use geom::{Transform, Vector};
+/// # use quicksilver::geom::{Transform, Vector};
 /// # let transform  = Transform::rotate(30) * Transform::translate(Vector::new(0, -6));
 /// transform * Vector::new(5, 5)
+/// # ;
 /// ```
 pub struct Transform([[f32; 3]; 3]);
 
@@ -80,7 +81,7 @@ impl Transform {
     ///
     /// A transform's inverse will cancel it out when multplied with it, as seen below:
     /// ```
-    /// # use geom::{Transform, Vector};
+    /// # use quicksilver::geom::{Transform, Vector};
     /// let transform = Transform::translate(Vector::new(4, 5));
     /// let inverse = transform.inverse();
     /// let vector = Vector::new(10, 10);
