@@ -10,7 +10,28 @@ use std::{
 };
 
 #[derive(Clone, Copy, Debug, Deserialize, Serialize)]
-///A 2D transformation represented by a matrix
+/// A 2D transformation represented by a matrix
+///
+/// Transforms can be composed together through matrix multiplication, and are applied to Vectors
+/// through multiplication, meaning the notation used is the '*' operator. A property of matrix
+/// multiplication is that for some matrices A, B, C and vector V is
+/// ```text
+/// Transform = A * B * C
+/// Transform * V = A * (B * (C * V))
+/// ```
+///
+/// This property allows encoding multiple transformations in a single matrix. A transformation
+/// that involves rotating a shape 30 degrees and then moving it six units up could be written as
+/// ```no_run
+/// # use geom::{Transform, Vector};
+/// let transform = Transform::rotate(30) * Transform::translate(Vector::new(0, -6));
+/// ```
+/// and then applied to a Vector
+/// ```no_run
+/// # use geom::{Transform, Vector};
+/// # let transform  = Transform::rotate(30) * Transform::translate(Vector::new(0, -6));
+/// transform * Vector::new(5, 5)
+/// ```
 pub struct Transform([[f32; 3]; 3]);
 
 impl Transform {
@@ -56,6 +77,16 @@ impl Transform {
     }
  
     ///Find the inverse of a Transform
+    ///
+    /// A transform's inverse will cancel it out when multplied with it, as seen below:
+    /// ```
+    /// # use geom::{Transform, Vector};
+    /// let transform = Transform::translate(Vector::new(4, 5));
+    /// let inverse = transform.inverse();
+    /// let vector = Vector::new(10, 10);
+    /// assert_eq!(vector, transform * inverse * vector);
+    /// assert_eq!(vector, inverse * transform * vector);
+    /// ```
     pub fn inverse(&self) -> Transform {
         let det = 
             self.0[0][0] * (self.0[1][1] * self.0[2][2] - self.0[2][1] * self.0[1][2])
@@ -108,6 +139,10 @@ impl Mul<Vector> for Transform {
     }
 }
 
+/// Scale all of the internal values of the Transform matrix
+///
+/// Note this will NOT scale vectors multiplied by this transform, and generally you shouldn't need
+/// to use this.
 impl<T: Scalar> Mul<T> for Transform {
     type Output = Transform;
 
