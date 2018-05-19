@@ -36,9 +36,11 @@
 //!     run::<DrawGeometry>(WindowBuilder::new("Draw Geometry", 800, 600));
 //! }
 //! ```
-//! 
-//! Run this with `cargo run` or, if you have the wasm32 toolchain installed, build it for the web with `cargo +nightly build --target wasm32-unknown-unknown`. 
-//! You should see a black screen with a pulsing circle in the middle, and your cursor should not be visible within the window. Try tweaking parameters to see if you can speed up or slow down the growth of the circle.
+//! Run this with `cargo run` or, if you have the wasm32 toolchain installed, you can build for the web 
+//! (instructions in the [quicksilver README](https://github.com/ryanisaacg/quicksilver)
+//!
+//! You should see a red square in the top-left, and a green circle with a blue rectangle inside it 
+//! on the bottom-right.
 //! 
 //! ## Optional Features
 //! 

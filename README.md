@@ -43,8 +43,38 @@ fn main() {
 }
 ```
 
-Run this with `cargo run` or, if you have the wasm32 toolchain installed, build it for the web with `cargo +nightly build --target wasm32-unknown-unknown`. 
-You should see a black screen with a pulsing circle in the middle, and your cursor should not be visible within the window. Try tweaking parameters to see if you can speed up or slow down the growth of the circle.
+Run this with `cargo run` or, if you have the wasm32 toolchain installed, you can build for the web 
+(instructions below).
+
+You should see a red square in the top-left, and a green circle with a blue rectangle inside it 
+on the bottom-right.
+
+## Deploying a Quicksilver application
+
+
+### Deploying for desktop
+
+If you're deploying for desktop platforms, build in release mode (`cargo build --release`) 
+and copy the executable file produced (found at "target/release/") and any assets you used (image files 
+etc) and create an archive (on Windows a zip file, on Unix a tar file). You should be able to distribute
+this archive with no problems; if there are problems, please open an issue.
+
+### Deploying for the web
+
+If you're deploying for the web, first make sure you've 
+[installed the wasm toolchain](https://www.hellorust.com/news/native-wasm-target.html)
+then build the wasm file (`cargo +nightly build --target wasm32-unknown-unknown --release`). Copy the .wasm
+file produced (found at "target/wasm32-unknown-unknown/release"), any assets you used, and the "index.html"
+and "bridge.js" files from [quicksilver](https://github.com/ryanisaacg/quicksilver). Put these all in the
+same folder, and rename the .wasm file to "wasm.wasm."
+
+If you want to test your application locally, you'll need to run an http server. If you don't have a 
+webserver installed, run `cargo install basic-http-server`, which may take a while. Once the installation
+is finished, run `basic-http-server` in the folder with your "index.html". Copy what `basic-http-server`
+output as the "addr" field (usually something like "http://127.0.0.1:4000") into your browser's address bar.
+This should be your application, running in a browser! To actually put your application online, you can
+use free hosting like Github Pages to make your application publicly accessible.
+
 
 ## Optional Features
 
