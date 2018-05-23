@@ -76,6 +76,7 @@ impl EventProvider {
                 glutin::WindowEvent::CursorMoved { position, .. } => {
                     let (x, y) = position;
                     let position = (Vector::new(x as f32, y as f32) - window.screen_offset()) / window.scale_factor;
+                    let position = window.project() * position;
                     events.push(Event::MouseMoved(position));
                 }
                 glutin::WindowEvent::MouseInput { state, button, .. } => {
