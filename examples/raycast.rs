@@ -1,3 +1,5 @@
+// An example that demonstrates a basic 2D lighting effect
+
 extern crate nalgebra;
 extern crate ncollide2d;
 extern crate quicksilver;
@@ -29,8 +31,11 @@ struct Raycast {
 
 impl State for Raycast {
     fn new() -> Raycast {
+        //The different squares that cast shadows
         let regions = vec![
             Rectangle::new_sized(800, 600),
+            // Feel free to add or remove rectangles to this list
+            // to see the effect on the lighting
             Rectangle::new(200, 200, 100, 100),
             Rectangle::new(400, 200, 100, 100),
             Rectangle::new(400, 400, 100, 100),
@@ -38,6 +43,7 @@ impl State for Raycast {
             Rectangle::new(50, 50, 50, 50),
             Rectangle::new(550, 300, 64, 64)
         ];
+        // Build the list of targets to cast rays to
         let targets = regions.iter().flat_map(|region| {
             vec![region.top_left(), 
                 region.top_left() + region.size().x_comp(),
@@ -84,6 +90,7 @@ impl State for Raycast {
                         });
                     }
                 };
+                // Make sure to cast rays around corners to avoid jitteriness
                 cast_ray(angle - 0.001);
                 cast_ray(angle);
                 cast_ray(angle + 0.001);
@@ -92,7 +99,7 @@ impl State for Raycast {
             self.vertices.sort_by(|a, b| angle_to(a)
                 .partial_cmp(&angle_to(b))
                 .unwrap_or(Ordering::Equal));
-            //Insert the mouse as a vertex
+            // Insert the mouse as a vertex for the center of the polygon
             self.vertices.insert(0, Vertex {
                 pos: mouse,
                 tex_pos: None,
@@ -104,10 +111,14 @@ impl State for Raycast {
     fn draw(&mut self, window: &mut Window) {
         window.clear(Color::black());
         if self.vertices.len() >= 3 {
+            // Calculate the number of triangles needed to draw the poly
             let triangle_count = self.vertices.len() as u32 - 1;
             let indices = repeat(0.0)
+                // Prepare an iterator with the correct amount of items
                 .take(triangle_count as usize)
+                // Index each item in the iterator
                 .enumerate()
+                // Convert the indices to drawable triangles
                 .map(|(index, z)| GpuTriangle {
                     z,
                     indices: [0, 
@@ -115,6 +126,7 @@ impl State for Raycast {
                         (index as u32 + 1) % triangle_count + 1],
                     image: None
                 });
+            // Draw the light
             window.add_vertices(self.vertices.iter().cloned(), indices);
         }
         window.present();
