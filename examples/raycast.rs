@@ -8,7 +8,7 @@ use quicksilver::{
     State, run,
     geom::{Rectangle, Vector},
     input::Event,
-    graphics::{Color, Draw, GpuTriangle, WindowBuilder, Window, Vertex}
+    graphics::{Color, GpuTriangle, WindowBuilder, Window, Vertex}
 };
 use nalgebra::{Isometry2, zero};
 use ncollide2d::{
