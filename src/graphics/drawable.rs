@@ -1,4 +1,4 @@
-use geom::{Circle, Positioned, Rectangle, Scalar, Transform, Vector};
+use geom::{Circle, Positioned, Rectangle, Scalar, Shape, Transform, Vector};
 use graphics::{Color, GpuTriangle, Image, Vertex, Window};
 use std::iter;
 
@@ -8,28 +8,28 @@ pub trait Drawable {
     fn draw(&self, &mut Window);
 }
 
-#[derive(Clone)]
-enum SpritePayload {
+#[derive(Clone, Debug)]
+enum DrawPayload {
     Image(Image),
     Rectangle(Vector),
     Circle(f32),
 }
 
 /// A single drawable item, with a transform, a blend color, and a depth
-#[derive(Clone)]
-pub struct Sprite {
-    item: SpritePayload,
+#[derive(Clone, Debug)]
+pub struct Draw {
+    item: DrawPayload,
     position: Vector,
     color: Color,
     transform: Transform,
     z: f32
 }
 
-impl Sprite {
+impl Draw {
     /// Create a sprite with an image
-    pub fn image(image: &Image, position: Vector) -> Sprite {
-        Sprite {
-            item: SpritePayload::Image(image.clone()),
+    pub fn image(image: &Image, position: Vector) -> Draw {
+        Draw {
+            item: DrawPayload::Image(image.clone()),
             position,
             color: Color::white(),
             transform: Transform::identity(),
@@ -37,10 +37,25 @@ impl Sprite {
         }
     }
 
+    /// Create a sprite from a given shape
+    pub fn shape(shape: Shape) -> Draw {
+        match shape {
+            Shape::Circle(circ) => Draw::circle(circ),
+            Shape::Rectangle(rect) => Draw::rectangle(rect),
+            Shape::Vector(v) => Draw::point(v),
+
+        }
+    }
+
+    /// Create a sprite with a point
+    pub fn point(position: Vector) -> Draw {
+        Draw::rectangle(Rectangle::newv(position, Vector::one()))
+    }
+
     /// Create a sprite with a rectangle
-    pub fn rectangle(rectangle: Rectangle) -> Sprite {
-        Sprite {
-            item: SpritePayload::Rectangle(rectangle.size()),
+    pub fn rectangle(rectangle: Rectangle) -> Draw {
+        Draw {
+            item: DrawPayload::Rectangle(rectangle.size()),
             position: rectangle.center(),
             color: Color::white(),
             transform: Transform::identity(),
@@ -49,9 +64,9 @@ impl Sprite {
     }
 
     /// Create a sprite with a circle
-    pub fn circle(circle: Circle) -> Sprite {
-        Sprite {
-            item: SpritePayload::Circle(circle.radius),
+    pub fn circle(circle: Circle) -> Draw {
+        Draw {
+            item: DrawPayload::Circle(circle.radius),
             position: circle.center(),
             color: Color::white(),
             transform: Transform::identity(),
@@ -60,32 +75,32 @@ impl Sprite {
     }
 
     /// Change the position of a sprite
-    pub fn with_position(self, position: Vector) -> Sprite {
-        Sprite {
+    pub fn with_position(self, position: Vector) -> Draw {
+        Draw {
             position,
             ..self
         }
     }
 
     /// Change the color of a sprite
-    pub fn with_color(self, color: Color) -> Sprite {
-        Sprite {
+    pub fn with_color(self, color: Color) -> Draw {
+        Draw {
             color,
             ..self
         }
     }
 
     /// Change the transform of a sprite
-    pub fn with_transform(self, transform: Transform) -> Sprite {
-        Sprite {
+    pub fn with_transform(self, transform: Transform) -> Draw {
+        Draw {
             transform,
             ..self
         }
     }
 
     /// Change the depth of a sprite
-    pub fn with_z<T: Scalar>(self, z: T) -> Sprite {
-        Sprite {
+    pub fn with_z<T: Scalar>(self, z: T) -> Draw {
+        Draw {
             z: z.float(),
             ..self
         }
@@ -93,10 +108,10 @@ impl Sprite {
 
 }
 
-impl Drawable for Sprite {
+impl Drawable for Draw {
     fn draw(&self, window: &mut Window) {
         match self.item {
-            SpritePayload::Image(ref image) => {
+            DrawPayload::Image(ref image) => {
                 let area = image.area().with_center(self.position);
                 let trans = Transform::translate(area.top_left() + area.size() / 2) 
                     * self.transform
@@ -132,7 +147,7 @@ impl Drawable for Sprite {
                 ];
                 window.add_vertices(vertices.iter().cloned(), triangles.iter().cloned());
             }
-            SpritePayload::Rectangle(size) => {
+            DrawPayload::Rectangle(size) => {
                 let area = Rectangle::newv_sized(size).with_center(self.position);
                 let trans = Transform::translate(area.top_left() + area.size() / 2) 
                     * self.transform
@@ -165,7 +180,7 @@ impl Drawable for Sprite {
                 ];
                 window.add_vertices(vertices.iter().cloned(), triangles.iter().cloned());
             }
-            SpritePayload::Circle(radius) => {
+            DrawPayload::Circle(radius) => {
                 let mut points = [Vector::zero(); 24]; // 24 = arbitrarily chosen number of points in the circle
                 let rotation = Transform::rotate(360f32 / points.len() as f32);
                 let mut arrow = Vector::new(0f32, -radius);

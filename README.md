@@ -6,6 +6,87 @@
 
 A 2D game framework written in pure Rust
 
+## A quick example
+
+Create a rust project and add this line to your `Cargo.toml` file under `[dependencies]`:
+
+    quicksilver = "*"
+
+Then replace `src/main.rs` with the following (the contents of quicksilver's examples/draw-geometry.rs):
+
+```rust
+// Draw some multi-colored geometry to the screen
+extern crate quicksilver;
+
+use quicksilver::{
+    State, run,
+    geom::{Circle, Rectangle, Transform},
+    graphics::{Color, Draw, Window, WindowBuilder}
+};
+
+struct DrawGeometry;
+
+impl State for DrawGeometry {
+    fn new() -> DrawGeometry { DrawGeometry }
+
+    fn draw(&mut self, window: &mut Window) {
+        window.clear(Color::black());
+        window.draw(&Draw::rectangle(Rectangle::new(100, 100, 32, 32)).with_color(Color::red()));
+        window.draw(&Draw::rectangle(Rectangle::new(400, 300, 32, 32)).with_color(Color::blue()).with_transform(Transform::rotate(45)).with_z(10));
+        window.draw(&Draw::circle(Circle::new(400, 300, 100)).with_color(Color::green()));
+        window.present();
+    }
+}
+
+fn main() {
+    run::<DrawGeometry>(WindowBuilder::new("Draw Geometry", 800, 600));
+}
+```
+
+Run this with `cargo run` or, if you have the wasm32 toolchain installed, you can build for the web 
+(instructions below).
+
+You should see a red square in the top-left, and a green circle with a blue rectangle inside it 
+on the bottom-right.
+
+## Deploying a Quicksilver application
+
+
+### Deploying for desktop
+
+If you're deploying for desktop platforms, build in release mode (`cargo build --release`) 
+and copy the executable file produced (found at "target/release/") and any assets you used (image files 
+etc) and create an archive (on Windows a zip file, on Unix a tar file). You should be able to distribute
+this archive with no problems; if there are problems, please open an issue.
+
+### Deploying for the web
+
+If you're deploying for the web, first make sure you've 
+[installed the wasm toolchain](https://www.hellorust.com/news/native-wasm-target.html)
+then build the wasm file (`cargo +nightly build --target wasm32-unknown-unknown --release`). Copy the .wasm
+file produced (found at "target/wasm32-unknown-unknown/release"), any assets you used, and the "index.html"
+and "bridge.js" files from [quicksilver](https://github.com/ryanisaacg/quicksilver). Put these all in the
+same folder, and rename the .wasm file to "wasm.wasm."
+
+If you want to test your application locally, you'll need to run an http server. If you don't have a 
+webserver installed, run `cargo install basic-http-server`, which may take a while. Once the installation
+is finished, run `basic-http-server` in the folder with your "index.html". Copy what `basic-http-server`
+output as the "addr" field (usually something like "http://127.0.0.1:4000") into your browser's address bar.
+This should be your application, running in a browser! To actually put your application online, you can
+use free hosting like Github Pages to make your application publicly accessible.
+
+
+## Optional Features
+
+Quicksilver by default tries to provide all features a 2D application may need, but not all applications need these features. 
+The optional features available are 
+collision support (via [ncollide2d](https://github.com/sebcrozet/ncollide)), 
+font support (via [rusttype](https://github.com/redox-os/rusttype)), 
+gamepad support (via [gilrs](https://gitlab.com/gilrs-project/gilrs)), 
+saving (via [serde_json](https://github.com/serde-rs/json)),
+and sounds (via [rodio](https://github.com/tomaka/rodio)). 
+
+Each are enabled by default, but you can [specify which features](https://doc.rust-lang.org/cargo/reference/specifying-dependencies.html#choosing-features) you actually want to use. 
 
 ## Supported Platforms
 
@@ -19,56 +100,7 @@ It has not been tested extensively on desktop platforms other than x86, but ther
 
 There are no plans to support mobile / touch-primary platforms, as the paradigms are completely different. UI elements must be created differently, input is one or two points of contact rather than primarily through a keyboard, etc. 
 
-There is one exception: macOS does not currently support gamepads, see [gilrs issue #3](https://gitlab.com/Arvamer/gilrs/issues/3)
-
-## A quick example
-
-Create a rust project and add this line to your `Cargo.toml` file under `[dependencies]`:
-
-    quicksilver = "*"
-
-Then replace `src/main.rs` with the following (the contents of quicksilver's examples/pulsing_circle):
-
-```rust
-// Draw a pulsing circle in the middle of the window
-extern crate quicksilver;
-
-use quicksilver::{State, run};
-use quicksilver::geom::{Circle, Vector, Transform};
-use quicksilver::graphics::{Color, DrawCall, Window, WindowBuilder};
-
-struct PulsingCircle {
-    step: f32
-}
-
-impl State for PulsingCircle {
-    fn configure() -> Window {
-        WindowBuilder::new().build("Pulsing Circle", 800, 600)
-    }
-
-   fn new() -> PulsingCircle { 
-       PulsingCircle { step: 0.0 }
-   }
-
-   fn update(&mut self, _window: &mut Window) {
-       self.step = (self.step + 1.0) % 360.0;
-   }
-
-   fn draw(&mut self, window: &mut Window) {
-        window.clear(Color::black());
-        let scale = Transform::scale(Vector::one() * (1.0 + (self.step.to_radians().sin() / 2.0)));
-        window.draw(&[DrawCall::circle(Circle::new(400, 300, 50)).with_color(Color::green()).with_transform(scale)]);
-        window.present();
-   }
-}
-
-fn main() {
-    run::<PulsingCircle>();
-}
-```
-
-Run this with `cargo run` or, if you have the wasm32 toolchain installed, build it for the web with `cargo +nightly build --target wasm32-unknown-unknown`. 
-You should see a black screen with a pulsing circle in the middle, and your cursor should not be visible within the window. Try tweaking parameters to see if you can speed up or slow down the growth of the circle.
+There is one exception: macOS does not currently support gamepads, see [gilrs-core issue #1](https://gitlab.com/gilrs-project/gilrs-core/issues/1)
 
 ## What's included?
 

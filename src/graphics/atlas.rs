@@ -5,12 +5,13 @@ use futures::{Async, Future, Poll};
 use futures::future::{JoinAll, join_all};
 use geom::{Positioned, Rectangle, Vector};
 use graphics::{Image, ImageLoader, ImageError};
-use util::FileLoader;
+use FileLoader;
 use std::{
     cmp::Ordering,
     collections::HashMap,
-    fmt::Debug,
-    io::ErrorKind as IOError,
+    error::Error,
+    fmt::{Debug, Display, Formatter, Result as FmtResult},
+    io::Error as IOError,
     num::ParseIntError,
     path::Path,
     str::{FromStr, ParseBoolError, Split}
@@ -26,7 +27,7 @@ struct Region {
     index: i32
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 /// An image atlas that allows a single image file to represent multiple individual images
 ///
 /// It uses the libgdx / spine atlas format and groups them by name and index if applicable 
@@ -39,7 +40,7 @@ impl Atlas {
     pub fn load<'a, P: 'static + AsRef<Path>>(path: P) -> AtlasLoader {
         AtlasLoader(Box::new(FileLoader::load(path.as_ref())
             .map(|bytes| String::from_utf8(bytes).unwrap())
-            .then(|data| parse(data, path))
+            .and_then(|data| parse(data, path))
             .map(create)))
     }
 
@@ -49,7 +50,7 @@ impl Atlas {
     }
 }
 
-type ManifestContents = Result<(JoinAll<Vec<ImageLoader>>, Vec<Region>), QuicksilverError>;
+type ManifestContents = Result<(JoinAll<Vec<ImageLoader>>, Vec<Region>), &'static str>;
 struct ManifestLoader(ManifestContents);
 
 /// A Future to load an Atlas
@@ -66,7 +67,7 @@ impl Future for ManifestLoader {
                 Ok(Async::NotReady) => Ok(Async::NotReady),
                 Err(err) => Err(err.into())
             }
-            Err(ref err) => Err(err.clone())
+            Err(err) => Err(AtlasError::ParseError(err).into())
         }
     }
 }
@@ -117,12 +118,8 @@ fn create(data: (Vec<Image>, Vec<Region>)) -> Atlas {
 }
 
 // Parse a manifest file into a future to load the contents of the atlas
-fn parse<P: AsRef<Path>>(data: Result<String, QuicksilverError>, path: P) -> ManifestLoader {
-    // Either parse the data or repackage the error
-    return match data {
-        Ok(data) => ManifestLoader(parse_body(data, path.as_ref())),
-        Err(err) => ManifestLoader(Err(err.into()))
-    };
+fn parse<P: AsRef<Path>>(data: String, path: P) -> ManifestLoader {
+    return ManifestLoader(parse_body(data, path.as_ref())); 
     fn parse_body(data: String, path: &Path) -> ManifestContents {
         use std::path::PathBuf;
         use std::iter::Map as IterMap;
@@ -137,10 +134,10 @@ fn parse<P: AsRef<Path>>(data: Result<String, QuicksilverError>, path: P) -> Man
 
         // Get a value from the iterator (repackages Iterator::next into a Result rather than an
         // Option)
-        fn getval<T, I: Iterator<Item = T>>(lines: &mut I) -> Result<T, AtlasError> {
+        fn getval<T, I: Iterator<Item = T>>(lines: &mut I) -> Result<T, &'static str> {
             match lines.next() {
                 Some(val) => Ok(val),
-                None => Err(AtlasError::ParseError("Unexpected end of data"))?
+                None => Err("Unexpected end of data")
             }
         }
 
@@ -185,7 +182,7 @@ fn parse<P: AsRef<Path>>(data: Result<String, QuicksilverError>, path: P) -> Man
 }
 
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 /// An individual named item of an Atlas
 ///
 /// If there is only one frame / no index for an Atlas item, it will be an Image, otherwise, it
@@ -215,7 +212,7 @@ impl AtlasItem {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 /// An error generated when trying to load an atlas
 pub enum AtlasError {
     /// An error created when loading one of the images
@@ -226,24 +223,53 @@ pub enum AtlasError {
     IOError(IOError)
 }
 
+impl Display for AtlasError {
+    fn fmt(&self, f: &mut Formatter) -> FmtResult {
+        write!(f, "{}", self.description())
+    }
+}
+
+impl Error for AtlasError {
+    fn description(&self) -> &str {
+        match self {
+            &AtlasError::ImageError(ref err) => err.description(),
+            &AtlasError::ParseError(string) => string,
+            &AtlasError::IOError(ref err) => err.description()
+        }
+    }
+    
+    fn cause(&self) -> Option<&Error> {
+        match self {
+            &AtlasError::ImageError(ref err) => Some(err),
+            &AtlasError::ParseError(_) => None,
+            &AtlasError::IOError(ref err) => Some(err)
+        }
+    }
+}
+
+
+#[doc(hidden)]
 impl From<ImageError> for AtlasError {
     fn from(err: ImageError) -> AtlasError {
         AtlasError::ImageError(err)
     }
 }
 
+#[doc(hidden)]
 impl From<ParseIntError> for AtlasError {
     fn from(_: ParseIntError) -> AtlasError {
         AtlasError::ParseError("Failed to parse an int")
     }
 }
 
+#[doc(hidden)]
 impl From<ParseBoolError> for AtlasError {
     fn from(_: ParseBoolError) -> AtlasError {
         AtlasError::ParseError("Failed to parse an bool")
     }
 }
 
+#[doc(hidden)]
 impl From<IOError> for AtlasError {
     fn from(err: IOError) -> AtlasError {
         AtlasError::IOError(err)

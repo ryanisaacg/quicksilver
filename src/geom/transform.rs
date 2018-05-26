@@ -1,3 +1,5 @@
+#[cfg(feature="nalgebra")] use nalgebra::core::Matrix3;
+
 use geom::{about_equal, Scalar, Vector};
 use std::{
     ops::Mul,
@@ -41,6 +43,16 @@ impl Transform {
         Transform([[vec.x, 0f32, 0f32],
                   [0f32, vec.y, 0f32],
                   [0f32, 0f32, 1f32]])
+    }
+   
+    #[cfg(feature="nalgebra")]
+    ///Convert the Transform into an nalgebra Matrix3
+    pub fn into_matrix(self) -> Matrix3<f32> {
+        Matrix3::new(
+            self.0[0][0], self.0[0][1], self.0[0][2],
+            self.0[1][0], self.0[1][1], self.0[1][2],
+            self.0[2][0], self.0[2][1], self.0[2][2],
+        )
     }
  
     ///Find the inverse of a Transform
@@ -96,10 +108,11 @@ impl Mul<Vector> for Transform {
     }
 }
 
-impl Mul<f32> for Transform {
+impl<T: Scalar> Mul<T> for Transform {
     type Output = Transform;
 
-    fn mul(self, other: f32) -> Transform {
+    fn mul(self, other: T) -> Transform {
+        let other = other.float();
         let mut ret = Transform::identity();
         for i in 0..3 {
             for j in 0..3 {
@@ -144,6 +157,16 @@ impl PartialEq for Transform {
 }
 
 impl Eq for Transform {}
+
+
+#[cfg(feature="nalgebra")]
+impl From<Matrix3<f32>> for Transform {
+    fn from(other: Matrix3<f32>) -> Transform {
+        Transform([[other[0], other[1], other[2]],
+                  [other[3], other[4], other[5]],
+                  [other[6], other[7], other[8]]])
+    }
+}
 
 #[cfg(test)]
 mod tests {
@@ -196,4 +219,14 @@ mod tests {
         assert_eq!(vec, a_inv * a * vec);
     }
 
+    #[test]
+    #[cfg(feature="nalgebra")]
+    fn conversion() {
+        use alga::linear::Transformation;
+        let transform = Transform::rotate(5);
+        let vector = Vector::new(1, 2);
+        let na_matrix = transform.into_matrix();
+        let na_vector = vector.into_vector();
+        assert_eq!(transform * vector, (na_matrix.transform_vector(&na_vector)).into());
+    }
 }

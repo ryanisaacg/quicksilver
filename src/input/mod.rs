@@ -3,18 +3,28 @@
 //! The Keyboard is indexed by Keys, allowing polling of a button state. The Mouse tracks the
 //! standard three buttons, the mouse wheel, and the mouse position. 
 
-mod button;
-#[cfg(feature="gamepads")] mod gamepad;
+mod button_state;
+mod event;
+mod gamepad;
 mod key;
 mod keyboard;
 mod mouse;
 
 pub use self::{
-    button::{Button, ButtonState},
+    button_state::ButtonState,
+    event::Event,
     key::Key,
+    gamepad::{Gamepad, GamepadAxis, GamepadButton},
     keyboard::Keyboard,
     mouse::{Mouse, MouseButton}
 };
-#[cfg(feature="gamepads")] pub use self::gamepad::{Gamepad, GamepadAxis, GamepadButton};
-#[cfg(feature="gamepads")] pub(crate) use self::gamepad::GamepadManager;
-pub(crate) use self::key::KEY_LIST;
+pub(crate) use self::{
+    gamepad::GamepadProvider,
+    key::KEY_LIST
+};
+#[cfg(not(target_arch="wasm32"))] pub(crate) use self::event::EventProvider;
+#[cfg(target_arch="wasm32")] pub(crate) use self::{
+    button_state::BUTTON_STATE_LIST,
+    gamepad::{GAMEPAD_AXIS_LIST, GAMEPAD_BUTTON_LIST},
+    mouse::MOUSE_BUTTON_LIST
+};

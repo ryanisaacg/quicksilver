@@ -3,7 +3,7 @@ extern crate rusttype;
 
 use graphics::{Color, Image, PixelFormat};
 use error::QuicksilverError;
-use util::FileLoader;
+use FileLoader;
 
 use futures::{Async, Future, Map, Poll};
 use rusttype::{Font as RTFont, FontCollection, PositionedGlyph, Scale, point};
@@ -63,7 +63,7 @@ impl Font {
                 });
             }
         }
-        Image::from_raw(pixels.as_slice(), width as i32, size as i32, PixelFormat::RGBA)
+        Image::from_raw(pixels.as_slice(), width as u32, size as u32, PixelFormat::RGBA)
     }
 }
 

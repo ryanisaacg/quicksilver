@@ -6,7 +6,7 @@ use futures::{Async, Future};
 use quicksilver::{
     State, run,
     geom::Vector,
-    graphics::{Color, Font, FontLoader, Image, Sprite, Window, WindowBuilder}
+    graphics::{Color, Font, FontLoader, Image, Draw, Window, WindowBuilder}
 };
 
 enum SampleText {
@@ -15,11 +15,7 @@ enum SampleText {
 }
 
 impl State for SampleText {
-    fn configure() -> Window {
-        WindowBuilder::new().build("Font Example", 800, 600)
-    }
-
-   fn new() -> SampleText { SampleText::Loading(Font::load("examples/assets/font.ttf")) }
+    fn new() -> SampleText { SampleText::Loading(Font::load("examples/assets/font.ttf")) }
 
    fn update(&mut self, _: &mut Window) {
        // Check to see the progress of the loading font 
@@ -37,12 +33,12 @@ impl State for SampleText {
         window.clear(Color::white());
         // If the image is loaded draw it
         if let &mut SampleText::Loaded(ref image) = self {
-            window.draw(&Sprite::image(image, Vector::new(400, 300)));
+            window.draw(&Draw::image(image, Vector::new(400, 300)));
         }
         window.present();
    }
 }
 
 fn main() {
-    run::<SampleText>();
+    run::<SampleText>(WindowBuilder::new("Font Example", 800, 600));
 }

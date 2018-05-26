@@ -10,7 +10,7 @@ use std::{
 };
 
 #[repr(u32)]
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug, Hash, Eq, PartialEq)]
 /// The way the colors are blended when drawing on top of other color
 ///
 /// Blend modes only apply to RGB values
