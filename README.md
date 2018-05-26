@@ -65,7 +65,7 @@ If you're deploying for the web, first make sure you've
 [installed the wasm toolchain](https://www.hellorust.com/news/native-wasm-target.html)
 then build the wasm file (`cargo +nightly build --target wasm32-unknown-unknown --release`). Copy the .wasm
 file produced (found at "target/wasm32-unknown-unknown/release"), any assets you used, and the "index.html"
-and "bridge.js" files from [quicksilver](https://github.com/ryanisaacg/quicksilver). Put these all in the
+and "docs/bridge.js" files from [quicksilver](https://github.com/ryanisaacg/quicksilver). Put these all in the
 same folder, and rename the .wasm file to "wasm.wasm."
 
 If you want to test your application locally, you'll need to run an http server. If you don't have a 
