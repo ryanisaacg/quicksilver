@@ -72,7 +72,7 @@ You should see a black screen with a pulsing circle in the middle, and your curs
 
 ## What's included?
 
-- 2D geometry: Vectors, Transformation matrices, Rectangles, Circles, Line segments, and a generic Shape abstraction
+- 2D geometry: Vectors, Transformation matrices, Rectangles, Circles, and a generic Shape abstraction
 - Keyboard and 3-button mouse support
 - Viewport projection of the mouse to the world space automatically
 - Zero-cost camera transformations
@@ -90,9 +90,10 @@ You should see a black screen with a pulsing circle in the middle, and your curs
 | 2D only game development framework | 2D focused game development framework |
 | Targets native and web | Targets native, plans to target mobile and web |
 | Built on OpenGL and WebGL | Built on gfx-rs |
+| Automatic batched drawing | Opt-in batched drawing |
 | Sound playback through rodio | Sound playback through rodio |
 | Font rendering with rusttype | Font rendering with rusttype |
-| Polling-based input handling | Event / callback based input handling |
+| Polling-based and event-based input handling | Event / callback based input handling |
 | No custom shader support | Custom shader support |
 | Pure rust | Dependency on SDL2, with plans to transition to glutin |
 | Configurable feature flags | Most features have no flags |
