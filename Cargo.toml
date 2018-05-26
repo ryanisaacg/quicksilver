@@ -55,10 +55,6 @@ name = "pulsing-circle"
 required-features = []
 
 [[example]]
-name = "platformer"
-required-features = ["gamepads"]
-
-[[example]]
 name = "image"
 required-features = []
 
