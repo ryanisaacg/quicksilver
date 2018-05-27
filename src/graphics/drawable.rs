@@ -181,6 +181,9 @@ impl Drawable for Draw {
                 window.add_vertices(vertices.iter().cloned(), triangles.iter().cloned());
             }
             DrawPayload::Circle(radius) => {
+                let transform = Transform::translate(self.position)
+                    * self.transform
+                    * Transform::translate(-self.position);
                 let mut points = [Vector::zero(); 24]; // 24 = arbitrarily chosen number of points in the circle
                 let rotation = Transform::rotate(360f32 / points.len() as f32);
                 let mut arrow = Vector::new(0f32, -radius);
@@ -189,7 +192,7 @@ impl Drawable for Draw {
                     arrow = rotation * arrow;
                 }
                 let vertices = points.iter().map(|point| Vertex {
-                    pos: self.transform * point.clone(),
+                    pos: transform * point.clone(),
                     tex_pos: None,
                     col: self.color
                 });
