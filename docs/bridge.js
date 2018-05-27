@@ -83,14 +83,14 @@ canvas.onwheel = (event) => {
     send_event(7);
     event.preventDefault();
 }
-canvas.omousedown = (event) => {
+document.onmousedown = (event) => {
     if(event.button < 3) {
         event_data.button = event.button;
         event_data.state = 0;
         send_event(8);
     }
 }
-canvas.onmousedown = (event) => {
+canvas.onmouseup = (event) => {
     if(event.button < 3) {
         event_data.button = event.button;
         event_data.state = 2;
@@ -157,8 +157,6 @@ let env = {
     //Sounds
     load_sound: (pointer) => {
         const sound = new Audio(rust_str_to_js(pointer));
-        sound.play()
-        console.log(sound)
         const index = assets.push({ loaded: false }) - 1;
         sound.oncanplaythrough = () => {
             assets[index].loaded = true;
@@ -278,6 +276,7 @@ let env = {
     sinf: (x) => Math.sin(x),
     cosf: (x) => Math.cos(x),
     tanf: (x) => Math.tan(x),
+    pow: (x, y) => Math.pow(x, y),
     roundf: (x) => Math.round(x),
     Math_acos: (x) => Math.acos(x),
     Math_asin: (x) => Math.asin(x),
