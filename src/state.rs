@@ -117,6 +117,7 @@ pub extern "C" fn update(app: *mut Application) {
     let mut app = unsafe { Box::from_raw(app) };
     app.process_events();
     app.update();
+    app.window.clear_temporary_states();
     Box::into_raw(app);
 }
 
