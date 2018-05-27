@@ -3,6 +3,7 @@ html {
     background-color: #2d2d2d;
     font-family: 'Rubik', sans-serif;
     font-size: 1.1em;
+    line-height: 1.5em;
 }
 body {
     max-width: 75em;
