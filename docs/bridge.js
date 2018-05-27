@@ -172,7 +172,7 @@ let env = {
         return index;
     },
     play_sound: (index, volume) => {
-        const sound = assets[index].sound.clone();
+        const sound = assets[index].sound.cloneNode();
         sound.volume = volume;
         sound.play();
     },
@@ -180,7 +180,7 @@ let env = {
         if(music.playing) { 
             music.playing.stop()
         }
-        const source = assets[music.index].sound.clone();
+        const source = assets[music.index].sound.cloneNode();
         source.loop = true;
         source.volume = music.volume;
         source.play();
