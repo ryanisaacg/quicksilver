@@ -1,5 +1,6 @@
 // EDIT THIS LINE TO THE FILENAME OF YOUR WASM BINARY
-const WASM_FILE_LOCATION = 'wasm.wasm'
+// YOU CAN ALSO DEFINE THIS VARIABLE BEFORE THE SCRIPT RUNS
+WASM_FILE_LOCATION = window.WASM_FILE_LOCATION || 'wasm.wasm'
 // PROBABLY DON'T EDIT ANYTHING BELOW THIS LINE
 let canvas = document.getElementById('canvas');
 let gl = canvas.getContext('webgl2');
@@ -70,8 +71,8 @@ document.onkeyup = (event) => {
     }
 };
 canvas.onmousemove = (event) => {
-    event_data.f1 = event.clientX;
-    event_data.f2 = event.clientY;
+    event_data.f1 = event.offsetX;
+    event_data.f2 = event.offsetY;
     send_event(4);
 };
 canvas.onmouseenter = () => send_event(5);
