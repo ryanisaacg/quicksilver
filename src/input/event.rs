@@ -59,7 +59,7 @@ impl EventProvider {
         let mut running = true;
         self.events_loop.poll_events(|event| match event {
             WindowEvent { event, .. } => match event {
-                glutin::WindowEvent::Closed => {
+                glutin::WindowEvent::CloseRequested => {
                     running = false;
                     events.push(Event::Closed);
                 }
