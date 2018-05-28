@@ -37,15 +37,15 @@ environment:
 
 ### GNU Toolchains ###
 
-  # Stable 32-bit GNU
+  # Stable 64-bit GNU
     - channel: stable
-      target: i686-pc-windows-gnu
+      target: x86_64-pc-windows-gnu
   
 ### MSVC Toolchains ###
 
-  # Stable 32-bit MSVC
+  # Stable 64-bit MSVC
     - channel: stable
-      target: i686-pc-windows-msvc
+      target: x86_64-pc-windows-msvc
 
 
 ### Allowed failures ###
