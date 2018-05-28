@@ -38,8 +38,8 @@ extern "C" {
     //Images
     pub fn load_image(name: *mut i8) -> u32; 
     pub fn get_image_id(index: u32) -> u32;
-    pub fn get_image_width(index: u32) -> i32;
-    pub fn get_image_height(index: u32) -> i32;
+    pub fn get_image_width(index: u32) -> u32;
+    pub fn get_image_height(index: u32) -> u32;
     //Arbitrary files
     pub fn load_file(name: *mut i8) -> u32;
     pub fn file_contents(handle: u32) -> *mut u8;

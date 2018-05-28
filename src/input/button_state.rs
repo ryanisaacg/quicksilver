@@ -18,19 +18,18 @@ pub(crate) const BUTTON_STATE_LIST: [ButtonState; 4] = [ButtonState::Pressed, Bu
 impl ButtonState {
     pub(crate) fn update(&self, new: ButtonState) -> ButtonState {
         match (self.is_down(), new.is_down()) {
+            (false, false) => ButtonState::NotPressed,
             (false, true) => ButtonState::Pressed,
             (true, false) => ButtonState::Released,
-            _ => self.clone()
+            (true, true) => ButtonState::Held
         }
     }
 
     /// Determine if the button is either Pressed or Held
     pub fn is_down(&self) -> bool {
         match *self {
-            ButtonState::Pressed => true,
-            ButtonState::Held => true,
-            ButtonState::Released => false,
-            ButtonState::NotPressed => false,
+            ButtonState::Pressed | ButtonState::Held => true,
+            ButtonState::Released | ButtonState::NotPressed => false,
         }
     }
 

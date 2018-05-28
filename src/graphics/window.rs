@@ -210,7 +210,10 @@ impl Window {
     pub(crate) fn process_event(&mut self, event: &Event) {
         match event {
             &Event::Key(key, state) => self.keyboard.process_event(key as usize, state),
-            &Event::MouseMoved(pos) => self.mouse = Mouse { pos, ..self.mouse },
+            &Event::MouseMoved(pos) => self.mouse = Mouse { 
+                pos: self.unproject() * pos, 
+                ..self.mouse
+            },
             &Event::MouseWheel(wheel) => self.mouse = Mouse { wheel, ..self.mouse },
             &Event::MouseButton(button, state) => self.mouse.process_button(button, state),
             _ => ()
