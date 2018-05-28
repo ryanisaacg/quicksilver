@@ -1,6 +1,5 @@
 #[cfg(feature="ncollide2d")] use ncollide2d::shape::Ball;
 use geom::{about_equal, Positioned, Rectangle, Scalar, Vector};
-use rand::{Rand, Rng};
 use std::cmp::{Eq, PartialEq};
 
 #[derive(Clone, Copy, Default, Debug, Deserialize, Serialize)]
@@ -140,10 +139,4 @@ mod tests {
         assert_eq!(circ.center() + translate, circ.translate(translate).center());
     }
 
-}
-
-impl Rand for Circle {
-    fn rand<R: Rng>(rand: &mut R) -> Self {
-        Circle::newv(rand.gen(), rand.gen::<f32>())
-    }
 }
