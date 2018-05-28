@@ -1,0 +1,26 @@
+<head>
+    <link rel="stylesheet" href="style.css"></link>
+</head>
+<h1 id = "head"> example </h1>
+<a href="index.html#examples">
+    Return to the homepage
+</a>
+<br/>
+<br/>
+<br/>
+<a id="source" target="_blank">
+    View the source on GitHub
+</a>
+<br/>
+<br/>
+<br/>
+<script>
+    const url = window.location.href
+    const example = url.split('?')[1]
+    WASM_FILE_LOCATION = `wasm/${example}.wasm`
+    document.getElementById('head').innerHTML = `${example} example`
+    document.getElementById('source').href = `https://github.com/ryanisaacg/quicksilver/blob/master/examples/${example}.rs`
+
+</script>
+<canvas id="canvas" width="800" height="600"> </canvas>
+<script src="bridge.js"></script>

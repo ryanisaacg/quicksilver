@@ -65,7 +65,7 @@ If you're deploying for the web, first make sure you've
 [installed the wasm toolchain](https://www.hellorust.com/news/native-wasm-target.html)
 then build the wasm file (`cargo +nightly build --target wasm32-unknown-unknown --release`). Copy the .wasm
 file produced (found at "target/wasm32-unknown-unknown/release"), any assets you used, and the "index.html"
-and "bridge.js" files from [quicksilver](https://github.com/ryanisaacg/quicksilver). Put these all in the
+and "docs/bridge.js" files from [quicksilver](https://github.com/ryanisaacg/quicksilver). Put these all in the
 same folder, and rename the .wasm file to "wasm.wasm."
 
 If you want to test your application locally, you'll need to run an http server. If you don't have a 
@@ -104,7 +104,7 @@ There is one exception: macOS does not currently support gamepads, see [gilrs-co
 
 ## What's included?
 
-- 2D geometry: Vectors, Transformation matrices, Rectangles, Circles, Line segments, and a generic Shape abstraction
+- 2D geometry: Vectors, Transformation matrices, Rectangles, Circles, and a generic Shape abstraction
 - Keyboard and 3-button mouse support
 - Viewport projection of the mouse to the world space automatically
 - Zero-cost camera transformations
@@ -122,9 +122,10 @@ There is one exception: macOS does not currently support gamepads, see [gilrs-co
 | 2D only game development framework | 2D focused game development framework |
 | Targets native and web | Targets native, plans to target mobile and web |
 | Built on OpenGL and WebGL | Built on gfx-rs |
+| Automatic batched drawing | Opt-in batched drawing |
 | Sound playback through rodio | Sound playback through rodio |
 | Font rendering with rusttype | Font rendering with rusttype |
-| Polling-based input handling | Event / callback based input handling |
+| Polling-based and event-based input handling | Event / callback based input handling |
 | No custom shader support | Custom shader support |
 | Pure rust | Dependency on SDL2, with plans to transition to glutin |
 | Configurable feature flags | Most features have no flags |

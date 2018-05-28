@@ -1,3 +1,7 @@
+// EDIT THIS LINE TO THE FILENAME OF YOUR WASM BINARY
+// YOU CAN ALSO DEFINE THIS VARIABLE BEFORE THE SCRIPT RUNS
+WASM_FILE_LOCATION = window.WASM_FILE_LOCATION || 'wasm.wasm'
+// PROBABLY DON'T EDIT ANYTHING BELOW THIS LINE
 let canvas = document.getElementById('canvas');
 let gl = canvas.getContext('webgl2');
 let gl_objects = [];
@@ -67,8 +71,8 @@ document.onkeyup = (event) => {
     }
 };
 canvas.onmousemove = (event) => {
-    event_data.f1 = event.clientX;
-    event_data.f2 = event.clientY;
+    event_data.f1 = event.offsetX;
+    event_data.f2 = event.offsetY;
     send_event(4);
 };
 canvas.onmouseenter = () => send_event(5);
@@ -79,14 +83,14 @@ canvas.onwheel = (event) => {
     send_event(7);
     event.preventDefault();
 }
-canvas.omousedown = (event) => {
+document.onmousedown = (event) => {
     if(event.button < 3) {
         event_data.button = event.button;
         event_data.state = 0;
         send_event(8);
     }
 }
-canvas.onmousedown = (event) => {
+canvas.onmouseup = (event) => {
     if(event.button < 3) {
         event_data.button = event.button;
         event_data.state = 2;
@@ -153,8 +157,6 @@ let env = {
     //Sounds
     load_sound: (pointer) => {
         const sound = new Audio(rust_str_to_js(pointer));
-        sound.play()
-        console.log(sound)
         const index = assets.push({ loaded: false }) - 1;
         sound.oncanplaythrough = () => {
             assets[index].loaded = true;
@@ -170,7 +172,7 @@ let env = {
         return index;
     },
     play_sound: (index, volume) => {
-        const sound = assets[index].sound.clone();
+        const sound = assets[index].sound.cloneNode();
         sound.volume = volume;
         sound.play();
     },
@@ -178,7 +180,7 @@ let env = {
         if(music.playing) { 
             music.playing.stop()
         }
-        const source = assets[music.index].sound.clone();
+        const source = assets[music.index].sound.cloneNode();
         source.loop = true;
         source.volume = music.volume;
         source.play();
@@ -274,6 +276,7 @@ let env = {
     sinf: (x) => Math.sin(x),
     cosf: (x) => Math.cos(x),
     tanf: (x) => Math.tan(x),
+    pow: (x, y) => Math.pow(x, y),
     roundf: (x) => Math.round(x),
     Math_acos: (x) => Math.acos(x),
     Math_asin: (x) => Math.asin(x),
@@ -334,7 +337,7 @@ let env = {
     Viewport: gl.viewport.bind(gl),
 }
 
-fetch("wasm.wasm")
+fetch(WASM_FILE_LOCATION)
     .then(response => response.arrayBuffer())
     .then(bytes =>  WebAssembly.instantiate(bytes, { env } ))
     .then(results => {
