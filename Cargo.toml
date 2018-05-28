@@ -40,7 +40,7 @@ serde_json = { version = "1.0", optional = true }
 glutin = "0.12"
 image = "0.18"
 gilrs = { version = "0.6", optional = true }
-rodio = { version = "0.6", optional = true }
+rodio = { version = "0.7", optional = true }
 
 [[example]]
 name = "basic"
