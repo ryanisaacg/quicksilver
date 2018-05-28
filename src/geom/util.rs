@@ -1,4 +1,7 @@
 /// Find if two floating points are about equal
+///
+/// Exact floating point equality will cause floating-point precision issues, so using == on floats
+/// in general is a bad idea.
 pub fn about_equal(a: f32, b: f32) -> bool {
     (a - b).abs() < 0.0001
 }
@@ -9,6 +12,10 @@ pub fn lerp(current: f32, target: f32, fraction: f32) -> f32 {
 }
 
 /// Linearly interpolate between two angles, trying to find the shortest path
+///
+/// Simply using [`lerp`] will yield odd turning patterns, because angles wrap at 0 and 360.
+///
+/// [`lerp`]: fn.lerp.html
 pub fn lerp_angle(current: f32, target: f32, fraction: f32) -> f32 {
     let delta = ((target - current + 360f32 + 180f32) % 360f32) - 180f32;
     (current + delta * fraction + 360f32) % 360f32

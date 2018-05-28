@@ -36,16 +36,14 @@ environment:
   matrix:
 
 ### MSVC Toolchains ###
-
   # Stable 32-bit MSVC
     - channel: stable
       target: i686-pc-windows-msvc
 
-### GNU Toolchains ###
-
-  # Stable 32-bit GNU
+  # Stable 64-bit MSVC
     - channel: stable
-      target: i686-pc-windows-gnu
+      target: x86_64-pc-windows-msvc
+
 
 ### Allowed failures ###
 
