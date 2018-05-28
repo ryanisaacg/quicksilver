@@ -35,13 +35,10 @@ os: Visual Studio 2015
 environment:
   matrix:
 
-### GNU Toolchains ###
-
-  # Stable 64-bit GNU
-    - channel: stable
-      target: x86_64-pc-windows-gnu
-  
 ### MSVC Toolchains ###
+  # Stable 32-bit MSVC
+    - channel: stable
+      target: i686-pc-windows-msvc
 
   # Stable 64-bit MSVC
     - channel: stable
@@ -76,6 +73,5 @@ build: false
 #directly or perform other testing commands. Rust will automatically be placed in the PATH
 # environment variable.
 test_script:
-  - set RUST_BACKTRACE=1
   - cargo test --verbose %cargoflags%
 
