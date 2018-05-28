@@ -107,13 +107,16 @@ There is one exception: macOS does not currently support gamepads, see [gilrs-co
 - 2D geometry: Vectors, Transformation matrices, Rectangles, Circles, and a generic Shape abstraction
 - Keyboard and 3-button mouse support
 - Viewport projection of the mouse to the world space automatically
-- Zero-cost camera transformations
 - OpenGL hardware-accelerated graphics
 - A variety of image formats
 - Multi-play sound clips
 - A looping music player
 - Asynchronous asset loading
 - Unified codebase across desktop and the web
+- Collision support (via [ncollide2d](https://github.com/sebcrozet/ncollide)), 
+- TTF font support (via [rusttype](https://github.com/redox-os/rusttype)), 
+- Gamepad support (via [gilrs](https://gitlab.com/gilrs-project/gilrs)), 
+- Saving on web and desktop (via [serde_json](https://github.com/serde-rs/json)),
 
 ## Comparison with [ggez](https://github.com/ggez/ggez)
 

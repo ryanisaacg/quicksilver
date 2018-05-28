@@ -21,14 +21,18 @@
 
         <h3> What's included? </h3>
         <ul>
-            <li> 2D geometry: Vectors, Transformation matrices, Rectangles, Circles, Line segments, and a generic Shape abstraction
-            <li> Keyboard and 3-button mouse support
-            <li> OpenGL hardware-accelerated graphics
-            <li> A variety of image formats
-            <li> Sound clips and a looping music player
-            <li> Asynchronous asset loading
-            <li> Unified codebase across desktop and the web
-        </ul>
+            <li> 2D geometry: Vectors, Transformation matrices, Rectangles, Circles, and a generic Shape abstraction </li>
+            <li> Keyboard and 3-button mouse support </li> 
+            <li> OpenGL hardware-accelerated graphics </li> 
+            <li> A variety of image formats </li> 
+            <li> Sound clips and a looping music player </li> 
+            <li> Asynchronous asset loading </li> 
+            <li> Unified codebase across desktop and the web </li> 
+            <li> Collision support (via <a target="_blank" href="https://github.com/sebcrozet/ncollide"> ncollide2d </a>) </li> 
+            <li> TTF font support (via <a target="_blank" href="https://github.com/redox-os/rusttype"> rusttype </a>),  </li> 
+            <li> Gamepad support (via <a target="_blank" href="https://gitlab.com/gilrs-project/gilrs"> gilrs </a>),  </li> 
+            <li> Saving on web and desktop (via <a target="_blank" href="https://github.com/serde-rs/json"> serde_json </a>), </li> 
+        </ul> 
 
         <h3> A Quick Example </h3>
         <pre>
@@ -117,36 +121,5 @@ fn main() {
             </li>
         </ul>
 
-        <h3> Supported platforms </h3>
-
-        <p>
-            The engine is supported on Windows, macOS, (somewhat) Linux, and the web via WebAssembly. 
-            Linux is supported inasmuch as the libraries used for 
-            graphics (glutin, gl) and sound (rodio) work correctly, 
-            but no extra attempts to support exotic setups will be made. 
-            The web is only supported via the `wasm32-unknown-unknown` 
-            Rust target, not through emscripten. It might work with 
-            emscripten but this is not an ongoing guarantee.
-            <br>
-            It has not been tested extensively on desktop platforms 
-            other than x86, but there is no reason it should fail to 
-            work. If the dependencies and the Rust compiler support a 
-            platform, quicksilver should as well.
-            <br>
-            There are no plans to support mobile / touch-primary 
-            platforms, as the paradigms are completely different. UI 
-            elements must be created differently, input is one or two points
-            of contact rather than primarily through a keyboard, etc. 
-            <br>
-            There is one exception: macOS does not currently support gamepads, see <a href = "https://gitlab.com/Arvamer/gilrs/issues/3">gilrs issue #3</a>
-        </p>
-        <h3> Supported Compiler Versions </h3>
-        <p>
-            The desktop targets should always compile and run on the latest
-            stable rust. 
-            Currently the web target is limited to nightly rust, because 
-            the WASM target that does not require emscripten is limited 
-            to nightly.
-        </p>
     </body>
 </html>
