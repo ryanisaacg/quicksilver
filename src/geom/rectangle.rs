@@ -3,7 +3,6 @@
     shape::Cuboid
 };
 use geom::{about_equal, Circle, Positioned, Scalar, Vector};
-use rand::{Rand, Rng};
 use std::cmp::{Eq, PartialEq};
 
 #[derive(Clone, Copy, Default, Debug, Deserialize, Serialize)]
@@ -119,12 +118,6 @@ impl PartialEq for Rectangle {
     fn eq(&self, other: &Rectangle) -> bool {
         about_equal(self.x, other.x) && about_equal(self.y, other.y) && about_equal(self.width, other.width)
             && about_equal(self.height, other.height)
-    }
-}
-
-impl Rand for Rectangle {
-    fn rand<R: Rng>(rand: &mut R) -> Self {
-        Rectangle::newv(rand.gen(), rand.gen())
     }
 }
 

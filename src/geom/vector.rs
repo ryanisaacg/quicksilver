@@ -4,7 +4,10 @@
 };
 
 use geom::{about_equal, Positioned, Rectangle, Scalar};
-use rand::{Rand, Rng};
+use rand::{
+    Rng,
+    distributions::{Distribution, Standard}
+};
 use std::{
     ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign},
     cmp::{Eq, PartialEq},
@@ -210,11 +213,11 @@ impl fmt::Display for Vector {
     }
 }
 
-impl Rand for Vector {
-    fn rand<R: Rng>(rand: &mut R) -> Self {
+impl Distribution<Vector> for Standard {
+    fn sample<R: Rng + ?Sized>(&self, rand: &mut R) -> Vector {
         Vector {
-            x: rand.gen(),
-            y: rand.gen()
+            x: self.sample(rand),
+            y: self.sample(rand)
         }
     }
 }
