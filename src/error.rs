@@ -6,6 +6,7 @@ extern crate serde_json;
 extern crate rodio;
 
 use graphics::{AtlasError, ImageError};
+#[cfg(feature="rusttype")] use rusttype::Error as FontError;
 #[cfg(feature="serde_json")] use serde_json::Error as SerdeError;
 #[cfg(feature="sounds")] use sound::SoundError;
 use std::{
@@ -28,7 +29,7 @@ pub enum QuicksilverError {
     /// A serialize or deserialize error
     #[cfg(feature="serde_json")] SerdeError(SerdeError),
     /// There was an error loading a font file
-    #[cfg(feature="fonts")] InvalidFont
+    #[cfg(feature="rusttype")] FontError(FontError)
 }
 
 impl fmt::Display for QuicksilverError {
@@ -45,7 +46,7 @@ impl Error for QuicksilverError {
             &QuicksilverError::SoundError(ref err) => err.description(),
             &QuicksilverError::IOError(ref err) => err.description(),
             &QuicksilverError::SerdeError(ref err) => err.description(),
-            &QuicksilverError::InvalidFont => "Attempted to load invalid font"
+            &QuicksilverError::FontError(ref err) => err.description()
         }
     }
     
@@ -56,7 +57,7 @@ impl Error for QuicksilverError {
             &QuicksilverError::SoundError(ref err) => Some(err),
             &QuicksilverError::IOError(ref err) => Some(err),
             &QuicksilverError::SerdeError(ref err) => Some(err),
-            &QuicksilverError::InvalidFont => None
+            &QuicksilverError::FontError(ref err) => Some(err)
         }
     }
 }
@@ -111,5 +112,13 @@ impl From<rodio::decoder::DecoderError> for QuicksilverError {
     fn from(snd: rodio::decoder::DecoderError) -> QuicksilverError {
         let sound_error: SoundError = snd.into();
         sound_error.into()
+    }
+}
+
+#[doc(hidden)]
+#[cfg(feature="rusttype")]
+impl From<FontError> for QuicksilverError {
+    fn from(fnt: FontError) -> QuicksilverError {
+        QuicksilverError::FontError(fnt)
     }
 }
