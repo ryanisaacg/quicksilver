@@ -68,9 +68,8 @@ impl Font {
 }
 
 fn parse(data: Vec<u8>) -> Result<Font, QuicksilverError> {
-    if let Some(data) = FontCollection::from_bytes(data).into_font() {
-        Ok(Font { data })
-    } else {
-        Err(QuicksilverError::InvalidFont)
-    }
+    Ok(Font {
+        data: FontCollection::from_bytes(data)?.into_font()?
+    })
 }
+
