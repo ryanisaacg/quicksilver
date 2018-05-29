@@ -1,6 +1,10 @@
 # Changelog
 
-## v0.2.0
+## v0.2.1
+
+- Revert the update to rodio v0.7, which caused compilation issues on some platforms
+
+## v0.2.0 (yanked)
 
 - Add the ability to save state cross-platform, through `save` and `load`
 - Created a unified View system for input and camera
