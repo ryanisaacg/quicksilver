@@ -67,6 +67,10 @@ extern crate glutin;
 #[cfg(not(target_arch="wasm32"))] 
 extern crate image;
 
+#[cfg(target_arch="wasm32")]
+#[macro_use]
+extern crate stdweb;
+
 #[cfg(feature="alga")]
 extern crate alga;
 #[cfg(all(feature="gilrs", not(target_arch="wasm32")))] 

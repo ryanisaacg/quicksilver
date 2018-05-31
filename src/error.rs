@@ -29,7 +29,9 @@ pub enum QuicksilverError {
     /// A serialize or deserialize error
     #[cfg(feature="serde_json")] SerdeError(SerdeError),
     /// There was an error loading a font file
-    #[cfg(feature="rusttype")] FontError(FontError)
+    #[cfg(feature="rusttype")] FontError(FontError),
+    /// A save name was expected but not found
+    SaveNotFound(String)
 }
 
 impl fmt::Display for QuicksilverError {
@@ -46,7 +48,8 @@ impl Error for QuicksilverError {
             &QuicksilverError::SoundError(ref err) => err.description(),
             &QuicksilverError::IOError(ref err) => err.description(),
             &QuicksilverError::SerdeError(ref err) => err.description(),
-            &QuicksilverError::FontError(ref err) => err.description()
+            &QuicksilverError::FontError(ref err) => err.description(),
+            &QuicksilverError::SaveNotFound(ref string) => string.as_str()
         }
     }
     
@@ -57,7 +60,8 @@ impl Error for QuicksilverError {
             &QuicksilverError::SoundError(ref err) => Some(err),
             &QuicksilverError::IOError(ref err) => Some(err),
             &QuicksilverError::SerdeError(ref err) => Some(err),
-            &QuicksilverError::FontError(ref err) => Some(err)
+            &QuicksilverError::FontError(ref err) => Some(err),
+            &QuicksilverError::SaveNotFound(_) => None
         }
     }
 }

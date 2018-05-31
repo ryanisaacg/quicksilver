@@ -70,22 +70,20 @@ fn load_impl<T>(appname: &str, profile: &str) -> Result<T, QuicksilverError>
 }
 
 #[cfg(target_arch="wasm32")]
-use std::ffi::CString;
-
-#[cfg(target_arch="wasm32")]
 fn save_impl<T: Serialize>(_appname: &str, profile: &str, data: &T) -> Result<(), QuicksilverError> {
-    use ffi::wasm;
-    let key = CString::new(profile).unwrap().into_raw();
-    let val = CString::new(serde_json::to_string(data)?).unwrap().into_raw();
-    unsafe { wasm::save_cookie(key, val) };
+    use stdweb::web;
+    let storage = web::window().session_storage();
+    storage.insert(profile, serde_json::to_string(data)?.as_str()).unwrap();
     Ok(())
 }
 
 #[cfg(target_arch="wasm32")]
 fn load_impl<T>(_appname: &str, profile: &str) -> Result<T, QuicksilverError>
         where for<'de> T: Deserialize<'de> {
-    use ffi::wasm;
-    let key = CString::new(profile).unwrap().into_raw();
-    let string = unsafe { CString::from_raw(wasm::load_cookie(key)) }.into_string().unwrap();
-    Ok(serde_json::from_str(string.as_str())?)
+    use stdweb::web;
+    let storage = web::window().session_storage();
+    match storage.get(profile) {
+        Some(string) => Ok(serde_json::from_str(string.as_str())?),
+        None => Err(QuicksilverError::SaveNotFound(profile.to_string()))
+    }
 }

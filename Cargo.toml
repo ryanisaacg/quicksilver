@@ -42,6 +42,9 @@ image = "0.19"
 gilrs = { version = "0.6", optional = true }
 rodio = { version = "0.6", optional = true }
 
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+stdweb = "0.4"
+
 [[example]]
 name = "basic"
 required-features = []
