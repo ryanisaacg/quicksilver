@@ -96,7 +96,7 @@ pub mod saving;
 #[cfg(feature="sounds")]
 pub mod sound;
 pub use file::FileLoader;
-pub use error::QuicksilverError;
+pub use error::QuicksilverError as Error;
 pub use timer::Timer;
 pub use state::{State, run};
 #[cfg(target_arch="wasm32")] pub use state::{update, draw, event};
