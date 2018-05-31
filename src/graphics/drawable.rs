@@ -17,7 +17,7 @@ enum DrawPayload {
 
 /// A single drawable item, with a transform, a blend color, and a depth
 #[derive(Clone, Debug)]
-pub struct Draw {
+pub struct Sprite {
     item: DrawPayload,
     position: Vector,
     color: Color,
@@ -25,10 +25,10 @@ pub struct Draw {
     z: f32
 }
 
-impl Draw {
+impl Sprite {
     /// Create a sprite with an image
-    pub fn image(image: &Image, position: Vector) -> Draw {
-        Draw {
+    pub fn image(image: &Image, position: Vector) -> Sprite {
+        Sprite {
             item: DrawPayload::Image(image.clone()),
             position,
             color: Color::white(),
@@ -38,23 +38,23 @@ impl Draw {
     }
 
     /// Create a sprite from a given shape
-    pub fn shape(shape: Shape) -> Draw {
+    pub fn shape(shape: Shape) -> Sprite {
         match shape {
-            Shape::Circle(circ) => Draw::circle(circ),
-            Shape::Rectangle(rect) => Draw::rectangle(rect),
-            Shape::Vector(v) => Draw::point(v),
+            Shape::Circle(circ) => Sprite::circle(circ),
+            Shape::Rectangle(rect) => Sprite::rectangle(rect),
+            Shape::Vector(v) => Sprite::point(v),
 
         }
     }
 
     /// Create a sprite with a point
-    pub fn point(position: Vector) -> Draw {
-        Draw::rectangle(Rectangle::newv(position, Vector::one()))
+    pub fn point(position: Vector) -> Sprite {
+        Sprite::rectangle(Rectangle::newv(position, Vector::one()))
     }
 
     /// Create a sprite with a rectangle
-    pub fn rectangle(rectangle: Rectangle) -> Draw {
-        Draw {
+    pub fn rectangle(rectangle: Rectangle) -> Sprite {
+        Sprite {
             item: DrawPayload::Rectangle(rectangle.size()),
             position: rectangle.center(),
             color: Color::white(),
@@ -64,8 +64,8 @@ impl Draw {
     }
 
     /// Create a sprite with a circle
-    pub fn circle(circle: Circle) -> Draw {
-        Draw {
+    pub fn circle(circle: Circle) -> Sprite {
+        Sprite {
             item: DrawPayload::Circle(circle.radius),
             position: circle.center(),
             color: Color::white(),
@@ -75,32 +75,32 @@ impl Draw {
     }
 
     /// Change the position of a sprite
-    pub fn with_position(self, position: Vector) -> Draw {
-        Draw {
+    pub fn with_position(self, position: Vector) -> Sprite {
+        Sprite {
             position,
             ..self
         }
     }
 
     /// Change the color of a sprite
-    pub fn with_color(self, color: Color) -> Draw {
-        Draw {
+    pub fn with_color(self, color: Color) -> Sprite {
+        Sprite {
             color,
             ..self
         }
     }
 
     /// Change the transform of a sprite
-    pub fn with_transform(self, transform: Transform) -> Draw {
-        Draw {
+    pub fn with_transform(self, transform: Transform) -> Sprite {
+        Sprite {
             transform,
             ..self
         }
     }
 
     /// Change the depth of a sprite
-    pub fn with_z<T: Scalar>(self, z: T) -> Draw {
-        Draw {
+    pub fn with_z<T: Scalar>(self, z: T) -> Sprite {
+        Sprite {
             z: z.float(),
             ..self
         }
@@ -108,7 +108,7 @@ impl Draw {
 
 }
 
-impl Drawable for Draw {
+impl Drawable for Sprite {
     fn draw(&self, window: &mut Window) {
         match self.item {
             DrawPayload::Image(ref image) => {
