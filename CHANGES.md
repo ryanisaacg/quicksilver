@@ -2,7 +2,7 @@
 
 ## In-development
 
-- Renamed type `Draw` to `Sprite`
+- Renamed type `Draw` to `Sprite` (and updated the readme accordingly)
 - Renamed type `QuicksilverError` to `Error`
 
 ## v0.2.1
