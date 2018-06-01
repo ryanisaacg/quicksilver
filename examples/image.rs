@@ -4,7 +4,7 @@ extern crate quicksilver;
 use quicksilver::{
     Async, Future, State, run,
     geom::Vector,
-    graphics::{Color, Image, ImageLoader, Draw, Window, WindowBuilder}
+    graphics::{Color, Image, ImageLoader, Sprite, Window, WindowBuilder}
 };
 
 enum ImageViewer {
@@ -31,7 +31,7 @@ impl State for ImageViewer {
         window.clear(Color::white());
         // If the image is loaded draw it
         if let &mut ImageViewer::Loaded(ref image) = self {
-            window.draw(&Draw::image(image, Vector::new(400, 300)));
+            window.draw(&Sprite::image(image, Vector::new(400, 300)));
         }
         window.present();
    }

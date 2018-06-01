@@ -1,5 +1,10 @@
 # Changelog
 
+## In-development
+
+- Renamed type `Draw` to `Sprite` (and updated the readme accordingly)
+- Renamed type `QuicksilverError` to `Error`
+
 ## v0.2.1
 
 - Revert the update to rodio v0.7, which caused compilation issues on some platforms
