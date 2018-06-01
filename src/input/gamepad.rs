@@ -82,6 +82,8 @@ impl GamepadProvider {
             }
         }
         buffer.extend(self.gilrs.gamepads().map(|(id, gamepad)| { 
+            let id = id as i32;
+
             let axes = [
                 axis_value(gamepad.axis_data(Axis::LeftStickX)),
                 axis_value(gamepad.axis_data(Axis::LeftStickY)),
