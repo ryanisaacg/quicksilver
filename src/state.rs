@@ -133,6 +133,7 @@ pub extern "C" fn draw(app: *mut Application) {
 #[doc(hidden)]
 #[no_mangle]
 #[cfg(target_arch="wasm32")]
+// TODO: Replace this with event bindings
 pub unsafe extern "C" fn event(app: *mut Application, event_tag: u32) {
     use ffi::wasm;
     let mut app = Box::from_raw(app);
