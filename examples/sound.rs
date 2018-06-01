@@ -6,7 +6,7 @@ use futures::{Async, Future};
 use quicksilver::{
     State, run,
     geom::Rectangle,
-    graphics::{Color, Draw, Window, WindowBuilder},
+    graphics::{Color, Sprite, Window, WindowBuilder},
     input::{ButtonState, MouseButton},
     sound::{Sound, SoundLoader}
 };
@@ -44,7 +44,7 @@ impl State for SoundPlayer {
         window.clear(Color::white());
         // If the sound is loaded, draw the button
         if let &mut SoundPlayer::Loaded(_) = self {
-            window.draw(&Draw::rectangle(BUTTON_AREA).with_color(Color::blue()));
+            window.draw(&Sprite::rectangle(BUTTON_AREA).with_color(Color::blue()));
         }
         window.present();
    }
