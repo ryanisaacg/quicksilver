@@ -30,13 +30,13 @@ pub enum Event {
     /// A mouse button has changed its button state
     MouseButton(MouseButton, ButtonState),
     /// A gamepad axis has changed its state
-    GamepadAxis(u32, GamepadAxis, f32),
+    GamepadAxis(i32, GamepadAxis, f32),
     /// A gamepad button has changed its state
-    GamepadButton(u32, GamepadButton, ButtonState),
+    GamepadButton(i32, GamepadButton, ButtonState),
     /// A gamepad has been connected
-    GamepadConnected(u32),
+    GamepadConnected(i32),
     /// A gamepad has been disconnected
-    GamepadDisconnected(u32)
+    GamepadDisconnected(i32)
 }
 
 #[cfg(not(target_arch="wasm32"))]
