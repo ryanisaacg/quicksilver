@@ -110,7 +110,10 @@ impl GamepadProvider {
     fn provide_gamepads_impl(&self, buffer: &mut Vec<Gamepad>) {
         buffer.extend(WebGamepad::get_all()
             .iter()
-            .filter_map(|pad| *pad)
+            .filter_map(|pad| match pad {
+                &Some(ref pad) => Some(pad),
+                &None => None
+            })
             .map(|pad| {
                 let id = pad.index() as i32;
                 let mut axes = [0.0; 4];
