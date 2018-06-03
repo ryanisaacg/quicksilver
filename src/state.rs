@@ -3,13 +3,20 @@ use geom::Vector;
 use graphics::{Window, WindowBuilder};
 use input::Event;
 #[cfg(target_arch="wasm32")]
-use std::{
-    cell::RefCell,
-    rc::Rc
+use {
+    std::{
+        cell::{RefCell, RefMut},
+        rc::Rc
+    },
+    stdweb::web::{
+        document,
+        event::{BlurEvent, ConcreteEvent, FocusEvent, IMouseEvent, MouseMoveEvent},
+        IEventTarget, IParentNode,
+    }
 };
 
 /// The structure responsible for managing the game loop state
-pub trait State {
+pub trait State: 'static {
     /// Create the state given the window and canvas
     fn new() -> Self where Self: Sized;
     /// Tick the State forward one frame
@@ -39,12 +46,11 @@ pub trait State {
 ///
 /// On desktop platforms, this yields control to a simple game loop controlled by a Timer. On wasm,
 /// this yields control to the browser functions setInterval and requestAnimationFrame
-pub fn run<T: 'static + State>(window: WindowBuilder) {
+pub fn run<T: State>(window: WindowBuilder) {
     run_impl::<T>(window)
 }
 
-#[doc(hidden)]
-pub struct Application<T: State> {
+struct Application<T: State> {
     state: T, 
     window: Window,
     event_buffer: Vec<Event>
@@ -76,7 +82,7 @@ impl<T: State> Application<T> {
 }
 
 #[cfg(not(target_arch="wasm32"))]
-fn run_impl<T: 'static + State>(window: WindowBuilder) {
+fn run_impl<T: State>(window: WindowBuilder) {
     use input::EventProvider;
     let (window, events_loop) = window.build();
     let mut events = EventProvider::new(events_loop);
@@ -103,13 +109,7 @@ fn run_impl<T: 'static + State>(window: WindowBuilder) {
 }
 
 #[cfg(target_arch="wasm32")]
-fn run_impl<T: 'static + State>(window: WindowBuilder) {
-    use stdweb::web::{
-        document,
-        event::{BlurEvent, FocusEvent, IMouseEvent, MouseMoveEvent},
-        IEventTarget, IParentNode,
-    };
-
+fn run_impl<T: State>(window: WindowBuilder) {
     let window = window.build();
     let app = Rc::new(RefCell::new(Application { 
         window,
@@ -118,15 +118,22 @@ fn run_impl<T: 'static + State>(window: WindowBuilder) {
     }));
 
     let document = document();
-    let event_app = app.clone();
-    document.add_event_listener(move |_: BlurEvent| event_app.borrow_mut().event(&Event::Unfocused));
-    let event_app = app.clone();
-    document.add_event_listener(move |_: FocusEvent| event_app.borrow_mut().event(&Event::Focused));
-
     let canvas = document.query_selector("#canvas").unwrap().unwrap();
-    let event_app = app.clone();
-    canvas.add_event_listener(move |event: MouseMoveEvent| {
+
+    handle_event(&document, &app, |mut app, event: BlurEvent| app.event(&Event::Unfocused));
+    handle_event(&document, &app, |mut app, event: FocusEvent| app.event(&Event::Focused));
+    handle_event(&canvas, &app, |mut app, event: MouseMoveEvent| {
         let pointer = Vector::new(event.offset_x() as f32, event.offset_y() as f32);
-        event_app.borrow_mut().event(&Event::MouseMoved(pointer));
+        app.event(&Event::MouseMoved(pointer));
+    });
+}
+
+#[cfg(target_arch="wasm32")]
+fn handle_event<T, E, F>(target: &impl IEventTarget, application: &Rc<RefCell<Application<T>>>, mut handler: F) 
+        where T: State, E: ConcreteEvent, F: FnMut(RefMut<Application<T>>, E) + 'static {
+    let application = application.clone();
+    target.add_event_listener(move |event: E| {
+        event.prevent_default();
+        handler(application.borrow_mut(), event);
     });
 }
