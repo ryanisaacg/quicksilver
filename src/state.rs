@@ -4,14 +4,15 @@ use graphics::{Window, WindowBuilder};
 use input::Event;
 #[cfg(target_arch="wasm32")]
 use {
-    input::{ButtonState, MouseButton},
+    input::{ButtonState, KEY_LIST, MouseButton},
     std::{
         cell::{RefCell, RefMut},
+        collections::HashMap,
         rc::Rc
     },
     stdweb::web::{
         document,
-        event::{BlurEvent, ConcreteEvent, FocusEvent, IMouseEvent, MouseButton as WebMouseButton, MouseDownEvent, MouseMoveEvent, MouseUpEvent},
+        event::{BlurEvent, ConcreteEvent, FocusEvent, IKeyboardEvent, IMouseEvent, KeyDownEvent, KeyUpEvent, MouseButton as WebMouseButton, MouseDownEvent, MouseMoveEvent, MouseUpEvent},
         IEventTarget, IParentNode,
     }
 };
@@ -123,6 +124,7 @@ fn run_impl<T: State>(window: WindowBuilder) {
 
     handle_event(&document, &app, |mut app, event: BlurEvent| app.event(&Event::Unfocused));
     handle_event(&document, &app, |mut app, event: FocusEvent| app.event(&Event::Focused));
+
     handle_event(&canvas, &app, |mut app, event: MouseMoveEvent| {
         let pointer = Vector::new(event.offset_x() as f32, event.offset_y() as f32);
         app.event(&Event::MouseMoved(pointer));
@@ -147,6 +149,22 @@ fn run_impl<T: State>(window: WindowBuilder) {
         };
         app.event(&Event::MouseButton(button, state));
     });
+
+    let key_names = generate_key_names();
+    handle_event(&canvas, &app, move |mut app, event: KeyDownEvent| {
+        let state = ButtonState::Pressed;
+        if let Some(keycode) = key_names.get(&event.code()) {
+            app.event(&Event::Key(KEY_LIST[*keycode], state));
+        }
+    });
+    let key_names = generate_key_names();
+    handle_event(&canvas, &app, move |mut app, event: KeyUpEvent| {
+        let state = ButtonState::Released;
+        if let Some(keycode) = key_names.get(&event.code()) {
+            app.event(&Event::Key(KEY_LIST[*keycode], state));
+        }
+    });
+
 }
 
 #[cfg(target_arch="wasm32")]
@@ -157,4 +175,26 @@ fn handle_event<T, E, F>(target: &impl IEventTarget, application: &Rc<RefCell<Ap
         event.prevent_default();
         handler(application.borrow_mut(), event);
     });
+}
+
+#[cfg(target_arch="wasm32")]
+static KEY_NAMES: &[&str] = &["Digit1", "Digit2", "Digit3", "Digit4", "Digit5", "Digit6", "Digit7", "Digit8", "Digit9", "Digit0", "KeyA", "KeyB", "KeyC", "KeyD", "KeyE", "KeyF", "KeyG", "KeyH", "KeyI", "KeyJ", "KeyK", "KeyL", "KeyM", 
+    "KeyN", "KeyO", "KeyP", "KeyQ", "KeyR", "KeyS", "KeyT", "KeyU", "KeyV", "KeyW", "KeyX", "KeyY", "KeyZ", "Escape", "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12", 
+    "F13", "F14", "F15", "PrintScreen", "ScrollLock", "Pause", "Insert", "Home", "Delete", "End", "PageDown", "PageUp", "ArrowLeft", "ArrowUp", "ArrowRight", 
+    "ArrowDown", "Backspace", "Enter", "Space", "Compose", "Caret", "NumLock", "Numpad0", "Numpad1", "Numpad2", "Numpad3", "Numpad4", "Numpad5", 
+    "Numpad6", "Numpad7", "Numpad8", "Numpad9", "AbntC1", "AbntC2", "Add", "Quote", "Apps", "At", "Ax", "Backslash", "Calculator", 
+    "Capital", "Colon", "Comma", "Convert", "Decimal", "Divide", "Equal", "Backquote", "Kana", "Kanji", "AltLeft", "BracketLeft", "ControlLeft", 
+    "LMenu", "ShiftLeft", "MetaLeft", "Mail", "MediaSelect", "MediaStop", "Minus", "Multiply", "Mute", "LaunchMyComputer", "NavigateForward", 
+    "NavigateBackward", "NextTrack", "NoConvert", "NumpadComma", "NumpadEnter", "NumpadEquals", "OEM102", "Period", "PlayPause", 
+    "Power", "PrevTrack", "AltRight", "BracketRight", "ControlRight", "RMenu", "ShiftRight", "MetaRight", "Semicolon", "Slash", "Sleep", "Stop", "Subtract", 
+    "Sysrq", "Tab", "Underline", "Unlabeled", "AudioVolumeDown", "AudioVolumeUp", "Wake", "WebBack", "WebFavorites", "WebForward", "WebHome", 
+    "WebRefresh", "WebSearch", "WebStop", "Yen"];
+
+#[cfg(target_arch="wasm32")]
+fn generate_key_names() -> HashMap<String, usize> {
+    KEY_NAMES
+        .iter()
+        .enumerate()
+        .map(|(index, name)| (String::from(*name), index))
+        .collect()    
 }
