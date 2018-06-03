@@ -103,7 +103,6 @@ pub use file::FileLoader;
 pub use error::QuicksilverError as Error;
 pub use timer::Timer;
 pub use state::{State, run};
-#[cfg(target_arch="wasm32")] pub use state::{update, draw, event};
 
 /// Necessary types from futures-rs
 pub use futures::{Future, Async};

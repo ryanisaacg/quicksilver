@@ -2,6 +2,11 @@
 use geom::Vector;
 use graphics::{Window, WindowBuilder};
 use input::Event;
+#[cfg(target_arch="wasm32")]
+use std::{
+    cell::RefCell,
+    rc::Rc
+};
 
 /// The structure responsible for managing the game loop state
 pub trait State {
@@ -99,64 +104,29 @@ fn run_impl<T: 'static + State>(window: WindowBuilder) {
 
 #[cfg(target_arch="wasm32")]
 fn run_impl<T: 'static + State>(window: WindowBuilder) {
-    use ffi::wasm;
-    use std::os::raw::c_void;
+    use stdweb::web::{
+        document,
+        event::{BlurEvent, FocusEvent, IMouseEvent, MouseMoveEvent},
+        IEventTarget, IParentNode,
+    };
+
     let window = window.build();
-    let app = Box::new(Application { 
+    let app = Rc::new(RefCell::new(Application { 
         window,
         state: Box::new(T::new()),
         event_buffer: Vec::new()
+    }));
+
+    let document = document();
+    let event_app = app.clone();
+    document.add_event_listener(move |_: BlurEvent| event_app.borrow_mut().event(&Event::Unfocused));
+    let event_app = app.clone();
+    document.add_event_listener(move |_: FocusEvent| event_app.borrow_mut().event(&Event::Focused));
+
+    let canvas = document.query_selector("#canvas").unwrap().unwrap();
+    let event_app = app.clone();
+    canvas.add_event_listener(move |event: MouseMoveEvent| {
+        let pointer = Vector::new(event.offset_x() as f32, event.offset_y() as f32);
+        event_app.borrow_mut().event(&Event::MouseMoved(pointer));
     });
-    unsafe { wasm::set_app(Box::into_raw(app) as *mut c_void) };
-}
-
-#[doc(hidden)]
-#[no_mangle]
-#[cfg(target_arch="wasm32")]
-pub extern "C" fn update(app: *mut Application) {
-    let mut app = unsafe { Box::from_raw(app) };
-    app.process_events();
-    app.update();
-    app.window.clear_temporary_states();
-    Box::into_raw(app);
-}
-
-#[doc(hidden)]
-#[no_mangle]
-#[cfg(target_arch="wasm32")]
-pub extern "C" fn draw(app: *mut Application) {
-    let mut app = unsafe { Box::from_raw(app) };
-    app.draw();
-    Box::into_raw(app);
-}
-
-#[doc(hidden)]
-#[no_mangle]
-#[cfg(target_arch="wasm32")]
-// TODO: Replace this with event bindings
-pub unsafe extern "C" fn event(app: *mut Application, event_tag: u32) {
-    use ffi::wasm;
-    let mut app = Box::from_raw(app);
-    use input::{BUTTON_STATE_LIST, GAMEPAD_AXIS_LIST, GAMEPAD_BUTTON_LIST, KEY_LIST, MOUSE_BUTTON_LIST};
-    let event = match event_tag {
-        0 => Event::Closed,
-        1 => Event::Focused,
-        2 => Event::Unfocused,
-        3 => Event::Key(KEY_LIST[wasm::event_data_button() as usize], BUTTON_STATE_LIST[wasm::event_data_state() as usize]),
-        4 => Event::MouseMoved(Vector::new(wasm::event_data_f1(), wasm::event_data_f2())),
-        5 => Event::MouseEntered,
-        6 => Event::MouseExited,
-        7 => Event::MouseWheel(Vector::new(wasm::event_data_f1(), wasm::event_data_f2())),
-        8 => Event::MouseButton(MOUSE_BUTTON_LIST[wasm::event_data_button() as usize], BUTTON_STATE_LIST[wasm::event_data_state() as usize]),
-        9 => Event::GamepadAxis(wasm::event_data_id(), GAMEPAD_AXIS_LIST[wasm::event_data_button() as usize], wasm::event_data_f1()),
-        10 => Event::GamepadButton(wasm::event_data_id(), GAMEPAD_BUTTON_LIST[wasm::event_data_button() as usize], BUTTON_STATE_LIST[wasm::event_data_state() as usize]),
-        11 => Event::GamepadConnected(wasm::event_data_id()),
-        12 => Event::GamepadDisconnected(wasm::event_data_id()),
-        _ => {
-            Box::into_raw(app);
-            return;
-        }
-    };
-    app.event(&event);
-    Box::into_raw(app);
 }
