@@ -1,0 +1,4 @@
+[book]
+multilingual = false
+src = "src"
+title = "quicksilver"
