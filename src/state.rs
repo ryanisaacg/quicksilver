@@ -107,21 +107,25 @@ fn run_impl<T: 'static + State>(window: WindowBuilder) {
     use stdweb::web::{
         document,
         event::{BlurEvent, FocusEvent, IMouseEvent, MouseMoveEvent},
-        IEventTarget, 
+        IEventTarget, IParentNode,
     };
+
     let window = window.build();
     let app = Rc::new(RefCell::new(Application { 
         window,
         state: Box::new(T::new()),
         event_buffer: Vec::new()
     }));
+
     let document = document();
     let event_app = app.clone();
     document.add_event_listener(move |_: BlurEvent| event_app.borrow_mut().event(&Event::Unfocused));
     let event_app = app.clone();
     document.add_event_listener(move |_: FocusEvent| event_app.borrow_mut().event(&Event::Focused));
+
+    let canvas = document.query_selector("#canvas").unwrap().unwrap();
     let event_app = app.clone();
-    document.add_event_listener(move |event: MouseMoveEvent| {
+    canvas.add_event_listener(move |event: MouseMoveEvent| {
         let pointer = Vector::new(event.offset_x() as f32, event.offset_y() as f32);
         event_app.borrow_mut().event(&Event::MouseMoved(pointer));
     });
