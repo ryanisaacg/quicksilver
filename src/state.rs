@@ -4,13 +4,14 @@ use graphics::{Window, WindowBuilder};
 use input::Event;
 #[cfg(target_arch="wasm32")]
 use {
+    input::{ButtonState, MouseButton},
     std::{
         cell::{RefCell, RefMut},
         rc::Rc
     },
     stdweb::web::{
         document,
-        event::{BlurEvent, ConcreteEvent, FocusEvent, IMouseEvent, MouseMoveEvent},
+        event::{BlurEvent, ConcreteEvent, FocusEvent, IMouseEvent, MouseButton as WebMouseButton, MouseDownEvent, MouseMoveEvent, MouseUpEvent},
         IEventTarget, IParentNode,
     }
 };
@@ -125,6 +126,26 @@ fn run_impl<T: State>(window: WindowBuilder) {
     handle_event(&canvas, &app, |mut app, event: MouseMoveEvent| {
         let pointer = Vector::new(event.offset_x() as f32, event.offset_y() as f32);
         app.event(&Event::MouseMoved(pointer));
+    });
+    handle_event(&canvas, &app, |mut app, event: MouseUpEvent| {
+        let state = ButtonState::Released;
+        let button = match event.button() {
+            WebMouseButton::Left => MouseButton::Left,
+            WebMouseButton::Wheel => MouseButton::Middle,
+            WebMouseButton::Right => MouseButton::Right,
+            _ => return
+        };
+        app.event(&Event::MouseButton(button, state));
+    });
+    handle_event(&canvas, &app, |mut app, event: MouseDownEvent| {
+        let state = ButtonState::Pressed;
+        let button = match event.button() {
+            WebMouseButton::Left => MouseButton::Left,
+            WebMouseButton::Wheel => MouseButton::Middle,
+            WebMouseButton::Right => MouseButton::Right,
+            _ => return
+        };
+        app.event(&Event::MouseButton(button, state));
     });
 }
 
