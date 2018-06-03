@@ -2,7 +2,6 @@ use std::{
     error::Error,
     fmt,
     io::Error as IOError,
-    os::raw::c_void,
 };
 #[cfg(not(target_arch="wasm32"))]
 use std::io::ErrorKind;
@@ -15,18 +14,6 @@ extern "C" {
     pub fn get_page_height() -> u32;
     pub fn create_context(title: *mut i8, width: u32, height: u32);
     pub fn set_title(title: *mut i8);
-    //Event data
-    pub fn event_data_button() -> u32;
-    pub fn event_data_state() -> u32;
-    pub fn event_data_f1() -> f32;
-    pub fn event_data_f2() -> f32;
-    pub fn event_data_id() -> u32;
-    //Gamepads
-    pub fn gamepad_count() -> u32;
-    pub fn gamepad_data(start: *mut c_void, id: *mut u32, buttons: *mut u32, axes: *mut f32, next: *mut c_void);
-    //Saving / loading
-    pub fn save_cookie(key: *const i8, val: *const i8);
-    pub fn load_cookie(key: *const i8) -> *mut i8;
     //Sounds
     pub fn load_sound(path: *mut i8) -> u32;
     pub fn play_sound(index: u32, volume: f32);
@@ -40,14 +27,8 @@ extern "C" {
     pub fn get_image_id(index: u32) -> u32;
     pub fn get_image_width(index: u32) -> u32;
     pub fn get_image_height(index: u32) -> u32;
-    //Arbitrary files
-    pub fn load_file(name: *mut i8) -> u32;
-    pub fn file_contents(handle: u32) -> *mut u8;
-    pub fn file_length(handle: u32) -> u32;
     //Asset loading
     fn ffi_asset_status(handle: u32) -> i32;
-    //Game loop
-    pub fn set_app(app: *mut c_void);
 }
 
 #[derive(Debug)]
