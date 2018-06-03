@@ -72,14 +72,14 @@ impl Future for FileLoader {
     #[cfg(target_arch="wasm32")]
     fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
         let status = js! {
-            return Math.floor(@{self.xhr}.status / 100);
+            return Math.floor(@{&self.xhr}.status / 100);
         }; 
         let status = if let Value::Number(value) = status { value } else { unreachable!() };
         if status == 0 {
             Ok(Async::NotReady)
         } else if status == 2 { 
             let response = js! { 
-                return new Uint8Array(@{self.xhr}.response);
+                return new Uint8Array(@{&self.xhr}.response);
             };
             let response = if let Value::Reference(reference) = response { reference } else { unreachable!() };
             let array: TypedArray<u8> = response.downcast().unwrap();
