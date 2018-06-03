@@ -106,7 +106,7 @@ fn run_impl<T: 'static + State>(window: WindowBuilder) {
 fn run_impl<T: 'static + State>(window: WindowBuilder) {
     use stdweb::web::{
         document,
-        event::{BlurEvent, FocusEvent},
+        event::{BlurEvent, FocusEvent, IMouseEvent, MouseMoveEvent},
         IEventTarget, 
     };
     let window = window.build();
@@ -120,4 +120,9 @@ fn run_impl<T: 'static + State>(window: WindowBuilder) {
     document.add_event_listener(move |_: BlurEvent| event_app.borrow_mut().event(&Event::Unfocused));
     let event_app = app.clone();
     document.add_event_listener(move |_: FocusEvent| event_app.borrow_mut().event(&Event::Focused));
+    let event_app = app.clone();
+    document.add_event_listener(move |event: MouseMoveEvent| {
+        let pointer = Vector::new(event.offset_x() as f32, event.offset_y() as f32);
+        event_app.borrow_mut().event(&Event::MouseMoved(pointer));
+    });
 }
