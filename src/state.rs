@@ -118,4 +118,6 @@ fn run_impl<T: 'static + State>(window: WindowBuilder) {
     let document = document();
     let event_app = app.clone();
     document.add_event_listener(move |_: BlurEvent| event_app.borrow_mut().event(&Event::Unfocused));
+    let event_app = app.clone();
+    document.add_event_listener(move |_: FocusEvent| event_app.borrow_mut().event(&Event::Focused));
 }
