@@ -122,8 +122,8 @@ fn run_impl<T: State>(window: WindowBuilder) {
     let document = document();
     let canvas = document.query_selector("#canvas").unwrap().unwrap();
 
-    handle_event(&document, &app, |mut app, event: BlurEvent| app.event(&Event::Unfocused));
-    handle_event(&document, &app, |mut app, event: FocusEvent| app.event(&Event::Focused));
+    handle_event(&document, &app, |mut app, _: BlurEvent| app.event(&Event::Unfocused));
+    handle_event(&document, &app, |mut app, _: FocusEvent| app.event(&Event::Focused));
 
     handle_event(&canvas, &app, |mut app, event: MouseMoveEvent| {
         let pointer = Vector::new(event.offset_x() as f32, event.offset_y() as f32);
