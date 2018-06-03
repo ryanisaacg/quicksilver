@@ -44,13 +44,13 @@ pub fn run<T: 'static + State>(window: WindowBuilder) {
 }
 
 #[doc(hidden)]
-pub struct Application {
-    state: Box<State>, 
+pub struct Application<T: State> {
+    state: T, 
     window: Window,
     event_buffer: Vec<Event>
 }
 
-impl Application {
+impl<T: State> Application<T> {
     fn update(&mut self) {
         self.state.update(&mut self.window);
     }
@@ -81,7 +81,7 @@ fn run_impl<T: 'static + State>(window: WindowBuilder) {
     let (window, events_loop) = window.build();
     let mut events = EventProvider::new(events_loop);
     let event_buffer = Vec::new();
-    let state = Box::new(T::new());
+    let state = T::new();
     let mut app = Application { window, state, event_buffer };
     use std::time::Duration;
     #[cfg(feature="sounds")] {
@@ -113,7 +113,7 @@ fn run_impl<T: 'static + State>(window: WindowBuilder) {
     let window = window.build();
     let app = Rc::new(RefCell::new(Application { 
         window,
-        state: Box::new(T::new()),
+        state: T::new(),
         event_buffer: Vec::new()
     }));
 
