@@ -8,12 +8,6 @@ use std::io::ErrorKind;
 
 #[allow(improper_ctypes)]
 extern "C" {
-    //Windowing
-    pub fn set_show_mouse(show: bool);
-    pub fn get_page_width() -> u32;
-    pub fn get_page_height() -> u32;
-    pub fn create_context(title: *mut i8, width: u32, height: u32);
-    pub fn set_title(title: *mut i8);
     //Sounds
     pub fn load_sound(path: *mut i8) -> u32;
     pub fn play_sound(index: u32, volume: f32);
