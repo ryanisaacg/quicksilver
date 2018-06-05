@@ -12,7 +12,10 @@ use {
     },
     stdweb::web::{
         document,
-        event::{BlurEvent, ConcreteEvent, FocusEvent, IKeyboardEvent, IMouseEvent, KeyDownEvent, KeyUpEvent, MouseButton as WebMouseButton, MouseDownEvent, MouseMoveEvent, MouseUpEvent},
+        event::{BlurEvent, ConcreteEvent, FocusEvent, IKeyboardEvent, 
+            IMouseEvent, KeyDownEvent, KeyUpEvent, 
+            MouseButton as WebMouseButton, MouseDownEvent, MouseMoveEvent,
+            MouseOverEvent, MouseOutEvent, MouseUpEvent},
         IEventTarget, IParentNode,
     }
 };
@@ -124,6 +127,9 @@ fn run_impl<T: State>(window: WindowBuilder) {
 
     handle_event(&document, &app, |mut app, _: BlurEvent| app.event(&Event::Unfocused));
     handle_event(&document, &app, |mut app, _: FocusEvent| app.event(&Event::Focused));
+
+    handle_event(&canvas, &app, |mut app, event: MouseOutEvent| app.event(&Event::MouseExited));
+    handle_event(&canvas, &app, |mut app, event: MouseOverEvent| app.event(&Event::MouseEntered));
 
     handle_event(&canvas, &app, |mut app, event: MouseMoveEvent| {
         let pointer = Vector::new(event.offset_x() as f32, event.offset_y() as f32);
