@@ -13,6 +13,7 @@ use {
         io::{Error as IOError, ErrorKind},
     },
     stdweb::{
+        unstable::TryInto,
         web::TypedArray,
         Value
     }
@@ -71,21 +72,19 @@ impl Future for FileLoader {
 
     #[cfg(target_arch="wasm32")]
     fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
-        let status = js! {
-            return Math.floor(@{&self.xhr}.status / 100);
-        }; 
-        let status = if let Value::Number(value) = status { value } else { unreachable!() };
-        if status == 0 {
-            Ok(Async::NotReady)
-        } else if status == 2 { 
-            let response = js! { 
-                return new Uint8Array(@{&self.xhr}.response);
-            };
-            let response = if let Value::Reference(reference) = response { reference } else { unreachable!() };
-            let array: TypedArray<u8> = response.downcast().unwrap();
-            Ok(Async::Ready(array.to_vec()))
-        } else {
-            Err(IOError::new(ErrorKind::NotFound, Box::new(WasmIOError)).into())
+        let status = js! ( @{&self.xhr}.status );
+        let status: i32 = status.try_into().unwrap();
+        match status / 100 {
+            0 => Ok(Async::NotReady),
+            2 => {
+                let response = js! { 
+                    return new Uint8Array(@{&self.xhr}.response);
+                };
+                let response = if let Value::Reference(reference) = response { reference } else { unreachable!() };
+                let array: TypedArray<u8> = response.downcast().unwrap();
+                Ok(Async::Ready(array.to_vec()))
+            },
+            _ => Err(IOError::new(ErrorKind::NotFound, Box::new(WasmIOError)).into())
         }
     }
 }
