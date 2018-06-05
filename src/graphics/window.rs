@@ -1,9 +1,22 @@
 use ffi::gl;
-#[cfg(not(target_arch="wasm32"))] use glutin;
 use geom::{ Rectangle, Transform, Vector};
-#[cfg(not(target_arch="wasm32"))] use glutin::{EventsLoop, GlContext};
 use graphics::{Backend, BlendMode, Color, Drawable, GpuTriangle, ResizeStrategy, Vertex, View};
 use input::{ButtonState, Event, Gamepad, GamepadProvider, Keyboard, Mouse};
+#[cfg(not(target_arch="wasm32"))]
+use {
+    glutin,
+    glutin::{EventsLoop, GlContext}
+};
+#[cfg(target_arch="wasm32")]
+use stdweb::{
+    Value,
+    unstable::TryInto,
+    web::{
+        html_element::CanvasElement, 
+        IParentNode, document, window
+    }
+};
+
 
 /// The way the images should change when drawn at a scale
 #[repr(u32)]
@@ -161,14 +174,18 @@ impl WindowBuilder {
         let mut actual_height = self.height;
         use ffi::wasm;
         use std::ffi::CString;
-        unsafe { 
-            wasm::set_show_mouse(self.show_cursor);
-            if self.fullscreen {
-                actual_width = wasm::get_page_width();
-                actual_height = wasm::get_page_height();
-            }
-            wasm::create_context(CString::new(self.title).unwrap().into_raw(), actual_width, actual_height);
+        let document = document();
+        let window = window();
+        let canvas: CanvasElement = document.query_selector("#canvas").unwrap().unwrap().try_into().unwrap();
+        document.set_title(self.title);
+        if self.fullscreen {
+            actual_width = window.inner_width() as u32;
+            actual_height = window.inner_height() as u32;
         }
+        //TODO: GL VIEWPORT SIZE
+        canvas.set_width(actual_width);
+        canvas.set_height(actual_height);
+        js! ( @{canvas}.style.cursor = @{self.show_cursor} ? "auto" : "none"; );
         let screen_region = self.resize.resize(Vector::new(self.width, self.height), Vector::new(actual_width, actual_height));
         let view = View::new(Rectangle::newv_sized(screen_region.size()));
         Window {
@@ -329,9 +346,7 @@ impl Window {
     
     #[cfg(target_arch="wasm32")]
     fn set_title_impl(&self, title: &str) {
-        use ffi::wasm;
-        use std::ffi::CString;
-        unsafe { wasm::set_title(CString::new(title).unwrap().into_raw()) };
+        document().set_title(title);
     }
     
     /// Clear the screen to a given color
