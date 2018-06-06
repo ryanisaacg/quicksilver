@@ -1,7 +1,7 @@
 use geom::Vector;
 use graphics::{
     backend::{Backend, BlendMode, ImageScaleStrategy, VERTEX_SIZE},
-    Color, GpuTriangle, Image, PixelFormat, Vertex
+    Color, GpuTriangle, Image, ImageData, PixelFormat, Surface, SurfaceData, Vertex
 };
 use ffi::gl;
 use std::{
@@ -192,6 +192,74 @@ impl Backend for GL3Backend {
             }
             self.indices.clear();
             self.texture = self.null.get_id();
+        }
+    }
+
+    fn create_texture(data: *const c_void, width: u32, height: u32, format: PixelFormat) -> ImageData where Self: Sized {
+        let format = match format {
+            PixelFormat::RGB => gl::RGB as isize,
+            PixelFormat::RGBA => gl::RGBA as isize,
+            PixelFormat::BGR => gl::BGR as isize,
+            PixelFormat::BGRA => gl::BGRA as isize,
+        };
+        unsafe {
+            let id = gl::GenTexture();
+            gl::BindTexture(gl::TEXTURE_2D, id);
+            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_S, gl::CLAMP_TO_EDGE as i32);
+            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_T, gl::CLAMP_TO_EDGE as i32);
+            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::NEAREST as i32);
+            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::NEAREST as i32);
+            gl::TexImage2D(gl::TEXTURE_2D, 0, gl::RGBA as i32, width as i32, 
+                           height as i32, 0, format as u32, gl::UNSIGNED_BYTE, data);
+            gl::GenerateMipmap(gl::TEXTURE_2D);
+            ImageData { id, width, height }
+        }
+    }
+
+    fn destroy_texture(data: &mut ImageData) where Self: Sized {
+        unsafe {
+            gl::DeleteTexture(data.id);
+        }
+    }
+
+    fn create_surface(image: &Image) -> SurfaceData where Self: Sized {
+        let surface = SurfaceData {
+            framebuffer: unsafe { gl::GenFramebuffer() }
+        };
+        unsafe { 
+            gl::BindFramebuffer(gl::FRAMEBUFFER, surface.framebuffer);
+            gl::FramebufferTexture(gl::FRAMEBUFFER, gl::COLOR_ATTACHMENT0, image.get_id(), 0);
+            gl::DrawBuffer(gl::COLOR_ATTACHMENT0);
+        }
+        surface
+    }
+
+    fn bind_surface(surface: &Surface) -> [i32; 4] where Self: Sized {
+        let mut viewport = [0, 0, 0, 0];
+        unsafe {
+            gl::GetViewport((&mut viewport).as_mut_ptr());
+            gl::BindFramebuffer(gl::FRAMEBUFFER, surface.data.framebuffer);
+            gl::Viewport(0, 0, surface.image.source_width() as i32, surface.image.source_height() as i32);
+        }
+        viewport
+    }
+
+    fn unbind_surface(_surface: &Surface, viewport: &[i32]) where Self: Sized {
+        unsafe {
+            gl::BindFramebuffer(gl::FRAMEBUFFER, 0); 
+            gl::Viewport(viewport[0], viewport[1], viewport[2], viewport[3]);
+        }
+    }
+
+    fn destroy_surface(surface: &SurfaceData) where Self: Sized {
+        unsafe { 
+            gl::DeleteFramebuffer(surface.framebuffer);
+        }
+    }
+
+    fn viewport(x: i32, y: i32, width: i32, height: i32) where Self: Sized {
+        unsafe { 
+            gl::Viewport(x, y, width, height); 
         }
     }
 }

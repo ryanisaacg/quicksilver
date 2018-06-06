@@ -28,4 +28,8 @@ pub use self::{
     window::{Window, WindowBuilder}
 };
 #[cfg(feature="fonts")] pub use self::font::{Font, FontLoader};
-pub(crate) use self::backend::{Backend, BackendImpl};
+pub(crate) use self::{
+    backend::{Backend, BackendImpl},
+    image::ImageData,
+    surface::SurfaceData
+};

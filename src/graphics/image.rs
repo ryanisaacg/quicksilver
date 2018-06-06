@@ -3,9 +3,9 @@ extern crate futures;
 extern crate image;
 
 use error::QuicksilverError;
-use ffi::gl;
 use futures::{Async, Future, Poll};
 use geom::{Rectangle, Vector};
+use graphics::{Backend, BackendImpl};
 use std::{
     error::Error,
     fmt,
@@ -22,27 +22,25 @@ use std::path::PathBuf;
 #[derive(Debug, Eq, PartialEq, Hash)]
 pub enum PixelFormat {
     /// Red, Green, and Blue
-    RGB = gl::RGB as isize,
+    RGB,
     /// Red, Green, Blue, and Alpha
-    RGBA = gl::RGBA as isize,
+    RGBA,
     /// Blue, Green, and Red
-    BGR = gl::BGR as isize,
+    BGR,
     /// Blue, Green, Red, and Alpha
-    BGRA = gl::BGRA as isize,
+    BGRA,
 }
 
 #[derive(Debug)]
-struct ImageData {
-    id: u32,
-    width: u32,
-    height: u32,
+pub(crate) struct ImageData {
+    pub(crate) id: u32,
+    pub(crate) width: u32,
+    pub(crate) height: u32,
 }
 
 impl Drop for ImageData {
     fn drop(&mut self) {
-        unsafe {
-            gl::DeleteTexture(self.id);
-        }
+        BackendImpl::destroy_texture(self);
     }
 }
 
@@ -54,7 +52,7 @@ pub struct Image {
 }
 
 impl Image {
-    fn new(data: ImageData) -> Image {
+    pub(crate) fn new(data: ImageData) -> Image {
         let region = Rectangle::new_sized(data.width, data.height);
         Image {
             source: Rc::new(data),
@@ -84,18 +82,7 @@ impl Image {
     }
 
     fn from_ptr(data: *const c_void, width: u32, height: u32, format: PixelFormat) -> Image {
-        unsafe {
-            let id = gl::GenTexture();
-            gl::BindTexture(gl::TEXTURE_2D, id);
-            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_S, gl::CLAMP_TO_EDGE as i32);
-            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_T, gl::CLAMP_TO_EDGE as i32);
-            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::NEAREST as i32);
-            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::NEAREST as i32);
-            gl::TexImage2D(gl::TEXTURE_2D, 0, gl::RGBA as i32, width as i32, 
-                           height as i32, 0, format as u32, gl::UNSIGNED_BYTE, data);
-            gl::GenerateMipmap(gl::TEXTURE_2D);
-            Image::new(ImageData { id, width, height })
-        }
+        Image::new(BackendImpl::create_texture(data, width, height, format))
     }
 
     pub(crate) fn new_null(width: u32, height: u32, format: PixelFormat) -> Image {
