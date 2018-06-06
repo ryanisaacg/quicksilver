@@ -2,18 +2,8 @@ use ffi::gl;
 #[cfg(not(target_arch="wasm32"))] use glutin;
 use geom::{ Rectangle, Transform, Vector};
 #[cfg(not(target_arch="wasm32"))] use glutin::{EventsLoop, GlContext};
-use graphics::{Backend, BlendMode, Color, Drawable, GpuTriangle, ResizeStrategy, Vertex, View};
+use graphics::{Backend, BackendImpl, BlendMode, Color, Drawable, GpuTriangle, ImageScaleStrategy, ResizeStrategy, Vertex, View};
 use input::{ButtonState, Event, Gamepad, GamepadProvider, Keyboard, Mouse};
-
-/// The way the images should change when drawn at a scale
-#[repr(u32)]
-#[derive(Debug)]
-pub enum ImageScaleStrategy {
-    /// The image should attempt to preserve each pixel as accurately as possible
-    Pixelate = gl::NEAREST,
-    /// The image should attempt to preserve the overall picture by blurring
-    Blur = gl::LINEAR
-}
 
 ///A builder that constructs a Window
 #[derive(Debug)]
@@ -149,7 +139,7 @@ impl WindowBuilder {
             keyboard: Keyboard { keys: [ButtonState::NotPressed; 256] },
             mouse: Mouse { pos: Vector::zero(), buttons: [ButtonState::NotPressed; 3], wheel: Vector::zero() },
             view,
-            backend: Backend::new(self.scale as u32),
+            backend: BackendImpl::new(self.scale),
             vertices: Vec::new(),
             triangles: Vec::new()
         }, events)
@@ -181,7 +171,7 @@ impl WindowBuilder {
             keyboard: Keyboard { keys: [ButtonState::NotPressed; 256] },
             mouse: Mouse { pos: Vector::zero(), buttons: [ButtonState::NotPressed; 3], wheel: Vector::zero() },
             view,
-            backend: Backend::new(self.scale as u32),
+            backend: BackendImpl::new(self.scale),
             vertices: Vec::new(),
             triangles: Vec::new()
         }
@@ -201,7 +191,7 @@ pub struct Window {
     keyboard: Keyboard,
     mouse: Mouse,
     view: View,
-    pub(crate) backend: Backend,
+    pub(crate) backend: BackendImpl,
     vertices: Vec<Vertex>,
     triangles: Vec<GpuTriangle>
 }
