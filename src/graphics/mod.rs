@@ -17,7 +17,7 @@ mod window;
 pub use self::{
     animation::Animation,
     atlas::{Atlas, AtlasError, AtlasItem, AtlasLoader},
-    backend::BlendMode,
+    backend::{BlendMode, ImageScaleStrategy},
     color::Color,
     drawable::{Sprite, Drawable},
     image::{Image, ImageError, ImageLoader, PixelFormat},
@@ -25,7 +25,7 @@ pub use self::{
     surface::Surface,
     vertex::{Vertex, GpuTriangle},
     view::View,
-    window::{ImageScaleStrategy, Window, WindowBuilder}
+    window::{Window, WindowBuilder}
 };
 #[cfg(feature="fonts")] pub use self::font::{Font, FontLoader};
-pub(crate) use self::backend::Backend;
+pub(crate) use self::backend::{Backend, BackendImpl};
