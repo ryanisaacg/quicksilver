@@ -1,17 +1,6 @@
 use geom::{Transform, Vector};
-use graphics::{Backend, BackendImpl, Image, PixelFormat, Window, View};
+use graphics::{Backend, BackendImpl, Image, PixelFormat, SurfaceData, Window, View};
 use std::rc::Rc;
-
-#[derive(Debug)]
-pub struct SurfaceData {
-    pub framebuffer: u32
-}
-
-impl Drop for SurfaceData {
-    fn drop(&mut self) {
-        BackendImpl::destroy_surface(self);
-    }
-}
 
 #[derive(Clone, Debug)]
 ///A possible render target that can be drawn to the screen

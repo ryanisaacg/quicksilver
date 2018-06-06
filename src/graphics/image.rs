@@ -5,12 +5,11 @@ extern crate image;
 use error::QuicksilverError;
 use futures::{Async, Future, Poll};
 use geom::{Rectangle, Vector};
-use graphics::{Backend, BackendImpl};
+use graphics::{Backend, BackendImpl, ImageData};
 use std::{
     error::Error,
     fmt,
     io::Error as IOError,
-    ops::Drop,
     os::raw::c_void,
     path::Path,
     rc::Rc
@@ -29,19 +28,6 @@ pub enum PixelFormat {
     BGR,
     /// Blue, Green, Red, and Alpha
     BGRA,
-}
-
-#[derive(Debug)]
-pub(crate) struct ImageData {
-    pub(crate) id: u32,
-    pub(crate) width: u32,
-    pub(crate) height: u32,
-}
-
-impl Drop for ImageData {
-    fn drop(&mut self) {
-        BackendImpl::destroy_texture(self);
-    }
 }
 
 #[derive(Clone, Debug)]

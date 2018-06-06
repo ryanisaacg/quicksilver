@@ -1,4 +1,4 @@
-use graphics::{Color, GpuTriangle, Image, ImageData, PixelFormat, Surface, SurfaceData, Vertex};
+use graphics::{Color, GpuTriangle, Image, PixelFormat, Surface, Vertex};
 use std::os::raw::c_void;
 
 pub(crate) trait Backend {
@@ -20,12 +20,19 @@ pub(crate) trait Backend {
 const VERTEX_SIZE: usize = 9; // the number of floats in a vertex
 
 mod blend_mode;
+mod image_data;
+mod surface_data;
+
+pub use self::blend_mode::BlendMode;
+pub use self::image_data::ImageData;
+pub use self::surface_data::SurfaceData;
+
+// Backends
 #[cfg(not(target_arch="wasm32"))]
 mod gl3;
 #[cfg(target_arch="wasm32")]
 mod webgl;
 
-pub use self::blend_mode::BlendMode;
 #[cfg(not(target_arch="wasm32"))]
 pub use self::gl3::GL3Backend;
 #[cfg(target_arch="wasm32")]
