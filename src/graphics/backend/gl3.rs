@@ -8,8 +8,7 @@ use std::{
     ffi::CString,
     mem::size_of,
     os::raw::c_void,
-    ptr::null,
-    str::from_utf8
+    ptr::null
 };
 
 pub struct GL3Backend {
@@ -61,7 +60,7 @@ impl Backend for GL3Backend {
             ImageScaleStrategy::Pixelate => gl::NEAREST,
             ImageScaleStrategy::Blur => gl::LINEAR
         };
-        let (vao, vbo, ebo) = unsafe {
+        unsafe {
             let vao = gl::GenVertexArray();
             gl::BindVertexArray(vao);
             let vbo = gl::GenBuffer();
@@ -70,28 +69,39 @@ impl Backend for GL3Backend {
             gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, ebo);
             gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
             gl::Enable( gl::BLEND );
-            (vao, vbo, ebo)
-        };
-        let null = Image::new_null(1, 1, PixelFormat::RGBA);
-        let texture = null.get_id();
-        let mut backend = GL3Backend {
-            texture,
-            vertices: Vec::with_capacity(1024),
-            indices: Vec::with_capacity(1024), 
-            null,
-            vertex_length: 0, 
-            index_length: 0, 
-            shader: 0, 
-            fragment: 0, 
-            vertex: 0, 
-            vbo, 
-            ebo, 
-            vao, 
-            texture_location: 0,
-            texture_mode
-        };
-        backend.set_shader(DEFAULT_VERTEX_SHADER, DEFAULT_FRAGMENT_SHADER);
-        backend
+            let null = Image::new_null(1, 1, PixelFormat::RGBA);
+            let texture = null.get_id();
+            let vertex = gl::CreateShader(gl::VERTEX_SHADER);
+            let vertex_text = CString::new(DEFAULT_VERTEX_SHADER).unwrap().into_raw();
+            gl::ShaderSource(vertex, vertex_text);
+            CString::from_raw(vertex_text);
+            gl::CompileShader(vertex);
+            let fragment = gl::CreateShader(gl::FRAGMENT_SHADER);
+            let fragment_text = CString::new(DEFAULT_FRAGMENT_SHADER).unwrap().into_raw();
+            gl::ShaderSource(fragment, fragment_text);
+            CString::from_raw(fragment_text);
+            gl::CompileShader(fragment);
+            let shader = gl::CreateProgram();
+            gl::AttachShader(shader, vertex);
+            gl::AttachShader(shader, fragment);
+            let raw = CString::new("out_color").unwrap().into_raw();
+            gl::BindFragDataLocation(shader, 0, raw as *mut i8);
+            CString::from_raw(raw);
+            gl::LinkProgram(shader);
+            gl::UseProgram(shader);
+            GL3Backend {
+                texture,
+                vertices: Vec::with_capacity(1024),
+                indices: Vec::with_capacity(1024), 
+                null,
+                vertex_length: 0, 
+                index_length: 0, 
+                shader, fragment, vertex, 
+                vbo, ebo, vao, 
+                texture_location: 0,
+                texture_mode
+            }
+        }
     }
     
     fn clear(&mut self, col: Color) {
@@ -117,7 +127,18 @@ impl Backend for GL3Backend {
 
     fn draw(&mut self, vertices: &[Vertex], triangles: &[GpuTriangle]) {
         // Turn the provided vertex data into stored vertex data
-        vertices.iter().for_each(|vertex| self.add_vertex(vertex));
+        vertices.iter().for_each(|vertex| {
+            self.vertices.push(vertex.pos.x);
+            self.vertices.push(vertex.pos.y);
+            let tex_pos = vertex.tex_pos.unwrap_or(Vector::zero());
+            self.vertices.push(tex_pos.x);
+            self.vertices.push(tex_pos.y);
+            self.vertices.push(vertex.col.r);
+            self.vertices.push(vertex.col.g);
+            self.vertices.push(vertex.col.b);
+            self.vertices.push(vertex.col.a);
+            self.vertices.push(if vertex.tex_pos.is_some() { 1f32 } else { 0f32 }); 
+        });
         let vertex_length = size_of::<f32>() * self.vertices.len();
         // If the GPU can't store all of our data, re-create the GPU buffers so they can
         if vertex_length > self.vertex_length {
@@ -160,7 +181,12 @@ impl Backend for GL3Backend {
         // Scan through the triangles, adding the indices to the index buffer (every time the
         // texture switches, flush and switch the bound texture)
         for triangle in triangles.iter() {
-            if let Some(ref img) = triangle.image { self.switch_texture(img.get_id()); }
+            if let Some(ref img) = triangle.image {
+                if self.texture != self.null.get_id() && self.texture != img.get_id() {
+                    self.flush();
+                }
+                self.texture = img.get_id();
+            }
             self.indices.extend(triangle.indices.iter());
         }
         // Flush any remaining triangles
@@ -261,77 +287,6 @@ impl Backend for GL3Backend {
         unsafe { 
             gl::Viewport(x, y, width, height); 
         }
-    }
-}
-
-impl GL3Backend {
-    fn set_shader(&mut self, vertex_shader: &str, fragment_shader: &str) {
-        unsafe {
-            if self.shader != 0 {
-                gl::DeleteProgram(self.shader);
-            }
-            if self.vertex != 0 {
-                gl::DeleteShader(self.vertex);
-            }
-            if self.fragment != 0 {
-                gl::DeleteShader(self.fragment);
-            }
-            self.vertex = gl::CreateShader(gl::VERTEX_SHADER);
-            let vertex_text = CString::new(vertex_shader).unwrap().into_raw();
-            gl::ShaderSource(self.vertex, vertex_text);
-            gl::CompileShader(self.vertex);
-            let mut status: i32 = 0;
-            gl::GetShaderiv(self.vertex, gl::COMPILE_STATUS, &mut status as *mut i32);
-            if status as u8 != gl::TRUE {
-                println!("Vertex shader compilation failed.");
-                let buffer: [u8; 512] = [0; 512];
-                let mut length = 0;
-                gl::GetShaderInfoLog(self.vertex, 512, &mut length as *mut i32, buffer.as_ptr() as *mut i8);
-                println!("Error: {}", from_utf8(&buffer).unwrap());
-            }
-            self.fragment = gl::CreateShader(gl::FRAGMENT_SHADER);
-            let fragment_text = CString::new(fragment_shader).unwrap().into_raw();
-            gl::ShaderSource(self.fragment, fragment_text);
-            gl::CompileShader(self.fragment);
-            gl::GetShaderiv(self.fragment, gl::COMPILE_STATUS, &mut status as *mut i32);
-            if status as u8 != gl::TRUE {
-                println!("Fragment shader compilation failed.");
-                let buffer: [u8; 512] = [0; 512];
-                let mut length = 0;
-                gl::GetShaderInfoLog(self.fragment, 512, &mut length as *mut i32, buffer.as_ptr() as *mut i8);
-                println!("Error: {}", from_utf8(&buffer).unwrap());
-            }
-            self.shader = gl::CreateProgram();
-            gl::AttachShader(self.shader, self.vertex);
-            gl::AttachShader(self.shader, self.fragment);
-            let raw = CString::new("out_color").unwrap().into_raw();
-            gl::BindFragDataLocation(self.shader, 0, raw as *mut i8);
-            CString::from_raw(raw);
-            gl::LinkProgram(self.shader);
-            gl::UseProgram(self.shader);
-            CString::from_raw(vertex_text);
-            CString::from_raw(fragment_text);
-        }
-    }
-
-    fn switch_texture(&mut self, texture: u32) {
-        if self.texture != self.null.get_id() && self.texture != texture {
-            self.flush();
-        }
-        self.texture = texture;
-    }
-
-    fn add_vertex(&mut self, vertex: &Vertex) {
-        self.vertices.push(vertex.pos.x);
-        self.vertices.push(vertex.pos.y);
-        let tex_pos = vertex.tex_pos.unwrap_or(Vector::zero());
-        self.vertices.push(tex_pos.x);
-        self.vertices.push(tex_pos.y);
-        self.vertices.push(vertex.col.r);
-        self.vertices.push(vertex.col.g);
-        self.vertices.push(vertex.col.b);
-        self.vertices.push(vertex.col.a);
-        self.vertices.push(if vertex.tex_pos.is_some() { 1f32 } else { 0f32 });
     }
 }
 
