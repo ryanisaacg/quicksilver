@@ -30,7 +30,7 @@ gl = "0.10"
 rand = "0.5"
 serde = "1.0"
 serde_derive = "1.0"
-alga = { version = "0.5", optional = true }
+alga = { version = "0.6", optional = true }
 nalgebra = { version = "0.14", optional = true }
 ncollide2d = { version = "0.15", optional = true }
 rusttype = { version = "0.6", optional = true }
