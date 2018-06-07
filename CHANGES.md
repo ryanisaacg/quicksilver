@@ -4,6 +4,14 @@
 
 - Renamed type `Draw` to `Sprite` (and updated the readme accordingly)
 - Renamed type `QuicksilverError` to `Error`
+- Dependencies
+    - Versions
+        - alga: ``0.5 -> 0.6``
+        - nalgebra: ``0.14 -> 0.15.1``
+        - ncollide2d ``0.15 -> 0.16.0``
+    - Highlights
+        - sebcrozet added official wasm32 support for nalgebra
+        - added deps.rs badge to readme for a visual indicator
 
 ## v0.2.1
 
