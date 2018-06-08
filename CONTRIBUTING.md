@@ -25,7 +25,7 @@ Also, there's no guarantee anyone else will be up to working on your feature req
 
 ## PRs
 
-The first rule of PRs to Quicksilver to generally try to make only a few changes in a single PR.
+The first rule of PRs to Quicksilver is to generally try to make only a few changes in a single PR.
 This way each PR maps to about one commit message, which in turn maps to one set of atomic changes to the codebase.
 (There are exceptions: if you are making a PR to replace a rendering backend, there is going to be a large diff.)
 
