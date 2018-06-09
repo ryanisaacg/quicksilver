@@ -56,10 +56,3 @@ impl Index<MouseButton> for Mouse {
         &self.buttons[index as usize]
     }
 }
-
-#[cfg(target_arch="wasm32")]
-pub const MOUSE_BUTTON_LIST: &[MouseButton] = &[
-    MouseButton::Left,
-    MouseButton::Middle,
-    MouseButton::Right
-];

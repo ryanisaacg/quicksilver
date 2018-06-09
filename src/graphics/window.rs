@@ -10,8 +10,7 @@ use {
 };
 #[cfg(target_arch="wasm32")]
 use stdweb::{
-    Value,
-    unstable::{TryFrom, TryInto},
+    unstable::TryInto,
     web::{
         html_element::CanvasElement, 
         IParentNode, document, window

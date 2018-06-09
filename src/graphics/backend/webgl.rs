@@ -22,7 +22,6 @@ use webgl_stdweb::{
     WebGLProgram,
     WebGL2RenderingContext as gl,
     WebGLShader,
-    WebGLTexture,
     WebGLUniformLocation
 };
 

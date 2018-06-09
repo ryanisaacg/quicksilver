@@ -221,8 +221,7 @@ impl Index<GamepadButton> for Gamepad {
     }
 }
 
-#[doc(hidden)]
-pub const GAMEPAD_BUTTON_LIST: &[GamepadButton] = &[
+const GAMEPAD_BUTTON_LIST: &[GamepadButton] = &[
     GamepadButton::FaceDown,
     GamepadButton::FaceRight,
     GamepadButton::FaceUp,
@@ -242,7 +241,6 @@ pub const GAMEPAD_BUTTON_LIST: &[GamepadButton] = &[
     GamepadButton::DpadRight,
 ];
 
-#[doc(hidden)]
 #[cfg(all(not(any(target_arch="wasm32", target_os="macos")), feature = "gamepads"))]
 const GILRS_GAMEPAD_LIST: &[gilrs::Button] = &[
     Button::South,
@@ -264,8 +262,7 @@ const GILRS_GAMEPAD_LIST: &[gilrs::Button] = &[
     Button::DPadRight,
 ];
 
-#[doc(hidden)]
-pub const GAMEPAD_AXIS_LIST: &[GamepadAxis] = &[
+const GAMEPAD_AXIS_LIST: &[GamepadAxis] = &[
     GamepadAxis::LeftStickX,
     GamepadAxis::LeftStickY,
     GamepadAxis::RightStickX,
