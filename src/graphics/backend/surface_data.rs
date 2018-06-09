@@ -7,12 +7,12 @@ pub struct SurfaceData {
 }
 
 #[cfg(target_arch="wasm32")]
-use webgl_stdweb::WebGLFrambuffer;
+use webgl_stdweb::WebGLFramebuffer;
 
 #[derive(Debug)]
 #[cfg(target_arch="wasm32")]
 pub struct SurfaceData {
-    pub framebuffer: WebGLFrambuffer
+    pub framebuffer: WebGLFramebuffer
 }
 
 

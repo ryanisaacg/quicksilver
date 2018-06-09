@@ -224,9 +224,7 @@ impl Backend for GL3Backend {
         let data = if data.len() == 0 { null() } else { data.as_ptr() as *const c_void };
         let format = match format {
             PixelFormat::RGB => gl::RGB as isize,
-            PixelFormat::RGBA => gl::RGBA as isize,
-            PixelFormat::BGR => gl::BGR as isize,
-            PixelFormat::BGRA => gl::BGRA as isize,
+            PixelFormat::RGBA => gl::RGBA as isize
         };
         unsafe {
             let id = gl::GenTexture();

@@ -1,4 +1,3 @@
-#[cfg(not(target_arch="wasm32"))]
 extern crate image;
 #[cfg(feature="serde_json")] 
 extern crate serde_json;

@@ -1,5 +1,4 @@
 extern crate futures;
-#[cfg(not(target_arch="wasm32"))]
 extern crate image;
 
 use error::QuicksilverError;
@@ -21,11 +20,7 @@ pub enum PixelFormat {
     /// Red, Green, and Blue
     RGB,
     /// Red, Green, Blue, and Alpha
-    RGBA,
-    /// Blue, Green, and Red
-    BGR,
-    /// Blue, Green, Red, and Alpha
-    BGRA,
+    RGBA
 }
 
 #[derive(Clone, Debug)]

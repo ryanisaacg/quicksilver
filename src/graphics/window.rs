@@ -11,7 +11,7 @@ use {
 #[cfg(target_arch="wasm32")]
 use stdweb::{
     Value,
-    unstable::TryInto,
+    unstable::{TryFrom, TryInto},
     web::{
         html_element::CanvasElement, 
         IParentNode, document, window
@@ -163,8 +163,6 @@ impl WindowBuilder {
     pub(crate) fn build(self) -> Window {
         let mut actual_width = self.width;
         let mut actual_height = self.height;
-        use ffi::wasm;
-        use std::ffi::CString;
         let document = document();
         let window = window();
         let canvas: CanvasElement = document.query_selector("#canvas").unwrap().unwrap().try_into().unwrap();
