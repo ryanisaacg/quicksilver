@@ -3,6 +3,7 @@ extern crate futures;
 extern crate image;
 
 use error::QuicksilverError;
+use file::FileLoader;
 use futures::{Async, Future, Poll};
 use geom::{Rectangle, Vector};
 use graphics::{Backend, BackendImpl, ImageData};
@@ -10,12 +11,9 @@ use std::{
     error::Error,
     fmt,
     io::Error as IOError,
-    os::raw::c_void,
     path::Path,
     rc::Rc
 };
-#[cfg(not(target_arch="wasm32"))]
-use std::path::PathBuf;
 
 ///Pixel formats for use with loading raw images
 #[derive(Debug, Eq, PartialEq, Hash)]
@@ -37,6 +35,26 @@ pub struct Image {
     region: Rectangle,
 }
 
+/// A future for loading images
+pub struct ImageLoader(FileLoader);
+
+impl Future for ImageLoader {
+    type Item = Image;
+    type Error = QuicksilverError;
+    
+    fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
+        Ok(match self.0.poll()? {
+            Async::Ready(data) => Async::Ready({
+                let img = image::load_from_memory(data.as_slice())?.to_rgba();
+                let width = img.width();
+                let height = img.height(); 
+                Image::from_raw(img.into_raw().as_slice(), width, height, PixelFormat::RGBA)
+            }),
+            Async::NotReady => Async::NotReady
+        })
+    }
+}
+
 impl Image {
     pub(crate) fn new(data: ImageData) -> Image {
         let region = Rectangle::new_sized(data.width, data.height);
@@ -48,37 +66,20 @@ impl Image {
    
     /// Start loading a texture from a given path
     pub fn load<P: AsRef<Path>>(path: P) -> ImageLoader {
-        Image::load_impl(path)
-    }
-    
-    #[cfg(target_arch="wasm32")]
-    fn load_impl<P: AsRef<Path>>(path: P) -> ImageLoader {
-        use std::ffi::CString;
-        use ffi::wasm;
-        ImageLoader {
-            id: unsafe { wasm::load_image(CString::new(path.as_ref().to_str().unwrap()).unwrap().into_raw()) }
-        }
-    }
-    
-    #[cfg(not(target_arch="wasm32"))]
-    fn load_impl<P: AsRef<Path>>(path: P) -> ImageLoader {
-        ImageLoader { 
-            path: PathBuf::from(path.as_ref())
-        }
-    }
-
-    fn from_ptr(data: *const c_void, width: u32, height: u32, format: PixelFormat) -> Image {
-        Image::new(BackendImpl::create_texture(data, width, height, format))
+        ImageLoader(FileLoader::load(path))
     }
 
     pub(crate) fn new_null(width: u32, height: u32, format: PixelFormat) -> Image {
-        use std::ptr::null;
-        Image::from_ptr(null(), width, height, format)
+        Image::new(BackendImpl::create_texture(&[], width, height, format))
     }
 
     ///Load an image from raw bytes
     pub fn from_raw(data: &[u8], width: u32, height: u32, format: PixelFormat) -> Image {
-        Image::from_ptr(data.as_ptr() as *const c_void, width, height, format)
+        Image::new(BackendImpl::create_texture(data, width, height, format))
+    }
+
+    pub(crate) fn data(&self) -> &ImageData {
+        &self.source
     }
     
     pub(crate) fn get_id(&self) -> u32 {
@@ -116,40 +117,6 @@ impl Image {
     }
 }
 
-/// A future for loading images
-pub struct ImageLoader { 
-    #[cfg(not(target_arch="wasm32"))]
-    path: PathBuf,
-    #[cfg(target_arch="wasm32")]
-    id: u32
-}
-
-impl Future for ImageLoader {
-    type Item = Image;
-    type Error = QuicksilverError;
-    
-    #[cfg(not(target_arch="wasm32"))]
-    fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
-        let img = image::open(&self.path)?.to_rgba();
-        let width = img.width();
-        let height = img.height(); 
-        Ok(Async::Ready(Image::from_raw(img.into_raw().as_slice(), width, height, PixelFormat::RGBA)))
-    }
-
-    #[cfg(target_arch="wasm32")]
-    fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
-        use ffi::wasm;
-        Ok(match wasm::asset_status(self.id)? {
-            true => Async::Ready(Image::new(ImageData {
-                    id: unsafe { wasm::get_image_id(self.id) },
-                    width: unsafe { wasm::get_image_width(self.id) },
-                    height: unsafe { wasm::get_image_height(self.id) }
-                })),
-            false => Async::NotReady,
-        })
-    }
-}
-
 #[derive(Debug)]
 ///An error generated while loading an image
 pub enum ImageError {
@@ -177,7 +144,6 @@ impl From<IOError> for ImageError {
 }
 
 #[doc(hidden)]
-#[cfg(not(target_arch="wasm32"))]
 impl From<image::ImageError> for ImageError {
     fn from(img: image::ImageError) -> ImageError {
         match img {

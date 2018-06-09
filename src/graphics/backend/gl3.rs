@@ -3,7 +3,6 @@ use graphics::{
     backend::{Backend, BlendMode, ImageScaleStrategy, VERTEX_SIZE},
     Color, GpuTriangle, Image, ImageData, PixelFormat, Surface, SurfaceData, Vertex
 };
-use ffi::gl;
 use std::{
     ffi::CString,
     mem::size_of,
@@ -15,7 +14,7 @@ pub struct GL3Backend {
     texture: u32,
     vertices: Vec<f32>,
     indices: Vec<u32>, 
-    null: Image, 
+    null: Image,
     vertex_length: usize, 
     index_length: usize, 
     shader: u32, 
@@ -221,7 +220,8 @@ impl Backend for GL3Backend {
         }
     }
 
-    fn create_texture(data: *const c_void, width: u32, height: u32, format: PixelFormat) -> ImageData where Self: Sized {
+    fn create_texture(data: &[u8], width: u32, height: u32, format: PixelFormat) -> ImageData where Self: Sized {
+        let data = if data.len() == 0 { null() } else { data.as_ptr() as *const c_void };
         let format = match format {
             PixelFormat::RGB => gl::RGB as isize,
             PixelFormat::RGBA => gl::RGBA as isize,
@@ -303,3 +303,62 @@ impl Drop for GL3Backend {
     } 
 }
 
+#[allow(non_snake_case)]
+mod gl {
+    extern crate gl;
+
+    pub use gl::*;
+
+    pub unsafe fn GetViewport(target: *mut i32) {
+        gl::GetIntegerv(gl::VIEWPORT, target);
+    }
+
+    pub unsafe fn DrawBuffer(buffer: u32) {
+        gl::DrawBuffers(1, &buffer as *const u32);
+    }
+
+    pub unsafe fn DeleteBuffer(buffer: u32) {
+        gl::DeleteBuffers(1, &buffer as *const u32);
+    }
+
+    pub unsafe fn DeleteFramebuffer(id: u32) {
+        gl::DeleteFramebuffers(1, &id as *const u32);
+    }
+
+    pub unsafe fn DeleteTexture(id: u32) {
+        gl::DeleteTextures(1, &id as *const u32);
+    }
+
+    pub unsafe fn DeleteVertexArray(array: u32) {
+        gl::DeleteVertexArrays(1, &array as *const u32);
+    }
+
+    pub unsafe fn GenBuffer() -> u32 {
+        let mut buffer = 0;
+        gl::GenBuffers(1, &mut buffer as *mut u32);
+        buffer
+    }
+
+    pub unsafe fn GenFramebuffer() -> u32 {
+        let mut buffer = 0;
+        gl::GenFramebuffers(1, &mut buffer as *mut u32);
+        buffer
+    }
+
+    pub unsafe fn GenTexture() -> u32 {
+        let mut texture = 0;
+        gl::GenTextures(1, &mut texture as *mut u32);
+        texture
+    }
+
+    pub unsafe fn GenVertexArray() -> u32 {
+        let mut array = 0;
+        gl::GenVertexArrays(1, &mut array as *mut u32);
+        array
+    }
+
+    pub unsafe fn ShaderSource(shader: u32, string: *const i8) {
+        use std::ptr::null;
+        gl::ShaderSource(shader, 1, &(string) as *const *const i8, null());
+    }
+}

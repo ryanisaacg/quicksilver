@@ -102,7 +102,6 @@ impl From<SerdeError> for QuicksilverError {
 }
 
 #[doc(hidden)]
-#[cfg(not(target_arch="wasm32"))]
 impl From<image::ImageError> for QuicksilverError {
     fn from(img: image::ImageError) -> QuicksilverError {
         let image_error: ImageError = img.into();

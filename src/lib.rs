@@ -57,19 +57,22 @@
 #![deny(missing_docs)]
 
 extern crate futures;
+extern crate image;
 extern crate rand;
 extern crate serde;
 #[macro_use]
 extern crate serde_derive;
 
 #[cfg(not(target_arch="wasm32"))] 
-extern crate glutin;
+extern crate gl;
 #[cfg(not(target_arch="wasm32"))] 
-extern crate image;
+extern crate glutin;
 
 #[cfg(target_arch="wasm32")]
 #[macro_use]
 extern crate stdweb;
+#[cfg(target_arch="wasm32")]
+extern crate webgl_stdweb;
 
 #[cfg(feature="alga")]
 extern crate alga;

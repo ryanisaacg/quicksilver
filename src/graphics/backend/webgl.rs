@@ -3,7 +3,6 @@ use graphics::{
     backend::{Backend, BlendMode, ImageScaleStrategy, VERTEX_SIZE},
     Color, GpuTriangle, Image, PixelFormat, Vertex
 };
-use ffi::gl;
 use std::{
     ffi::CString,
     mem::size_of,
@@ -11,22 +10,30 @@ use std::{
     ptr::null,
     str::from_utf8
 };
+use webgl_stdweb::{
+    WebGLBuffer,
+    WebGLProgram,
+    WebGL2RenderingContext,
+    WebGLShader,
+    WebGLTexture,
+    WebGLUniformLocation
+};
+
 
 pub struct WebGLBackend {
-    texture: u32,
+    texture: Image,
     vertices: Vec<f32>,
     indices: Vec<u32>, 
     null: Image, 
     vertex_length: usize, 
     index_length: usize, 
-    shader: u32, 
-    fragment: u32, 
-    vertex: u32, 
-    vbo: u32, 
-    ebo: u32, 
-    vao: u32, 
-    texture_location: i32,
-    texture_mode: u32
+    shader: WebGLProgram, 
+    fragment: WebGLShader, 
+    vertex: WebGLShader, 
+    vbo: WebGLBuffer, 
+    ebo: WebGLBuffer, 
+    texture_location: WebGLUniformLocation,
+    texture_mode: u32,
 }
 
 const DEFAULT_VERTEX_SHADER: &str = r#"attribute vec2 position;
@@ -52,106 +59,128 @@ void main() {
     gl_FragColor = Color * tex_color;
 }"#;
 
+fn context() -> WebGL2RenderingContext {
+    js! ( render_context ).try_into().into();
+}
+
 impl Backend for WebGLBackend {
     fn new(texture_mode: ImageScaleStrategy) -> WebGLBackend {
+        let canvas: CanvasElement = document().query_selector("#canvas").unwrap().unwrap().try_into().unwrap();
+        let gl_ctx: WebGL2RenderingContext = canvas.get_context().unwrap();
+        js! { 
+            render_context = @{&gl_ctx};
+            render_context.texture_count = 0;
+        }
         let texture_mode = match texture_mode {
-            ImageScaleStrategy::Pixelate => gl::NEAREST,
-            ImageScaleStrategy::Blur => gl::LINEAR
+            ImageScaleStrategy::Pixelate => WebGLRenderingContext::NEAREST,
+            ImageScaleStrategy::Blur => WebGLRenderingContext::LINEAR
         };
-        let (vao, vbo, ebo) = unsafe {
-            let vao = gl::GenVertexArray();
-            gl::BindVertexArray(vao);
-            let vbo = gl::GenBuffer();
-            let ebo = gl::GenBuffer();
-            gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
-            gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, ebo);
-            gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
-            gl::Enable( gl::BLEND );
-            (vao, vbo, ebo)
-        };
+        let vbo = gl_ctx.create_buffer().unwrap();
+        let ebo = gl_ctx.create_buffer().unwrap();
+        gl_ctx.bind_buffer(WebGLRenderingContext::ARRAY_BUFFER, Some(&vbo));
+        gl_ctx.bind_buffer(WebGLRenderingContext::ELEMENT_ARRAY_BUFFER, Some(&ebo));
+        gl_ctx.blend_func(WebGLRenderingContext::SRC_ALPHA, WebGLRenderingContext::ONE_MINUS_SRC_ALPHA);
+        gl_ctx.enable(WebGLRenderingContext::BLEND);
         let null = Image::new_null(1, 1, PixelFormat::RGBA);
-        let texture = null.get_id();
-        let mut backend = WebGLBackend {
+        let texture = null.clone();
+        let vertex = gl_ctx.create_shader(WebGLRenderingContext::VERTEX_SHADER);
+        gl_ctx.shader_source(vertex, CString::new(DEFAULT_VERTEX_SHADER).unwrap().into_raw());
+        gl_ctx.compile_shader(vertex);
+        let fragment = gl_ctx.create_shader(WebGLRenderingContext::FRAGMENT_SHADER);
+        gl_ctx.shader_source(fragment, CString::new(DEFAULT_FRAGMENT_SHADER).unwrap().into_raw());
+        gl_ctx.compile_shader(fragment);
+        let shader = gl_ctx.create_program();
+        gl_ctx.attach_shader(shader, vertex);
+        gl_ctx.attach_shader(shader, fragment);
+        gl_ctx.link_program(shader);
+        gl_ctx.use_program(shader);
+        WebGLBackend {
             texture,
             vertices: Vec::with_capacity(1024),
             indices: Vec::with_capacity(1024), 
             null,
             vertex_length: 0, 
             index_length: 0, 
-            shader: 0, 
-            fragment: 0, 
-            vertex: 0, 
-            vbo, 
-            ebo, 
-            vao, 
+            shader, fragment, vertex, vbo, ebo, 
             texture_location: 0,
-            texture_mode
-        };
-        backend.set_shader(DEFAULT_VERTEX_SHADER, DEFAULT_FRAGMENT_SHADER);
-        backend
+            texture_mode,
+            texture_count: 1
+        }
     }
     
     fn clear(&mut self, col: Color) {
-        unsafe {
-            gl::ClearColor(col.r, col.g, col.b, col.a);
-            gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
-        }
+        let gl_ctx = context();
+        gl_ctx.clear_color(col.r, col.g, col.b, col.a);
+        gl_ctx.clear(WebGLRenderingContext::COLOR_BUFFER_BIT | WebGLRenderingContext::DEPTH_BUFFER_BIT);
     }
 
     fn set_blend_mode(&mut self, blend: BlendMode) {
-        unsafe { 
-            gl::BlendFunc(gl::ONE, gl::ONE);
-            gl::BlendEquationSeparate(blend as u32, gl::FUNC_ADD);
-        }
+        let gl_ctx = context();
+        gl_ctx.blend_func(WebGLRenderingContext::ONE, WebGLRenderingContext::ONE);
+        gl_ctx.blend_equation_separate(blend as u32, WebGLRenderingContext::FUNC_ADD);
     }
 
     fn reset_blend_mode(&mut self) {
-        unsafe {
-            gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
-            gl::BlendEquationSeparate(gl::FUNC_ADD, gl::FUNC_ADD);
-        }
+        let gl_ctx = context();
+        gl_ctx.blend_func(WebGLRenderingContext::SRC_ALPHA, WebGLRenderingContext::ONE_MINUS_SRC_ALPHA);
+        gl_ctx.blend_equation_separate(WebGLRenderingContext::FUNC_ADD, WebGLRenderingContext::FUNC_ADD);
     }
 
     fn draw(&mut self, vertices: &[Vertex], triangles: &[GpuTriangle]) {
+        let gl_ctx = context();
         // Turn the provided vertex data into stored vertex data
-        vertices.iter().for_each(|vertex| self.add_vertex(vertex));
+        vertices.iter().for_each(|vertex| {
+            self.vertices.push(vertex.pos.x);
+            self.vertices.push(vertex.pos.y);
+            let tex_pos = vertex.tex_pos.unwrap_or(Vector::zero());
+            self.vertices.push(tex_pos.x);
+            self.vertices.push(tex_pos.y);
+            self.vertices.push(vertex.col.r);
+            self.vertices.push(vertex.col.g);
+            self.vertices.push(vertex.col.b);
+            self.vertices.push(vertex.col.a);
+            self.vertices.push(if vertex.tex_pos.is_some() { 1f32 } else { 0f32 });
+        });
         let vertex_length = size_of::<f32>() * self.vertices.len();
         // If the GPU can't store all of our data, re-create the GPU buffers so they can
         if vertex_length > self.vertex_length {
-            unsafe {
-                self.vertex_length = vertex_length * 2;
-                // Create strings for all of the shader attributes
-                let position_string = CString::new("position").unwrap().into_raw();
-                let tex_coord_string = CString::new("tex_coord").unwrap().into_raw();
-                let color_string = CString::new("color").unwrap().into_raw();
-                let tex_string = CString::new("tex").unwrap().into_raw();
-                let use_texture_string = CString::new("uses_texture").unwrap().into_raw();
-                // Create the vertex array
-                gl::BufferData(gl::ARRAY_BUFFER, self.vertex_length as isize, null(), gl::STREAM_DRAW);
-                let stride_distance = (VERTEX_SIZE * size_of::<f32>()) as i32;
-                // Set up the vertex attributes
-                let pos_attrib = gl::GetAttribLocation(self.shader, position_string as *const i8) as u32;
-                gl::EnableVertexAttribArray(pos_attrib);
-                gl::VertexAttribPointer(pos_attrib, 2, gl::FLOAT, gl::FALSE, stride_distance, null());
-                let tex_attrib = gl::GetAttribLocation(self.shader, tex_coord_string as *const i8) as u32;
-                gl::EnableVertexAttribArray(tex_attrib);
-                gl::VertexAttribPointer(tex_attrib, 2, gl::FLOAT, gl::FALSE, stride_distance, (2 * size_of::<f32>()) as *const c_void);
-                let col_attrib = gl::GetAttribLocation(self.shader, color_string as *const i8) as u32;
-                gl::EnableVertexAttribArray(col_attrib);
-                gl::VertexAttribPointer(col_attrib, 4, gl::FLOAT, gl::FALSE, stride_distance, (4 * size_of::<f32>()) as *const c_void);
-                let use_texture_attrib = gl::GetAttribLocation(self.shader, use_texture_string as *const i8) as u32;
-                gl::EnableVertexAttribArray(use_texture_attrib);
-                gl::VertexAttribPointer(use_texture_attrib, 1, gl::FLOAT, gl::FALSE, stride_distance, (8 * size_of::<f32>()) as *const c_void);
-                self.texture_location = gl::GetUniformLocation(self.shader, tex_string as *const i8);
-            }
+            self.vertex_length = vertex_length * 2;
+            // Create strings for all of the shader attributes
+            let position_string = CString::new("position").unwrap().into_raw();
+            let tex_coord_string = CString::new("tex_coord").unwrap().into_raw();
+            let color_string = CString::new("color").unwrap().into_raw();
+            let tex_string = CString::new("tex").unwrap().into_raw();
+            let use_texture_string = CString::new("uses_texture").unwrap().into_raw();
+            // Create the vertex array
+            gl_ctx.buffer_data(WebGLRenderingContext::ARRAY_BUFFER, self.vertex_length as i64, null(), WebGLRenderingContext::STREAM_DRAW);
+            let stride_distance = (VERTEX_SIZE * size_of::<f32>()) as i32;
+            // Set up the vertex attributes
+            let pos_attrib = gl_ctx.get_attrib_location(self.shader, position_string as *const i8) as u32;
+            gl_ctx.enable_vertex_attrib_array(pos_attrib);
+            gl_ctx.vertex_attrib_pointer(pos_attrib, 2, WebGLRenderingContext::FLOAT, WebGLRenderingContext::FALSE, stride_distance, null());
+            let tex_attrib = gl_ctx.get_attrib_location(self.shader, tex_coord_string as *const i8) as u32;
+            gl_ctx.enable_vertex_attrib_array(tex_attrib);
+            gl_ctx.vertex_attrib_pointer(tex_attrib, 2, WebGLRenderingContext::FLOAT, WebGLRenderingContext::FALSE, stride_distance, (2 * size_of::<f32>()) as *const c_void);
+            let col_attrib = gl_ctx.get_attrib_location(self.shader, color_string as *const i8) as u32;
+            gl_ctx.enable_vertex_attrib_array(col_attrib);
+            gl_ctx.vertex_attrib_pointer(col_attrib, 4, WebGLRenderingContext::FLOAT, WebGLRenderingContext::FALSE, stride_distance, (4 * size_of::<f32>()) as *const c_void);
+            let use_texture_attrib = gl_ctx.get_attrib_location(self.shader, use_texture_string as *const i8) as u32;
+            gl_ctx.enable_vertex_attrib_array(use_texture_attrib);
+            gl_ctx.vertex_attrib_pointer(use_texture_attrib, 1, WebGLRenderingContext::FLOAT, WebGLRenderingContext::FALSE, stride_distance, (8 * size_of::<f32>()) as *const c_void);
+            self.texture_location = gl_ctx.get_uniform_location(self.shader, tex_string as *const i8);
         }
         // Upload all of the vertex data
         let vertex_data = self.vertices.as_ptr() as *const c_void;
-        unsafe { gl::BufferSubData(gl::ARRAY_BUFFER, 0, vertex_length as isize, vertex_data) };
+        gl_ctx.buffer_sub_data(WebGLRenderingContext::ARRAY_BUFFER, 0, vertex_length as i64, vertex_data);
         // Scan through the triangles, adding the indices to the index buffer (every time the
         // texture switches, flush and switch the bound texture)
         for triangle in triangles.iter() {
-            if let Some(ref img) = triangle.image { self.switch_texture(img.get_id()); }
+            if let Some(ref img) = triangle.image {
+                if self.texture.get_id() != self.null.get_id() && self.texture.get_id() != img.get_id() {
+                    self.flush();
+                }
+                self.texture = img.clone();
+            }
             self.indices.extend(triangle.indices.iter());
         }
         // Flush any remaining triangles
@@ -160,109 +189,109 @@ impl Backend for WebGLBackend {
     }
 
     fn flush(&mut self) {
+        let gl_ctx = context();
         if self.indices.len() != 0 {
-            unsafe {
-                // Check if the index buffer is big enough and upload the data
-                let index_length = size_of::<u32>() * self.indices.len();
-                let index_data = self.indices.as_ptr() as *const c_void;
-                if index_length > self.index_length {
-                    self.index_length = index_length * 2;
-                    gl::BufferData(gl::ELEMENT_ARRAY_BUFFER, self.index_length as isize, null(), gl::STREAM_DRAW);
-                }
-                gl::BufferSubData(gl::ELEMENT_ARRAY_BUFFER, 0, index_length as isize, index_data);
-                // Upload the texture to the GPU
-                gl::ActiveTexture(gl::TEXTURE0);
-                if self.texture != 0 {
-                    gl::BindTexture(gl::TEXTURE_2D, self.texture);
-                    gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, self.texture_mode as i32);
-                    gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, self.texture_mode as i32);
-                }
-                gl::Uniform1i(self.texture_location, 0);
-                // Draw the triangles
-                gl::DrawElements(gl::TRIANGLES, self.indices.len() as i32, gl::UNSIGNED_INT, null());
+            // Check if the index buffer is big enough and upload the data
+            let index_length = size_of::<u32>() * self.indices.len();
+            let index_data = self.indices.as_ptr() as *const c_void;
+            if index_length > self.index_length {
+                self.index_length = index_length * 2;
+                gl_ctx.buffer_data(WebGLRenderingContext::ELEMENT_ARRAY_BUFFER, self.index_length as i64, WebGLRenderingContext::STREAM_DRAW);
             }
-            self.indices.clear();
-            self.texture = self.null.get_id();
+            gl_ctx.buffer_sub_data(WebGLRenderingContext::ELEMENT_ARRAY_BUFFER, 0, index_length as i64, index_data);
+            // Upload the texture to the GPU
+            gl_ctx.active_texture(WebGLRenderingContext::TEXTURE0);
+            if self.texture.get_id() != 0 {
+                gl_ctx.bind_texture(WebGLRenderingContext::TEXTURE_2D, Some(&self.texture.data().data));
+                gl_ctx.tex_parameteri(WebGLRenderingContext::TEXTURE_2D, WebGLRenderingContext::TEXTURE_MIN_FILTER, self.texture_mode as i32);
+                gl_ctx.tex_parameteri(WebGLRenderingContext::TEXTURE_2D, WebGLRenderingContext::TEXTURE_MAG_FILTER, self.texture_mode as i32);
+            }
+            gl_ctx.uniform1i(Some(&self.texture_location), 0);
+            // Draw the triangles
+            gl_ctx.draw_elements(WebGLRenderingContext::TRIANGLES, self.indices.len() as i32, WebGLRenderingContext::UNSIGNED_INT, 0);
         }
-    }
-}
-
-impl WebGLBackend {
-    fn set_shader(&mut self, vertex_shader: &str, fragment_shader: &str) {
-        unsafe {
-            if self.shader != 0 {
-                gl::DeleteProgram(self.shader);
-            }
-            if self.vertex != 0 {
-                gl::DeleteShader(self.vertex);
-            }
-            if self.fragment != 0 {
-                gl::DeleteShader(self.fragment);
-            }
-            self.vertex = gl::CreateShader(gl::VERTEX_SHADER);
-            let vertex_text = CString::new(vertex_shader).unwrap().into_raw();
-            gl::ShaderSource(self.vertex, vertex_text);
-            gl::CompileShader(self.vertex);
-            let mut status: i32 = 0;
-            gl::GetShaderiv(self.vertex, gl::COMPILE_STATUS, &mut status as *mut i32);
-            if status as u8 != gl::TRUE {
-                println!("Vertex shader compilation failed.");
-                let buffer: [u8; 512] = [0; 512];
-                let mut length = 0;
-                gl::GetShaderInfoLog(self.vertex, 512, &mut length as *mut i32, buffer.as_ptr() as *mut i8);
-                println!("Error: {}", from_utf8(&buffer).unwrap());
-            }
-            self.fragment = gl::CreateShader(gl::FRAGMENT_SHADER);
-            let fragment_text = CString::new(fragment_shader).unwrap().into_raw();
-            gl::ShaderSource(self.fragment, fragment_text);
-            gl::CompileShader(self.fragment);
-            gl::GetShaderiv(self.fragment, gl::COMPILE_STATUS, &mut status as *mut i32);
-            if status as u8 != gl::TRUE {
-                println!("Fragment shader compilation failed.");
-                let buffer: [u8; 512] = [0; 512];
-                let mut length = 0;
-                gl::GetShaderInfoLog(self.fragment, 512, &mut length as *mut i32, buffer.as_ptr() as *mut i8);
-                println!("Error: {}", from_utf8(&buffer).unwrap());
-            }
-            self.shader = gl::CreateProgram();
-            gl::AttachShader(self.shader, self.vertex);
-            gl::AttachShader(self.shader, self.fragment);
-            gl::LinkProgram(self.shader);
-            gl::UseProgram(self.shader);
-        }
+        self.indices.clear();
+        self.texture = self.null.clone();
     }
 
-    fn switch_texture(&mut self, texture: u32) {
-        if self.texture != self.null.get_id() && self.texture != texture {
-            self.flush();
+    fn create_texture(data: &[u8], width: u32, height: u32, format: PixelFormat) -> ImageData where Self: Sized {
+        let gl_ctx = context();
+        let id = js! {
+            var index = render_context.texture_count;
+            render_context.texture_count += 1;
+            return index;
+        };
+        let format = match format {
+            PixelFormat::RGB => WebGLRenderingContext::RGB as i64,
+            PixelFormat::RGBA => WebGLRenderingContext::RGBA as i64,
+            PixelFormat::BGR => WebGLRenderingContext::BGR as i64,
+            PixelFormat::BGRA => WebGLRenderingContext::BGRA as i64,
+        };
+        let data =  gl_ctx.create_texture();
+        gl_ctx.bind_texture(WebGLRenderingContext::TEXTURE_2D, Some(&texture));
+        gl_ctx.tex_parameteri(WebGLRenderingContext::TEXTURE_2D, WebGLRenderingContext::TEXTURE_WRAP_S, WebGLRenderingContext::CLAMP_TO_EDGE as i32);
+        gl_ctx.tex_parameteri(WebGLRenderingContext::TEXTURE_2D, WebGLRenderingContext::TEXTURE_WRAP_T, WebGLRenderingContext::CLAMP_TO_EDGE as i32);
+        gl_ctx.tex_parameteri(WebGLRenderingContext::TEXTURE_2D, WebGLRenderingContext::TEXTURE_MIN_FILTER, WebGLRenderingContext::NEAREST as i32);
+        gl_ctx.tex_parameteri(WebGLRenderingContext::TEXTURE_2D, WebGLRenderingContext::TEXTURE_MAG_FILTER, WebGLRenderingContext::NEAREST as i32);
+        let data = if data.len() == 0 {
+            gl_ctx.tex_image2_d(WebGLRenderingContext::TEXTURE_2D, 0, WebGLRenderingContext::RGBA as i32, width as i32, 
+                        height as i32, 0, format as u32, WebGLRenderingContext::UNSIGNED_BYTE, None);
+        } else {
+            let width = width as i32;
+            let height = height as i32;
+            let format = format as u32;
+            let slice = unsafe { UnsafeTypedArray::new(data) };
+            js! {
+                let data = @{slice};
+                let gl = @{gl_ctx};
+                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, @{width}, @{height}, 0, @{format}, gl.UNSIGNED_BYTE, data);
+            }
         }
-        self.texture = texture;
+        gl_ctx.generate_mipmap(WebGLRenderingContext::TEXTURE_2D);
+        ImageData { id, data, width, height }
     }
 
-    fn add_vertex(&mut self, vertex: &Vertex) {
-        self.vertices.push(vertex.pos.x);
-        self.vertices.push(vertex.pos.y);
-        let tex_pos = vertex.tex_pos.unwrap_or(Vector::zero());
-        self.vertices.push(tex_pos.x);
-        self.vertices.push(tex_pos.y);
-        self.vertices.push(vertex.col.r);
-        self.vertices.push(vertex.col.g);
-        self.vertices.push(vertex.col.b);
-        self.vertices.push(vertex.col.a);
-        self.vertices.push(if vertex.tex_pos.is_some() { 1f32 } else { 0f32 });
+    fn destroy_texture(data: &mut ImageData) where Self: Sized {
+        let gl_ctx = context();
+        gl_ctx.delete_texture(Some(&data.data));
+    }
+
+    fn create_surface(image: &Image) -> SurfaceData where Self: Sized {
+        let gl_ctx = context();
+    }
+    
+    fn bind_surface(surface: &Surface) -> [i32; 4] where Self: Sized {
+        let gl_ctx = context();
+        let mut viewport = [0, 0, 0, 0];
+        gl::GetViewport((&mut viewport).as_mut_ptr());
+        gl::BindFramebuffer(gl::FRAMEBUFFER, surface.data.framebuffer);
+        gl::Viewport(0, 0, surface.image.source_width() as i32, surface.image.source_height() as i32);
+        viewport
+    }
+
+    fn unbind_surface(surface: &Surface, viewport: &[i32]) where Self: Sized {
+        let gl_ctx = context();
+        gl_ctx.bind_framebuffer(WebGLRenderingContext::FRAMEBUFFER, None); 
+        gl_ctx.viewport(viewport[0], viewport[1], viewport[2], viewport[3]);
+    }
+
+    fn destroy_surface(surface: &SurfaceData) where Self: Sized {
+        context().delete_framebuffer(Some(&surface.framebuffer));
+    }
+
+    fn viewport(x: i32, y: i32, width: i32, height: i32) where Self: Sized {
+        context().viewport(x, y, width, height);
     }
 }
 
 impl Drop for WebGLBackend {
     fn drop(&mut self) { 
-        unsafe {
-            gl::DeleteProgram(self.shader);
-            gl::DeleteShader(self.fragment);
-            gl::DeleteShader(self.vertex);
-            gl::DeleteBuffer(self.vbo);
-            gl::DeleteBuffer(self.ebo);
-            gl::DeleteVertexArray(self.vao);
-        }
-    } 
+        let gl_ctx = context();
+        gl_ctx.delete_program(Some(&self.shader));
+        gl_ctx.delete_shader(Some(&self.fragment));
+        gl_ctx.delete_shader(Some(&self.vertex));
+        gl_ctx.delete_buffer(Some(&self.vbo));
+        gl_ctx.delete_buffer(Some(&self.ebo));
+    }
 }
 

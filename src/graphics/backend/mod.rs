@@ -1,5 +1,4 @@
 use graphics::{Color, GpuTriangle, Image, PixelFormat, Surface, Vertex};
-use std::os::raw::c_void;
 
 pub(crate) trait Backend {
     fn new(texture_mode: ImageScaleStrategy) -> Self where Self: Sized;
@@ -8,7 +7,7 @@ pub(crate) trait Backend {
     fn reset_blend_mode(&mut self);
     fn draw(&mut self, vertices: &[Vertex], triangles: &[GpuTriangle]);
     fn flush(&mut self);
-    fn create_texture(data: *const c_void, width: u32, height: u32, format: PixelFormat) -> ImageData where Self: Sized;
+    fn create_texture(data: &[u8], width: u32, height: u32, format: PixelFormat) -> ImageData where Self: Sized;
     fn destroy_texture(data: &mut ImageData) where Self: Sized;
     fn create_surface(image: &Image) -> SurfaceData where Self: Sized;
     fn bind_surface(surface: &Surface) -> [i32; 4] where Self: Sized;

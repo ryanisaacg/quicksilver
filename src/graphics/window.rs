@@ -1,5 +1,6 @@
-use ffi::gl;
 use geom::{ Rectangle, Transform, Vector};
+#[cfg(not(target_arch="wasm32"))]
+use gl;
 use graphics::{Backend, BackendImpl, BlendMode, Color, Drawable, GpuTriangle, ImageScaleStrategy, ResizeStrategy, Vertex, View};
 use input::{ButtonState, Event, Gamepad, GamepadProvider, Keyboard, Mouse};
 #[cfg(not(target_arch="wasm32"))]
