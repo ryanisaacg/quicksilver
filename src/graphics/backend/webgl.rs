@@ -269,8 +269,14 @@ impl Backend for WebGLBackend {
     
     fn bind_surface(surface: &Surface) -> [i32; 4] where Self: Sized {
         let gl_ctx = context();
-        let mut viewport = [0, 0, 0, 0];
-        gl_ctx.get_viewport((&mut viewport).as_mut_ptr());
+        
+        let viewport_data = gl_ctx.get_parameter(gl::VIEWPORT);
+        let viewport = [
+            js! { @{viewport_data}[0] }.try_into().unwrap(),
+            js! { @{viewport_data}[1] }.try_into().unwrap(),
+            js! { @{viewport_data}[2] }.try_into().unwrap(),
+            js! { @{viewport_data}[3] }.try_into().unwrap(),
+        ];
         gl_ctx.bind_framebuffer(gl::FRAMEBUFFER, Some(&surface.data.framebuffer));
         gl_ctx.viewport(0, 0, surface.image.source_width() as i32, surface.image.source_height() as i32);
         viewport
