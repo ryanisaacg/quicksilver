@@ -58,6 +58,7 @@ pub fn run<T: State>(window: WindowBuilder) {
 struct Application<T: State> {
     state: T, 
     window: Window,
+    #[cfg(not(target_arch="wasm32"))]
     event_buffer: Vec<Event>
 }
 
@@ -76,6 +77,7 @@ impl<T: State> Application<T> {
         self.state.event(event, &mut self.window);
     }
 
+    #[cfg(not(target_arch="wasm32"))]
     fn process_events(&mut self) {
         self.window.update_gamepads(&mut self.event_buffer);
         for i in 0..self.event_buffer.len() {
@@ -118,8 +120,7 @@ fn run_impl<T: State>(window: WindowBuilder) {
     let window = window.build();
     let app = Rc::new(RefCell::new(Application { 
         window,
-        state: T::new(),
-        event_buffer: Vec::new()
+        state: T::new()
     }));
 
     let document = document();
@@ -128,8 +129,8 @@ fn run_impl<T: State>(window: WindowBuilder) {
     handle_event(&document, &app, |mut app, _: BlurEvent| app.event(&Event::Unfocused));
     handle_event(&document, &app, |mut app, _: FocusEvent| app.event(&Event::Focused));
 
-    handle_event(&canvas, &app, |mut app, event: MouseOutEvent| app.event(&Event::MouseExited));
-    handle_event(&canvas, &app, |mut app, event: MouseOverEvent| app.event(&Event::MouseEntered));
+    handle_event(&canvas, &app, |mut app, _: MouseOutEvent| app.event(&Event::MouseExited));
+    handle_event(&canvas, &app, |mut app, _: MouseOverEvent| app.event(&Event::MouseEntered));
 
     handle_event(&canvas, &app, |mut app, event: MouseMoveEvent| {
         let pointer = Vector::new(event.offset_x() as f32, event.offset_y() as f32);
