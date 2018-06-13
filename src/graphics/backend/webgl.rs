@@ -38,7 +38,7 @@ pub struct WebGLBackend {
     vertex: WebGLShader, 
     vbo: WebGLBuffer, 
     ebo: WebGLBuffer, 
-    texture_location: WebGLUniformLocation,
+    texture_location: Option<WebGLUniformLocation>,
     texture_mode: u32,
 }
 
@@ -66,7 +66,7 @@ void main() {
 }"#;
 
 fn context() -> gl {
-    js! ( render_context ).try_into().into()
+    js! ( render_context ).try_into().unwrap()
 }
 
 impl Backend for WebGLBackend {
@@ -108,7 +108,7 @@ impl Backend for WebGLBackend {
             vertex_length: 0, 
             index_length: 0, 
             shader, fragment, vertex, vbo, ebo, 
-            texture_location: 0,
+            texture_location: None,
             texture_mode
         }
     }
@@ -166,7 +166,7 @@ impl Backend for WebGLBackend {
             let use_texture_attrib = gl_ctx.get_attrib_location(&self.shader, "tex") as u32;
             gl_ctx.enable_vertex_attrib_array(use_texture_attrib);
             gl_ctx.vertex_attrib_pointer(use_texture_attrib, 1, gl::FLOAT, false, stride_distance, 8 * size_of::<f32>() as i64);
-            self.texture_location = gl_ctx.get_uniform_location(&self.shader, "uses_texture").unwrap();
+            self.texture_location = Some(gl_ctx.get_uniform_location(&self.shader, "uses_texture").unwrap());
         }
         // Upload all of the vertex data
         let vertex_data = self.vertices.as_ptr() as *const c_void;
@@ -205,7 +205,10 @@ impl Backend for WebGLBackend {
                 gl_ctx.tex_parameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, self.texture_mode as i32);
                 gl_ctx.tex_parameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, self.texture_mode as i32);
             }
-            gl_ctx.uniform1i(Some(&self.texture_location), 0);
+            match self.texture_location {
+                Some(ref location) => gl_ctx.uniform1i(Some(location), 0),
+                None => gl_ctx.uniform1i(None, 0)
+            }
             // Draw the triangles
             gl_ctx.draw_elements(gl::TRIANGLES, self.indices.len() as i32, gl::UNSIGNED_INT, 0);
         }
@@ -225,7 +228,7 @@ impl Backend for WebGLBackend {
             PixelFormat::RGBA => gl::RGBA as i64
         };
         let texture = gl_ctx.create_texture().unwrap();
-        gl_ctx.bind_texture(gl::TEXTURE_2D, &texture);
+        gl_ctx.bind_texture(gl::TEXTURE_2D, Some(&texture));
         gl_ctx.tex_parameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_S, gl::CLAMP_TO_EDGE as i32);
         gl_ctx.tex_parameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_T, gl::CLAMP_TO_EDGE as i32);
         gl_ctx.tex_parameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::NEAREST as i32);
