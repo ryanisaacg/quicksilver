@@ -16,11 +16,6 @@ extern "C" {
     pub fn pause_music();
     pub fn get_music_volume() -> f32;
     pub fn set_music_volume(volume: f32);
-    //Images
-    pub fn load_image(name: *mut i8) -> u32; 
-    pub fn get_image_id(index: u32) -> u32;
-    pub fn get_image_width(index: u32) -> u32;
-    pub fn get_image_height(index: u32) -> u32;
     //Asset loading
     fn ffi_asset_status(handle: u32) -> i32;
 }
