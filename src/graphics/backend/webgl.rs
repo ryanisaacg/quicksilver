@@ -3,16 +3,13 @@ use graphics::{
     backend::{Backend, BlendMode, ImageData, ImageScaleStrategy, SurfaceData, VERTEX_SIZE},
     Color, GpuTriangle, Image, PixelFormat, Surface, Vertex
 };
-use std::{
-    mem::size_of,
-    os::raw::c_void,
-    ptr::null,
-};
+use std::mem::size_of;
 use stdweb::{
     web::{
         document,
         html_element::CanvasElement,
-        IParentNode
+        IParentNode,
+        TypedArray
     },
     UnsafeTypedArray,
     unstable::{TryInto}
@@ -151,7 +148,7 @@ impl Backend for WebGLBackend {
         if vertex_length > self.vertex_length {
             self.vertex_length = vertex_length * 2;
             // Create the vertex array
-            gl_ctx.buffer_data(gl::ARRAY_BUFFER, self.vertex_length as i64, null(), gl::STREAM_DRAW);
+            gl_ctx.buffer_data(gl::ARRAY_BUFFER, self.vertex_length as i64, gl::STREAM_DRAW);
             let stride_distance = (VERTEX_SIZE * size_of::<f32>()) as i32;
             // Set up the vertex attributes
             let pos_attrib = gl_ctx.get_attrib_location(&self.shader, "position") as u32;
@@ -169,8 +166,8 @@ impl Backend for WebGLBackend {
             self.texture_location = Some(gl_ctx.get_uniform_location(&self.shader, "uses_texture").unwrap());
         }
         // Upload all of the vertex data
-        let vertex_data = self.vertices.as_ptr() as *const c_void;
-        gl_ctx.buffer_sub_data(gl::ARRAY_BUFFER, 0, vertex_length as i64, vertex_data);
+        let array: TypedArray<f32> = self.vertices.as_slice().into();
+        gl_ctx.buffer_sub_data(gl::ARRAY_BUFFER, 0, &array.buffer());
         // Scan through the triangles, adding the indices to the index buffer (every time the
         // texture switches, flush and switch the bound texture)
         for triangle in triangles.iter() {
@@ -192,12 +189,12 @@ impl Backend for WebGLBackend {
         if self.indices.len() != 0 {
             // Check if the index buffer is big enough and upload the data
             let index_length = size_of::<u32>() * self.indices.len();
-            let index_data = self.indices.as_ptr() as *const c_void;
             if index_length > self.index_length {
                 self.index_length = index_length * 2;
                 gl_ctx.buffer_data(gl::ELEMENT_ARRAY_BUFFER, self.index_length as i64, gl::STREAM_DRAW);
             }
-            gl_ctx.buffer_sub_data(gl::ELEMENT_ARRAY_BUFFER, 0, index_length as i64, index_data);
+            let array: TypedArray<u32> = self.indices.as_slice().into();
+            gl_ctx.buffer_sub_data(gl::ELEMENT_ARRAY_BUFFER, 0, &array.buffer());
             // Upload the texture to the GPU
             gl_ctx.active_texture(gl::TEXTURE0);
             if self.texture.get_id() != 0 {
@@ -243,8 +240,7 @@ impl Backend for WebGLBackend {
             let slice = unsafe { UnsafeTypedArray::new(data) };
             js! {
                 let data = @{slice};
-                let gl = @{gl_ctx};
-                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, @{width}, @{height}, 0, @{format}, gl.UNSIGNED_BYTE, data);
+                render_context.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, @{width}, @{height}, 0, @{format}, gl.UNSIGNED_BYTE, data);
             }
         };
         gl_ctx.generate_mipmap(gl::TEXTURE_2D);
@@ -272,10 +268,10 @@ impl Backend for WebGLBackend {
         
         let viewport_data = gl_ctx.get_parameter(gl::VIEWPORT);
         let viewport = [
-            js! { @{viewport_data}[0] }.try_into().unwrap(),
-            js! { @{viewport_data}[1] }.try_into().unwrap(),
-            js! { @{viewport_data}[2] }.try_into().unwrap(),
-            js! { @{viewport_data}[3] }.try_into().unwrap(),
+            js! { @{&viewport_data}[0] }.try_into().unwrap(),
+            js! { @{&viewport_data}[1] }.try_into().unwrap(),
+            js! { @{&viewport_data}[2] }.try_into().unwrap(),
+            js! { @{&viewport_data}[3] }.try_into().unwrap(),
         ];
         gl_ctx.bind_framebuffer(gl::FRAMEBUFFER, Some(&surface.data.framebuffer));
         gl_ctx.viewport(0, 0, surface.image.source_width() as i32, surface.image.source_height() as i32);
