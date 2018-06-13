@@ -230,7 +230,7 @@ impl Backend for WebGLBackend {
         gl_ctx.tex_parameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_T, gl::CLAMP_TO_EDGE as i32);
         gl_ctx.tex_parameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::NEAREST as i32);
         gl_ctx.tex_parameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::NEAREST as i32);
-        let data = if data.len() == 0 {
+        if data.len() == 0 {
             gl_ctx.tex_image2_d(gl::TEXTURE_2D, 0, gl::RGBA as i32, width as i32, 
                         height as i32, 0, format as u32, gl::UNSIGNED_BYTE, None);
         } else {
@@ -278,7 +278,7 @@ impl Backend for WebGLBackend {
         viewport
     }
 
-    fn unbind_surface(surface: &Surface, viewport: &[i32]) where Self: Sized {
+    fn unbind_surface(_surface: &Surface, viewport: &[i32]) where Self: Sized {
         let gl_ctx = context();
         gl_ctx.bind_framebuffer(gl::FRAMEBUFFER, None); 
         gl_ctx.viewport(viewport[0], viewport[1], viewport[2], viewport[3]);
