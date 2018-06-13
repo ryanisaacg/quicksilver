@@ -27,7 +27,7 @@ maintenance = { status = "actively-developed" }
 [dependencies]
 futures = "0.1"
 image = "0.19"
-rand = "0.5"
+rand = { version = "0.5.0", features = ["stdweb"] }
 serde = "1.0"
 serde_derive = "1.0"
 alga = { version = "0.5", optional = true }
@@ -43,8 +43,11 @@ gilrs = { version = "0.6", optional = true }
 rodio = { version = "0.6", optional = true }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-stdweb = { git = "https://github.com/koute/stdweb" }
+stdweb = "0.4"
 webgl_stdweb = "0.1"
+
+[replace]
+"stdweb:0.4.6" = { git = "https://github.com/koute/stdweb" }
 
 [[example]]
 name = "basic"
