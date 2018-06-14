@@ -126,6 +126,12 @@ fn run_impl<T: State>(window: WindowBuilder) {
     let document = document();
     let canvas = document.query_selector("#canvas").unwrap().unwrap();
 
+    let application = app.clone();
+    let close_handler = move || application.borrow_mut().event(&Event::Closed);
+    js! {
+        window.onclose = @{close_handler};
+    }
+
     handle_event(&document, &app, |mut app, _: BlurEvent| app.event(&Event::Unfocused));
     handle_event(&document, &app, |mut app, _: FocusEvent| app.event(&Event::Focused));
 
