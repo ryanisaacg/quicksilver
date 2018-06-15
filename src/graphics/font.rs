@@ -37,6 +37,20 @@ impl Font {
                    .map(parse as LoadFunction))
     }
 
+    /// Creates font from bytes sequence.
+    pub fn from_slice(data: &'static [u8]) -> Result<Self, QuicksilverError> {
+        Ok(Font {
+            data: FontCollection::from_bytes(data)?.into_font()?
+        })
+    }
+
+    /// Creates font from owned bytes sequence.
+    pub fn from_bytes(data: Vec<u8>) -> Result<Self, QuicksilverError> {
+        Ok(Font {
+            data: FontCollection::from_bytes(data)?.into_font()?
+        })
+    }
+
     /// Render a text string to an Image
     ///
     /// This function does not take into account unicode normalization or vertical layout
@@ -68,8 +82,5 @@ impl Font {
 }
 
 fn parse(data: Vec<u8>) -> Result<Font, QuicksilverError> {
-    Ok(Font {
-        data: FontCollection::from_bytes(data)?.into_font()?
-    })
+    Font::from_bytes(data)
 }
-
