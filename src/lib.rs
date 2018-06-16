@@ -92,7 +92,6 @@ extern crate serde_json;
 
 mod error;
 mod file;
-mod ffi;
 mod state;
 mod timer;
 pub mod geom;
