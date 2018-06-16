@@ -102,7 +102,10 @@ impl EventProvider {
                     events.push(Event::MouseMoved(vector));
                 }
                 glutin::WindowEvent::Resized(new_width, new_height) => {
-                    window.adjust_size(Vector::new(new_width as f32, new_height as f32));
+                    // Glutin reports a resize to 0, 0 when minimizing the window
+                    if new_width != 0 && new_height != 0 {
+                        window.adjust_size(Vector::new(new_width as f32, new_height as f32));
+                    }
                 },
                 _ => ()
             },
