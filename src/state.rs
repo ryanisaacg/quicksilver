@@ -11,12 +11,12 @@ use {
         rc::Rc
     },
     stdweb::web::{
-        document,
+        document, window,
         event::{BlurEvent, ConcreteEvent, FocusEvent, IKeyboardEvent, 
             IMouseEvent, KeyDownEvent, KeyUpEvent, 
             MouseButton as WebMouseButton, MouseDownEvent, MouseMoveEvent,
             MouseOverEvent, MouseOutEvent, MouseUpEvent},
-        IEventTarget, IParentNode,
+        IEventTarget, IParentNode, IWindowOrWorker
     }
 };
 
@@ -178,6 +178,20 @@ fn run_impl<T: State>(window: WindowBuilder) {
         }
     });
 
+    update(app.clone());
+    draw(app.clone())
+}
+
+#[cfg(target_arch="wasm32")]
+fn update<T: State>(app: Rc<RefCell<Application<T>>>) {
+    app.borrow_mut().update();
+    window().set_timeout(move || update(app), 16);
+}
+
+#[cfg(target_arch="wasm32")]
+fn draw<T: State>(app: Rc<RefCell<Application<T>>>) {
+    app.borrow_mut().draw();
+    window().request_animation_frame(move |_| draw(app));
 }
 
 #[cfg(target_arch="wasm32")]
