@@ -118,20 +118,10 @@ impl Image {
 #[derive(Debug)]
 ///An error generated while loading an image
 pub enum ImageError {
-    ///There was an error in the image format
-    FormatError(String),
-    ///The image dimensions were invalid
-    DimensionError,
-    ///The image format is unsupported
-    UnsupportedError(String),
-    ///The color type is not supported
-    UnsupportedColor,
-    ///The image data ends too early
-    NotEnoughData,
+    /// There was an error decoding the bytes of the image
+    DecodingError(image::ImageError),
     ///There was some error reading the image file
-    IOError(IOError),
-    ///The image has reached its end
-    ImageEnd,
+    IOError(IOError)
 }
 
 #[doc(hidden)]
@@ -144,15 +134,7 @@ impl From<IOError> for ImageError {
 #[doc(hidden)]
 impl From<image::ImageError> for ImageError {
     fn from(img: image::ImageError) -> ImageError {
-        match img {
-            image::ImageError::FormatError(string) => ImageError::FormatError(string),
-            image::ImageError::DimensionError => ImageError::DimensionError,
-            image::ImageError::UnsupportedError(string) => ImageError::UnsupportedError(string),
-            image::ImageError::UnsupportedColor(_) => ImageError::UnsupportedColor,
-            image::ImageError::NotEnoughData => ImageError::NotEnoughData,
-            image::ImageError::IoError(err) => ImageError::IOError(err),
-            image::ImageError::ImageEnd => ImageError::ImageEnd
-        }
+        ImageError::DecodingError(img)
     }
 }
 
@@ -165,20 +147,15 @@ impl fmt::Display for ImageError {
 impl Error for ImageError {
     fn description(&self) -> &str {
         match self {
-            &ImageError::FormatError(ref string) => string,
-            &ImageError::DimensionError => "Invalid dimensions",
-            &ImageError::UnsupportedError(ref string) => string,
-            &ImageError::UnsupportedColor => "Unsupported colorspace",
-            &ImageError::NotEnoughData => "Not enough image data",
+            &ImageError::DecodingError(ref err) => err.description(),
             &ImageError::IOError(ref err) => err.description(),
-            &ImageError::ImageEnd => "Image data ended unexpectedly"
         }
     }
     
     fn cause(&self) -> Option<&Error> {
         match self {
+            &ImageError::DecodingError(ref err) => Some(err),
             &ImageError::IOError(ref err) => Some(err),
-            _ => None
         }
     }
 }
