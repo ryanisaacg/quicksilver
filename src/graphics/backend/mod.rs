@@ -1,19 +1,19 @@
 use graphics::{Color, GpuTriangle, Image, PixelFormat, Surface, Vertex};
 
 pub(crate) trait Backend {
-    fn new(texture_mode: ImageScaleStrategy) -> Self where Self: Sized;
-    fn clear(&mut self, col: Color);
-    fn set_blend_mode(&mut self, blend: BlendMode);
-    fn reset_blend_mode(&mut self);
-    fn draw(&mut self, vertices: &[Vertex], triangles: &[GpuTriangle]);
-    fn flush(&mut self);
-    fn create_texture(data: &[u8], width: u32, height: u32, format: PixelFormat) -> ImageData where Self: Sized;
-    fn destroy_texture(data: &mut ImageData) where Self: Sized;
-    fn create_surface(image: &Image) -> SurfaceData where Self: Sized;
-    fn bind_surface(surface: &Surface) -> [i32; 4] where Self: Sized;
-    fn unbind_surface(surface: &Surface, viewport: &[i32]) where Self: Sized;
-    fn destroy_surface(surface: &SurfaceData) where Self: Sized;
-    fn viewport(x: i32, y: i32, width: i32, height: i32) where Self: Sized;
+    unsafe fn new(texture_mode: ImageScaleStrategy) -> Self where Self: Sized;
+    unsafe fn clear(&mut self, col: Color);
+    unsafe fn set_blend_mode(&mut self, blend: BlendMode);
+    unsafe fn reset_blend_mode(&mut self);
+    unsafe fn draw(&mut self, vertices: &[Vertex], triangles: &[GpuTriangle]);
+    unsafe fn flush(&mut self);
+    unsafe fn create_texture(data: &[u8], width: u32, height: u32, format: PixelFormat) -> ImageData where Self: Sized;
+    unsafe fn destroy_texture(data: &mut ImageData) where Self: Sized;
+    unsafe fn create_surface(image: &Image) -> SurfaceData where Self: Sized;
+    unsafe fn bind_surface(surface: &Surface) -> [i32; 4] where Self: Sized;
+    unsafe fn unbind_surface(surface: &Surface, viewport: &[i32]) where Self: Sized;
+    unsafe fn destroy_surface(surface: &SurfaceData) where Self: Sized;
+    unsafe fn viewport(x: i32, y: i32, width: i32, height: i32) where Self: Sized;
 }
 
 const VERTEX_SIZE: usize = 9; // the number of floats in a vertex

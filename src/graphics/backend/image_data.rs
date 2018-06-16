@@ -22,6 +22,8 @@ pub struct ImageData {
 
 impl Drop for ImageData {
     fn drop(&mut self) {
-        BackendImpl::destroy_texture(self);
+        unsafe {
+            BackendImpl::destroy_texture(self);
+        }
     }
 }

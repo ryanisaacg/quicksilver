@@ -65,14 +65,17 @@ impl Image {
     }
 
     pub(crate) fn new_null(width: u32, height: u32, format: PixelFormat) -> Image {
-        Image::new(BackendImpl::create_texture(&[], width, height, format))
+        Image::from_raw(&[], width, height, format)
     }
 
     ///Load an image from raw bytes
     pub fn from_raw(data: &[u8], width: u32, height: u32, format: PixelFormat) -> Image {
-        Image::new(BackendImpl::create_texture(data, width, height, format))
+        unsafe {
+            Image::new(BackendImpl::create_texture(data, width, height, format))
+        }
     }
 
+    #[cfg(target_arch="wasm32")]
     pub(crate) fn data(&self) -> &ImageData {
         &self.source
     }

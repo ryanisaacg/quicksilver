@@ -152,7 +152,7 @@ impl WindowBuilder {
             keyboard: Keyboard { keys: [ButtonState::NotPressed; 256] },
             mouse: Mouse { pos: Vector::zero(), buttons: [ButtonState::NotPressed; 3], wheel: Vector::zero() },
             view,
-            backend: BackendImpl::new(self.scale),
+            backend: unsafe { BackendImpl::new(self.scale) },
             vertices: Vec::new(),
             triangles: Vec::new()
         }, events)
@@ -186,7 +186,7 @@ impl WindowBuilder {
             keyboard: Keyboard { keys: [ButtonState::NotPressed; 256] },
             mouse: Mouse { pos: Vector::zero(), buttons: [ButtonState::NotPressed; 3], wheel: Vector::zero() },
             view,
-            backend: BackendImpl::new(self.scale),
+            backend: unsafe { BackendImpl::new(self.scale) },
             vertices: Vec::new(),
             triangles: Vec::new()
         }
@@ -257,8 +257,10 @@ impl Window {
     ///Handle the available size for the window changing
     pub(crate) fn adjust_size(&mut self, available: Vector) {
         self.screen_region = self.resize.resize(self.screen_region.size(), available);
-        BackendImpl::viewport(self.screen_region.x as i32, self.screen_region.y as i32, 
-                              self.screen_region.width as i32, self.screen_region.height as i32);
+        unsafe {
+            BackendImpl::viewport(self.screen_region.x as i32, self.screen_region.y as i32, 
+                self.screen_region.width as i32, self.screen_region.height as i32);
+        }
         #[cfg(not(target_arch="wasm32"))]
         self.gl_window.resize(self.screen_region.width as u32, self.screen_region.height as u32);
     }
@@ -344,8 +346,10 @@ impl Window {
     pub fn clear(&mut self, color: Color) {
         self.vertices.clear();
         self.triangles.clear();
-        self.backend.clear(color);
-        self.backend.reset_blend_mode();
+        unsafe {
+            self.backend.clear(color);
+            self.backend.reset_blend_mode();
+        }
     }
 
     /// Flush changes and also present the changes to the window
@@ -364,7 +368,9 @@ impl Window {
     /// the fewer times your application needs to flush the faster it will run.
     pub fn flush(&mut self) {
         self.triangles.sort();
-        self.backend.draw(self.vertices.as_slice(), self.triangles.as_slice());
+        unsafe {
+            self.backend.draw(self.vertices.as_slice(), self.triangles.as_slice());
+        }
         self.vertices.clear();
         self.triangles.clear();
     }
@@ -375,7 +381,9 @@ impl Window {
     /// switch to the new blend mode.
     pub fn set_blend_mode(&mut self, blend: BlendMode) {
         self.flush();
-        self.backend.set_blend_mode(blend);
+        unsafe {
+            self.backend.set_blend_mode(blend);
+        }
     }
 
     /// Reset the blend mode for the window to the default alpha blending
@@ -383,7 +391,9 @@ impl Window {
     /// This will flush all of the drawn items to the screen
     pub fn reset_blend_mode(&mut self) {
         self.flush();
-        self.backend.reset_blend_mode();
+        unsafe {
+            self.backend.reset_blend_mode();
+        }
     }
 
     /// Draw a single object to the screen

@@ -18,6 +18,8 @@ pub struct SurfaceData {
 
 impl Drop for SurfaceData {
     fn drop(&mut self) {
-        BackendImpl::destroy_surface(self);
+        unsafe {
+            BackendImpl::destroy_surface(self);
+        }
     }
 }
