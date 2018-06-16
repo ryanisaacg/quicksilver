@@ -3,6 +3,7 @@
 [![Build Status](https://travis-ci.org/ryanisaacg/quicksilver.svg)](https://travis-ci.org/ryanisaacg/quicksilver)
 [![Crates.io](https://img.shields.io/crates/v/quicksilver.svg)](https://crates.io/crates/quicksilver)
 [![Docs Status](https://docs.rs/quicksilver/badge.svg)](https://docs.rs/quicksilver)
+[![dependency status](https://deps.rs/repo/github/ryanisaacg/quicksilver/status.svg)](https://deps.rs/repo/github/ryanisaacg/quicksilver)
 
 A 2D game framework written in pure Rust
 
