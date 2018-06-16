@@ -142,7 +142,7 @@ impl Error for SaveError {
             SaveError::SerdeError(err) => err.description(),
             SaveError::IOError(err) => err.description(),
             SaveError::SaveLocationNotFound => "The current user has no home directory",
-            SaveError::SaveNotFound(string) => "The given save profile was not found"
+            SaveError::SaveNotFound(_) => "The given save profile was not found"
         }
     }
 
