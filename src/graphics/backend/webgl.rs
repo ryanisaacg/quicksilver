@@ -159,10 +159,10 @@ impl Backend for WebGLBackend {
                 let col_attrib = gl_ctx.get_attrib_location(&self.shader, "color") as u32;
                 gl_ctx.enable_vertex_attrib_array(col_attrib);
                 gl_ctx.vertex_attrib_pointer(col_attrib, 4, gl::FLOAT, false, stride_distance, 4 * size_of::<f32>() as i64);
-                let use_texture_attrib = gl_ctx.get_attrib_location(&self.shader, "tex") as u32;
+                let use_texture_attrib = gl_ctx.get_attrib_location(&self.shader, "uses_texture") as u32;
                 gl_ctx.enable_vertex_attrib_array(use_texture_attrib);
                 gl_ctx.vertex_attrib_pointer(use_texture_attrib, 1, gl::FLOAT, false, stride_distance, 8 * size_of::<f32>() as i64);
-                self.texture_location = Some(gl_ctx.get_uniform_location(&self.shader, "uses_texture").unwrap());
+                self.texture_location = Some(gl_ctx.get_uniform_location(&self.shader, "tex").unwrap());
             }
             // Upload all of the vertex data
             let array: TypedArray<f32> = self.vertices.as_slice().into();
