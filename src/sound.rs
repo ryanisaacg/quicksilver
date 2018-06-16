@@ -169,7 +169,7 @@ impl Future for SoundLoader {
     }
 }
 
-#[hidden]
+#[doc(hidden)]
 #[cfg(not(target_arch="wasm32"))]
 impl AsRef<[u8]> for Sound {
     fn as_ref(&self) -> &[u8] {
