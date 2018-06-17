@@ -177,69 +177,6 @@ impl AsRef<[u8]> for Sound {
     }
 }
 
-//TODO: Wasm music player
-/// A music player that loops a single track indefinitely
-///
-/// The music player has its own internal volume and will adjust the sound of the music if its
-/// volume is changed. 
-pub struct MusicPlayer {
-    #[cfg(not(target_arch="wasm32"))]
-    sink: Sink
-}
-
-impl MusicPlayer {
-    /// Create a new music player with the default volume of 1
-    pub fn new() -> MusicPlayer {
-        #[allow(deprecated)]
-        MusicPlayer {
-            #[cfg(not(target_arch="wasm32"))]
-            sink: Sink::new(&rodio::get_default_endpoint().unwrap())
-        }
-    }
-
-    /// Set the sound that should be playing
-    ///
-    /// If there already is a playing song, it will be stopped and replaced. The volume of the
-    /// parameter is ignored, in favor of the volume from the player itself.
-    pub fn set_track(&mut self, sound: &Sound) {
-        #[cfg(not(target_arch="wasm32"))] {
-            self.sink.stop();
-            self.sink.append(sound.get_source().repeat_infinite());
-        }
-    }
-
-    /// Resume the player if it is paused
-    pub fn play(&self) {
-        #[cfg(not(target_arch="wasm32"))]
-        self.sink.play();
-    }
-
-    /// Pause the player
-    pub fn pause(&self) {
-        #[cfg(not(target_arch="wasm32"))]
-        self.sink.pause();
-    }
-
-    #[cfg(not(target_arch="wasm32"))]
-    fn volume_impl(&self) -> f32 { self.sink.volume() }
-
-    #[cfg(target_arch="wasm32")]
-    fn volume_impl(&self) -> f32 { 
-        1.0
-    }
-
-    /// Get the volume the song is playing at, see Sound::volume for more
-    pub fn volume(&self) -> f32 {
-        self.volume_impl()
-    }
-
-    /// Set the volume the song is playing at, changing the currently playing song
-    pub fn set_volume(&mut self, volume: f32) {
-        #[cfg(not(target_arch="wasm32"))]
-        self.sink.set_volume(volume);
-    }
-}
-
 #[derive(Debug)]
 ///An error generated when loading a sound
 pub enum SoundError {
