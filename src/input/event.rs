@@ -1,12 +1,17 @@
 #[cfg(not(target_arch="wasm32"))]
 extern crate glutin;
 
-use input::{ButtonState, GamepadAxis, GamepadButton, LINES_TO_PIXELS, Key, MouseButton};
+use input::{ButtonState, GamepadAxis, GamepadButton, Key, MouseButton};
 use geom::Vector;
 #[cfg(not(target_arch="wasm32"))]
-use graphics::Window;
-#[cfg(not(target_arch="wasm32"))]
-use glutin::{EventsLoop, Event::{WindowEvent}};
+use {
+    graphics::Window,
+    input::LINES_TO_PIXELS,
+    glutin::{
+        EventsLoop, 
+        Event::WindowEvent
+    }
+};
 
 /// An input event
 #[derive(Copy, Clone, Debug)]

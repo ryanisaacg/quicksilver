@@ -218,10 +218,8 @@ impl Backend for WebGLBackend {
 
     unsafe fn create_texture(data: &[u8], width: u32, height: u32, format: PixelFormat) -> ImageData where Self: Sized {
         if let Some(ref gl_ctx) = GL_CONTEXT {
-            let id = unsafe { TEXTURE_COUNT };
-            unsafe {
-                TEXTURE_COUNT += 1;
-            }
+            let id = TEXTURE_COUNT;
+            TEXTURE_COUNT += 1;
             let format = match format {
                 PixelFormat::RGB => gl::RGB as i64,
                 PixelFormat::RGBA => gl::RGBA as i64

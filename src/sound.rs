@@ -19,7 +19,6 @@ use std::{
 use {
     rodio::{
         Decoder, 
-        Sink, 
         Source,
         decoder::DecoderError,
         source::{SamplesConverter, Amplify},
