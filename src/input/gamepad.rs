@@ -4,13 +4,16 @@ extern crate gilrs;
 #[cfg(all(not(any(target_arch="wasm32", target_os="macos")), feature = "gamepads"))]
 use gilrs::Button;
 
+#[cfg(target_arch="wasm32")]
+use stdweb::web::Gamepad as WebGamepad;
+
 use input::{ButtonState, Event};
 use std::ops::Index;
 
 /// A queryable traditional 2-stick gamepad
 #[derive(Copy, Clone, Debug)]
 pub struct Gamepad {
-    id: u32,
+    id: i32,
     buttons: [ButtonState; 17],
     axes: [f32; 4],
 }
@@ -41,7 +44,7 @@ impl Gamepad {
     }
 
     /// Get the ID of the gamepad
-    pub fn id(&self) -> u32 {
+    pub fn id(&self) -> i32 {
         self.id
     }
 }
@@ -78,9 +81,9 @@ impl GamepadProvider {
                 None => 0.0
             }
         }
-        buffer.extend(self.gilrs.gamepads().map(|(id, gamepad)| {
-            let id = id as u32;
-            
+        buffer.extend(self.gilrs.gamepads().map(|(id, gamepad)| { 
+            let id = id as i32;
+
             let axes = [
                 axis_value(gamepad.axis_data(Axis::LeftStickX)),
                 axis_value(gamepad.axis_data(Axis::LeftStickY)),
@@ -105,27 +108,30 @@ impl GamepadProvider {
 
     #[cfg(target_arch="wasm32")]
     fn provide_gamepads_impl(&self, buffer: &mut Vec<Gamepad>) {
-        fn new(id: u32) -> Gamepad {
-            Gamepad { id, buttons: [ButtonState::NotPressed; 17], axes: [0.0; 4] }
-        }
-        use std::os::raw::c_void;
-        use ffi::wasm;
-        buffer.push(new(0));
-        buffer.push(new(0));
-        unsafe {
-            let gamepad_count = wasm::gamepad_count() as usize;
-            buffer.reserve(gamepad_count);
-            let start = &mut buffer[0] as *mut Gamepad as *mut c_void;
-            let id_ptr = &mut buffer[0].id as *mut u32;
-            let button_ptr = &mut buffer[0].buttons[0] as *mut ButtonState as *mut u32;
-            let axis_ptr = &mut buffer[0].axes[0] as *mut f32;
-            let next_id = &mut buffer[1] as *mut Gamepad as *mut c_void;
-            wasm::gamepad_data(start, id_ptr, button_ptr, axis_ptr, next_id);
-            buffer.set_len(gamepad_count);
-            if gamepad_count < 2 {
-                buffer.truncate(2 - gamepad_count);
-            }
-        }
+        buffer.extend(WebGamepad::get_all()
+            .iter()
+            .filter_map(|pad| match pad {
+                &Some(ref pad) => Some(pad),
+                &None => None
+            })
+            .map(|pad| {
+                let id = pad.index() as i32;
+                let mut axes = [0.0; 4];
+                let in_axes = pad.axes();
+                for i in 0..axes.len().min(in_axes.len()) {
+                    axes[i] = in_axes[i] as f32;
+                }
+                let mut buttons = [ButtonState::NotPressed; 17];
+                let in_buttons = pad.buttons();
+                for i in 0..buttons.len().min(in_buttons.len()) {
+                    buttons[i] = if in_buttons[i].pressed() {
+                            ButtonState::Pressed
+                        } else {
+                            ButtonState::Released
+                        };
+                }
+                Gamepad { id, buttons, axes }
+            }));
     }
 
     #[cfg(any(target_os="macos", not(feature = "gamepads")))]
@@ -215,8 +221,7 @@ impl Index<GamepadButton> for Gamepad {
     }
 }
 
-#[doc(hidden)]
-pub const GAMEPAD_BUTTON_LIST: &[GamepadButton] = &[
+const GAMEPAD_BUTTON_LIST: &[GamepadButton] = &[
     GamepadButton::FaceDown,
     GamepadButton::FaceRight,
     GamepadButton::FaceUp,
@@ -236,7 +241,6 @@ pub const GAMEPAD_BUTTON_LIST: &[GamepadButton] = &[
     GamepadButton::DpadRight,
 ];
 
-#[doc(hidden)]
 #[cfg(all(not(any(target_arch="wasm32", target_os="macos")), feature = "gamepads"))]
 const GILRS_GAMEPAD_LIST: &[gilrs::Button] = &[
     Button::South,
@@ -258,8 +262,7 @@ const GILRS_GAMEPAD_LIST: &[gilrs::Button] = &[
     Button::DPadRight,
 ];
 
-#[doc(hidden)]
-pub const GAMEPAD_AXIS_LIST: &[GamepadAxis] = &[
+const GAMEPAD_AXIS_LIST: &[GamepadAxis] = &[
     GamepadAxis::LeftStickX,
     GamepadAxis::LeftStickY,
     GamepadAxis::RightStickX,

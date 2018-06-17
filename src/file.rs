@@ -1,12 +1,23 @@
 //! A collection of general utilities
 
-extern crate futures;
-
 use error::QuicksilverError;
 use futures::{Async, Future, Poll};
 use std::path::Path;
 #[cfg(not(target_arch="wasm32"))]
 use std::path::PathBuf;
+#[cfg(target_arch="wasm32")]
+use {
+    std::{
+        error::Error,
+        fmt,
+        io::{Error as IOError, ErrorKind},
+    },
+    stdweb::{
+        unstable::TryInto,
+        web::TypedArray,
+        Value
+    }
+};
 
 /// A Future that loads a file into an owned Vec of bytes
 ///
@@ -17,7 +28,7 @@ pub struct FileLoader {
     #[cfg(not(target_arch="wasm32"))]
     path: PathBuf, 
     #[cfg(target_arch="wasm32")]
-    id: u32
+    xhr: Value
 }
 
 impl FileLoader {
@@ -35,11 +46,14 @@ impl FileLoader {
     
     #[cfg(target_arch="wasm32")]
     fn new_impl<P: AsRef<Path>>(path: P) -> FileLoader {
-        use std::ffi::CString;
-        use ffi::wasm;
-        FileLoader {
-            id: unsafe { wasm::load_file(CString::new(path.as_ref().to_str().unwrap()).unwrap().into_raw()) }
-        }
+        let xhr = js! {
+            let xhr = new XMLHttpRequest();
+            xhr.open("GET", @{path.as_ref().to_str().unwrap()});
+            xhr.send();
+            xhr.responseType = "arraybuffer";
+            return xhr;
+        };
+        FileLoader { xhr }
     }
 }
 
@@ -58,14 +72,37 @@ impl Future for FileLoader {
 
     #[cfg(target_arch="wasm32")]
     fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
-        use ffi::wasm;
-        Ok(match wasm::asset_status(self.id)? {
-            false => Async::NotReady,
-            true => unsafe {
-                let data = wasm::file_contents(self.id);
-                let length = wasm::file_length(self.id) as usize;
-                Async::Ready(Vec::from_raw_parts(data, length, length))
-            }
-        })
+        let status = js! ( @{&self.xhr}.status );
+        let status: i32 = status.try_into().unwrap();
+        match status / 100 {
+            0 => Ok(Async::NotReady),
+            2 => {
+                let response = js! { 
+                    return new Uint8Array(@{&self.xhr}.response);
+                };
+                let response = if let Value::Reference(reference) = response { reference } else { unreachable!() };
+                let array: TypedArray<u8> = response.downcast().unwrap();
+                Ok(Async::Ready(array.to_vec()))
+            },
+            _ => Err(IOError::new(ErrorKind::NotFound, Box::new(WasmIOError)).into())
+        }
+    }
+}
+
+#[derive(Debug)]
+#[cfg(target_arch="wasm32")]
+struct WasmIOError;
+
+#[cfg(target_arch="wasm32")]
+impl fmt::Display for WasmIOError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.description())
+    }
+}
+
+#[cfg(target_arch="wasm32")]
+impl Error for WasmIOError {
+    fn description(&self) -> &str {
+        "An error occurred during a file IO operation"
     }
 }
