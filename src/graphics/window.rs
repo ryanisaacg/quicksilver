@@ -1,9 +1,22 @@
-use ffi::gl;
-#[cfg(not(target_arch="wasm32"))] use glutin;
 use geom::{ Rectangle, Transform, Vector};
-#[cfg(not(target_arch="wasm32"))] use glutin::{EventsLoop, GlContext};
+#[cfg(not(target_arch="wasm32"))]
+use gl;
 use graphics::{Backend, BackendImpl, BlendMode, Color, Drawable, GpuTriangle, ImageScaleStrategy, ResizeStrategy, Vertex, View};
 use input::{ButtonState, Event, Gamepad, GamepadProvider, Keyboard, Mouse};
+#[cfg(not(target_arch="wasm32"))]
+use {
+    glutin,
+    glutin::{EventsLoop, GlContext}
+};
+#[cfg(target_arch="wasm32")]
+use stdweb::{
+    unstable::TryInto,
+    web::{
+        html_element::CanvasElement, 
+        IParentNode, document, window
+    }
+};
+
 
 ///A builder that constructs a Window
 #[derive(Debug)]
@@ -139,7 +152,7 @@ impl WindowBuilder {
             keyboard: Keyboard { keys: [ButtonState::NotPressed; 256] },
             mouse: Mouse { pos: Vector::zero(), buttons: [ButtonState::NotPressed; 3], wheel: Vector::zero() },
             view,
-            backend: BackendImpl::new(self.scale),
+            backend: unsafe { BackendImpl::new(self.scale) },
             vertices: Vec::new(),
             triangles: Vec::new()
         }, events)
@@ -149,16 +162,18 @@ impl WindowBuilder {
     pub(crate) fn build(self) -> Window {
         let mut actual_width = self.width;
         let mut actual_height = self.height;
-        use ffi::wasm;
-        use std::ffi::CString;
-        unsafe { 
-            wasm::set_show_mouse(self.show_cursor);
-            if self.fullscreen {
-                actual_width = wasm::get_page_width();
-                actual_height = wasm::get_page_height();
-            }
-            wasm::create_context(CString::new(self.title).unwrap().into_raw(), actual_width, actual_height);
+        let document = document();
+        let window = window();
+        let canvas: CanvasElement = document.query_selector("#canvas").unwrap().unwrap().try_into().unwrap();
+        document.set_title(self.title);
+        if self.fullscreen {
+            actual_width = window.inner_width() as u32;
+            actual_height = window.inner_height() as u32;
         }
+        //TODO: GL VIEWPORT SIZE
+        canvas.set_width(actual_width);
+        canvas.set_height(actual_height);
+        js! ( @{canvas}.style.cursor = @{self.show_cursor} ? "auto" : "none"; );
         let screen_region = self.resize.resize(Vector::new(self.width, self.height), Vector::new(actual_width, actual_height));
         let view = View::new(Rectangle::newv_sized(screen_region.size()));
         Window {
@@ -171,7 +186,7 @@ impl WindowBuilder {
             keyboard: Keyboard { keys: [ButtonState::NotPressed; 256] },
             mouse: Mouse { pos: Vector::zero(), buttons: [ButtonState::NotPressed; 3], wheel: Vector::zero() },
             view,
-            backend: BackendImpl::new(self.scale),
+            backend: unsafe { BackendImpl::new(self.scale) },
             vertices: Vec::new(),
             triangles: Vec::new()
         }
@@ -242,8 +257,10 @@ impl Window {
     ///Handle the available size for the window changing
     pub(crate) fn adjust_size(&mut self, available: Vector) {
         self.screen_region = self.resize.resize(self.screen_region.size(), available);
-        unsafe { gl::Viewport(self.screen_region.x as i32, self.screen_region.y as i32, 
-                              self.screen_region.width as i32, self.screen_region.height as i32); }
+        unsafe {
+            BackendImpl::viewport(self.screen_region.x as i32, self.screen_region.y as i32, 
+                self.screen_region.width as i32, self.screen_region.height as i32);
+        }
         #[cfg(not(target_arch="wasm32"))]
         self.gl_window.resize(self.screen_region.width as u32, self.screen_region.height as u32);
     }
@@ -319,9 +336,7 @@ impl Window {
     
     #[cfg(target_arch="wasm32")]
     fn set_title_impl(&self, title: &str) {
-        use ffi::wasm;
-        use std::ffi::CString;
-        unsafe { wasm::set_title(CString::new(title).unwrap().into_raw()) };
+        document().set_title(title);
     }
     
     /// Clear the screen to a given color
@@ -331,8 +346,10 @@ impl Window {
     pub fn clear(&mut self, color: Color) {
         self.vertices.clear();
         self.triangles.clear();
-        self.backend.clear(color);
-        self.backend.reset_blend_mode();
+        unsafe {
+            self.backend.clear(color);
+            self.backend.reset_blend_mode();
+        }
     }
 
     /// Flush changes and also present the changes to the window
@@ -351,7 +368,9 @@ impl Window {
     /// the fewer times your application needs to flush the faster it will run.
     pub fn flush(&mut self) {
         self.triangles.sort();
-        self.backend.draw(self.vertices.as_slice(), self.triangles.as_slice());
+        unsafe {
+            self.backend.draw(self.vertices.as_slice(), self.triangles.as_slice());
+        }
         self.vertices.clear();
         self.triangles.clear();
     }
@@ -362,7 +381,9 @@ impl Window {
     /// switch to the new blend mode.
     pub fn set_blend_mode(&mut self, blend: BlendMode) {
         self.flush();
-        self.backend.set_blend_mode(blend);
+        unsafe {
+            self.backend.set_blend_mode(blend);
+        }
     }
 
     /// Reset the blend mode for the window to the default alpha blending
@@ -370,7 +391,9 @@ impl Window {
     /// This will flush all of the drawn items to the screen
     pub fn reset_blend_mode(&mut self) {
         self.flush();
-        self.backend.reset_blend_mode();
+        unsafe {
+            self.backend.reset_blend_mode();
+        }
     }
 
     /// Draw a single object to the screen

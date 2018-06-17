@@ -1,49 +1,26 @@
 extern crate futures;
-#[cfg(not(target_arch="wasm32"))]
 extern crate image;
 
 use error::QuicksilverError;
-use ffi::gl;
+use file::FileLoader;
 use futures::{Async, Future, Poll};
 use geom::{Rectangle, Vector};
+use graphics::{Backend, BackendImpl, ImageData};
 use std::{
     error::Error,
     fmt,
     io::Error as IOError,
-    ops::Drop,
-    os::raw::c_void,
     path::Path,
     rc::Rc
 };
-#[cfg(not(target_arch="wasm32"))]
-use std::path::PathBuf;
 
 ///Pixel formats for use with loading raw images
 #[derive(Debug, Eq, PartialEq, Hash)]
 pub enum PixelFormat {
     /// Red, Green, and Blue
-    RGB = gl::RGB as isize,
+    RGB,
     /// Red, Green, Blue, and Alpha
-    RGBA = gl::RGBA as isize,
-    /// Blue, Green, and Red
-    BGR = gl::BGR as isize,
-    /// Blue, Green, Red, and Alpha
-    BGRA = gl::BGRA as isize,
-}
-
-#[derive(Debug)]
-struct ImageData {
-    id: u32,
-    width: u32,
-    height: u32,
-}
-
-impl Drop for ImageData {
-    fn drop(&mut self) {
-        unsafe {
-            gl::DeleteTexture(self.id);
-        }
-    }
+    RGBA
 }
 
 #[derive(Clone, Debug)]
@@ -53,8 +30,28 @@ pub struct Image {
     region: Rectangle,
 }
 
+/// A future for loading images
+pub struct ImageLoader(FileLoader);
+
+impl Future for ImageLoader {
+    type Item = Image;
+    type Error = QuicksilverError;
+    
+    fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
+        Ok(match self.0.poll()? {
+            Async::Ready(data) => Async::Ready({
+                let img = image::load_from_memory(data.as_slice())?.to_rgba();
+                let width = img.width();
+                let height = img.height(); 
+                Image::from_raw(img.into_raw().as_slice(), width, height, PixelFormat::RGBA)
+            }),
+            Async::NotReady => Async::NotReady
+        })
+    }
+}
+
 impl Image {
-    fn new(data: ImageData) -> Image {
+    pub(crate) fn new(data: ImageData) -> Image {
         let region = Rectangle::new_sized(data.width, data.height);
         Image {
             source: Rc::new(data),
@@ -64,48 +61,23 @@ impl Image {
    
     /// Start loading a texture from a given path
     pub fn load<P: AsRef<Path>>(path: P) -> ImageLoader {
-        Image::load_impl(path)
-    }
-    
-    #[cfg(target_arch="wasm32")]
-    fn load_impl<P: AsRef<Path>>(path: P) -> ImageLoader {
-        use std::ffi::CString;
-        use ffi::wasm;
-        ImageLoader {
-            id: unsafe { wasm::load_image(CString::new(path.as_ref().to_str().unwrap()).unwrap().into_raw()) }
-        }
-    }
-    
-    #[cfg(not(target_arch="wasm32"))]
-    fn load_impl<P: AsRef<Path>>(path: P) -> ImageLoader {
-        ImageLoader { 
-            path: PathBuf::from(path.as_ref())
-        }
-    }
-
-    fn from_ptr(data: *const c_void, width: u32, height: u32, format: PixelFormat) -> Image {
-        unsafe {
-            let id = gl::GenTexture();
-            gl::BindTexture(gl::TEXTURE_2D, id);
-            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_S, gl::CLAMP_TO_EDGE as i32);
-            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_T, gl::CLAMP_TO_EDGE as i32);
-            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::NEAREST as i32);
-            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::NEAREST as i32);
-            gl::TexImage2D(gl::TEXTURE_2D, 0, gl::RGBA as i32, width as i32, 
-                           height as i32, 0, format as u32, gl::UNSIGNED_BYTE, data);
-            gl::GenerateMipmap(gl::TEXTURE_2D);
-            Image::new(ImageData { id, width, height })
-        }
+        ImageLoader(FileLoader::load(path))
     }
 
     pub(crate) fn new_null(width: u32, height: u32, format: PixelFormat) -> Image {
-        use std::ptr::null;
-        Image::from_ptr(null(), width, height, format)
+        Image::from_raw(&[], width, height, format)
     }
 
     ///Load an image from raw bytes
     pub fn from_raw(data: &[u8], width: u32, height: u32, format: PixelFormat) -> Image {
-        Image::from_ptr(data.as_ptr() as *const c_void, width, height, format)
+        unsafe {
+            Image::new(BackendImpl::create_texture(data, width, height, format))
+        }
+    }
+
+    #[cfg(target_arch="wasm32")]
+    pub(crate) fn data(&self) -> &ImageData {
+        &self.source
     }
     
     pub(crate) fn get_id(&self) -> u32 {
@@ -143,57 +115,13 @@ impl Image {
     }
 }
 
-/// A future for loading images
-pub struct ImageLoader { 
-    #[cfg(not(target_arch="wasm32"))]
-    path: PathBuf,
-    #[cfg(target_arch="wasm32")]
-    id: u32
-}
-
-impl Future for ImageLoader {
-    type Item = Image;
-    type Error = QuicksilverError;
-    
-    #[cfg(not(target_arch="wasm32"))]
-    fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
-        let img = image::open(&self.path)?.to_rgba();
-        let width = img.width();
-        let height = img.height(); 
-        Ok(Async::Ready(Image::from_raw(img.into_raw().as_slice(), width, height, PixelFormat::RGBA)))
-    }
-
-    #[cfg(target_arch="wasm32")]
-    fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
-        use ffi::wasm;
-        Ok(match wasm::asset_status(self.id)? {
-            true => Async::Ready(Image::new(ImageData {
-                    id: unsafe { wasm::get_image_id(self.id) },
-                    width: unsafe { wasm::get_image_width(self.id) },
-                    height: unsafe { wasm::get_image_height(self.id) }
-                })),
-            false => Async::NotReady,
-        })
-    }
-}
-
 #[derive(Debug)]
 ///An error generated while loading an image
 pub enum ImageError {
-    ///There was an error in the image format
-    FormatError(String),
-    ///The image dimensions were invalid
-    DimensionError,
-    ///The image format is unsupported
-    UnsupportedError(String),
-    ///The color type is not supported
-    UnsupportedColor,
-    ///The image data ends too early
-    NotEnoughData,
+    /// There was an error decoding the bytes of the image
+    DecodingError(image::ImageError),
     ///There was some error reading the image file
-    IOError(IOError),
-    ///The image has reached its end
-    ImageEnd,
+    IOError(IOError)
 }
 
 #[doc(hidden)]
@@ -204,18 +132,9 @@ impl From<IOError> for ImageError {
 }
 
 #[doc(hidden)]
-#[cfg(not(target_arch="wasm32"))]
 impl From<image::ImageError> for ImageError {
     fn from(img: image::ImageError) -> ImageError {
-        match img {
-            image::ImageError::FormatError(string) => ImageError::FormatError(string),
-            image::ImageError::DimensionError => ImageError::DimensionError,
-            image::ImageError::UnsupportedError(string) => ImageError::UnsupportedError(string),
-            image::ImageError::UnsupportedColor(_) => ImageError::UnsupportedColor,
-            image::ImageError::NotEnoughData => ImageError::NotEnoughData,
-            image::ImageError::IoError(err) => ImageError::IOError(err),
-            image::ImageError::ImageEnd => ImageError::ImageEnd
-        }
+        ImageError::DecodingError(img)
     }
 }
 
@@ -228,20 +147,15 @@ impl fmt::Display for ImageError {
 impl Error for ImageError {
     fn description(&self) -> &str {
         match self {
-            &ImageError::FormatError(ref string) => string,
-            &ImageError::DimensionError => "Invalid dimensions",
-            &ImageError::UnsupportedError(ref string) => string,
-            &ImageError::UnsupportedColor => "Unsupported colorspace",
-            &ImageError::NotEnoughData => "Not enough image data",
+            &ImageError::DecodingError(ref err) => err.description(),
             &ImageError::IOError(ref err) => err.description(),
-            &ImageError::ImageEnd => "Image data ended unexpectedly"
         }
     }
     
     fn cause(&self) -> Option<&Error> {
         match self {
+            &ImageError::DecodingError(ref err) => Some(err),
             &ImageError::IOError(ref err) => Some(err),
-            _ => None
         }
     }
 }

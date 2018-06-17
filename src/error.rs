@@ -1,4 +1,3 @@
-#[cfg(not(target_arch="wasm32"))]
 extern crate image;
 #[cfg(feature="serde_json")] 
 extern crate serde_json;
@@ -29,7 +28,7 @@ pub enum QuicksilverError {
     /// A serialize or deserialize error
     #[cfg(feature="saving")] SaveError(SaveError),
     /// There was an error loading a font file
-    #[cfg(feature="rusttype")] FontError(FontError)
+    #[cfg(feature="rusttype")] FontError(FontError),
 }
 
 impl fmt::Display for QuicksilverError {
@@ -46,7 +45,7 @@ impl Error for QuicksilverError {
             &QuicksilverError::SoundError(ref err) => err.description(),
             &QuicksilverError::IOError(ref err) => err.description(),
             &QuicksilverError::SaveError(ref err) => err.description(),
-            &QuicksilverError::FontError(ref err) => err.description()
+            &QuicksilverError::FontError(ref err) => err.description(),
         }
     }
     
@@ -57,7 +56,7 @@ impl Error for QuicksilverError {
             &QuicksilverError::SoundError(ref err) => Some(err),
             &QuicksilverError::IOError(ref err) => Some(err),
             &QuicksilverError::SaveError(ref err) => Some(err),
-            &QuicksilverError::FontError(ref err) => Some(err)
+            &QuicksilverError::FontError(ref err) => Some(err),
         }
     }
 }
@@ -98,7 +97,6 @@ impl From<SaveError> for QuicksilverError {
 }
 
 #[doc(hidden)]
-#[cfg(not(target_arch="wasm32"))]
 impl From<image::ImageError> for QuicksilverError {
     fn from(img: image::ImageError) -> QuicksilverError {
         let image_error: ImageError = img.into();

@@ -12,9 +12,6 @@ pub enum ButtonState {
     NotPressed = 3,
 }
 
-#[cfg(target_arch="wasm32")]
-pub(crate) const BUTTON_STATE_LIST: [ButtonState; 4] = [ButtonState::Pressed, ButtonState::Held, ButtonState::Released, ButtonState::NotPressed];
-
 impl ButtonState {
     pub(crate) fn update(&self, new: ButtonState) -> ButtonState {
         match (self.is_down(), new.is_down()) {
