@@ -1,7 +1,7 @@
 #[cfg(not(target_arch="wasm32"))]
 extern crate glutin;
 
-use input::{ButtonState, GamepadAxis, GamepadButton, Key, MouseButton};
+use input::{ButtonState, GamepadAxis, GamepadButton, LINES_TO_PIXELS, Key, MouseButton};
 use geom::Vector;
 #[cfg(not(target_arch="wasm32"))]
 use graphics::Window;
@@ -38,9 +38,6 @@ pub enum Event {
     /// A gamepad has been disconnected
     GamepadDisconnected(i32)
 }
-
-#[cfg(not(target_arch="wasm32"))]
-const LINES_TO_PIXELS: f32 = 15.0;
 
 #[cfg(not(target_arch="wasm32"))]
 pub(crate) struct EventProvider {

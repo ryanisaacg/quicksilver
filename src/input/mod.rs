@@ -10,6 +10,8 @@ mod key;
 mod keyboard;
 mod mouse;
 
+pub(crate) const LINES_TO_PIXELS: f32 = 15.0;
+
 pub use self::{
     button_state::ButtonState,
     event::Event,

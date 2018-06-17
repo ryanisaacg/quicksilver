@@ -4,19 +4,23 @@ use graphics::{Window, WindowBuilder};
 use input::Event;
 #[cfg(target_arch="wasm32")]
 use {
-    input::{ButtonState, KEY_LIST, MouseButton},
+    input::{ButtonState, KEY_LIST, LINES_TO_PIXELS, MouseButton},
     std::{
         cell::{RefCell, RefMut},
         collections::HashMap,
         rc::Rc
     },
-    stdweb::web::{
-        document, window,
-        event::{BlurEvent, ConcreteEvent, FocusEvent, GamepadConnectedEvent,
-            GamepadDisconnectedEvent, IKeyboardEvent, IMouseEvent, IGamepadEvent,
-            KeyDownEvent, KeyUpEvent, MouseButton as WebMouseButton, 
-            MouseDownEvent, MouseMoveEvent, MouseOverEvent, MouseOutEvent, MouseUpEvent},
-        IEventTarget, IParentNode, IWindowOrWorker
+    stdweb::{
+        Value,
+        unstable::TryInto,
+        web::{
+            document, window,
+            event::{BlurEvent, ConcreteEvent, FocusEvent, GamepadConnectedEvent,
+                GamepadDisconnectedEvent, IKeyboardEvent, IMouseEvent, IGamepadEvent,
+                KeyDownEvent, KeyUpEvent, MouseButton as WebMouseButton, 
+                MouseDownEvent, MouseMoveEvent, MouseOverEvent, MouseOutEvent, MouseUpEvent},
+            IEventTarget, IParentNode, IWindowOrWorker
+        }
     }
 };
 
@@ -130,6 +134,21 @@ fn run_impl<T: State>(builder: WindowBuilder) {
     let close_handler = move || application.borrow_mut().event(&Event::Closed);
     js! {
         window.onclose = @{close_handler};
+    }
+
+    let application = app.clone();
+    let wheel_handler = move |x: Value, y: Value, mode: Value| {
+        let x: f64 = x.try_into().unwrap();
+        let y: f64 = y.try_into().unwrap();
+        let mode: u64 = mode.try_into().unwrap();   
+        application.borrow_mut().event(&Event::MouseWheel(
+            Vector::new(x as f32, y as f32) * if mode != 0 { LINES_TO_PIXELS } else { 1.0 }
+        ));
+    };
+    js! {
+        @{&canvas}.onwheel = function(e) {
+            @{wheel_handler}(e.deltaX, e.deltaY, e.deltaMode);
+        }
     }
 
     handle_event(&document, &app, |mut app, _: BlurEvent| app.event(&Event::Unfocused));
