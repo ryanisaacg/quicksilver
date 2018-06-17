@@ -62,7 +62,6 @@ pub fn run<T: State>(window: WindowBuilder) {
 struct Application<T: State> {
     state: T, 
     window: Window,
-    #[cfg(not(target_arch="wasm32"))]
     event_buffer: Vec<Event>
 }
 
@@ -75,13 +74,6 @@ impl<T: State> Application<T> {
         self.state.draw(&mut self.window);
     }
 
-    #[cfg(target_arch="wasm32")]
-    fn event(&mut self, event: &Event) {
-        self.window.process_event(event);
-        self.state.event(event, &mut self.window);
-    }
-
-    #[cfg(not(target_arch="wasm32"))]
     fn process_events(&mut self) {
         self.window.update_gamepads(&mut self.event_buffer);
         for i in 0..self.event_buffer.len() {
@@ -123,7 +115,8 @@ fn run_impl<T: State>(window: WindowBuilder) {
 fn run_impl<T: State>(builder: WindowBuilder) {
     let app = Rc::new(RefCell::new(Application { 
         window: builder.build(),
-        state: T::new()
+        state: T::new(),
+        event_buffer: Vec::new()
     }));
 
     let document = document();
@@ -131,7 +124,7 @@ fn run_impl<T: State>(builder: WindowBuilder) {
     let canvas = document.query_selector("#canvas").unwrap().unwrap();
 
     let application = app.clone();
-    let close_handler = move || application.borrow_mut().event(&Event::Closed);
+    let close_handler = move || application.borrow_mut().event_buffer.push(Event::Closed);
     js! {
         window.onclose = @{close_handler};
     }
@@ -141,25 +134,26 @@ fn run_impl<T: State>(builder: WindowBuilder) {
         let x: f64 = x.try_into().unwrap();
         let y: f64 = y.try_into().unwrap();
         let mode: u64 = mode.try_into().unwrap();   
-        application.borrow_mut().event(&Event::MouseWheel(
+        application.borrow_mut().event_buffer.push(Event::MouseWheel(
             Vector::new(x as f32, y as f32) * if mode != 0 { LINES_TO_PIXELS } else { 1.0 }
         ));
     };
     js! {
-        @{&canvas}.onwheel = function(e) {
+        document.getElementById("canvas").onwheel = function(e) {
             @{wheel_handler}(e.deltaX, e.deltaY, e.deltaMode);
+            e.preventDefault();
         }
     }
 
-    handle_event(&document, &app, |mut app, _: BlurEvent| app.event(&Event::Unfocused));
-    handle_event(&document, &app, |mut app, _: FocusEvent| app.event(&Event::Focused));
+    handle_event(&document, &app, |mut app, _: BlurEvent| app.event_buffer.push(Event::Unfocused));
+    handle_event(&document, &app, |mut app, _: FocusEvent| app.event_buffer.push(Event::Focused));
 
-    handle_event(&canvas, &app, |mut app, _: MouseOutEvent| app.event(&Event::MouseExited));
-    handle_event(&canvas, &app, |mut app, _: MouseOverEvent| app.event(&Event::MouseEntered));
+    handle_event(&canvas, &app, |mut app, _: MouseOutEvent| app.event_buffer.push(Event::MouseExited));
+    handle_event(&canvas, &app, |mut app, _: MouseOverEvent| app.event_buffer.push(Event::MouseEntered));
 
     handle_event(&canvas, &app, |mut app, event: MouseMoveEvent| {
         let pointer = Vector::new(event.offset_x() as f32, event.offset_y() as f32);
-        app.event(&Event::MouseMoved(pointer));
+        app.event_buffer.push(Event::MouseMoved(pointer));
     });
     handle_event(&canvas, &app, |mut app, event: MouseUpEvent| {
         let state = ButtonState::Released;
@@ -169,7 +163,7 @@ fn run_impl<T: State>(builder: WindowBuilder) {
             WebMouseButton::Right => MouseButton::Right,
             _ => return
         };
-        app.event(&Event::MouseButton(button, state));
+        app.event_buffer.push(Event::MouseButton(button, state));
     });
     handle_event(&canvas, &app, |mut app, event: MouseDownEvent| {
         let state = ButtonState::Pressed;
@@ -179,29 +173,29 @@ fn run_impl<T: State>(builder: WindowBuilder) {
             WebMouseButton::Right => MouseButton::Right,
             _ => return
         };
-        app.event(&Event::MouseButton(button, state));
+        app.event_buffer.push(Event::MouseButton(button, state));
     });
 
     let key_names = generate_key_names();
-    handle_event(&canvas, &app, move |mut app, event: KeyDownEvent| {
+    handle_event(&document, &app, move |mut app, event: KeyDownEvent| {
         let state = ButtonState::Pressed;
         if let Some(keycode) = key_names.get(&event.code()) {
-            app.event(&Event::Key(KEY_LIST[*keycode], state));
+            app.event_buffer.push(Event::Key(KEY_LIST[*keycode], state));
         }
     });
     let key_names = generate_key_names();
-    handle_event(&canvas, &app, move |mut app, event: KeyUpEvent| {
+    handle_event(&document, &app, move |mut app, event: KeyUpEvent| {
         let state = ButtonState::Released;
         if let Some(keycode) = key_names.get(&event.code()) {
-            app.event(&Event::Key(KEY_LIST[*keycode], state));
+            app.event_buffer.push(Event::Key(KEY_LIST[*keycode], state));
         }
     });
 
     handle_event(&window, &app, move |mut app, event: GamepadConnectedEvent| {
-        app.event(&Event::GamepadConnected(event.gamepad().index() as i32));
+        app.event_buffer.push(Event::GamepadConnected(event.gamepad().index() as i32));
     });
     handle_event(&window, &app, move |mut app, event: GamepadDisconnectedEvent| {
-        app.event(&Event::GamepadDisconnected(event.gamepad().index() as i32));
+        app.event_buffer.push(Event::GamepadDisconnected(event.gamepad().index() as i32));
     });
 
     update(app.clone());
@@ -210,6 +204,7 @@ fn run_impl<T: State>(builder: WindowBuilder) {
 
 #[cfg(target_arch="wasm32")]
 fn update<T: State>(app: Rc<RefCell<Application<T>>>) {
+    app.borrow_mut().process_events();
     app.borrow_mut().update();
     window().set_timeout(move || update(app), 16);
 }
@@ -226,6 +221,8 @@ fn handle_event<T, E, F>(target: &impl IEventTarget, application: &Rc<RefCell<Ap
     let application = application.clone();
     target.add_event_listener(move |event: E| {
         event.prevent_default();
+        event.stop_propagation();
+        event.cancel_bubble();
         handler(application.borrow_mut(), event);
     });
 }
