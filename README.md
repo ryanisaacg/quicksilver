@@ -63,18 +63,12 @@ this archive with no problems; if there are problems, please open an issue.
 ### Deploying for the web
 
 If you're deploying for the web, first make sure you've 
-[installed the wasm toolchain](https://www.hellorust.com/news/native-wasm-target.html)
-then build the wasm file (`cargo +nightly build --target wasm32-unknown-unknown --release`). Copy the .wasm
-file produced (found at "target/wasm32-unknown-unknown/release"), any assets you used, and the "index.html"
-and "docs/bridge.js" files from [quicksilver](https://github.com/ryanisaacg/quicksilver). Put these all in the
-same folder, and rename the .wasm file to "wasm.wasm."
+[installed the wasm toolchain](https://www.hellorust.com/news/native-wasm-target.html) 
+and the [cargo web tool](https://github.com/koute/cargo-web). Build the 
+wasm file and its js bindings (`cargo +nightly web build --target wasm32-unknown-unknown`). Copy the .wasm and .js
+files produced (found at "target/wasm32-unknown-unknown/release") and any assets you may have used. Create an HTML file with a canvas (that has the ID "canvas") and attach the script with a `script` tag.
 
-If you want to test your application locally, you'll need to run an http server. If you don't have a 
-webserver installed, run `cargo install basic-http-server`, which may take a while. Once the installation
-is finished, run `basic-http-server` in the folder with your "index.html". Copy what `basic-http-server`
-output as the "addr" field (usually something like "http://127.0.0.1:4000") into your browser's address bar.
-This should be your application, running in a browser! To actually put your application online, you can
-use free hosting like Github Pages to make your application publicly accessible.
+If you want to test your application locally, use `cargo +nightly web start --target wasm32-unknown-unknown` and open your favorite browser to the port it provides. 
 
 
 ## Optional Features
