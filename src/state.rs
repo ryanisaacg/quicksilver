@@ -12,10 +12,10 @@ use {
     },
     stdweb::web::{
         document, window,
-        event::{BlurEvent, ConcreteEvent, FocusEvent, IKeyboardEvent, 
-            IMouseEvent, KeyDownEvent, KeyUpEvent, 
-            MouseButton as WebMouseButton, MouseDownEvent, MouseMoveEvent,
-            MouseOverEvent, MouseOutEvent, MouseUpEvent},
+        event::{BlurEvent, ConcreteEvent, FocusEvent, GamepadConnectedEvent,
+            GamepadDisconnectedEvent, IKeyboardEvent, IMouseEvent, IGamepadEvent,
+            KeyDownEvent, KeyUpEvent, MouseButton as WebMouseButton, 
+            MouseDownEvent, MouseMoveEvent, MouseOverEvent, MouseOutEvent, MouseUpEvent},
         IEventTarget, IParentNode, IWindowOrWorker
     }
 };
@@ -116,14 +116,14 @@ fn run_impl<T: State>(window: WindowBuilder) {
 }
 
 #[cfg(target_arch="wasm32")]
-fn run_impl<T: State>(window: WindowBuilder) {
-    let window = window.build();
+fn run_impl<T: State>(builder: WindowBuilder) {
     let app = Rc::new(RefCell::new(Application { 
-        window,
+        window: builder.build(),
         state: T::new()
     }));
 
     let document = document();
+    let window = window();
     let canvas = document.query_selector("#canvas").unwrap().unwrap();
 
     let application = app.clone();
@@ -176,6 +176,13 @@ fn run_impl<T: State>(window: WindowBuilder) {
         if let Some(keycode) = key_names.get(&event.code()) {
             app.event(&Event::Key(KEY_LIST[*keycode], state));
         }
+    });
+
+    handle_event(&window, &app, move |mut app, event: GamepadConnectedEvent| {
+        app.event(&Event::GamepadConnected(event.gamepad().index() as i32));
+    });
+    handle_event(&window, &app, move |mut app, event: GamepadDisconnectedEvent| {
+        app.event(&Event::GamepadDisconnected(event.gamepad().index() as i32));
     });
 
     update(app.clone());
