@@ -18,11 +18,11 @@ rust:
   - nightly
 matrix:
   include:
-      - rust: nightly
-        env: WASM=1
-        install: rustup target add wasm32-unknown-unknown
-        script:
-          - cargo +nightly check --target wasm32-unknown-unknown --examples
+    - rust: nightly
+      env: WASM=1
+      install: rustup target add wasm32-unknown-unknown
+      script:
+        - cargo +nightly check --target wasm32-unknown-unknown --examples
   allow_failures:
     - rust: nightly
       env: WASM=0
