@@ -1,41 +1,24 @@
-use ffi::gl;
 use geom::{Transform, Vector};
-use graphics::{Image, PixelFormat, Window, View};
+use graphics::{Backend, BackendImpl, Image, PixelFormat, SurfaceData, Window, View};
 use std::rc::Rc;
-
-#[derive(Debug)]
-struct SurfaceData {
-    framebuffer: u32
-}
-
-impl Drop for SurfaceData {
-    fn drop(&mut self) {
-        unsafe { gl::DeleteFramebuffer(self.framebuffer) };
-    }
-}
 
 #[derive(Clone, Debug)]
 ///A possible render target that can be drawn to the screen
 pub struct Surface {
-    image: Image,
-    data: Rc<SurfaceData>,
+    pub(crate) image: Image,
+    pub(crate) data: Rc<SurfaceData>,
 }
 
 impl Surface {
     ///Create a new surface with a given width and height
     pub fn new(width: u32, height: u32) -> Surface {
         let image = Image::new_null(width, height, PixelFormat::RGBA);
-        let surface = SurfaceData {
-            framebuffer: unsafe { gl::GenFramebuffer() }
+        let data = unsafe {
+            Rc::new(BackendImpl::create_surface(&image))
         };
-        unsafe { 
-            gl::BindFramebuffer(gl::FRAMEBUFFER, surface.framebuffer);
-            gl::FramebufferTexture(gl::FRAMEBUFFER, gl::COLOR_ATTACHMENT0, image.get_id(), 0);
-            gl::DrawBuffer(gl::COLOR_ATTACHMENT0);
-        }
         Surface {
             image,
-            data: Rc::new(surface)
+            data
         }
     }
 
@@ -43,21 +26,17 @@ impl Surface {
     ///
     ///Do not attempt to use the surface or its image within the function, because it is undefined behavior
     pub fn render_to<F>(&self, window: &mut Window, func: F) where F: FnOnce(&mut Window) {
-        let viewport = &mut [0, 0, 0, 0];
         let view = window.view();
-        unsafe {
-            gl::GetViewport(viewport.as_mut_ptr());
-            gl::BindFramebuffer(gl::FRAMEBUFFER, self.data.framebuffer);
-            gl::Viewport(0, 0, self.image.source_width() as i32, self.image.source_height() as i32);
-            window.flush();
-            window.set_view(View::new_transformed(self.image.area(), Transform::scale(Vector::new(1, -1))));
-        }
+        let viewport = unsafe {
+            BackendImpl::bind_surface(self)
+        };
+        window.flush();
+        window.set_view(View::new_transformed(self.image.area(), Transform::scale(Vector::new(1, -1))));
         func(window);
         window.set_view(view);
+        window.flush();
         unsafe {
-            window.flush();
-            gl::BindFramebuffer(gl::FRAMEBUFFER, 0); 
-            gl::Viewport(viewport[0], viewport[1], viewport[2], viewport[3]);
+            BackendImpl::unbind_surface(self, &viewport);
         }
     }
 

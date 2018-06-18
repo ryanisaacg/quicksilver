@@ -1,4 +1,3 @@
-#[cfg(not(target_arch="wasm32"))]
 extern crate image;
 #[cfg(feature="serde_json")] 
 extern crate serde_json;
@@ -7,7 +6,7 @@ extern crate rodio;
 
 use graphics::{AtlasError, ImageError};
 #[cfg(feature="rusttype")] use rusttype::Error as FontError;
-#[cfg(feature="serde_json")] use serde_json::Error as SerdeError;
+#[cfg(feature="saving")] use saving::SaveError;
 #[cfg(feature="sounds")] use sound::SoundError;
 use std::{
     fmt,
@@ -27,9 +26,9 @@ pub enum QuicksilverError {
     /// An error from loading a file
     IOError(IOError),
     /// A serialize or deserialize error
-    #[cfg(feature="serde_json")] SerdeError(SerdeError),
+    #[cfg(feature="saving")] SaveError(SaveError),
     /// There was an error loading a font file
-    #[cfg(feature="rusttype")] FontError(FontError)
+    #[cfg(feature="rusttype")] FontError(FontError),
 }
 
 impl fmt::Display for QuicksilverError {
@@ -45,8 +44,8 @@ impl Error for QuicksilverError {
             &QuicksilverError::ImageError(ref err) => err.description(),
             &QuicksilverError::SoundError(ref err) => err.description(),
             &QuicksilverError::IOError(ref err) => err.description(),
-            &QuicksilverError::SerdeError(ref err) => err.description(),
-            &QuicksilverError::FontError(ref err) => err.description()
+            &QuicksilverError::SaveError(ref err) => err.description(),
+            &QuicksilverError::FontError(ref err) => err.description(),
         }
     }
     
@@ -56,8 +55,8 @@ impl Error for QuicksilverError {
             &QuicksilverError::ImageError(ref err) => Some(err),
             &QuicksilverError::SoundError(ref err) => Some(err),
             &QuicksilverError::IOError(ref err) => Some(err),
-            &QuicksilverError::SerdeError(ref err) => Some(err),
-            &QuicksilverError::FontError(ref err) => Some(err)
+            &QuicksilverError::SaveError(ref err) => Some(err),
+            &QuicksilverError::FontError(ref err) => Some(err),
         }
     }
 }
@@ -90,15 +89,14 @@ impl From<IOError> for QuicksilverError {
     }
 }
 
-#[cfg(feature="serde_json")]
-impl From<SerdeError> for QuicksilverError {
-    fn from(err: SerdeError) -> QuicksilverError {
-        QuicksilverError::SerdeError(err)
+#[cfg(feature="saving")]
+impl From<SaveError> for QuicksilverError {
+    fn from(err: SaveError) -> QuicksilverError {
+        QuicksilverError::SaveError(err)
     }
 }
 
 #[doc(hidden)]
-#[cfg(not(target_arch="wasm32"))]
 impl From<image::ImageError> for QuicksilverError {
     fn from(img: image::ImageError) -> QuicksilverError {
         let image_error: ImageError = img.into();

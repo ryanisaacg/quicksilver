@@ -2,9 +2,30 @@
 use geom::Vector;
 use graphics::{Window, WindowBuilder};
 use input::Event;
+#[cfg(target_arch="wasm32")]
+use {
+    input::{ButtonState, KEY_LIST, LINES_TO_PIXELS, MouseButton},
+    std::{
+        cell::{RefCell, RefMut},
+        collections::HashMap,
+        rc::Rc
+    },
+    stdweb::{
+        Value,
+        unstable::TryInto,
+        web::{
+            document, window,
+            event::{BlurEvent, ConcreteEvent, FocusEvent, GamepadConnectedEvent,
+                GamepadDisconnectedEvent, IKeyboardEvent, IMouseEvent, IGamepadEvent,
+                KeyDownEvent, KeyUpEvent, MouseButton as WebMouseButton, 
+                MouseDownEvent, MouseMoveEvent, MouseOverEvent, MouseOutEvent, MouseUpEvent},
+            IEventTarget, IParentNode, IWindowOrWorker
+        }
+    }
+};
 
 /// The structure responsible for managing the game loop state
-pub trait State {
+pub trait State: 'static {
     /// Create the state given the window and canvas
     fn new() -> Self where Self: Sized;
     /// Tick the State forward one frame
@@ -34,30 +55,23 @@ pub trait State {
 ///
 /// On desktop platforms, this yields control to a simple game loop controlled by a Timer. On wasm,
 /// this yields control to the browser functions setInterval and requestAnimationFrame
-pub fn run<T: 'static + State>(window: WindowBuilder) {
+pub fn run<T: State>(window: WindowBuilder) {
     run_impl::<T>(window)
 }
 
-#[doc(hidden)]
-pub struct Application {
-    state: Box<State>, 
+struct Application<T: State> {
+    state: T, 
     window: Window,
     event_buffer: Vec<Event>
 }
 
-impl Application {
+impl<T: State> Application<T> {
     fn update(&mut self) {
         self.state.update(&mut self.window);
     }
 
     fn draw(&mut self) {
         self.state.draw(&mut self.window);
-    }
-
-    #[cfg(target_arch="wasm32")]
-    fn event(&mut self, event: &Event) {
-        self.window.process_event(event);
-        self.state.event(event, &mut self.window);
     }
 
     fn process_events(&mut self) {
@@ -71,12 +85,12 @@ impl Application {
 }
 
 #[cfg(not(target_arch="wasm32"))]
-fn run_impl<T: 'static + State>(window: WindowBuilder) {
+fn run_impl<T: State>(window: WindowBuilder) {
     use input::EventProvider;
     let (window, events_loop) = window.build();
     let mut events = EventProvider::new(events_loop);
     let event_buffer = Vec::new();
-    let state = Box::new(T::new());
+    let state = T::new();
     let mut app = Application { window, state, event_buffer };
     use std::time::Duration;
     #[cfg(feature="sounds")] {
@@ -98,64 +112,139 @@ fn run_impl<T: 'static + State>(window: WindowBuilder) {
 }
 
 #[cfg(target_arch="wasm32")]
-fn run_impl<T: 'static + State>(window: WindowBuilder) {
-    use ffi::wasm;
-    use std::os::raw::c_void;
-    let window = window.build();
-    let app = Box::new(Application { 
-        window,
-        state: Box::new(T::new()),
+fn run_impl<T: State>(builder: WindowBuilder) {
+    let app = Rc::new(RefCell::new(Application { 
+        window: builder.build(),
+        state: T::new(),
         event_buffer: Vec::new()
-    });
-    unsafe { wasm::set_app(Box::into_raw(app) as *mut c_void) };
-}
+    }));
 
-#[doc(hidden)]
-#[no_mangle]
-#[cfg(target_arch="wasm32")]
-pub extern "C" fn update(app: *mut Application) {
-    let mut app = unsafe { Box::from_raw(app) };
-    app.process_events();
-    app.update();
-    app.window.clear_temporary_states();
-    Box::into_raw(app);
-}
+    let document = document();
+    let window = window();
+    let canvas = document.query_selector("#canvas").unwrap().unwrap();
 
-#[doc(hidden)]
-#[no_mangle]
-#[cfg(target_arch="wasm32")]
-pub extern "C" fn draw(app: *mut Application) {
-    let mut app = unsafe { Box::from_raw(app) };
-    app.draw();
-    Box::into_raw(app);
-}
+    let application = app.clone();
+    let close_handler = move || application.borrow_mut().event_buffer.push(Event::Closed);
+    js! {
+        window.onclose = @{close_handler};
+    }
 
-#[doc(hidden)]
-#[no_mangle]
-#[cfg(target_arch="wasm32")]
-pub unsafe extern "C" fn event(app: *mut Application, event_tag: u32) {
-    use ffi::wasm;
-    let mut app = Box::from_raw(app);
-    use input::{BUTTON_STATE_LIST, GAMEPAD_AXIS_LIST, GAMEPAD_BUTTON_LIST, KEY_LIST, MOUSE_BUTTON_LIST};
-    let event = match event_tag {
-        0 => Event::Closed,
-        1 => Event::Focused,
-        2 => Event::Unfocused,
-        3 => Event::Key(KEY_LIST[wasm::event_data_button() as usize], BUTTON_STATE_LIST[wasm::event_data_state() as usize]),
-        4 => Event::MouseMoved(Vector::new(wasm::event_data_f1(), wasm::event_data_f2())),
-        5 => Event::MouseEntered,
-        6 => Event::MouseExited,
-        7 => Event::MouseWheel(Vector::new(wasm::event_data_f1(), wasm::event_data_f2())),
-        8 => Event::MouseButton(MOUSE_BUTTON_LIST[wasm::event_data_button() as usize], BUTTON_STATE_LIST[wasm::event_data_state() as usize]),
-        9 => Event::GamepadAxis(wasm::event_data_id(), GAMEPAD_AXIS_LIST[wasm::event_data_button() as usize], wasm::event_data_f1()),
-        10 => Event::GamepadButton(wasm::event_data_id(), GAMEPAD_BUTTON_LIST[wasm::event_data_button() as usize], BUTTON_STATE_LIST[wasm::event_data_state() as usize]),
-        11 => Event::GamepadConnected(wasm::event_data_id()),
-        12 => Event::GamepadDisconnected(wasm::event_data_id()),
-        _ => {
-            Box::into_raw(app);
-            return;
-        }
+    let application = app.clone();
+    let wheel_handler = move |x: Value, y: Value, mode: Value| {
+        let x: f64 = x.try_into().unwrap();
+        let y: f64 = y.try_into().unwrap();
+        let mode: u64 = mode.try_into().unwrap();   
+        application.borrow_mut().event_buffer.push(Event::MouseWheel(
+            Vector::new(x as f32, y as f32) * if mode != 0 { LINES_TO_PIXELS } else { 1.0 }
+        ));
     };
-    app.event(&event);
-    Box::into_raw(app);
+    js! {
+        document.getElementById("canvas").onwheel = function(e) {
+            @{wheel_handler}(e.deltaX, e.deltaY, e.deltaMode);
+            e.preventDefault();
+        }
+    }
+
+    handle_event(&document, &app, |mut app, _: BlurEvent| app.event_buffer.push(Event::Unfocused));
+    handle_event(&document, &app, |mut app, _: FocusEvent| app.event_buffer.push(Event::Focused));
+
+    handle_event(&canvas, &app, |mut app, _: MouseOutEvent| app.event_buffer.push(Event::MouseExited));
+    handle_event(&canvas, &app, |mut app, _: MouseOverEvent| app.event_buffer.push(Event::MouseEntered));
+
+    handle_event(&canvas, &app, |mut app, event: MouseMoveEvent| {
+        let pointer = Vector::new(event.offset_x() as f32, event.offset_y() as f32);
+        app.event_buffer.push(Event::MouseMoved(pointer));
+    });
+    handle_event(&canvas, &app, |mut app, event: MouseUpEvent| {
+        let state = ButtonState::Released;
+        let button = match event.button() {
+            WebMouseButton::Left => MouseButton::Left,
+            WebMouseButton::Wheel => MouseButton::Middle,
+            WebMouseButton::Right => MouseButton::Right,
+            _ => return
+        };
+        app.event_buffer.push(Event::MouseButton(button, state));
+    });
+    handle_event(&canvas, &app, |mut app, event: MouseDownEvent| {
+        let state = ButtonState::Pressed;
+        let button = match event.button() {
+            WebMouseButton::Left => MouseButton::Left,
+            WebMouseButton::Wheel => MouseButton::Middle,
+            WebMouseButton::Right => MouseButton::Right,
+            _ => return
+        };
+        app.event_buffer.push(Event::MouseButton(button, state));
+    });
+
+    let key_names = generate_key_names();
+    handle_event(&document, &app, move |mut app, event: KeyDownEvent| {
+        let state = ButtonState::Pressed;
+        if let Some(keycode) = key_names.get(&event.code()) {
+            app.event_buffer.push(Event::Key(KEY_LIST[*keycode], state));
+        }
+    });
+    let key_names = generate_key_names();
+    handle_event(&document, &app, move |mut app, event: KeyUpEvent| {
+        let state = ButtonState::Released;
+        if let Some(keycode) = key_names.get(&event.code()) {
+            app.event_buffer.push(Event::Key(KEY_LIST[*keycode], state));
+        }
+    });
+
+    handle_event(&window, &app, move |mut app, event: GamepadConnectedEvent| {
+        app.event_buffer.push(Event::GamepadConnected(event.gamepad().index() as i32));
+    });
+    handle_event(&window, &app, move |mut app, event: GamepadDisconnectedEvent| {
+        app.event_buffer.push(Event::GamepadDisconnected(event.gamepad().index() as i32));
+    });
+
+    update(app.clone());
+    draw(app.clone())
+}
+
+#[cfg(target_arch="wasm32")]
+fn update<T: State>(app: Rc<RefCell<Application<T>>>) {
+    app.borrow_mut().process_events();
+    app.borrow_mut().update();
+    window().set_timeout(move || update(app), 16);
+}
+
+#[cfg(target_arch="wasm32")]
+fn draw<T: State>(app: Rc<RefCell<Application<T>>>) {
+    app.borrow_mut().draw();
+    window().request_animation_frame(move |_| draw(app));
+}
+
+#[cfg(target_arch="wasm32")]
+fn handle_event<T, E, F>(target: &impl IEventTarget, application: &Rc<RefCell<Application<T>>>, mut handler: F) 
+        where T: State, E: ConcreteEvent, F: FnMut(RefMut<Application<T>>, E) + 'static {
+    let application = application.clone();
+    target.add_event_listener(move |event: E| {
+        event.prevent_default();
+        event.stop_propagation();
+        event.cancel_bubble();
+        handler(application.borrow_mut(), event);
+    });
+}
+
+#[cfg(target_arch="wasm32")]
+static KEY_NAMES: &[&str] = &["Digit1", "Digit2", "Digit3", "Digit4", "Digit5", "Digit6", "Digit7", "Digit8", "Digit9", "Digit0", "KeyA", "KeyB", "KeyC", "KeyD", "KeyE", "KeyF", "KeyG", "KeyH", "KeyI", "KeyJ", "KeyK", "KeyL", "KeyM", 
+    "KeyN", "KeyO", "KeyP", "KeyQ", "KeyR", "KeyS", "KeyT", "KeyU", "KeyV", "KeyW", "KeyX", "KeyY", "KeyZ", "Escape", "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12", 
+    "F13", "F14", "F15", "PrintScreen", "ScrollLock", "Pause", "Insert", "Home", "Delete", "End", "PageDown", "PageUp", "ArrowLeft", "ArrowUp", "ArrowRight", 
+    "ArrowDown", "Backspace", "Enter", "Space", "Compose", "Caret", "NumLock", "Numpad0", "Numpad1", "Numpad2", "Numpad3", "Numpad4", "Numpad5", 
+    "Numpad6", "Numpad7", "Numpad8", "Numpad9", "AbntC1", "AbntC2", "Add", "Quote", "Apps", "At", "Ax", "Backslash", "Calculator", 
+    "Capital", "Colon", "Comma", "Convert", "Decimal", "Divide", "Equal", "Backquote", "Kana", "Kanji", "AltLeft", "BracketLeft", "ControlLeft", 
+    "LMenu", "ShiftLeft", "MetaLeft", "Mail", "MediaSelect", "MediaStop", "Minus", "Multiply", "Mute", "LaunchMyComputer", "NavigateForward", 
+    "NavigateBackward", "NextTrack", "NoConvert", "NumpadComma", "NumpadEnter", "NumpadEquals", "OEM102", "Period", "PlayPause", 
+    "Power", "PrevTrack", "AltRight", "BracketRight", "ControlRight", "RMenu", "ShiftRight", "MetaRight", "Semicolon", "Slash", "Sleep", "Stop", "Subtract", 
+    "Sysrq", "Tab", "Underline", "Unlabeled", "AudioVolumeDown", "AudioVolumeUp", "Wake", "WebBack", "WebFavorites", "WebForward", "WebHome", 
+    "WebRefresh", "WebSearch", "WebStop", "Yen"];
+
+#[cfg(target_arch="wasm32")]
+fn generate_key_names() -> HashMap<String, usize> {
+    KEY_NAMES
+        .iter()
+        .enumerate()
+        .map(|(index, name)| (String::from(*name), index))
+        .collect()    
 }

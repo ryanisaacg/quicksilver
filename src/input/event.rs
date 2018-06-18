@@ -4,9 +4,14 @@ extern crate glutin;
 use input::{ButtonState, GamepadAxis, GamepadButton, Key, MouseButton};
 use geom::Vector;
 #[cfg(not(target_arch="wasm32"))]
-use graphics::Window;
-#[cfg(not(target_arch="wasm32"))]
-use glutin::{EventsLoop, Event::{WindowEvent}};
+use {
+    graphics::Window,
+    input::LINES_TO_PIXELS,
+    glutin::{
+        EventsLoop, 
+        Event::WindowEvent
+    }
+};
 
 /// An input event
 #[derive(Copy, Clone, Debug)]
@@ -30,17 +35,14 @@ pub enum Event {
     /// A mouse button has changed its button state
     MouseButton(MouseButton, ButtonState),
     /// A gamepad axis has changed its state
-    GamepadAxis(u32, GamepadAxis, f32),
+    GamepadAxis(i32, GamepadAxis, f32),
     /// A gamepad button has changed its state
-    GamepadButton(u32, GamepadButton, ButtonState),
+    GamepadButton(i32, GamepadButton, ButtonState),
     /// A gamepad has been connected
-    GamepadConnected(u32),
+    GamepadConnected(i32),
     /// A gamepad has been disconnected
-    GamepadDisconnected(u32)
+    GamepadDisconnected(i32)
 }
-
-#[cfg(not(target_arch="wasm32"))]
-const LINES_TO_PIXELS: f32 = 15.0;
 
 #[cfg(not(target_arch="wasm32"))]
 pub(crate) struct EventProvider {
@@ -102,7 +104,10 @@ impl EventProvider {
                     events.push(Event::MouseMoved(vector));
                 }
                 glutin::WindowEvent::Resized(new_width, new_height) => {
-                    window.adjust_size(Vector::new(new_width as f32, new_height as f32));
+                    // Glutin reports a resize to 0, 0 when minimizing the window
+                    if new_width != 0 && new_height != 0 {
+                        window.adjust_size(Vector::new(new_width as f32, new_height as f32));
+                    }
                 },
                 _ => ()
             },
