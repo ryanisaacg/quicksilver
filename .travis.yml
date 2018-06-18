@@ -7,11 +7,23 @@ addons:
     packages:
       - libasound2-dev
       - libudev-dev
+env:
+  global:
+    - RUST_BACKTRACE=1
+  matrix:
+    - WASM=0
 rust:
   - stable
   - beta
   - nightly
 matrix:
+  include:
+    - rust: nightly
+      env: WASM=1
+      install: rustup target add wasm32-unknown-unknown
+      script:
+        - cargo +nightly check --target wasm32-unknown-unknown --examples
   allow_failures:
     - rust: nightly
+      env: WASM=0
   fast_finish: true
