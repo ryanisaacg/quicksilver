@@ -5,7 +5,7 @@ extern crate ncollide2d;
 extern crate quicksilver;
 
 use quicksilver::{
-    State, run,
+    Result, State, run,
     geom::{Rectangle, Vector},
     input::Event,
     graphics::{Color, GpuTriangle, WindowBuilder, Window, Vertex}
@@ -30,7 +30,7 @@ struct Raycast {
 
 
 impl State for Raycast {
-    fn new() -> Raycast {
+    fn new() -> Result<Raycast> {
         //The different squares that cast shadows
         let regions = vec![
             Rectangle::new_sized(800, 600),
@@ -50,14 +50,14 @@ impl State for Raycast {
                 region.top_left() + region.size().y_comp(),
                 region.top_left() + region.size()].into_iter()
         }).collect();
-        Raycast {
+        Ok(Raycast {
             regions,
             targets,
             vertices: Vec::new(),
-        }
+        })
     }
 
-    fn event(&mut self, event: &Event, window: &mut Window) {
+    fn event(&mut self, event: &Event, window: &mut Window) -> Result<()> {
         if let &Event::MouseMoved(_) = event {
             let mouse = window.mouse().pos();
             self.vertices.clear();
@@ -106,9 +106,10 @@ impl State for Raycast {
                 col: Color::white()
             });
         }
+        Ok(())
     }
 
-    fn draw(&mut self, window: &mut Window) {
+    fn draw(&mut self, window: &mut Window) -> Result<()> {
         window.clear(Color::black());
         if self.vertices.len() >= 3 {
             // Calculate the number of triangles needed to draw the poly
@@ -130,9 +131,10 @@ impl State for Raycast {
             window.add_vertices(self.vertices.iter().cloned(), indices);
         }
         window.present();
+        Ok(())
     }
 }
 
 fn main() {
-    run::<Raycast>(WindowBuilder::new("Raycast", 800, 600));
+    run::<Raycast>(WindowBuilder::new("Raycast", 800, 600)).unwrap();
 }
