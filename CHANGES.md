@@ -6,6 +6,8 @@
 - [Breaking] Renamed type `Draw` to `Sprite` (and updated the readme accordingly)
 - [Breaking] Renamed type `QuicksilverError` to `Error`
 - [Breaking] Added `SaveError`, a new error type
+- Added a Result type alias
+- [Breaking] Added a Result return to all of the State methods
 - Dependencies
     - Versions
         - alga: ``0.5 -> 0.6``
