@@ -12,7 +12,7 @@
 //! extern crate quicksilver;
 //! 
 //! use quicksilver::{
-//!     State, run,
+//!     Result, State, run,
 //!     geom::{Circle, Rectangle, Transform},
 //!     graphics::{Color, Sprite, Window, WindowBuilder}
 //! };
@@ -20,19 +20,20 @@
 //! struct DrawGeometry;
 //! 
 //! impl State for DrawGeometry {
-//!     fn new() -> DrawGeometry { DrawGeometry }
+//!     fn new() -> Result<DrawGeometry> { Ok(DrawGeometry) }
 //! 
-//!    fn draw(&mut self, window: &mut Window) {
+//!    fn draw(&mut self, window: &mut Window) -> Result<()> {
 //!         window.clear(Color::black());
 //!         window.draw(&Sprite::rectangle(Rectangle::new(100, 100, 32, 32)).with_color(Color::red()));
 //!         window.draw(&Sprite::rectangle(Rectangle::new(400, 300, 32, 32)).with_color(Color::blue()).with_transform(Transform::rotate(45)).with_z(10));
 //!         window.draw(&Sprite::circle(Circle::new(400, 300, 100)).with_color(Color::green()));
 //!         window.present();
+//!         Ok(())
 //!    }
 //! }
 //! 
 //! fn main() {
-//!     run::<DrawGeometry>(WindowBuilder::new("Draw Geometry", 800, 600));
+//!     run::<DrawGeometry>(WindowBuilder::new("Draw Geometry", 800, 600)).unwrap();
 //! }
 //! ```
 //! Run this with `cargo run` or, if you have the wasm32 toolchain installed, you can build for the web 
@@ -106,6 +107,8 @@ pub use error::QuicksilverError as Error;
 pub use timer::Timer;
 pub use state::{State, run};
 
+/// A Result that returns either success or a Quicksilver Error
+pub type Result<T> = ::std::result::Result<T, Error>;
 /// Necessary types from futures-rs
 pub use futures::{Future, Async};
 

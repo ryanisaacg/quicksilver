@@ -1,9 +1,11 @@
-#[cfg(target_arch="wasm32")]
-use geom::Vector;
-use graphics::{Window, WindowBuilder};
-use input::Event;
+use {
+    Result,
+    graphics::{Window, WindowBuilder},
+    input::Event
+};
 #[cfg(target_arch="wasm32")]
 use {
+    geom::Vector,
     input::{ButtonState, KEY_LIST, LINES_TO_PIXELS, MouseButton},
     std::{
         cell::{RefCell, RefMut},
@@ -27,27 +29,32 @@ use {
 /// The structure responsible for managing the game loop state
 pub trait State: 'static {
     /// Create the state given the window and canvas
-    fn new() -> Self where Self: Sized;
+    fn new() -> Result<Self> where Self: Sized;
     /// Tick the State forward one frame
     ///
     /// Will happen at a fixed rate of 60 ticks per second under ideal conditions. Under non-ideal conditions,
     /// the game loop will do its best to still call the update at about 60 TPS. 
     ///
     /// By default it does nothing
-    fn update(&mut self, &mut Window) {}
+    fn update(&mut self, &mut Window) -> Result<()> {
+        Ok(())
+    }
     /// Process an incoming event
     ///
     /// By default it does nothing
-    fn event(&mut self, &Event, &mut Window) {}
+    fn event(&mut self, &Event, &mut Window) -> Result<()> {
+        Ok(())
+    }
     /// Draw the state to the screen
     ///
     /// Will happen as often as possible, only limited by vysnc
     ///
     /// By default it draws a black screen
-    fn draw(&mut self, window: &mut Window) {
+    fn draw(&mut self, window: &mut Window) -> Result<()> {
         use graphics::Color;
         window.clear(Color::black());
         window.present();
+        Ok(())
     }
 }
 
@@ -55,7 +62,7 @@ pub trait State: 'static {
 ///
 /// On desktop platforms, this yields control to a simple game loop controlled by a Timer. On wasm,
 /// this yields control to the browser functions setInterval and requestAnimationFrame
-pub fn run<T: State>(window: WindowBuilder) {
+pub fn run<T: State>(window: WindowBuilder) -> Result<()> {
     run_impl::<T>(window)
 }
 
@@ -66,31 +73,32 @@ struct Application<T: State> {
 }
 
 impl<T: State> Application<T> {
-    fn update(&mut self) {
-        self.state.update(&mut self.window);
+    fn update(&mut self) -> Result<()> {
+        self.state.update(&mut self.window)
     }
 
-    fn draw(&mut self) {
-        self.state.draw(&mut self.window);
+    fn draw(&mut self) -> Result<()> {
+        self.state.draw(&mut self.window)
     }
 
-    fn process_events(&mut self) {
+    fn process_events(&mut self) ->Result<()> {
         self.window.update_gamepads(&mut self.event_buffer);
         for i in 0..self.event_buffer.len() {
             self.window.process_event(&self.event_buffer[i]);
-            self.state.event(&self.event_buffer[i], &mut self.window);
+            self.state.event(&self.event_buffer[i], &mut self.window)?;
         }
         self.event_buffer.clear();
+        Ok(())
     }
 }
 
 #[cfg(not(target_arch="wasm32"))]
-fn run_impl<T: State>(window: WindowBuilder) {
+fn run_impl<T: State>(window: WindowBuilder) -> Result<()> {
     use input::EventProvider;
     let (window, events_loop) = window.build();
     let mut events = EventProvider::new(events_loop);
     let event_buffer = Vec::new();
-    let state = T::new();
+    let state = T::new()?;
     let mut app = Application { window, state, event_buffer };
     use std::time::Duration;
     #[cfg(feature="sounds")] {
@@ -101,21 +109,22 @@ fn run_impl<T: State>(window: WindowBuilder) {
     let mut running = true;
     while running {
         running = events.generate_events(&mut app.window, &mut app.event_buffer);
-        app.process_events();
-        timer.tick(||  { 
-            app.update(); 
-            Duration::from_millis(16) 
-        });
-        app.draw();
+        app.process_events()?;
+        timer.tick(|| -> Result<Duration> { 
+            app.update()?;
+            Ok(Duration::from_millis(16))
+        })?;
+        app.draw()?;
         app.window.clear_temporary_states();
     }
+    Ok(())
 }
 
 #[cfg(target_arch="wasm32")]
-fn run_impl<T: State>(builder: WindowBuilder) {
+fn run_impl<T: State>(builder: WindowBuilder) -> Result<()> {
     let app = Rc::new(RefCell::new(Application { 
         window: builder.build(),
-        state: T::new(),
+        state: T::new()?,
         event_buffer: Vec::new()
     }));
 
@@ -198,21 +207,29 @@ fn run_impl<T: State>(builder: WindowBuilder) {
         app.event_buffer.push(Event::GamepadDisconnected(event.gamepad().index() as i32));
     });
 
-    update(app.clone());
+    update(app.clone())?;
     draw(app.clone())
 }
 
+//TODO: Add error handling to subsequent calls to unwrap and draw
+// Basically, there is no stack on the web because the state is a black box that the runtime calls
+// This means the best way to do error handling is probably have either custom unwrap() that does
+// not panic (because panicking on wasm is not great) or have the user pass in custom
+// error-reporting
+
 #[cfg(target_arch="wasm32")]
-fn update<T: State>(app: Rc<RefCell<Application<T>>>) {
-    app.borrow_mut().process_events();
-    app.borrow_mut().update();
-    window().set_timeout(move || update(app), 16);
+fn update<T: State>(app: Rc<RefCell<Application<T>>>) -> Result<()> {
+    app.borrow_mut().process_events()?;
+    app.borrow_mut().update()?;
+    window().set_timeout(move || update(app).unwrap(), 16);
+    Ok(())
 }
 
 #[cfg(target_arch="wasm32")]
-fn draw<T: State>(app: Rc<RefCell<Application<T>>>) {
-    app.borrow_mut().draw();
-    window().request_animation_frame(move |_| draw(app));
+fn draw<T: State>(app: Rc<RefCell<Application<T>>>) -> Result<()> {
+    app.borrow_mut().draw()?;
+    window().request_animation_frame(move |_| draw(app).unwrap());
+    Ok(())
 }
 
 #[cfg(target_arch="wasm32")]

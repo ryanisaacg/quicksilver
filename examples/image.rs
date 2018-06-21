@@ -2,7 +2,7 @@
 extern crate quicksilver;
 
 use quicksilver::{
-    Async, Future, State, run,
+    Async, Future, Result, State, run,
     geom::Vector,
     graphics::{Color, Image, ImageLoader, Sprite, Window, WindowBuilder}
 };
@@ -13,9 +13,11 @@ enum ImageViewer {
 }
 
 impl State for ImageViewer {
-    fn new() -> ImageViewer { ImageViewer::Loading(Image::load("examples/assets/image.png")) }
+    fn new() -> Result<ImageViewer> { 
+        Ok(ImageViewer::Loading(Image::load("examples/assets/image.png")))
+    }
 
-   fn update(&mut self, _: &mut Window) {
+   fn update(&mut self, _: &mut Window) -> Result<()> {
        // Check to see the progress of the loading image
        let result = match self {
            &mut ImageViewer::Loading(ref mut loader) => loader.poll().unwrap(),
@@ -25,18 +27,20 @@ impl State for ImageViewer {
        if let Async::Ready(asset) = result {
            *self = ImageViewer::Loaded(asset);
        }
+       Ok(())
    }
 
-   fn draw(&mut self, window: &mut Window) {
+   fn draw(&mut self, window: &mut Window) -> Result<()> {
         window.clear(Color::white());
         // If the image is loaded draw it
         if let &mut ImageViewer::Loaded(ref image) = self {
             window.draw(&Sprite::image(image, Vector::new(400, 300)));
         }
         window.present();
+        Ok(())
    }
 }
 
 fn main() {
-    run::<ImageViewer>(WindowBuilder::new("Image Example", 800, 600));
+    run::<ImageViewer>(WindowBuilder::new("Image Example", 800, 600)).unwrap();
 }
