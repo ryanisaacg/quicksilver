@@ -86,23 +86,23 @@ impl Eq for GpuTriangle {}
 #[doc(hidden)]
 impl PartialOrd for GpuTriangle {
     fn partial_cmp(&self, other: &GpuTriangle) -> Option<Ordering> {
-        match self.z.partial_cmp(&other.z) {
-            None | Some(Ordering::Equal) => 
-                Some(match (&self.image, &other.image) {
-                    (&Some(ref a), &Some(ref b)) => a.get_id().cmp(&b.get_id()),
-                    (&Some(_), &None) => Ordering::Greater,
-                    (&None, &Some(_)) => Ordering::Less,
-                    (&None, &None) => Ordering::Equal,
-                }),
-            result => result
-        }
+        Some(self.cmp(other))
     }
 }
 
 #[doc(hidden)]
 impl Ord for GpuTriangle {
     fn cmp(&self, other: &GpuTriangle) -> Ordering {
-        self.partial_cmp(other).unwrap()
+        match self.z.partial_cmp(&other.z) {
+            None | Some(Ordering::Equal) => 
+                match (&self.image, &other.image) {
+                    (&Some(ref a), &Some(ref b)) => a.get_id().cmp(&b.get_id()),
+                    (&Some(_), &None) => Ordering::Greater,
+                    (&None, &Some(_)) => Ordering::Less,
+                    (&None, &None) => Ordering::Equal,
+                },
+            Some(result) => result
+        }
     }
 }
 
