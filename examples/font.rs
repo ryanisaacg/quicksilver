@@ -6,7 +6,7 @@ use futures::{Async, Future};
 use quicksilver::{
     Result, State, run,
     geom::Vector,
-    graphics::{Color, Font, FontLoader, Image, Sprite, Window, WindowBuilder}
+    graphics::{Color, Font, FontLoader, FontStyle, Image, Sprite, Window, WindowBuilder}
 };
 
 enum SampleText {
@@ -27,7 +27,8 @@ impl State for SampleText {
        };
        // If the image has been loaded move to the loaded state
        if let Async::Ready(font) = result {
-           *self = SampleText::Loaded(font.render("Sample Text", 72.0, Color::black()));
+           let style = FontStyle::new(72.0, Color::black());
+           *self = SampleText::Loaded(font.render("Sample Text", style));
        }
        Ok(())
    }
