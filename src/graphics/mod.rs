@@ -27,5 +27,5 @@ pub use self::{
     view::View,
     window::{Window, WindowBuilder}
 };
-#[cfg(feature="fonts")] pub use self::font::{Font, FontLoader};
+#[cfg(feature="fonts")] pub use self::font::{Font, FontStyle, FontLoader};
 pub(crate) use self::backend::{Backend, BackendImpl, ImageData, SurfaceData};
