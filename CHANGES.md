@@ -6,6 +6,7 @@
 - [Breaking] Renamed type `Draw` to `Sprite` (and updated the readme accordingly)
 - [Breaking] Renamed type `QuicksilverError` to `Error`
 - [Breaking] Added `SaveError`, a new error type
+- [Breaking] Made the letterbox a configurable color
 - Dependencies
     - Versions
         - alga: ``0.5 -> 0.6``
