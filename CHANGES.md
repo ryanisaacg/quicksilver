@@ -8,6 +8,7 @@
 - [Breaking] Added `SaveError`, a new error type
 - Added a Result type alias
 - [Breaking] Added a Result return to all of the State methods
+- [Breaking] Move the Font parameters into their own structure
 - Dependencies
     - Versions
         - alga: ``0.5 -> 0.6``
