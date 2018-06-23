@@ -347,7 +347,20 @@ impl Window {
         self.vertices.clear();
         self.triangles.clear();
         unsafe {
-            self.backend.clear(color);
+            self.backend.clear_color(color, Color::black());
+            self.backend.reset_blend_mode();
+        }
+    }
+
+    /// Clear the screen to a given color, with a given letterbox color
+    ///
+    /// The blend mode is also automatically reset,
+    /// and any un-flushed draw calls are dropped.
+    pub fn clear_letterbox_color(&mut self, color: Color, letterbox: Color) {
+        self.vertices.clear();
+        self.triangles.clear();
+        unsafe {
+            self.backend.clear_color(color, letterbox);
             self.backend.reset_blend_mode();
         }
     }

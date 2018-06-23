@@ -15,6 +15,26 @@ pub struct Vertex {
     pub col: Color,
 }
 
+impl Vertex {
+    /// Create a new untextured GPU vertex
+    pub fn new_untextured(pos: Vector, col: Color) -> Vertex {
+        Vertex {
+            pos,
+            tex_pos: None,
+            col
+        }
+    }
+
+    /// Create a new textured GPU vertex
+    pub fn new_textured(pos: Vector, tex_pos: Vector, col: Color) -> Vertex {
+        Vertex {
+            pos,
+            tex_pos: Some(tex_pos),
+            col
+        }
+    }
+}
+
 #[derive(Clone)]
 /// A triangle to draw to the GPU
 pub struct GpuTriangle {
@@ -27,6 +47,26 @@ pub struct GpuTriangle {
     /// All of the vertices used by the triangle should agree on whether it uses an image,
     /// it is up to you to maintain this
     pub image: Option<Image>
+}
+
+impl GpuTriangle {
+    /// Create a new untextured GPU Triangle
+    pub fn new_untextured(indices: [u32; 3], z: f32) -> GpuTriangle {
+        GpuTriangle {
+            z,
+            indices,
+            image: None
+        }
+    }
+
+    /// Create a new textured GPU triangle
+    pub fn new_textured(indices: [u32; 3], z: f32, image: Image) -> GpuTriangle {
+        GpuTriangle {
+            z,
+            indices,
+            image: Some(image)
+        }
+    }
 }
 
 #[doc(hidden)]
