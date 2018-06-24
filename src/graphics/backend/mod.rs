@@ -1,8 +1,9 @@
+use geom::Vector;
 use graphics::{Color, GpuTriangle, Image, PixelFormat, Surface, Vertex};
 
 pub(crate) trait Backend {
     unsafe fn new(texture_mode: ImageScaleStrategy) -> Self where Self: Sized;
-    unsafe fn clear(&mut self, col: Color);
+    unsafe fn clear(&mut self, color: Color);
     unsafe fn set_blend_mode(&mut self, blend: BlendMode);
     unsafe fn reset_blend_mode(&mut self);
     unsafe fn draw(&mut self, vertices: &[Vertex], triangles: &[GpuTriangle]);
@@ -14,6 +15,20 @@ pub(crate) trait Backend {
     unsafe fn unbind_surface(surface: &Surface, viewport: &[i32]) where Self: Sized;
     unsafe fn destroy_surface(surface: &SurfaceData) where Self: Sized;
     unsafe fn viewport(x: i32, y: i32, width: i32, height: i32) where Self: Sized;
+
+    unsafe fn clear_color(&mut self, color: Color, letterbox: Color) {
+        self.clear(letterbox);
+        self.draw(&[
+            Vertex::new_untextured(Vector::new(-1, -1), color),
+            Vertex::new_untextured(Vector::new(1, -1), color),
+            Vertex::new_untextured(Vector::new(1, 1), color),
+            Vertex::new_untextured(Vector::new(-1, 1), color),
+        ], &[
+            GpuTriangle::new_untextured([0, 1, 2], 0.0),
+            GpuTriangle::new_untextured([2, 3, 0], 0.0)
+        ]);
+        self.flush();
+    }
 }
 
 const VERTEX_SIZE: usize = 9; // the number of floats in a vertex
