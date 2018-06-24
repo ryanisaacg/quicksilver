@@ -6,6 +6,7 @@
 - [Breaking] Renamed type `Draw` to `Sprite` (and updated the readme accordingly)
 - [Breaking] Renamed type `QuicksilverError` to `Error`
 - [Breaking] Added `SaveError`, a new error type
+- [Breaking] Made the letterbox a configurable color
 - Added a Result type alias
 - [Breaking] Added a Result return to all of the State methods
 - [Breaking] Move the Font parameters into their own structure
