@@ -22,7 +22,7 @@ pub struct Sprite {
     position: Vector,
     color: Color,
     transform: Transform,
-    z: f32
+    z: f32,
 }
 
 impl Sprite {
@@ -33,7 +33,7 @@ impl Sprite {
             position,
             color: Color::white(),
             transform: Transform::identity(),
-            z: 0.0
+            z: 0.0,
         }
     }
 
@@ -43,13 +43,33 @@ impl Sprite {
             Shape::Circle(circ) => Sprite::circle(circ),
             Shape::Rectangle(rect) => Sprite::rectangle(rect),
             Shape::Vector(v) => Sprite::point(v),
-
         }
     }
 
     /// Create a sprite with a point
     pub fn point(position: Vector) -> Sprite {
         Sprite::rectangle(Rectangle::newv(position, Vector::one()))
+    }
+
+    /// Create a sprite with a line
+    pub fn line(from: Vector, to: Vector, thickness: f32) -> Sprite {
+        // create rectangle in right size
+        let dx = to.x - from.x;
+        let dy = to.y - from.y;
+        let distance = (dx.powi(2) + dy.powi(2)).sqrt();
+        let rect = Rectangle::new(from.x, from.y + thickness / 2.0, distance, thickness);
+
+        // shift position of rectangle
+        let trans_x = (from.x + to.x) / 2.0 - rect.center().x;
+        let trans_y = (from.y + to.y) / 2.0 - rect.center().y;
+
+        Sprite {
+            item: DrawPayload::Rectangle(rect.size()),
+            position: rect.center(),
+            color: Color::white(),
+            transform: Transform::translate(Vector::new(trans_x, trans_y)) * Transform::rotate(dy.atan2(dx).to_degrees()),
+            z: 0.0,
+        }
     }
 
     /// Create a sprite with a rectangle
@@ -59,7 +79,7 @@ impl Sprite {
             position: rectangle.center(),
             color: Color::white(),
             transform: Transform::identity(),
-            z: 0.0
+            z: 0.0,
         }
     }
 
@@ -70,7 +90,7 @@ impl Sprite {
             position: circle.center(),
             color: Color::white(),
             transform: Transform::identity(),
-            z: 0.0
+            z: 0.0,
         }
     }
 
@@ -105,7 +125,6 @@ impl Sprite {
             ..self
         }
     }
-
 }
 
 impl Drawable for Sprite {
@@ -113,7 +132,7 @@ impl Drawable for Sprite {
         match self.item {
             DrawPayload::Image(ref image) => {
                 let area = image.area().with_center(self.position);
-                let trans = Transform::translate(area.top_left() + area.size() / 2) 
+                let trans = Transform::translate(area.top_left() + area.size() / 2)
                     * self.transform
                     * Transform::translate(-area.size() / 2)
                     * Transform::scale(area.size());
@@ -124,7 +143,7 @@ impl Drawable for Sprite {
                     Vertex {
                         pos: trans * v,
                         tex_pos: Some(normalized_pos + v.times(normalized_size)),
-                        col: self.color
+                        col: self.color,
                     }
                 };
                 let vertices = &[
@@ -137,19 +156,19 @@ impl Drawable for Sprite {
                     GpuTriangle {
                         z: self.z,
                         indices: [0, 1, 2],
-                        image: Some(image.clone())
+                        image: Some(image.clone()),
                     },
                     GpuTriangle {
                         z: self.z,
                         indices: [2, 3, 0],
-                        image: Some(image.clone())
+                        image: Some(image.clone()),
                     }
                 ];
                 window.add_vertices(vertices.iter().cloned(), triangles.iter().cloned());
             }
             DrawPayload::Rectangle(size) => {
                 let area = Rectangle::newv_sized(size).with_center(self.position);
-                let trans = Transform::translate(area.top_left() + area.size() / 2) 
+                let trans = Transform::translate(area.top_left() + area.size() / 2)
                     * self.transform
                     * Transform::translate(-area.size() / 2)
                     * Transform::scale(area.size());
@@ -157,7 +176,7 @@ impl Drawable for Sprite {
                     Vertex {
                         pos: trans * v,
                         tex_pos: None,
-                        col: self.color
+                        col: self.color,
                     }
                 };
                 let vertices = &[
@@ -170,12 +189,12 @@ impl Drawable for Sprite {
                     GpuTriangle {
                         z: self.z,
                         indices: [0, 1, 2],
-                        image: None
+                        image: None,
                     },
                     GpuTriangle {
                         z: self.z,
                         indices: [2, 3, 0],
-                        image: None
+                        image: None,
                     }
                 ];
                 window.add_vertices(vertices.iter().cloned(), triangles.iter().cloned());
@@ -194,12 +213,12 @@ impl Drawable for Sprite {
                 let vertices = points.iter().map(|point| Vertex {
                     pos: transform * point.clone(),
                     tex_pos: None,
-                    col: self.color
+                    col: self.color,
                 });
                 let indices = iter::repeat(self.z).take(points.len() - 1).enumerate().map(|(index, z)| GpuTriangle {
                     z,
                     indices: [0, index as u32, index as u32 + 1],
-                    image: None
+                    image: None,
                 });
                 window.add_vertices(vertices, indices);
             }
