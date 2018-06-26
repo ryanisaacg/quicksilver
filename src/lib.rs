@@ -90,7 +90,7 @@ extern crate rusttype;
 #[cfg(feature="serde_json")]
 extern crate serde_json;
 
-
+mod asset;
 mod error;
 mod file;
 mod state;
@@ -102,6 +102,7 @@ pub mod input;
 pub mod saving;
 #[cfg(feature="sounds")]
 pub mod sound;
+pub use asset::Asset;
 pub use file::FileLoader;
 pub use error::QuicksilverError as Error;
 pub use timer::Timer;

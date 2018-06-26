@@ -2,51 +2,44 @@
 extern crate futures;
 extern crate quicksilver;
 
-use futures::{Async, Future};
 use quicksilver::{
-    Result, State, run,
+    Asset, Result, State, run,
     geom::Rectangle,
     graphics::{Color, Sprite, Window, WindowBuilder},
     input::{ButtonState, MouseButton},
-    sound::{Sound, SoundLoader}
+    sound::Sound
 };
 
-enum SoundPlayer {
-    Loading(SoundLoader),
-    Loaded(Sound)
+struct SoundPlayer {
+    asset: Asset<Sound>
 }
 
 const BUTTON_AREA: Rectangle = Rectangle { x: 350.0, y: 250.0, width: 100.0, height: 100.0 };
 
 impl State for SoundPlayer {
-   fn new() -> Result<SoundPlayer> { 
-       Ok(SoundPlayer::Loading(Sound::load("examples/assets/boop.ogg")))
+   fn new() -> Result<SoundPlayer> {
+       let asset = Asset::new(Sound::load("examples/assets/boop.ogg"));
+       Ok(SoundPlayer {
+           asset
+       })
     }
 
    fn update(&mut self, window: &mut Window) -> Result<()> {
-       // Check to see the progress of the loading sound 
-       let result = match self {
-           &mut SoundPlayer::Loading(ref mut loader) => loader.poll().unwrap(),
-           _ => Async::NotReady
-       };
-       // If the sound has been loaded move to the loaded state
-       if let Async::Ready(asset) = result {
-           *self = SoundPlayer::Loaded(asset);
-       }
-       if let &mut SoundPlayer::Loaded(ref sound) = self {
+       self.asset.execute(|sound| {
             if window.mouse()[MouseButton::Left] == ButtonState::Pressed && BUTTON_AREA.contains(window.mouse().pos()) {
                 sound.play();
             }
-       }
-       Ok(())
+            Ok(())
+       })
    }
 
    fn draw(&mut self, window: &mut Window) -> Result<()> {
         window.clear(Color::white());
         // If the sound is loaded, draw the button
-        if let &mut SoundPlayer::Loaded(_) = self {
+        self.asset.execute(|_| {
             window.draw(&Sprite::rectangle(BUTTON_AREA).with_color(Color::blue()));
-        }
+            Ok(())
+        })?;
         window.present();
         Ok(())
    }
