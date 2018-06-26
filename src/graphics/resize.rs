@@ -5,9 +5,9 @@ use geom::{Rectangle, Vector};
 pub enum ResizeStrategy {
     ///Use black bars to keep the size exactly the same
     Maintain,
-    ///Fill the screen, possiby cutting off content in the process
+    ///Fill the screen while maintaing aspect ratio, possiby cutting off content in the process
     Fill,
-    ///Take up as much of the screen as possible, but use letterboxing if necessary
+    ///Take up as much of the screen as possible while maintaing aspect ratio, but use letterboxing if necessary
     Fit,
     ///Ignore aspect ratio and just stretch the content
     Stretch
