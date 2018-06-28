@@ -112,23 +112,3 @@ pub use state::{State, run};
 pub type Result<T> = ::std::result::Result<T, Error>;
 /// Necessary types from futures-rs
 pub use futures::{Future, Async};
-
-#[no_mangle]
-#[cfg(target_arch="wasm32")]
-#[doc(hidden)]
-pub unsafe extern "C" fn deallocate_cstring(string: *mut i8) {
-    use std::ffi::CString;
-    CString::from_raw(string);
-}
-
-#[no_mangle]
-#[cfg(target_arch="wasm32")]
-#[doc(hidden)]
-pub unsafe extern "C" fn allocate_memory(length: usize) -> *mut i8 {
-    use std::mem;
-    let mut vec = Vec::with_capacity(length);
-    let pointer = vec.as_mut_ptr();
-    mem::forget(vec);
-    pointer
-}
-
