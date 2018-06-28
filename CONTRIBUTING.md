@@ -62,3 +62,15 @@ on any platforms you have changed.
 - If an individual commit fixes an issue, note that at the bottom of the summary with Resolves #n, where n is the issue number.
 - If a PR as a whole fixes an issue, note that at the bottom of the PR summary with the same syntax.
 - If a commit or PR affects an issue but does not fix it, make sure to refer to it by number using the #n syntax so it is linked on Github.
+
+
+### Quicksilver's Git Workflow
+
+Quicksilver uses rebase and squash-and-merge to merge pull requests into the project. 
+This allows for a clean history, where each commit is an atomic change from one working state to another (ideally.)
+The only downside is that the branches that are merged in contain commits that do not hit the main branches, which causes 2 issues.
+First, if you want to delete a branch for a merged PR, you must use the force delete `-D` flag to git branch.
+Second, if you are contributing a PR from a fork, you need to make a branch on your fork, rather than using the fork's master. 
+If you use the master branch on your fork, you will either need to do history editing or delete and re-create the fork every time you want to make a PR.
+
+TL;DR for workflow: make a separate branch in your fork for your PRs, and then force-delete them when they've been merged.
