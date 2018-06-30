@@ -79,6 +79,8 @@ extern crate webgl_stdweb;
 extern crate alga;
 #[cfg(all(feature="gilrs", not(target_arch="wasm32")))] 
 extern crate gilrs;
+#[cfg(feature="immi")]
+extern crate immi;
 #[cfg(feature="nalgebra")]
 extern crate nalgebra;
 #[cfg(feature="ncollide2d")]

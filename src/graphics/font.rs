@@ -11,7 +11,7 @@ use std::path::Path;
 
 /// An in-memory TTF font that can render text on demand
 pub struct Font {
-    data: RTFont<'static>
+    pub(crate) data: RTFont<'static>
 }
 
 type LoadFunction = fn(Vec<u8>) -> Result<Font, QuicksilverError>;

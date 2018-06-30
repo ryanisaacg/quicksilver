@@ -11,11 +11,12 @@ readme = "README.md"
 repository = "https://github.com/ryanisaacg/quicksilver"
 
 [features]
-default = ["collisions", "fonts", "gamepads", "saving", "sounds"]
+default = ["collisions", "fonts", "gamepads", "immi_ui", "saving", "sounds"]
 
 collisions = ["alga", "nalgebra", "ncollide2d"]
 fonts = ["rusttype"]
 gamepads = ["gilrs"]
+immi_ui = ["immi", "fonts"]
 saving = ["serde_json"]
 sounds = ["rodio"]
 
@@ -33,6 +34,7 @@ serde_derive = "1.0"
 alga = { version = "0.6", optional = true }
 nalgebra = { version = "0.15.1", optional = true }
 ncollide2d = { version = "0.16.0", optional = true }
+immi = { version = "1.0", optional = true }
 rusttype = { version = "0.6", optional = true }
 serde_json = { version = "1.0", optional = true }
 
