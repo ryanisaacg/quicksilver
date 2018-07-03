@@ -40,8 +40,7 @@ impl State for SoundPlayer {
             window.draw(&Sprite::rectangle(BUTTON_AREA).with_color(Color::blue()));
             Ok(())
         })?;
-        window.present();
-        Ok(())
+        window.present()
    }
 }
 

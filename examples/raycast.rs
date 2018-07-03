@@ -130,8 +130,7 @@ impl State for Raycast {
             // Draw the light
             window.add_vertices(self.vertices.iter().cloned(), indices);
         }
-        window.present();
-        Ok(())
+        window.present()
     }
 }
 

@@ -25,8 +25,7 @@ impl State for ImageViewer {
             window.draw(&Sprite::image(image, Vector::new(400, 300)));
             Ok(())
         })?;
-        window.present();
-        Ok(())
+        window.present()
     }
 }
 
