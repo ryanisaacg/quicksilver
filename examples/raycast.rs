@@ -4,20 +4,11 @@ extern crate nalgebra;
 extern crate ncollide2d;
 extern crate quicksilver;
 
-use quicksilver::{
-    Result, State, run,
-    geom::{Rectangle, Vector},
-    input::Event,
-    graphics::{Color, GpuTriangle, WindowBuilder, Window, Vertex}
-};
-use nalgebra::{Isometry2, zero};
-use ncollide2d::{
-    query::{Ray, RayCast}
-};
-use std::{
-    cmp::Ordering,
-    iter::repeat
-};
+use nalgebra::{zero, Isometry2};
+use ncollide2d::query::{Ray, RayCast};
+use quicksilver::{run, Result, State, geom::{Rectangle, Vector},
+                  graphics::{Color, GpuTriangle, Vertex, Window, WindowBuilder}, input::Event};
+use std::{cmp::Ordering, iter::repeat};
 
 struct Raycast {
     // the rectangles to raycast against
@@ -27,7 +18,6 @@ struct Raycast {
     // the vertices to draw to the screen
     vertices: Vec<Vertex>,
 }
-
 
 impl State for Raycast {
     fn new() -> Result<Raycast> {
@@ -41,15 +31,20 @@ impl State for Raycast {
             Rectangle::new(400, 400, 100, 100),
             Rectangle::new(200, 400, 100, 100),
             Rectangle::new(50, 50, 50, 50),
-            Rectangle::new(550, 300, 64, 64)
+            Rectangle::new(550, 300, 64, 64),
         ];
         // Build the list of targets to cast rays to
-        let targets = regions.iter().flat_map(|region| {
-            vec![region.top_left(), 
-                region.top_left() + region.size().x_comp(),
-                region.top_left() + region.size().y_comp(),
-                region.top_left() + region.size()].into_iter()
-        }).collect();
+        let targets = regions
+            .iter()
+            .flat_map(|region| {
+                vec![
+                    region.top_left(),
+                    region.top_left() + region.size().x_comp(),
+                    region.top_left() + region.size().y_comp(),
+                    region.top_left() + region.size(),
+                ].into_iter()
+            })
+            .collect();
         Ok(Raycast {
             regions,
             targets,
@@ -75,18 +70,20 @@ impl State for Raycast {
                     let identity = Isometry2::new(zero(), zero());
                     let cast = self.regions
                         .iter()
-                        .filter_map(|region| region
-                            .into_aabb()
-                            .toi_with_ray(&identity, &ray, false))
+                        .filter_map(|region| {
+                            region.into_aabb().toi_with_ray(&identity, &ray, false)
+                        })
                         .map(|toi: f32| (ray.origin + toi * ray.dir).into())
-                        .min_by(|a: &Vector, b: &Vector| distance_to(a)
-                            .partial_cmp(&distance_to(b))
-                            .unwrap_or(Ordering::Equal));
+                        .min_by(|a: &Vector, b: &Vector| {
+                            distance_to(a)
+                                .partial_cmp(&distance_to(b))
+                                .unwrap_or(Ordering::Equal)
+                        });
                     if let Some(pos) = cast {
                         self.vertices.push(Vertex {
                             pos,
                             tex_pos: None,
-                            col: Color::white()
+                            col: Color::white(),
                         });
                     }
                 };
@@ -96,15 +93,20 @@ impl State for Raycast {
                 cast_ray(angle + 0.001);
             }
             // Sort the vertices to form a visibility polygon
-            self.vertices.sort_by(|a, b| angle_to(a)
-                .partial_cmp(&angle_to(b))
-                .unwrap_or(Ordering::Equal));
-            // Insert the mouse as a vertex for the center of the polygon
-            self.vertices.insert(0, Vertex {
-                pos: mouse,
-                tex_pos: None,
-                col: Color::white()
+            self.vertices.sort_by(|a, b| {
+                angle_to(a)
+                    .partial_cmp(&angle_to(b))
+                    .unwrap_or(Ordering::Equal)
             });
+            // Insert the mouse as a vertex for the center of the polygon
+            self.vertices.insert(
+                0,
+                Vertex {
+                    pos: mouse,
+                    tex_pos: None,
+                    col: Color::white(),
+                },
+            );
         }
         Ok(())
     }
@@ -122,9 +124,11 @@ impl State for Raycast {
                 // Convert the indices to drawable triangles
                 .map(|(index, z)| GpuTriangle {
                     z,
-                    indices: [0, 
+                    indices: [
+                        0, 
                         index as u32 + 1,
-                        (index as u32 + 1) % triangle_count + 1],
+                        (index as u32 + 1) % triangle_count + 1
+                    ],
                     image: None
                 });
             // Draw the light
