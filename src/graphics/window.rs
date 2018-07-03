@@ -1,10 +1,13 @@
-use geom::{ Rectangle, Transform, Vector};
-#[cfg(not(target_arch="wasm32"))]
-use gl;
-use graphics::{Backend, BackendImpl, BlendMode, Color, Drawable, GpuTriangle, ImageScaleStrategy, ResizeStrategy, Vertex, View};
-use input::{ButtonState, Event, Gamepad, GamepadProvider, Keyboard, Mouse};
+use {
+    Result,
+    error::QuicksilverError,
+    geom::{ Rectangle, Transform, Vector},
+    graphics::{Backend, BackendImpl, BlendMode, Color, Drawable, GpuTriangle, ImageScaleStrategy, ResizeStrategy, Vertex, View},
+    input::{ButtonState, Event, Gamepad, GamepadProvider, Keyboard, Mouse},
+};
 #[cfg(not(target_arch="wasm32"))]
 use {
+    gl,
     glutin,
     glutin::{EventsLoop, GlContext}
 };
@@ -109,7 +112,7 @@ impl WindowBuilder {
     }
 
     #[cfg(not(target_arch="wasm32"))]
-    pub(crate) fn build(self) -> (Window, EventsLoop) {
+    pub(crate) fn build(self) -> Result<(Window, EventsLoop)> {
         let mut actual_width = self.width;
         let mut actual_height = self.height;
         let events = glutin::EventsLoop::new();
@@ -131,17 +134,20 @@ impl WindowBuilder {
         }
         let window = window.with_dimensions(actual_width, actual_height);
         let context = glutin::ContextBuilder::new().with_vsync(true);
-        let gl_window = glutin::GlWindow::new(window, context, &events).unwrap();
+        let gl_window = glutin::GlWindow::new(window, context, &events)?;
         unsafe {
-            gl_window.make_current().unwrap();
+            gl_window.make_current()?;
             gl::load_with(|symbol| gl_window.get_proc_address(symbol) as *const _);
         }
-        gl_window.set_cursor_state(if self.show_cursor { 
-            glutin::CursorState::Normal } else { glutin::CursorState::Hide }).unwrap();
+        let result = gl_window.set_cursor_state(if self.show_cursor { 
+            glutin::CursorState::Normal } else { glutin::CursorState::Hide });
+        if let Err(error) = result {
+            return Err(QuicksilverError::ContextError(error));
+        }
         let scale_factor = gl_window.hidpi_factor(); // Need to be calculated before moving gl_window
         let screen_region = self.resize.resize(Vector::new(self.width, self.height), Vector::new(actual_width, actual_height)); 
         let view = View::new(Rectangle::newv_sized(screen_region.size()));
-        (Window {
+        let window = Window {
             gl_window,
             gamepads: Vec::new(),
             gamepad_buffer: Vec::new(),
@@ -155,28 +161,35 @@ impl WindowBuilder {
             backend: unsafe { BackendImpl::new(self.scale) },
             vertices: Vec::new(),
             triangles: Vec::new()
-        }, events)
+        };
+        Ok((window, events))
     }
 
     #[cfg(target_arch="wasm32")]
-    pub(crate) fn build(self) -> Window {
+    pub(crate) fn build(self) -> Result<Window> {
         let mut actual_width = self.width;
         let mut actual_height = self.height;
         let document = document();
         let window = window();
-        let canvas: CanvasElement = document.query_selector("#canvas").unwrap().unwrap().try_into().unwrap();
+        let element = match document.query_selector("#canvas") {
+            Ok(Some(element)) => element,
+            _ => return Err(QuicksilverError::ContextError("Canvas element could not be found".to_owned()))
+        };
+        let canvas: CanvasElement = match element.try_into() {
+            Ok(canvas) => canvas,
+            _ => return Err(QuicksilverError::ContextError("Element with id 'canvas' is not a CanvasElement".to_owned()))
+        };
         document.set_title(self.title);
         if self.fullscreen {
             actual_width = window.inner_width() as u32;
             actual_height = window.inner_height() as u32;
         }
-        //TODO: GL VIEWPORT SIZE
         canvas.set_width(actual_width);
         canvas.set_height(actual_height);
         js! ( @{canvas}.style.cursor = @{self.show_cursor} ? "auto" : "none"; );
         let screen_region = self.resize.resize(Vector::new(self.width, self.height), Vector::new(actual_width, actual_height));
         let view = View::new(Rectangle::newv_sized(screen_region.size()));
-        Window {
+        let window = Window {
             gamepads: Vec::new(),
             gamepad_buffer: Vec::new(),
             provider: GamepadProvider::new(),
@@ -189,7 +202,8 @@ impl WindowBuilder {
             backend: unsafe { BackendImpl::new(self.scale) },
             vertices: Vec::new(),
             triangles: Vec::new()
-        }
+        };
+        Ok(window)
     }
 }
 
@@ -366,10 +380,11 @@ impl Window {
     }
 
     /// Flush changes and also present the changes to the window
-    pub fn present(&mut self) {
+    pub fn present(&mut self) -> Result<()> {
         self.flush();
         #[cfg(not(target_arch="wasm32"))]
-        self.gl_window.swap_buffers().unwrap();
+        self.gl_window.swap_buffers()?;
+        Ok(())
     }
 
     /// Flush the current buffered draw calls

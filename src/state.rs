@@ -1,5 +1,6 @@
 use {
     Result,
+    error::QuicksilverError,
     graphics::{Window, WindowBuilder},
     input::Event
 };
@@ -53,7 +54,7 @@ pub trait State: 'static {
     fn draw(&mut self, window: &mut Window) -> Result<()> {
         use graphics::Color;
         window.clear(Color::black());
-        window.present();
+        window.present()?;
         Ok(())
     }
 }
@@ -95,7 +96,7 @@ impl<T: State> Application<T> {
 #[cfg(not(target_arch="wasm32"))]
 fn run_impl<T: State>(window: WindowBuilder) -> Result<()> {
     use input::EventProvider;
-    let (window, events_loop) = window.build();
+    let (window, events_loop) = window.build()?;
     let mut events = EventProvider::new(events_loop);
     let event_buffer = Vec::new();
     let state = T::new()?;
@@ -123,14 +124,17 @@ fn run_impl<T: State>(window: WindowBuilder) -> Result<()> {
 #[cfg(target_arch="wasm32")]
 fn run_impl<T: State>(builder: WindowBuilder) -> Result<()> {
     let app = Rc::new(RefCell::new(Application { 
-        window: builder.build(),
+        window: builder.build()?,
         state: T::new()?,
         event_buffer: Vec::new()
     }));
 
     let document = document();
     let window = window();
-    let canvas = document.query_selector("#canvas").unwrap().unwrap();
+    let canvas = match document.query_selector("#canvas") {
+        Ok(Some(element)) => element,
+        _ => return Err(QuicksilverError::ContextError("Canvas element not found".to_owned()))
+    };
 
     let application = app.clone();
     let close_handler = move || application.borrow_mut().event_buffer.push(Event::Closed);
@@ -140,9 +144,9 @@ fn run_impl<T: State>(builder: WindowBuilder) -> Result<()> {
 
     let application = app.clone();
     let wheel_handler = move |x: Value, y: Value, mode: Value| {
-        let x: f64 = x.try_into().unwrap();
-        let y: f64 = y.try_into().unwrap();
-        let mode: u64 = mode.try_into().unwrap();   
+        let x: f64 = x.try_into().unwrap_or(0.0);
+        let y: f64 = y.try_into().unwrap_or(0.0);
+        let mode: u64 = mode.try_into().unwrap_or(0);   
         application.borrow_mut().event_buffer.push(Event::MouseWheel(
             Vector::new(x as f32, y as f32) * if mode != 0 { LINES_TO_PIXELS } else { 1.0 }
         ));
