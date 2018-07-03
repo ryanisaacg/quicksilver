@@ -1,11 +1,11 @@
 use {
     Result,
-    error::QuicksilverError,
     graphics::{Window, WindowBuilder},
     input::Event
 };
 #[cfg(target_arch="wasm32")]
 use {
+    error::QuicksilverError,
     geom::Vector,
     input::{ButtonState, KEY_LIST, LINES_TO_PIXELS, MouseButton},
     std::{
