@@ -1,6 +1,6 @@
 #[cfg(target_arch = "wasm32")]
-use stdweb::{unstable::TryInto, web::{document, window, IParentNode, html_element::CanvasElement}};
-use {Result, error::QuicksilverError, geom::{Rectangle, Transform, Vector},
+use {error::QuicksilverError, stdweb::{unstable::TryInto, web::{document, window, IParentNode, html_element::CanvasElement}}};
+use {Result, geom::{Rectangle, Transform, Vector},
      graphics::{Backend, BackendImpl, BlendMode, Color, Drawable, GpuTriangle,
                 ImageScaleStrategy, ResizeStrategy, Vertex, View},
      input::{ButtonState, Event, Gamepad, GamepadProvider, Keyboard, Mouse}};
@@ -90,44 +90,36 @@ impl WindowBuilder {
 
     #[cfg(not(target_arch = "wasm32"))]
     pub(crate) fn build(self) -> Result<(Window, EventsLoop)> {
-        let mut actual_width = self.width;
-        let mut actual_height = self.height;
         let events = glutin::EventsLoop::new();
         let window = glutin::WindowBuilder::new()
             .with_decorations(!self.fullscreen)
             .with_title(self.title);
         let window = match self.min_size {
-            Some(v) => window.with_min_dimensions(v.x as u32, v.y as u32),
+            Some(v) => window.with_min_dimensions(v.into()),
             None => window,
         };
         let window = match self.max_size {
-            Some(v) => window.with_max_dimensions(v.x as u32, v.y as u32),
+            Some(v) => window.with_max_dimensions(v.into()),
             None => window,
         };
-        if self.fullscreen {
-            let (w, h) = events.get_primary_monitor().get_dimensions();
-            actual_width = w;
-            actual_height = h;
-        }
-        let window = window.with_dimensions(actual_width, actual_height);
+        let size = if self.fullscreen {
+            events.get_primary_monitor().get_dimensions().into()
+        } else {
+            Vector::new(self.width, self.height)
+        };
+        let window = window.with_dimensions(size.into());
         let context = glutin::ContextBuilder::new().with_vsync(true);
         let gl_window = glutin::GlWindow::new(window, context, &events)?;
         unsafe {
             gl_window.make_current()?;
             gl::load_with(|symbol| gl_window.get_proc_address(symbol) as *const _);
         }
-        let result = gl_window.set_cursor_state(if self.show_cursor {
-            glutin::CursorState::Normal
-        } else {
-            glutin::CursorState::Hide
-        });
-        if let Err(error) = result {
-            return Err(QuicksilverError::ContextError(error));
+        if !self.show_cursor {
+            gl_window.hide_cursor(true);
         }
-        let scale_factor = gl_window.hidpi_factor(); // Need to be calculated before moving gl_window
         let screen_region = self.resize.resize(
             Vector::new(self.width, self.height),
-            Vector::new(actual_width, actual_height),
+            size,
         );
         let view = View::new(Rectangle::newv_sized(screen_region.size()));
         let window = Window {
@@ -137,7 +129,6 @@ impl WindowBuilder {
             provider: GamepadProvider::new(),
             resize: self.resize,
             screen_region,
-            scale_factor,
             keyboard: Keyboard {
                 keys: [ButtonState::NotPressed; 256],
             },
@@ -195,7 +186,6 @@ impl WindowBuilder {
             provider: GamepadProvider::new(),
             resize: self.resize,
             screen_region,
-            scale_factor: 1.0,
             keyboard: Keyboard {
                 keys: [ButtonState::NotPressed; 256],
             },
@@ -221,7 +211,6 @@ pub struct Window {
     gamepads: Vec<Gamepad>,
     gamepad_buffer: Vec<Gamepad>, //used as a temporary buffer for storing new gamepads
     resize: ResizeStrategy,
-    pub(crate) scale_factor: f32,
     screen_region: Rectangle,
     keyboard: Keyboard,
     mouse: Mouse,
@@ -292,11 +281,10 @@ impl Window {
                 self.screen_region.height as i32,
             );
         }
-        #[cfg(not(target_arch = "wasm32"))]
-        self.gl_window.resize(
-            self.screen_region.width as u32,
-            self.screen_region.height as u32,
-        );
+        #[cfg(not(target_arch = "wasm32"))] {
+            let size: glutin::dpi::LogicalSize = self.screen_region.size().into();
+            self.gl_window.resize(size.to_physical(self.gl_window.get_hidpi_factor()));
+        }
     }
 
     ///Get the view from the window
@@ -335,7 +323,11 @@ impl Window {
 
     ///Get the unprojection matrix according to the View
     pub fn unproject(&self) -> Transform {
-        Transform::scale(self.screen_size() / self.scale_factor) * self.view.normalize
+        #[cfg(target_arch = "wasm32")]
+        let scale_factor = 1.0;
+        #[cfg(not(target_arch = "wasm32"))]
+        let scale_factor = self.gl_window.get_hidpi_factor() as f32;
+        Transform::scale(self.screen_size() / scale_factor) * self.view.normalize
     }
 
     ///Get the projection matrix according to the View
