@@ -2,13 +2,15 @@
 // world!
 extern crate quicksilver;
 
-use quicksilver::{Result, State, run, graphics::WindowBuilder};
+use quicksilver::{run, Result, State, graphics::WindowBuilder};
 
 // An empty structure because we don't need to store any state
 struct BlackScreen;
 
 impl State for BlackScreen {
-   fn new() -> Result<BlackScreen> { Ok(BlackScreen) }
+    fn new() -> Result<BlackScreen> {
+        Ok(BlackScreen)
+    }
 }
 
 fn main() {
