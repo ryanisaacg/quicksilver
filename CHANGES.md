@@ -3,6 +3,7 @@
 ## In-development
 
 - Add new methods of initializing fonts `Font::from_slice` and `Font::from_bytes` using byte sequences
+- [Breaking] Add more fields to `Error`, and add a Result alias to make error bubbling more convenient
 - [Breaking] Renamed type `Draw` to `Sprite` (and updated the readme accordingly)
 - [Breaking] Renamed type `QuicksilverError` to `Error`
 - [Breaking] Added `SaveError`, a new error type
