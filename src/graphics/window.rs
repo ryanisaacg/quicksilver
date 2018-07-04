@@ -323,11 +323,7 @@ impl Window {
 
     ///Get the unprojection matrix according to the View
     pub fn unproject(&self) -> Transform {
-        #[cfg(target_arch = "wasm32")]
-        let scale_factor = 1.0;
-        #[cfg(not(target_arch = "wasm32"))]
-        let scale_factor = self.gl_window.get_hidpi_factor() as f32;
-        Transform::scale(self.screen_size() / scale_factor) * self.view.normalize
+        Transform::scale(self.screen_size()) * self.view.normalize
     }
 
     ///Get the projection matrix according to the View
