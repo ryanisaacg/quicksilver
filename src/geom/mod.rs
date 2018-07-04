@@ -12,6 +12,7 @@ mod rectangle;
 mod circle;
 mod shape;
 mod positioned;
+mod polygon;
 mod tilemap;
 mod transform;
 mod util;
@@ -20,6 +21,7 @@ pub use self::{
     vector::Vector,
     rectangle::Rectangle,
     circle::Circle,
+    polygon::{Point, Line, /*Triangle, Tetragon,*/ Polygon},
     positioned::Positioned,
     shape::Shape,
     tilemap::{Tile, Tilemap},

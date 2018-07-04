@@ -13,6 +13,12 @@ use std::{
     path::Path,
     rc::Rc
 };
+use graphics::Drawable;
+use graphics::Vertex;
+use graphics::GpuTriangle;
+use geom::Transform;
+use graphics::Sprite;
+use graphics::Color;
 
 ///Pixel formats for use with loading raw images
 #[derive(Debug, Eq, PartialEq, Hash)]
@@ -112,6 +118,49 @@ impl Image {
                 rect.height,
             ),
         }
+    }
+}
+
+impl Drawable for Image {
+    fn get_vertices(&self) -> Vec<Vertex> {
+        let trans = Transform::translate(self.region.top_left() + self.region.size() / 2)
+            * Transform::translate(-self.region.size() / 2)
+            * Transform::scale(self.region.size());
+        let recip_size = self.source_size().recip();
+        let normalized_pos = self.region.top_left().times(recip_size);
+        let normalized_size = self.region.size().times(recip_size);
+        let get_vertex = |v: Vector| {
+            Vertex {
+                pos: trans * v,
+                tex_pos: Some(normalized_pos + v.times(normalized_size)),
+                col: Color::white(),
+            }
+        };
+        vec![
+            get_vertex(Vector::zero()),
+            get_vertex(Vector::zero() + Vector::x()),
+            get_vertex(Vector::zero() + Vector::one()),
+            get_vertex(Vector::zero() + Vector::y()),
+        ]
+    }
+
+    fn get_triangles(&self) -> Vec<GpuTriangle> {
+        vec![
+            GpuTriangle {
+                z: 0.0,
+                indices: [0, 1, 2],
+                image: Some(self.clone()),
+            },
+            GpuTriangle {
+                z: 0.0,
+                indices: [2, 3, 0],
+                image: Some(self.clone()),
+            }
+        ]
+    }
+
+    fn to_sprite(&self) -> Sprite {
+        Sprite::image(self, Vector::zero())
     }
 }
 

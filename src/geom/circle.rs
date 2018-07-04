@@ -1,6 +1,13 @@
 #[cfg(feature="ncollide2d")] use ncollide2d::shape::Ball;
 use geom::{about_equal, Positioned, Rectangle, Scalar, Vector};
 use std::cmp::{Eq, PartialEq};
+use graphics::Drawable;
+use graphics::Vertex;
+use graphics::GpuTriangle;
+use graphics::Sprite;
+use geom::Transform;
+use std::iter;
+use graphics::Color;
 
 #[derive(Clone, Copy, Default, Debug, Deserialize, Serialize)]
 ///A circle with a center and a radius
@@ -85,6 +92,56 @@ impl Positioned for Circle {
 
     fn bounding_box(&self) -> Rectangle {
         Rectangle::new(self.x - self.radius, self.y - self.radius, self.radius * 2.0, self.radius * 2.0)
+    }
+}
+
+impl Drawable for Circle {
+    fn get_vertices(&self) -> Vec<Vertex> {
+        let transform = Transform::translate(self.center())
+            * Transform::translate(-self.center());
+        let mut points = [Vector::zero(); 24]; // 24 = arbitrarily chosen number of points in the circle
+        let rotation = Transform::rotate(360f32 / points.len() as f32);
+        let mut arrow = Vector::new(0f32, -self.radius);
+        for i in 0..points.len() {
+            points[i] = arrow + self.center();
+            arrow = rotation * arrow;
+        }
+        let mut vec = Vec::new();
+        for point in points.iter() {
+            vec.push(
+                Vertex {
+                    pos: transform * point.clone(),
+                    tex_pos: None,
+                    col: Color::white(),
+                }
+            )
+        }
+        vec
+    }
+
+    fn get_triangles(&self) -> Vec<GpuTriangle> {
+        let mut points = [Vector::zero(); 24]; // 24 = arbitrarily chosen number of points in the circle
+        let rotation = Transform::rotate(360f32 / points.len() as f32);
+        let mut arrow = Vector::new(0f32, -self.radius);
+        for i in 0..points.len() {
+            points[i] = arrow + self.center();
+            arrow = rotation * arrow;
+        }
+        let mut vec = Vec::new();
+        for i in 0..=points.len() {
+            vec.push(
+                GpuTriangle {
+                    z: 0.0,
+                    indices: [0, i as u32, i as u32 + 1],
+                    image: None,
+                }
+            );
+        }
+        vec
+    }
+
+    fn to_sprite(&self) -> Sprite {
+        Sprite::new(*self)
     }
 }
 

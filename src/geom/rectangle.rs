@@ -4,6 +4,12 @@
 };
 use geom::{about_equal, Circle, Positioned, Scalar, Vector};
 use std::cmp::{Eq, PartialEq};
+use graphics::Drawable;
+use graphics::Vertex;
+use geom::Transform;
+use graphics::Color;
+use graphics::GpuTriangle;
+use graphics::Sprite;
 
 #[derive(Clone, Copy, Default, Debug, Deserialize, Serialize)]
 ///A rectangle with a top-left position and a size
@@ -130,6 +136,46 @@ impl Positioned for Rectangle {
 
     fn bounding_box(&self) -> Rectangle {
         *self
+    }
+}
+
+impl Drawable for Rectangle {
+    fn get_vertices(&self) -> Vec<Vertex> {
+        let trans = Transform::translate(self.top_left() + self.size() / 2)
+            * Transform::translate(-self.size() / 2)
+            * Transform::scale(self.size());
+        let get_vertex = |v: Vector| {
+            Vertex {
+                pos: trans * v,
+                tex_pos: None,
+                col: Color::white(),
+            }
+        };
+        vec![
+            get_vertex(Vector::zero()),
+            get_vertex(Vector::zero() + Vector::x()),
+            get_vertex(Vector::zero() + Vector::one()),
+            get_vertex(Vector::zero() + Vector::y()),
+        ]
+    }
+
+    fn get_triangles(&self) -> Vec<GpuTriangle> {
+        vec![
+            GpuTriangle {
+                z: 0.0,
+                indices: [0, 1, 2],
+                image: None,
+            },
+            GpuTriangle {
+                z: 0.0,
+                indices: [2, 3, 0],
+                image: None,
+            }
+        ]
+    }
+
+    fn to_sprite(&self) -> Sprite {
+        Sprite::new(*self)
     }
 }
 
