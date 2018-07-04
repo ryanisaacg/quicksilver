@@ -10,26 +10,27 @@
 //! ```no_run
 //! // Draw some multi-colored geometry to the screen
 //! extern crate quicksilver;
-//! 
-//! use quicksilver::{run, Result, State, geom::{Circle, Rectangle, Transform, Vector},
-//!                   graphics::{Color, Sprite, Window, WindowBuilder}};
-//! 
+//!
+//! use quicksilver::{run, Result, State, geom::{Circle, Rectangle, Transform,
+//! Vector}, graphics::{Color, Sprite, Window,
+//! WindowBuilder}};
+//!
 //! struct DrawGeometry;
-//! 
+//!
 //! impl State for DrawGeometry {
 //!     fn new() -> Result<DrawGeometry> {
 //!         Ok(DrawGeometry)
 //!     }
-//! 
+//!
 //!     fn draw(&mut self, window: &mut Window) -> Result<()> {
 //!         window.clear(Color::black());
-//!         window.draw(&Sprite::rectangle(Rectangle::new(100, 100, 32, 32)).with_color(Color::red()));
-//!         window.draw(&Sprite::rectangle(Rectangle::new(400, 300, 32, 32))
-//!             .with_color(Color::blue())
-//!             .with_transform(Transform::rotate(45))
-//!             .with_z(10));
-//!         window.draw(&Sprite::circle(Circle::new(400, 300, 100)).with_color(Color::green()));
-//!         window.draw(&Sprite::line(
+//! window.draw(&Sprite::rectangle(Rectangle::new(100, 100, 32,
+//! 32)).with_color(Color::red())); window.draw(&Sprite::
+//! rectangle(Rectangle::new(400, 300, 32, 32))
+//! .with_color(Color::blue())
+//! .with_transform(Transform::rotate(45))             .with_z(10));
+//! window.draw(&Sprite::circle(Circle::new(400, 300,
+//! 100)).with_color(Color::green()));         window.draw(&Sprite::line(
 //!             Vector::new(100, 150),
 //!             Vector::new(450, 350),
 //!             2.0,
@@ -37,22 +38,22 @@
 //!         window.present()
 //!     }
 //! }
-//! 
-//! fn main() {
-//!     run::<DrawGeometry>(WindowBuilder::new("Draw Geometry", 800, 600)).unwrap();
-//! }
-//! ```
-//! Run this with `cargo run` or, if you have the wasm32 toolchain installed, you can build for the web
-//! (instructions in the [quicksilver README](https://github.com/ryanisaacg/quicksilver)
 //!
-//! You should see a red square in the top-left, and a green circle with a blue rectangle inside it
-//! on the bottom-right.
+//! fn main() {
+//! run::<DrawGeometry>(WindowBuilder::new("Draw Geometry", 800,
+//! 600)).unwrap(); }
+//! ```
+//! Run this with `cargo run` or, if you have the wasm32 toolchain installed,
+//! you can build for the web (instructions in the [quicksilver README](https://github.com/ryanisaacg/quicksilver)
+//!
+//! You should see a red square in the top-left, and a green circle with a blue
+//! rectangle inside it on the bottom-right.
 //!
 //! ## Optional Features
 //!
-//! Quicksilver by default tries to provide all features a 2D application may need, but not all applications need these features.
-//! The optional features available are
-//! collision support (via [ncollide2d](https://github.com/sebcrozet/ncollide)),
+//! Quicksilver by default tries to provide all features a 2D application may
+//! need, but not all applications need these features. The optional features
+//! available are collision support (via [ncollide2d](https://github.com/sebcrozet/ncollide)),
 //! font support (via [rusttype](https://github.com/redox-os/rusttype)),
 //! gamepad support (via [gilrs](https://gitlab.com/gilrs-project/gilrs)),
 //! saving (via [serde_json](https://github.com/serde-rs/json)),

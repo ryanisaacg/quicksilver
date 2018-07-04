@@ -1,10 +1,10 @@
-#[cfg(all(not(any(target_arch="wasm32", target_os="macos")), feature = "gamepads"))]
+#[cfg(all(not(any(target_arch = "wasm32", target_os = "macos")), feature = "gamepads"))]
 extern crate gilrs;
 
-#[cfg(all(not(any(target_arch="wasm32", target_os="macos")), feature = "gamepads"))]
+#[cfg(all(not(any(target_arch = "wasm32", target_os = "macos")), feature = "gamepads"))]
 use gilrs::Button;
 
-#[cfg(target_arch="wasm32")]
+#[cfg(target_arch = "wasm32")]
 use stdweb::web::Gamepad as WebGamepad;
 
 use input::{ButtonState, Event};
@@ -21,7 +21,7 @@ pub struct Gamepad {
 impl Gamepad {
     pub(crate) fn clear_temporary_states(&mut self) {
         for button in self.buttons.iter_mut() {
-            *button =  button.clear_temporary();
+            *button = button.clear_temporary();
         }
     }
 
@@ -44,97 +44,93 @@ impl Gamepad {
     }
 
     /// Get the ID of the gamepad
-    pub fn id(&self) -> i32 {
-        self.id
-    }
+    pub fn id(&self) -> i32 { self.id }
 }
 
 pub(crate) struct GamepadProvider {
-    #[cfg(all(not(any(target_arch="wasm32", target_os="macos")), feature = "gamepads"))]
-    gilrs: gilrs::Gilrs
+    #[cfg(all(not(any(target_arch = "wasm32", target_os = "macos")), feature = "gamepads"))]
+    gilrs: gilrs::Gilrs,
 }
 
 impl GamepadProvider {
     pub fn new() -> GamepadProvider {
-        GamepadProvider {
-            #[cfg(all(not(any(target_arch="wasm32", target_os="macos")), feature = "gamepads"))]
-            gilrs: gilrs::Gilrs::new().unwrap()
-        }
+        GamepadProvider { #[cfg(all(not(any(target_arch = "wasm32", target_os = "macos")),
+                                    feature = "gamepads"))]
+                          gilrs: gilrs::Gilrs::new().unwrap(), }
     }
 
     pub fn provide_gamepads(&mut self, buffer: &mut Vec<Gamepad>) {
         self.provide_gamepads_impl(buffer);
     }
 
-    #[cfg(all(not(any(target_arch="wasm32", target_os="macos")), feature = "gamepads"))]
+    #[cfg(all(not(any(target_arch = "wasm32", target_os = "macos")), feature = "gamepads"))]
     fn provide_gamepads_impl(&mut self, buffer: &mut Vec<Gamepad>) {
         while let Some(ev) = self.gilrs.next_event() {
             self.gilrs.update(&ev);
         }
-        use gilrs::{
-            Axis,
-            ev::state::AxisData
-        };
+        use gilrs::{ev::state::AxisData, Axis};
         fn axis_value(data: Option<&AxisData>) -> f32 {
             match data {
                 Some(ref data) => data.value(),
-                None => 0.0
+                None => 0.0,
             }
         }
-        buffer.extend(self.gilrs.gamepads().map(|(id, gamepad)| { 
-            let id = id as i32;
+        buffer.extend(self.gilrs.gamepads().map(|(id, gamepad)| {
+                          let id = id as i32;
 
-            let axes = [
-                axis_value(gamepad.axis_data(Axis::LeftStickX)),
-                axis_value(gamepad.axis_data(Axis::LeftStickY)),
-                axis_value(gamepad.axis_data(Axis::RightStickX)),
-                axis_value(gamepad.axis_data(Axis::RightStickY))
-            ];
+                          let axes = [axis_value(gamepad.axis_data(Axis::LeftStickX)),
+                                      axis_value(gamepad.axis_data(Axis::LeftStickY)),
+                                      axis_value(gamepad.axis_data(Axis::RightStickX)),
+                                      axis_value(gamepad.axis_data(Axis::RightStickY))];
 
-            let mut buttons = [ButtonState::NotPressed; 17];
-            for i in 0..GAMEPAD_BUTTON_LIST.len() {
-                let button = GAMEPAD_BUTTON_LIST[i];
-                let value = match gamepad.button_data(GILRS_GAMEPAD_LIST[i]) {
-                    Some(ref data) => data.is_pressed(),
-                    None => false
-                };
-                let state = if value { ButtonState::Pressed } else { ButtonState::Released };
-                buttons[button as usize] = state;
-            }
+                          let mut buttons = [ButtonState::NotPressed; 17];
+                          for i in 0..GAMEPAD_BUTTON_LIST.len() {
+                              let button = GAMEPAD_BUTTON_LIST[i];
+                              let value = match gamepad.button_data(GILRS_GAMEPAD_LIST[i]) {
+                                  Some(ref data) => data.is_pressed(),
+                                  None => false,
+                              };
+                              let state = if value {
+                                  ButtonState::Pressed
+                              } else {
+                                  ButtonState::Released
+                              };
+                              buttons[button as usize] = state;
+                          }
 
-            Gamepad { id, axes, buttons }
-        }));
+                          Gamepad { id, axes, buttons }
+                      }));
     }
 
-    #[cfg(target_arch="wasm32")]
+    #[cfg(target_arch = "wasm32")]
     fn provide_gamepads_impl(&self, buffer: &mut Vec<Gamepad>) {
-        buffer.extend(WebGamepad::get_all()
-            .iter()
-            .filter_map(|pad| match pad {
-                &Some(ref pad) => Some(pad),
-                &None => None
-            })
-            .map(|pad| {
-                let id = pad.index() as i32;
-                let mut axes = [0.0; 4];
-                let in_axes = pad.axes();
-                for i in 0..axes.len().min(in_axes.len()) {
-                    axes[i] = in_axes[i] as f32;
-                }
-                let mut buttons = [ButtonState::NotPressed; 17];
-                let in_buttons = pad.buttons();
-                for i in 0..buttons.len().min(in_buttons.len()) {
-                    buttons[i] = if in_buttons[i].pressed() {
-                            ButtonState::Pressed
-                        } else {
-                            ButtonState::Released
-                        };
-                }
-                Gamepad { id, buttons, axes }
-            }));
+        buffer.extend(WebGamepad::get_all().iter()
+                                           .filter_map(|pad| match pad {
+                                                           &Some(ref pad) => Some(pad),
+                                                           &None => None,
+                                                       })
+                                           .map(|pad| {
+                                                    let id = pad.index() as i32;
+                                                    let mut axes = [0.0; 4];
+                                                    let in_axes = pad.axes();
+                                                    for i in 0..axes.len().min(in_axes.len()) {
+                                                        axes[i] = in_axes[i] as f32;
+                                                    }
+                                                    let mut buttons = [ButtonState::NotPressed; 17];
+                                                    let in_buttons = pad.buttons();
+                                                    for i in 0..buttons.len().min(in_buttons.len())
+                                                    {
+                                                        buttons[i] = if in_buttons[i].pressed() {
+                                                            ButtonState::Pressed
+                                                        } else {
+                                                            ButtonState::Released
+                                                        };
+                                                    }
+                                                    Gamepad { id, buttons, axes }
+                                                }));
     }
 
-    #[cfg(any(target_os="macos", not(feature = "gamepads")))]
+    #[cfg(any(target_os = "macos", not(feature = "gamepads")))]
     fn provide_gamepads_impl(&self, _buffer: &mut Vec<Gamepad>) {
         //Inentionally a no-op
     }
@@ -150,7 +146,7 @@ pub enum GamepadAxis {
     /// The horizontal tilt of the right stick
     RightStickX = 2,
     /// The vertical tilt of the right stick
-    RightStickY = 3
+    RightStickY = 3,
 }
 
 #[repr(u32)]
@@ -159,7 +155,7 @@ pub enum GamepadAxis {
 pub enum GamepadButton {
     /// The bottom face button
     ///
-    /// This would be X on a Playstation controller, 
+    /// This would be X on a Playstation controller,
     /// or A on an XBOX controller
     FaceDown,
     /// The right face button
@@ -202,70 +198,59 @@ pub enum GamepadButton {
     /// The right button on the dpad
     DpadRight,
     /// The middle of the center buttons
-    Home
+    Home,
 }
 
 impl Index<GamepadAxis> for Gamepad {
     type Output = f32;
 
-    fn index(&self, index: GamepadAxis) -> &f32 {
-        &self.axes[index as usize]
-    }
+    fn index(&self, index: GamepadAxis) -> &f32 { &self.axes[index as usize] }
 }
 
 impl Index<GamepadButton> for Gamepad {
     type Output = ButtonState;
 
-    fn index(&self, index: GamepadButton) -> &ButtonState {
-        &self.buttons[index as usize]
-    }
+    fn index(&self, index: GamepadButton) -> &ButtonState { &self.buttons[index as usize] }
 }
 
-const GAMEPAD_BUTTON_LIST: &[GamepadButton] = &[
-    GamepadButton::FaceDown,
-    GamepadButton::FaceRight,
-    GamepadButton::FaceUp,
-    GamepadButton::FaceLeft,
-    GamepadButton::ShoulderLeft,
-    GamepadButton::TriggerLeft,
-    GamepadButton::ShoulderRight,
-    GamepadButton::TriggerRight,
-    GamepadButton::Select,
-    GamepadButton::Start,
-    GamepadButton::Home,
-    GamepadButton::StickButtonLeft,
-    GamepadButton::StickButtonRight,
-    GamepadButton::DpadUp,
-    GamepadButton::DpadDown,
-    GamepadButton::DpadLeft,
-    GamepadButton::DpadRight,
-];
+const GAMEPAD_BUTTON_LIST: &[GamepadButton] = &[GamepadButton::FaceDown,
+                                                GamepadButton::FaceRight,
+                                                GamepadButton::FaceUp,
+                                                GamepadButton::FaceLeft,
+                                                GamepadButton::ShoulderLeft,
+                                                GamepadButton::TriggerLeft,
+                                                GamepadButton::ShoulderRight,
+                                                GamepadButton::TriggerRight,
+                                                GamepadButton::Select,
+                                                GamepadButton::Start,
+                                                GamepadButton::Home,
+                                                GamepadButton::StickButtonLeft,
+                                                GamepadButton::StickButtonRight,
+                                                GamepadButton::DpadUp,
+                                                GamepadButton::DpadDown,
+                                                GamepadButton::DpadLeft,
+                                                GamepadButton::DpadRight];
 
-#[cfg(all(not(any(target_arch="wasm32", target_os="macos")), feature = "gamepads"))]
-const GILRS_GAMEPAD_LIST: &[gilrs::Button] = &[
-    Button::South,
-    Button::East,
-    Button::North,
-    Button::West,
-    Button::LeftTrigger,
-    Button::LeftTrigger2,
-    Button::RightTrigger,
-    Button::RightTrigger2,
-    Button::South,
-    Button::South,
-    Button::Mode,
-    Button::LeftThumb,
-    Button::RightThumb,
-    Button::DPadUp,
-    Button::DPadDown,
-    Button::DPadLeft,
-    Button::DPadRight,
-];
+#[cfg(all(not(any(target_arch = "wasm32", target_os = "macos")), feature = "gamepads"))]
+const GILRS_GAMEPAD_LIST: &[gilrs::Button] = &[Button::South,
+                                               Button::East,
+                                               Button::North,
+                                               Button::West,
+                                               Button::LeftTrigger,
+                                               Button::LeftTrigger2,
+                                               Button::RightTrigger,
+                                               Button::RightTrigger2,
+                                               Button::South,
+                                               Button::South,
+                                               Button::Mode,
+                                               Button::LeftThumb,
+                                               Button::RightThumb,
+                                               Button::DPadUp,
+                                               Button::DPadDown,
+                                               Button::DPadLeft,
+                                               Button::DPadRight];
 
-const GAMEPAD_AXIS_LIST: &[GamepadAxis] = &[
-    GamepadAxis::LeftStickX,
-    GamepadAxis::LeftStickY,
-    GamepadAxis::RightStickX,
-    GamepadAxis::RightStickY,
-];
-
+const GAMEPAD_AXIS_LIST: &[GamepadAxis] = &[GamepadAxis::LeftStickX,
+                                            GamepadAxis::LeftStickY,
+                                            GamepadAxis::RightStickX,
+                                            GamepadAxis::RightStickY];

@@ -1,12 +1,14 @@
 use input::{ButtonState, Key};
-use std::ops::Index;
-use std::fmt::{Debug, Error, Formatter};
+use std::{
+    fmt::{Debug, Error, Formatter},
+    ops::Index,
+};
 
 #[derive(Copy)]
 /// A structure that stores each key's state
 ///
-/// Keyboards are maintained and owned by a `Window`, and can be accessed via the `keyboard`
-/// function. They are indexed by the Key enum.
+/// Keyboards are maintained and owned by a `Window`, and can be accessed via
+/// the `keyboard` function. They are indexed by the Key enum.
 pub struct Keyboard {
     pub(crate) keys: [ButtonState; 256],
 }
@@ -25,17 +27,13 @@ impl Keyboard {
 }
 
 impl Clone for Keyboard {
-    fn clone(&self) -> Keyboard {
-        *self
-    }
+    fn clone(&self) -> Keyboard { *self }
 }
 
 impl Index<Key> for Keyboard {
     type Output = ButtonState;
 
-    fn index(&self, index: Key) -> &ButtonState {
-        &self.keys[index as usize]
-    }
+    fn index(&self, index: Key) -> &ButtonState { &self.keys[index as usize] }
 }
 
 impl Debug for Keyboard {

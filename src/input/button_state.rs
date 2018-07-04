@@ -18,7 +18,7 @@ impl ButtonState {
             (false, false) => ButtonState::NotPressed,
             (false, true) => ButtonState::Pressed,
             (true, false) => ButtonState::Released,
-            (true, true) => ButtonState::Held
+            (true, true) => ButtonState::Held,
         }
     }
 
@@ -48,9 +48,12 @@ mod tests {
 
     #[test]
     fn clear_temporary() {
-        for button in [ButtonState::Pressed, ButtonState::Held, ButtonState::Released, ButtonState::NotPressed].iter() {
+        for button in [ButtonState::Pressed,
+                       ButtonState::Held,
+                       ButtonState::Released,
+                       ButtonState::NotPressed].iter()
+        {
             assert_eq!(button.is_down(), button.clear_temporary().is_down());
         }
     }
 }
-

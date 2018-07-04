@@ -1,8 +1,6 @@
-#[cfg(feature="ncollide2d")] use ncollide2d::{
-    bounding_volume::AABB,
-    shape::Cuboid
-};
 use geom::{about_equal, Circle, Positioned, Scalar, Vector};
+#[cfg(feature = "ncollide2d")]
+use ncollide2d::{bounding_volume::AABB, shape::Cuboid};
 use std::cmp::{Eq, PartialEq};
 
 #[derive(Clone, Copy, Default, Debug, Deserialize, Serialize)]
@@ -21,12 +19,10 @@ pub struct Rectangle {
 impl Rectangle {
     ///Create a positioned rectangle with dimensions
     pub fn new<T: Scalar>(x: T, y: T, width: T, height: T) -> Rectangle {
-        Rectangle {
-            x: x.float(),
-            y: y.float(),
-            width: width.float(),
-            height: height.float(),
-        }
+        Rectangle { x: x.float(),
+                    y: y.float(),
+                    width: width.float(),
+                    height: height.float(), }
     }
 
     ///Create a rectangle from a top-left vector and a size vector
@@ -36,49 +32,39 @@ impl Rectangle {
 
     ///Create a rectangle at the origin with the given size
     pub fn new_sized<T: Scalar>(width: T, height: T) -> Rectangle {
-        Rectangle {
-            x: 0.0,
-            y: 0.0,
-            width: width.float(),
-            height: height.float()
-        }
+        Rectangle { x: 0.0,
+                    y: 0.0,
+                    width: width.float(),
+                    height: height.float(), }
     }
 
     ///Create a rectangle at the origin with a size given by a Vector
-    pub fn newv_sized(size: Vector) -> Rectangle {
-        Rectangle::newv(Vector::zero(), size)
-    }
+    pub fn newv_sized(size: Vector) -> Rectangle { Rectangle::newv(Vector::zero(), size) }
 
-    #[cfg(feature="ncollide2d")]
+    #[cfg(feature = "ncollide2d")]
     ///Create a rectangle with a given center and Cuboid from ncollide
     pub fn from_cuboid(center: Vector, cuboid: &Cuboid<f32>) -> Rectangle {
         let half_size = cuboid.half_extents().clone().into();
         Rectangle::newv(center - half_size, half_size * 2)
     }
-   
+
     ///Convert this rect into an ncollide Cuboid2
-    #[cfg(feature="ncollide2d")]
-    pub fn into_cuboid(self) -> Cuboid<f32> {
-        Cuboid::new((self.size() / 2).into_vector())
-    }
-    
+    #[cfg(feature = "ncollide2d")]
+    pub fn into_cuboid(self) -> Cuboid<f32> { Cuboid::new((self.size() / 2).into_vector()) }
+
     ///Convert this rect into an ncollide AABB2
-    #[cfg(feature="ncollide2d")]
-    pub fn into_aabb(self) -> AABB<f32> { 
-        let min = self.top_left().into_point(); 
+    #[cfg(feature = "ncollide2d")]
+    pub fn into_aabb(self) -> AABB<f32> {
+        let min = self.top_left().into_point();
         let max = (self.top_left() + self.size()).into_point();
         AABB::new(min, max)
     }
 
     ///Get the top left coordinate of the Rectangle
-    pub fn top_left(self) -> Vector {
-        Vector::new(self.x, self.y)
-    }
+    pub fn top_left(self) -> Vector { Vector::new(self.x, self.y) }
 
     ///Get the size of the Rectangle
-    pub fn size(self) -> Vector {
-        Vector::new(self.width, self.height)
-    }
+    pub fn size(self) -> Vector { Vector::new(self.width, self.height) }
 
     ///Checks if a point falls within the rectangle
     pub fn contains(self, v: Vector) -> bool {
@@ -87,20 +73,24 @@ impl Rectangle {
 
     ///Check if any of the area bounded by this rectangle is bounded by another
     pub fn overlaps_rect(self, b: Rectangle) -> bool {
-        self.x < b.x + b.width && self.x + self.width > b.x && self.y < b.y + b.height &&
-            self.y + self.height > b.y
+        self.x < b.x + b.width
+        && self.x + self.width > b.x
+        && self.y < b.y + b.height
+        && self.y + self.height > b.y
     }
 
-    ///Check if any of the area bounded by this rectangle is bounded by a circle
+    ///Check if any of the area bounded by this rectangle is bounded by a
+    /// circle
     pub fn overlaps_circ(self, c: Circle) -> bool {
-        (c.center().clamp(self.top_left(), self.top_left() + self.size()) - c.center()).len2() < c.radius.powi(2)
+        (c.center().clamp(self.top_left(), self.top_left() + self.size()) - c.center()).len2()
+        < c.radius.powi(2)
     }
 
     ///Move the rectangle so it is entirely contained with another
     pub fn constrain(self, outer: Rectangle) -> Rectangle {
-        Rectangle::newv(self.top_left().clamp(
-            outer.top_left(), outer.top_left() + outer.size() - self.size()
-        ), self.size())
+        Rectangle::newv(self.top_left().clamp(outer.top_left(),
+                                              outer.top_left() + outer.size() - self.size()),
+                        self.size())
     }
 
     ///Translate the rectangle by a given vector
@@ -109,31 +99,27 @@ impl Rectangle {
     }
 
     ///Create a rectangle with the same size at a given center
-    pub fn with_center(self, v: Vector) -> Rectangle {
-        self.translate(v - self.center())
-    }
+    pub fn with_center(self, v: Vector) -> Rectangle { self.translate(v - self.center()) }
 }
 
 impl PartialEq for Rectangle {
     fn eq(&self, other: &Rectangle) -> bool {
-        about_equal(self.x, other.x) && about_equal(self.y, other.y) && about_equal(self.width, other.width)
-            && about_equal(self.height, other.height)
+        about_equal(self.x, other.x)
+        && about_equal(self.y, other.y)
+        && about_equal(self.width, other.width)
+        && about_equal(self.height, other.height)
     }
 }
 
 impl Eq for Rectangle {}
 
 impl Positioned for Rectangle {
-    fn center(&self) -> Vector {
-        self.top_left() + self.size() / 2
-    }
+    fn center(&self) -> Vector { self.top_left() + self.size() / 2 }
 
-    fn bounding_box(&self) -> Rectangle {
-        *self
-    }
+    fn bounding_box(&self) -> Rectangle { *self }
 }
 
-#[cfg(feature="ncollide2d")]
+#[cfg(feature = "ncollide2d")]
 impl From<AABB<f32>> for Rectangle {
     fn from(other: AABB<f32>) -> Rectangle {
         Rectangle::newv(other.mins().clone().into(), other.maxs().clone().into())

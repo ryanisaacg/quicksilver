@@ -19,5 +19,5 @@ pub enum BlendMode {
     /// Take the maximum of each component of the color
     ///
     /// Purple and red will produce purple, blue and red will produce purple
-    Maximum
+    Maximum,
 }

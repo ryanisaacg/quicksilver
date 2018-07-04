@@ -1,5 +1,6 @@
-#[cfg(feature="ncollide2d")] use ncollide2d::shape::Ball;
 use geom::{about_equal, Positioned, Rectangle, Scalar, Vector};
+#[cfg(feature = "ncollide2d")]
+use ncollide2d::shape::Ball;
 use std::cmp::{Eq, PartialEq};
 
 #[derive(Clone, Copy, Default, Debug, Deserialize, Serialize)]
@@ -16,43 +17,33 @@ pub struct Circle {
 impl Circle {
     /// Create a new circle with the given dimensions
     pub fn new<T: Scalar>(x: T, y: T, radius: T) -> Circle {
-        Circle {
-            x: x.float(),
-            y: y.float(),
-            radius: radius.float(),
-        }
+        Circle { x: x.float(),
+                 y: y.float(),
+                 radius: radius.float(), }
     }
 
     /// Create a circle with the center as a vector
     pub fn newv<T: Scalar>(center: Vector, radius: T) -> Circle {
-        Circle {
-            x: center.x,
-            y: center.y,
-            radius: radius.float()
-        }
+        Circle { x: center.x,
+                 y: center.y,
+                 radius: radius.float(), }
     }
 
     ///Construct a circle from a center and a Ball
-    #[cfg(feature="ncollide2d")]
+    #[cfg(feature = "ncollide2d")]
     pub fn from_ball(center: Vector, ball: Ball<f32>) -> Circle {
         Circle::newv(center, ball.radius())
     }
 
     ///Convert the circle into an ncollide Ball
-    #[cfg(feature="ncollide2d")]
-    pub fn into_ball(self) -> Ball<f32> {
-        Ball::new(self.radius)
-    }
+    #[cfg(feature = "ncollide2d")]
+    pub fn into_ball(self) -> Ball<f32> { Ball::new(self.radius) }
 
     /// Check to see if a circle contains a point
-    pub fn contains(self, v: Vector) -> bool {
-        (v - self.center()).len2() < self.radius.powi(2)
-    }
+    pub fn contains(self, v: Vector) -> bool { (v - self.center()).len2() < self.radius.powi(2) }
 
     ///Check if a circle overlaps a rectangle
-    pub fn overlaps_rect(self, r: Rectangle) -> bool {
-        r.overlaps_circ(self)
-    }
+    pub fn overlaps_rect(self, r: Rectangle) -> bool { r.overlaps_circ(self) }
 
     ///Check if two circles overlap
     pub fn overlaps_circ(self, c: Circle) -> bool {
@@ -66,25 +57,37 @@ impl Circle {
 
     ///Move a circle so it is entirely contained within a Rectangle
     pub fn constrain(self, outer: Rectangle) -> Circle {
-        Circle::newv(Rectangle::new(self.x - self.radius, self.y - self.radius, self.radius * 2.0, self.radius * 2.0).constrain(outer).center(), self.radius)
+        Circle::newv(
+            Rectangle::new(
+                self.x - self.radius,
+                self.y - self.radius,
+                self.radius * 2.0,
+                self.radius * 2.0,
+            ).constrain(outer)
+                .center(),
+            self.radius,
+        )
     }
 }
 
 impl PartialEq for Circle {
     fn eq(&self, other: &Circle) -> bool {
-        about_equal(self.x, other.x) && about_equal(self.y, other.y) && about_equal(self.radius, other.radius)
+        about_equal(self.x, other.x)
+        && about_equal(self.y, other.y)
+        && about_equal(self.radius, other.radius)
     }
 }
 
 impl Eq for Circle {}
 
 impl Positioned for Circle {
-    fn center(&self) -> Vector {
-        Vector::new(self.x, self.y)
-    }
+    fn center(&self) -> Vector { Vector::new(self.x, self.y) }
 
     fn bounding_box(&self) -> Rectangle {
-        Rectangle::new(self.x - self.radius, self.y - self.radius, self.radius * 2.0, self.radius * 2.0)
+        Rectangle::new(self.x - self.radius,
+                       self.y - self.radius,
+                       self.radius * 2.0,
+                       self.radius * 2.0)
     }
 }
 
@@ -136,7 +139,8 @@ mod tests {
     fn translate() {
         let circ = Circle::new(0, 0, 16);
         let translate = Vector::new(4, 4);
-        assert_eq!(circ.center() + translate, circ.translate(translate).center());
+        assert_eq!(circ.center() + translate,
+                   circ.translate(translate).center());
     }
 
 }

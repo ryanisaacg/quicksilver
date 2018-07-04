@@ -1,36 +1,37 @@
-#[cfg(feature="nalgebra")] use nalgebra::core::Matrix3;
+#[cfg(feature = "nalgebra")]
+use nalgebra::core::Matrix3;
 
 use geom::{about_equal, Scalar, Vector};
 use std::{
-    ops::Mul,
+    cmp::{Eq, PartialEq},
+    default::Default,
     f32::consts::PI,
     fmt,
-    default::Default,
-    cmp::{Eq, PartialEq}
+    ops::Mul,
 };
 
 #[derive(Clone, Copy, Debug, Deserialize, Serialize)]
 /// A 2D transformation represented by a matrix
 ///
-/// Transforms can be composed together through matrix multiplication, and are applied to Vectors
-/// through multiplication, meaning the notation used is the '*' operator. A property of matrix
-/// multiplication is that for some matrices A, B, C and vector V is
-/// ```text
+/// Transforms can be composed together through matrix multiplication, and are
+/// applied to Vectors through multiplication, meaning the notation used is the
+/// '*' operator. A property of matrix multiplication is that for some matrices
+/// A, B, C and vector V is ```text
 /// Transform = A * B * C
 /// Transform * V = A * (B * (C * V))
 /// ```
 ///
-/// This property allows encoding multiple transformations in a single matrix. A transformation
-/// that involves rotating a shape 30 degrees and then moving it six units up could be written as
-/// ```no_run
+/// This property allows encoding multiple transformations in a single matrix.
+/// A transformation that involves rotating a shape 30 degrees and then moving
+/// it six units up could be written as ```no_run
 /// use quicksilver::geom::{Transform, Vector};
-/// let transform = Transform::rotate(30) * Transform::translate(Vector::new(0, -6));
-/// ```
+/// let transform = Transform::rotate(30) * Transform::translate(Vector::new(0,
+/// -6)); ```
 /// and then applied to a Vector
 /// ```no_run
 /// # use quicksilver::geom::{Transform, Vector};
-/// # let transform  = Transform::rotate(30) * Transform::translate(Vector::new(0, -6));
-/// transform * Vector::new(5, 5)
+/// # let transform  = Transform::rotate(30) *
+/// Transform::translate(Vector::new(0, -6)); transform * Vector::new(5, 5)
 /// # ;
 /// ```
 pub struct Transform([[f32; 3]; 3]);
@@ -38,9 +39,7 @@ pub struct Transform([[f32; 3]; 3]);
 impl Transform {
     ///Create an identity transformation
     pub fn identity() -> Transform {
-        Transform([[1f32, 0f32, 0f32],
-                  [0f32, 1f32, 0f32],
-                  [0f32, 0f32, 1f32]])
+        Transform([[1f32, 0f32, 0f32], [0f32, 1f32, 0f32], [0f32, 0f32, 1f32]])
     }
 
     ///Create a rotation transformation
@@ -48,39 +47,37 @@ impl Transform {
         let angle = angle.float();
         let c = (angle * PI / 180f32).cos();
         let s = (angle * PI / 180f32).sin();
-        Transform([[c, -s, 0f32],
-                  [s, c, 0f32],
-                  [0f32, 0f32, 1f32]])
+        Transform([[c, -s, 0f32], [s, c, 0f32], [0f32, 0f32, 1f32]])
     }
 
     ///Create a translation transformation
     pub fn translate(vec: Vector) -> Transform {
-        Transform([[1f32, 0f32, vec.x],
-                  [0f32, 1f32, vec.y],
-                  [0f32, 0f32, 1f32]])
+        Transform([[1f32, 0f32, vec.x], [0f32, 1f32, vec.y], [0f32, 0f32, 1f32]])
     }
 
     ///Create a scale transformation
     pub fn scale(vec: Vector) -> Transform {
-        Transform([[vec.x, 0f32, 0f32],
-                  [0f32, vec.y, 0f32],
-                  [0f32, 0f32, 1f32]])
+        Transform([[vec.x, 0f32, 0f32], [0f32, vec.y, 0f32], [0f32, 0f32, 1f32]])
     }
-   
-    #[cfg(feature="nalgebra")]
+
+    #[cfg(feature = "nalgebra")]
     ///Convert the Transform into an nalgebra Matrix3
     pub fn into_matrix(self) -> Matrix3<f32> {
-        Matrix3::new(
-            self.0[0][0], self.0[0][1], self.0[0][2],
-            self.0[1][0], self.0[1][1], self.0[1][2],
-            self.0[2][0], self.0[2][1], self.0[2][2],
-        )
+        Matrix3::new(self.0[0][0],
+                     self.0[0][1],
+                     self.0[0][2],
+                     self.0[1][0],
+                     self.0[1][1],
+                     self.0[1][2],
+                     self.0[2][0],
+                     self.0[2][1],
+                     self.0[2][2])
     }
- 
+
     ///Find the inverse of a Transform
     ///
-    /// A transform's inverse will cancel it out when multplied with it, as seen below:
-    /// ```
+    /// A transform's inverse will cancel it out when multplied with it, as
+    /// seen below: ```
     /// # use quicksilver::geom::{Transform, Vector};
     /// let transform = Transform::translate(Vector::new(4, 5));
     /// let inverse = transform.inverse();
@@ -89,10 +86,9 @@ impl Transform {
     /// assert_eq!(vector, inverse * transform * vector);
     /// ```
     pub fn inverse(&self) -> Transform {
-        let det = 
-            self.0[0][0] * (self.0[1][1] * self.0[2][2] - self.0[2][1] * self.0[1][2])
-            - self.0[0][1] * (self.0[1][0] * self.0[2][2] - self.0[1][2] * self.0[2][0])
-            + self.0[0][2] * (self.0[1][0] * self.0[2][1] - self.0[1][1] * self.0[2][0]);
+        let det = self.0[0][0] * (self.0[1][1] * self.0[2][2] - self.0[2][1] * self.0[1][2])
+                  - self.0[0][1] * (self.0[1][0] * self.0[2][2] - self.0[1][2] * self.0[2][0])
+                  + self.0[0][2] * (self.0[1][0] * self.0[2][1] - self.0[1][1] * self.0[2][0]);
 
         let inv_det = det.recip();
 
@@ -133,17 +129,15 @@ impl Mul<Vector> for Transform {
     type Output = Vector;
 
     fn mul(self, other: Vector) -> Vector {
-        Vector::new(
-            other.x * self.0[0][0] + other.y * self.0[0][1] + self.0[0][2],
-            other.x * self.0[1][0] + other.y * self.0[1][1] + self.0[1][2],
-        )
+        Vector::new(other.x * self.0[0][0] + other.y * self.0[0][1] + self.0[0][2],
+                    other.x * self.0[1][0] + other.y * self.0[1][1] + self.0[1][2])
     }
 }
 
 /// Scale all of the internal values of the Transform matrix
 ///
-/// Note this will NOT scale vectors multiplied by this transform, and generally you shouldn't need
-/// to use this.
+/// Note this will NOT scale vectors multiplied by this transform, and
+/// generally you shouldn't need to use this.
 impl<T: Scalar> Mul<T> for Transform {
     type Output = Transform;
 
@@ -173,11 +167,8 @@ impl fmt::Display for Transform {
 }
 
 impl Default for Transform {
-    fn default() -> Transform {
-        Transform::identity()
-    }
+    fn default() -> Transform { Transform::identity() }
 }
-
 
 impl PartialEq for Transform {
     fn eq(&self, other: &Transform) -> bool {
@@ -194,13 +185,12 @@ impl PartialEq for Transform {
 
 impl Eq for Transform {}
 
-
-#[cfg(feature="nalgebra")]
+#[cfg(feature = "nalgebra")]
 impl From<Matrix3<f32>> for Transform {
     fn from(other: Matrix3<f32>) -> Transform {
         Transform([[other[0], other[1], other[2]],
-                  [other[3], other[4], other[5]],
-                  [other[6], other[7], other[8]]])
+                   [other[3], other[4], other[5]],
+                   [other[6], other[7], other[8]]])
     }
 }
 
@@ -239,16 +229,19 @@ mod tests {
 
     #[test]
     fn identity() {
-        let trans = Transform::identity() * Transform::translate(Vector::zero()) *
-            Transform::rotate(0f32) * Transform::scale(Vector::one());
+        let trans = Transform::identity()
+                    * Transform::translate(Vector::zero())
+                    * Transform::rotate(0f32)
+                    * Transform::scale(Vector::one());
         let vec = Vector::new(15, 12);
         assert_eq!(vec, trans * vec);
     }
 
     #[test]
     fn complex_inverse() {
-        let a = Transform::rotate(5f32) * Transform::scale(Vector::new(0.2, 1.23)) *
-            Transform::translate(Vector::one() * 100f32);
+        let a = Transform::rotate(5f32)
+                * Transform::scale(Vector::new(0.2, 1.23))
+                * Transform::translate(Vector::one() * 100f32);
         let a_inv = a.inverse();
         let vec = Vector::new(120f32, 151f32);
         assert_eq!(vec, a * a_inv * vec);
@@ -256,13 +249,14 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature="nalgebra")]
+    #[cfg(feature = "nalgebra")]
     fn conversion() {
         use alga::linear::Transformation;
         let transform = Transform::rotate(5);
         let vector = Vector::new(1, 2);
         let na_matrix = transform.into_matrix();
         let na_vector = vector.into_vector();
-        assert_eq!(transform * vector, (na_matrix.transform_vector(&na_vector)).into());
+        assert_eq!(transform * vector,
+                   (na_matrix.transform_vector(&na_vector)).into());
     }
 }

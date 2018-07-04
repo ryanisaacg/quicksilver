@@ -5,12 +5,14 @@ use geom::{Rectangle, Vector};
 pub enum ResizeStrategy {
     ///Use black bars to keep the size exactly the same
     Maintain,
-    ///Fill the screen while maintaing aspect ratio, possiby cutting off content in the process
+    ///Fill the screen while maintaing aspect ratio, possiby cutting off
+    /// content in the process
     Fill,
-    ///Take up as much of the screen as possible while maintaing aspect ratio, but use letterboxing if necessary
+    ///Take up as much of the screen as possible while maintaing aspect ratio,
+    /// but use letterboxing if necessary
     Fit,
     ///Ignore aspect ratio and just stretch the content
-    Stretch
+    Stretch,
 }
 
 impl ResizeStrategy {
@@ -20,13 +22,13 @@ impl ResizeStrategy {
             ResizeStrategy::Maintain => old_size,
             ResizeStrategy::Stretch => new_size,
             ResizeStrategy::Fill | ResizeStrategy::Fit => {
-                let target_ratio = old_size.x / old_size.y; 
+                let target_ratio = old_size.x / old_size.y;
                 let window_ratio = new_size.x / new_size.y;
                 if (self == ResizeStrategy::Fill) == (window_ratio < target_ratio) {
                     Vector::new(target_ratio * new_size.y, new_size.y)
                 } else {
                     Vector::new(new_size.x, new_size.x / target_ratio)
-                } 
+                }
             }
         };
         Rectangle::newv((new_size - content_area) / 2, content_area)
@@ -45,40 +47,35 @@ mod tests {
 
     fn test(resize: ResizeStrategy, new: Vector, expected: Rectangle) {
         assert_eq!(resize.resize(BASE, new), expected);
-        assert_eq!(resize.resize(expected.size(), BASE), Rectangle::newv_sized(BASE));
+        assert_eq!(resize.resize(expected.size(), BASE),
+                   Rectangle::newv_sized(BASE));
     }
 
     #[test]
     fn resize() {
-        let new = [
-            BASE,
-            BASE * 2,
-            BASE.x_comp() * 2 + BASE.y_comp(),
-            BASE.x_comp() + BASE.y_comp() * 2
-        ];
-        let maintain = [
-            Rectangle::newv_sized(BASE),
-            Rectangle::newv(BASE / 2, BASE),
-            Rectangle::newv(BASE.x_comp() / 2, BASE),
-            Rectangle::newv(BASE.y_comp() / 2, BASE),
-        ];
-        let fill = [
-            Rectangle::newv_sized(BASE),
-            Rectangle::newv_sized(BASE * 2),
-            Rectangle::newv(-BASE.y_comp() / 2, BASE * 2),
-            Rectangle::newv(-BASE.x_comp() / 2, BASE * 2)
-        ];
-        let fit = [
-            Rectangle::newv_sized(BASE),
-            Rectangle::newv_sized(BASE * 2),
-            Rectangle::newv(BASE.x_comp() / 2, BASE),
-            Rectangle::newv(BASE.y_comp() / 2, BASE)
-        ];
+        let new = [BASE,
+                   BASE * 2,
+                   BASE.x_comp() * 2 + BASE.y_comp(),
+                   BASE.x_comp() + BASE.y_comp() * 2];
+        let maintain = [Rectangle::newv_sized(BASE),
+                        Rectangle::newv(BASE / 2, BASE),
+                        Rectangle::newv(BASE.x_comp() / 2, BASE),
+                        Rectangle::newv(BASE.y_comp() / 2, BASE)];
+        let fill = [Rectangle::newv_sized(BASE),
+                    Rectangle::newv_sized(BASE * 2),
+                    Rectangle::newv(-BASE.y_comp() / 2, BASE * 2),
+                    Rectangle::newv(-BASE.x_comp() / 2, BASE * 2)];
+        let fit = [Rectangle::newv_sized(BASE),
+                   Rectangle::newv_sized(BASE * 2),
+                   Rectangle::newv(BASE.x_comp() / 2, BASE),
+                   Rectangle::newv(BASE.y_comp() / 2, BASE)];
         for i in 0..new.len() {
             test(ResizeStrategy::Maintain, new[i], maintain[i]);
             test(ResizeStrategy::Fill, new[i], fill[i]);
             test(ResizeStrategy::Fit, new[i], fit[i]);
-            test(ResizeStrategy::Stretch, new[i], Rectangle::newv_sized(new[i]));
+            test(ResizeStrategy::Stretch,
+                 new[i],
+                 Rectangle::newv_sized(new[i]));
         }
     }
 }

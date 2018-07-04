@@ -4,7 +4,9 @@ use geom::{Circle, Positioned, Rectangle, Vector};
 ///A universal shape union
 #[allow(missing_docs)]
 pub enum Shape {
-    Circle(Circle), Rectangle(Rectangle), Vector(Vector)
+    Circle(Circle),
+    Rectangle(Rectangle),
+    Vector(Vector),
 }
 
 impl Shape {
@@ -13,7 +15,7 @@ impl Shape {
         match *self {
             Shape::Circle(this) => this.overlaps_circ(circ),
             Shape::Rectangle(this) => this.overlaps_circ(circ),
-            Shape::Vector(this) => circ.contains(this)
+            Shape::Vector(this) => circ.contains(this),
         }
     }
 
@@ -22,7 +24,7 @@ impl Shape {
         match *self {
             Shape::Circle(this) => this.overlaps_rect(rect),
             Shape::Rectangle(this) => this.overlaps_rect(rect),
-            Shape::Vector(this) => rect.contains(this)
+            Shape::Vector(this) => rect.contains(this),
         }
     }
 
@@ -31,7 +33,7 @@ impl Shape {
         match *self {
             Shape::Circle(this) => this.contains(vec),
             Shape::Rectangle(this) => this.contains(vec),
-            Shape::Vector(this) => this == vec
+            Shape::Vector(this) => this == vec,
         }
     }
 
@@ -40,7 +42,7 @@ impl Shape {
         match *self {
             Shape::Circle(this) => shape.overlaps_circ(this),
             Shape::Rectangle(this) => shape.overlaps_rect(this),
-            Shape::Vector(this) => shape.contains(this)
+            Shape::Vector(this) => shape.contains(this),
         }
     }
 
@@ -49,7 +51,7 @@ impl Shape {
         match *self {
             Shape::Circle(this) => Shape::Circle(this.translate(vec)),
             Shape::Rectangle(this) => Shape::Rectangle(this.translate(vec)),
-            Shape::Vector(this) => Shape::Vector(this + vec)
+            Shape::Vector(this) => Shape::Vector(this + vec),
         }
     }
 
@@ -58,7 +60,7 @@ impl Shape {
         match *self {
             Shape::Circle(this) => Shape::Circle(Circle::new(vec.x, vec.y, this.radius)),
             Shape::Rectangle(this) => Shape::Rectangle(this.with_center(vec)),
-            Shape::Vector(_) => Shape::Vector(vec)
+            Shape::Vector(_) => Shape::Vector(vec),
         }
     }
 
@@ -68,18 +70,13 @@ impl Shape {
             &Shape::Rectangle(ref this) => this as &Positioned,
             &Shape::Vector(ref this) => this as &Positioned,
         }
-
     }
 }
 
 impl Positioned for Shape {
-    fn center(&self) -> Vector {
-        self.as_positioned().center()
-    }
+    fn center(&self) -> Vector { self.as_positioned().center() }
 
-    fn bounding_box(&self) -> Rectangle {
-        self.as_positioned().bounding_box()
-    }
+    fn bounding_box(&self) -> Rectangle { self.as_positioned().bounding_box() }
 }
 
 #[cfg(test)]
@@ -87,11 +84,9 @@ mod tests {
     use super::*;
 
     fn get_shapes() -> [Shape; 3] {
-        [
-            Shape::Circle(Circle::new(0, 0, 32)),
-            Shape::Rectangle(Rectangle::new(0, 0, 32, 32)),
-            Shape::Vector(Vector::new(0, 0))
-        ]
+        [Shape::Circle(Circle::new(0, 0, 32)),
+         Shape::Rectangle(Rectangle::new(0, 0, 32, 32)),
+         Shape::Vector(Vector::new(0, 0))]
     }
 
     #[test]
@@ -107,14 +102,16 @@ mod tests {
     #[test]
     fn with_center() {
         for a in get_shapes().iter() {
-            assert_eq!(a.with_center(Vector::new(50, 40)).center(), Vector::new(50, 40));
+            assert_eq!(a.with_center(Vector::new(50, 40)).center(),
+                       Vector::new(50, 40));
         }
     }
 
     #[test]
     fn translate() {
         for a in get_shapes().iter() {
-            assert_eq!(a.translate(Vector::new(10, 5)).center(), a.center() + Vector::new(10, 5));
+            assert_eq!(a.translate(Vector::new(10, 5)).center(),
+                       a.center() + Vector::new(10, 5));
         }
     }
 }

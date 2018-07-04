@@ -13,115 +13,87 @@ pub struct Color {
 
 impl Color {
     ///Create an identical color with a different red component
-    pub fn with_red(self, r: f32) -> Color {
-        Color { r, ..self }
-    }
+    pub fn with_red(self, r: f32) -> Color { Color { r, ..self } }
 
     ///Create an identical color with a different green component
-    pub fn with_green(self, g: f32) -> Color {
-        Color { g, ..self }
-    }
+    pub fn with_green(self, g: f32) -> Color { Color { g, ..self } }
 
     ///Create an identical color with a different blue component
-    pub fn with_blue(self, b: f32) -> Color {
-        Color { b, ..self }
-    }
+    pub fn with_blue(self, b: f32) -> Color { Color { b, ..self } }
     ///Create an identical color with a different alpha component
-    pub fn with_alpha(self, a: f32) -> Color {
-        Color { a, ..self }
-    }
+    pub fn with_alpha(self, a: f32) -> Color { Color { a, ..self } }
 }
 
 #[allow(missing_docs)]
 impl Color {
     pub fn white() -> Color {
-        Color {
-            r: 1f32,
-            g: 1f32,
-            b: 1f32,
-            a: 1f32,
-        }
+        Color { r: 1f32,
+                g: 1f32,
+                b: 1f32,
+                a: 1f32, }
     }
 
     pub fn black() -> Color {
-        Color {
-            r: 0f32,
-            g: 0f32,
-            b: 0f32,
-            a: 1f32,
-        }
+        Color { r: 0f32,
+                g: 0f32,
+                b: 0f32,
+                a: 1f32, }
     }
 
     pub fn red() -> Color {
-        Color {
-            r: 1f32,
-            g: 0f32,
-            b: 0f32,
-            a: 1f32,
-        }
+        Color { r: 1f32,
+                g: 0f32,
+                b: 0f32,
+                a: 1f32, }
     }
 
     pub fn orange() -> Color {
-        Color {
-            r: 1f32,
-            g: 0.5f32,
-            b: 0f32,
-            a: 1f32,
-        }
+        Color { r: 1f32,
+                g: 0.5f32,
+                b: 0f32,
+                a: 1f32, }
     }
 
     pub fn yellow() -> Color {
-        Color {
-            r: 1f32,
-            g: 1f32,
-            b: 0f32,
-            a: 1f32,
-        }
+        Color { r: 1f32,
+                g: 1f32,
+                b: 0f32,
+                a: 1f32, }
     }
 
     pub fn green() -> Color {
-        Color {
-            r: 0f32,
-            g: 1f32,
-            b: 0f32,
-            a: 1f32,
-        }
+        Color { r: 0f32,
+                g: 1f32,
+                b: 0f32,
+                a: 1f32, }
     }
 
     pub fn cyan() -> Color {
-        Color {
-            r: 0f32,
-            g: 1f32,
-            b: 1f32,
-            a: 1f32,
-        }
+        Color { r: 0f32,
+                g: 1f32,
+                b: 1f32,
+                a: 1f32, }
     }
 
     pub fn blue() -> Color {
-        Color {
-            r: 0f32,
-            g: 0f32,
-            b: 1f32,
-            a: 1f32,
-        }
+        Color { r: 0f32,
+                g: 0f32,
+                b: 1f32,
+                a: 1f32, }
     }
 
     pub fn purple() -> Color {
-        Color {
-            r: 1f32,
-            g: 0f32,
-            b: 1f32,
-            a: 1f32,
-        }
+        Color { r: 1f32,
+                g: 0f32,
+                b: 1f32,
+                a: 1f32, }
     }
 
     pub fn indigo() -> Color {
-        Color {
-            r: 0.5f32,
-            g: 0f32,
-            b: 1f32,
-            a: 1f32,
-        }
+        Color { r: 0.5f32,
+                g: 0f32,
+                b: 1f32,
+                a: 1f32, }
     }
 }
 
@@ -131,8 +103,16 @@ mod tests {
 
     #[test]
     fn colors() {
-        let colors = [Color::white(), Color::black(), Color::red(), Color::orange(), Color::yellow(),
-            Color::green(), Color::cyan(), Color::blue(), Color::purple(), Color::indigo()];
+        let colors = [Color::white(),
+                      Color::black(),
+                      Color::red(),
+                      Color::orange(),
+                      Color::yellow(),
+                      Color::green(),
+                      Color::cyan(),
+                      Color::blue(),
+                      Color::purple(),
+                      Color::indigo()];
         for i in 0..colors.len() {
             for j in 0..colors.len() {
                 assert_eq!(i == j, colors[i].clone() == *&colors[j]);

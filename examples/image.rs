@@ -1,8 +1,14 @@
 // Draw an image to the screen
 extern crate quicksilver;
 
-use quicksilver::{run, Asset, Result, State, geom::Vector,
-                  graphics::{Color, Image, Sprite, Window, WindowBuilder}};
+use quicksilver::{
+    geom::Vector,
+    graphics::{Color, Image, Sprite, Window, WindowBuilder},
+    run,
+    Asset,
+    Result,
+    State,
+};
 
 struct ImageViewer {
     asset: Asset<Image>,
@@ -17,13 +23,11 @@ impl State for ImageViewer {
     fn draw(&mut self, window: &mut Window) -> Result<()> {
         window.clear(Color::white());
         self.asset.execute(|image| {
-            window.draw(&Sprite::image(image, Vector::new(400, 300)));
-            Ok(())
-        })?;
+                                window.draw(&Sprite::image(image, Vector::new(400, 300)));
+                                Ok(())
+                            })?;
         window.present()
     }
 }
 
-fn main() {
-    run::<ImageViewer>(WindowBuilder::new("Image Example", 800, 600)).unwrap();
-}
+fn main() { run::<ImageViewer>(WindowBuilder::new("Image Example", 800, 600)).unwrap(); }
