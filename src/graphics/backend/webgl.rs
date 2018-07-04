@@ -1,39 +1,38 @@
 use geom::Vector;
 use graphics::{
     backend::{Backend, BlendMode, ImageData, ImageScaleStrategy, SurfaceData, VERTEX_SIZE},
-    Color, GpuTriangle, Image, PixelFormat, Surface, Vertex
+    Color,
+    GpuTriangle,
+    Image,
+    PixelFormat,
+    Surface,
+    Vertex,
 };
 use std::mem::size_of;
 use stdweb::{
-    web::{
-        document,
-        html_element::CanvasElement,
-        IParentNode,
-        TypedArray
-    },
-    unstable::{TryInto}
+    unstable::TryInto,
+    web::{document, html_element::CanvasElement, IParentNode, TypedArray},
 };
 use webgl_stdweb::{
+    WebGL2RenderingContext as gl,
     WebGLBuffer,
     WebGLProgram,
-    WebGL2RenderingContext as gl,
     WebGLShader,
-    WebGLUniformLocation
+    WebGLUniformLocation,
 };
-
 
 pub struct WebGLBackend {
     texture: Image,
     vertices: Vec<f32>,
-    indices: Vec<u32>, 
-    null: Image, 
-    vertex_length: usize, 
-    index_length: usize, 
-    shader: WebGLProgram, 
-    fragment: WebGLShader, 
-    vertex: WebGLShader, 
-    vbo: WebGLBuffer, 
-    ebo: WebGLBuffer, 
+    indices: Vec<u32>,
+    null: Image,
+    vertex_length: usize,
+    index_length: usize,
+    shader: WebGLProgram,
+    fragment: WebGLShader,
+    vertex: WebGLShader,
+    vbo: WebGLBuffer,
+    ebo: WebGLBuffer,
     texture_location: Option<WebGLUniformLocation>,
     texture_mode: u32,
 }
@@ -66,11 +65,15 @@ static mut TEXTURE_COUNT: u32 = 0;
 
 impl Backend for WebGLBackend {
     unsafe fn new(texture_mode: ImageScaleStrategy) -> WebGLBackend {
-        let canvas: CanvasElement = document().query_selector("#canvas").unwrap().unwrap().try_into().unwrap();
+        let canvas: CanvasElement = document().query_selector("#canvas")
+                                              .unwrap()
+                                              .unwrap()
+                                              .try_into()
+                                              .unwrap();
         let ctx: gl = canvas.get_context().unwrap();
         let texture_mode = match texture_mode {
             ImageScaleStrategy::Pixelate => gl::NEAREST,
-            ImageScaleStrategy::Blur => gl::LINEAR
+            ImageScaleStrategy::Blur => gl::LINEAR,
         };
         let vbo = ctx.create_buffer().unwrap();
         let ebo = ctx.create_buffer().unwrap();
@@ -93,19 +96,21 @@ impl Backend for WebGLBackend {
         // GL CALLS ARE ONLY SAFE AFTER THIS POINT
         let null = Image::new_null(1, 1, PixelFormat::RGBA);
         let texture = null.clone();
-        WebGLBackend {
-            texture,
-            vertices: Vec::with_capacity(1024),
-            indices: Vec::with_capacity(1024), 
-            null,
-            vertex_length: 0, 
-            index_length: 0, 
-            shader, fragment, vertex, vbo, ebo, 
-            texture_location: None,
-            texture_mode
-        }
+        WebGLBackend { texture,
+                       vertices: Vec::with_capacity(1024),
+                       indices: Vec::with_capacity(1024),
+                       null,
+                       vertex_length: 0,
+                       index_length: 0,
+                       shader,
+                       fragment,
+                       vertex,
+                       vbo,
+                       ebo,
+                       texture_location: None,
+                       texture_mode, }
     }
-    
+
     unsafe fn clear(&mut self, col: Color) {
         if let Some(ref gl_ctx) = GL_CONTEXT {
             gl_ctx.clear_color(col.r, col.g, col.b, col.a);
@@ -131,17 +136,21 @@ impl Backend for WebGLBackend {
         if let Some(ref gl_ctx) = GL_CONTEXT {
             // Turn the provided vertex data into stored vertex data
             vertices.iter().for_each(|vertex| {
-                self.vertices.push(vertex.pos.x);
-                self.vertices.push(vertex.pos.y);
-                let tex_pos = vertex.tex_pos.unwrap_or(Vector::zero());
-                self.vertices.push(tex_pos.x);
-                self.vertices.push(tex_pos.y);
-                self.vertices.push(vertex.col.r);
-                self.vertices.push(vertex.col.g);
-                self.vertices.push(vertex.col.b);
-                self.vertices.push(vertex.col.a);
-                self.vertices.push(if vertex.tex_pos.is_some() { 1f32 } else { 0f32 });
-            });
+                                         self.vertices.push(vertex.pos.x);
+                                         self.vertices.push(vertex.pos.y);
+                                         let tex_pos = vertex.tex_pos.unwrap_or(Vector::zero());
+                                         self.vertices.push(tex_pos.x);
+                                         self.vertices.push(tex_pos.y);
+                                         self.vertices.push(vertex.col.r);
+                                         self.vertices.push(vertex.col.g);
+                                         self.vertices.push(vertex.col.b);
+                                         self.vertices.push(vertex.col.a);
+                                         self.vertices.push(if vertex.tex_pos.is_some() {
+                                                                1f32
+                                                            } else {
+                                                                0f32
+                                                            });
+                                     });
             let vertex_length = size_of::<f32>() * self.vertices.len();
             // If the GPU can't store all of our data, re-create the GPU buffers so they can
             if vertex_length > self.vertex_length {
@@ -155,23 +164,42 @@ impl Backend for WebGLBackend {
                 gl_ctx.vertex_attrib_pointer(pos_attrib, 2, gl::FLOAT, false, stride_distance, 0);
                 let tex_attrib = gl_ctx.get_attrib_location(&self.shader, "tex_coord") as u32;
                 gl_ctx.enable_vertex_attrib_array(tex_attrib);
-                gl_ctx.vertex_attrib_pointer(tex_attrib, 2, gl::FLOAT, false, stride_distance, 2 * size_of::<f32>() as i64);
+                gl_ctx.vertex_attrib_pointer(tex_attrib,
+                                             2,
+                                             gl::FLOAT,
+                                             false,
+                                             stride_distance,
+                                             2 * size_of::<f32>() as i64);
                 let col_attrib = gl_ctx.get_attrib_location(&self.shader, "color") as u32;
                 gl_ctx.enable_vertex_attrib_array(col_attrib);
-                gl_ctx.vertex_attrib_pointer(col_attrib, 4, gl::FLOAT, false, stride_distance, 4 * size_of::<f32>() as i64);
-                let use_texture_attrib = gl_ctx.get_attrib_location(&self.shader, "uses_texture") as u32;
+                gl_ctx.vertex_attrib_pointer(col_attrib,
+                                             4,
+                                             gl::FLOAT,
+                                             false,
+                                             stride_distance,
+                                             4 * size_of::<f32>() as i64);
+                let use_texture_attrib =
+                    gl_ctx.get_attrib_location(&self.shader, "uses_texture") as u32;
                 gl_ctx.enable_vertex_attrib_array(use_texture_attrib);
-                gl_ctx.vertex_attrib_pointer(use_texture_attrib, 1, gl::FLOAT, false, stride_distance, 8 * size_of::<f32>() as i64);
-                self.texture_location = Some(gl_ctx.get_uniform_location(&self.shader, "tex").unwrap());
+                gl_ctx.vertex_attrib_pointer(use_texture_attrib,
+                                             1,
+                                             gl::FLOAT,
+                                             false,
+                                             stride_distance,
+                                             8 * size_of::<f32>() as i64);
+                self.texture_location =
+                    Some(gl_ctx.get_uniform_location(&self.shader, "tex").unwrap());
             }
             // Upload all of the vertex data
             let array: TypedArray<f32> = self.vertices.as_slice().into();
             gl_ctx.buffer_sub_data(gl::ARRAY_BUFFER, 0, &array.buffer());
-            // Scan through the triangles, adding the indices to the index buffer (every time the
-            // texture switches, flush and switch the bound texture)
+            // Scan through the triangles, adding the indices to the index buffer (every
+            // time the texture switches, flush and switch the bound texture)
             for triangle in triangles.iter() {
                 if let Some(ref img) = triangle.image {
-                    if self.texture.get_id() != self.null.get_id() && self.texture.get_id() != img.get_id() {
+                    if self.texture.get_id() != self.null.get_id()
+                       && self.texture.get_id() != img.get_id()
+                    {
                         self.flush();
                     }
                     self.texture = img.clone();
@@ -191,7 +219,9 @@ impl Backend for WebGLBackend {
                 let index_length = size_of::<u32>() * self.indices.len();
                 if index_length > self.index_length {
                     self.index_length = index_length * 2;
-                    gl_ctx.buffer_data(gl::ELEMENT_ARRAY_BUFFER, self.index_length as i64, gl::STREAM_DRAW);
+                    gl_ctx.buffer_data(gl::ELEMENT_ARRAY_BUFFER,
+                                       self.index_length as i64,
+                                       gl::STREAM_DRAW);
                 }
                 let array: TypedArray<u32> = self.indices.as_slice().into();
                 gl_ctx.buffer_sub_data(gl::ELEMENT_ARRAY_BUFFER, 0, &array.buffer());
@@ -199,15 +229,22 @@ impl Backend for WebGLBackend {
                 gl_ctx.active_texture(gl::TEXTURE0);
                 if self.texture.get_id() != 0 {
                     gl_ctx.bind_texture(gl::TEXTURE_2D, Some(&self.texture.data().data));
-                    gl_ctx.tex_parameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, self.texture_mode as i32);
-                    gl_ctx.tex_parameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, self.texture_mode as i32);
+                    gl_ctx.tex_parameteri(gl::TEXTURE_2D,
+                                          gl::TEXTURE_MIN_FILTER,
+                                          self.texture_mode as i32);
+                    gl_ctx.tex_parameteri(gl::TEXTURE_2D,
+                                          gl::TEXTURE_MAG_FILTER,
+                                          self.texture_mode as i32);
                 }
                 match self.texture_location {
                     Some(ref location) => gl_ctx.uniform1i(Some(location), 0),
-                    None => gl_ctx.uniform1i(None, 0)
+                    None => gl_ctx.uniform1i(None, 0),
                 }
                 // Draw the triangles
-                gl_ctx.draw_elements(gl::TRIANGLES, self.indices.len() as i32, gl::UNSIGNED_INT, 0);
+                gl_ctx.draw_elements(gl::TRIANGLES,
+                                     self.indices.len() as i32,
+                                     gl::UNSIGNED_INT,
+                                     0);
             }
             self.indices.clear();
             self.texture = self.null.clone();
@@ -216,13 +253,14 @@ impl Backend for WebGLBackend {
         }
     }
 
-    unsafe fn create_texture(data: &[u8], width: u32, height: u32, format: PixelFormat) -> ImageData where Self: Sized {
+    unsafe fn create_texture(data: &[u8], width: u32, height: u32, format: PixelFormat) -> ImageData
+        where Self: Sized {
         if let Some(ref gl_ctx) = GL_CONTEXT {
             let id = TEXTURE_COUNT;
             TEXTURE_COUNT += 1;
             let format = match format {
                 PixelFormat::RGB => gl::RGB as i64,
-                PixelFormat::RGBA => gl::RGBA as i64
+                PixelFormat::RGBA => gl::RGBA as i64,
             };
 
             let texture = gl_ctx.create_texture().unwrap();
@@ -230,77 +268,103 @@ impl Backend for WebGLBackend {
             gl_ctx.tex_parameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_S, gl::CLAMP_TO_EDGE as i32);
             gl_ctx.tex_parameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_T, gl::CLAMP_TO_EDGE as i32);
             gl_ctx.tex_parameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::NEAREST as i32);
-            gl_ctx.tex_parameteri(gl::TEXTURE_2D,
-             gl::TEXTURE_MAG_FILTER, gl::NEAREST as i32);
+            gl_ctx.tex_parameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::NEAREST as i32);
 
             if data.len() == 0 {
-                gl_ctx.tex_image2_d(gl::TEXTURE_2D, 0, gl::RGBA as i32, width as i32, 
-                            height as i32, 0, format as u32, gl::UNSIGNED_BYTE, None);
+                gl_ctx.tex_image2_d(gl::TEXTURE_2D,
+                                    0,
+                                    gl::RGBA as i32,
+                                    width as i32,
+                                    height as i32,
+                                    0,
+                                    format as u32,
+                                    gl::UNSIGNED_BYTE,
+                                    None);
             } else {
                 let width = width as i32;
                 let height = height as i32;
                 let format = format as u32;
                 let array: TypedArray<u8> = data.into();
-                gl_ctx.tex_image2_d(gl::TEXTURE_2D, 0, gl::RGBA as i32, width, height, 0, format, gl::UNSIGNED_BYTE, Some(&array.buffer()));
+                gl_ctx.tex_image2_d(gl::TEXTURE_2D,
+                                    0,
+                                    gl::RGBA as i32,
+                                    width,
+                                    height,
+                                    0,
+                                    format,
+                                    gl::UNSIGNED_BYTE,
+                                    Some(&array.buffer()));
             };
             gl_ctx.generate_mipmap(gl::TEXTURE_2D);
-            ImageData { id, data: texture, width, height }
+            ImageData { id,
+                        data: texture,
+                        width,
+                        height, }
         } else {
             unreachable!();
         }
     }
 
-    unsafe fn destroy_texture(data: &mut ImageData) where Self: Sized {
+    unsafe fn destroy_texture(data: &mut ImageData)
+        where Self: Sized {
         if let Some(ref gl_ctx) = GL_CONTEXT {
             gl_ctx.delete_texture(Some(&data.data));
         }
     }
 
-    unsafe fn create_surface(image: &Image) -> SurfaceData where Self: Sized {
+    unsafe fn create_surface(image: &Image) -> SurfaceData
+        where Self: Sized {
         if let Some(ref gl_ctx) = GL_CONTEXT {
-            let surface = SurfaceData {
-                framebuffer: gl_ctx.create_framebuffer().unwrap()
-            };
+            let surface = SurfaceData { framebuffer: gl_ctx.create_framebuffer().unwrap(), };
             gl_ctx.bind_framebuffer(gl::FRAMEBUFFER, Some(&surface.framebuffer));
-            gl_ctx.framebuffer_texture2_d(gl::FRAMEBUFFER, gl::COLOR_ATTACHMENT0, gl::TEXTURE_2D, Some(&image.data().data), 0);
+            gl_ctx.framebuffer_texture2_d(gl::FRAMEBUFFER,
+                                          gl::COLOR_ATTACHMENT0,
+                                          gl::TEXTURE_2D,
+                                          Some(&image.data().data),
+                                          0);
             gl_ctx.draw_buffers(&[gl::COLOR_ATTACHMENT0]);
             surface
         } else {
             unreachable!();
         }
     }
-    
-    unsafe fn bind_surface(surface: &Surface) -> [i32; 4] where Self: Sized {
+
+    unsafe fn bind_surface(surface: &Surface) -> [i32; 4]
+        where Self: Sized {
         if let Some(ref gl_ctx) = GL_CONTEXT {
             let viewport_data = gl_ctx.get_parameter(gl::VIEWPORT);
-            let viewport = [
-                js! { @{&viewport_data}[0] }.try_into().unwrap(),
-                js! { @{&viewport_data}[1] }.try_into().unwrap(),
-                js! { @{&viewport_data}[2] }.try_into().unwrap(),
-                js! { @{&viewport_data}[3] }.try_into().unwrap(),
-            ];
+            let viewport = [js! { @{&viewport_data}[0] }.try_into().unwrap(),
+                            js! { @{&viewport_data}[1] }.try_into().unwrap(),
+                            js! { @{&viewport_data}[2] }.try_into().unwrap(),
+                            js! { @{&viewport_data}[3] }.try_into().unwrap()];
             gl_ctx.bind_framebuffer(gl::FRAMEBUFFER, Some(&surface.data.framebuffer));
-            gl_ctx.viewport(0, 0, surface.image.source_width() as i32, surface.image.source_height() as i32);
+            gl_ctx.viewport(0,
+                            0,
+                            surface.image.source_width() as i32,
+                            surface.image.source_height() as i32);
             viewport
         } else {
             unreachable!();
         }
     }
 
-    unsafe fn unbind_surface(_surface: &Surface, viewport: &[i32]) where Self: Sized {
+    unsafe fn unbind_surface(_surface: &Surface, viewport: &[i32])
+        where Self: Sized {
         if let Some(ref gl_ctx) = GL_CONTEXT {
-            gl_ctx.bind_framebuffer(gl::FRAMEBUFFER, None); 
+            gl_ctx.bind_framebuffer(gl::FRAMEBUFFER, None);
             gl_ctx.viewport(viewport[0], viewport[1], viewport[2], viewport[3]);
         }
     }
 
-    unsafe fn destroy_surface(surface: &SurfaceData) where Self: Sized {
+    unsafe fn destroy_surface(surface: &SurfaceData)
+        where Self: Sized {
         if let Some(ref gl_ctx) = GL_CONTEXT {
             gl_ctx.delete_framebuffer(Some(&surface.framebuffer));
         }
     }
 
-    unsafe fn viewport(x: i32, y: i32, width: i32, height: i32) where Self: Sized {
+    unsafe fn viewport(x: i32, y: i32, width: i32, height: i32)
+        where Self: Sized {
         if let Some(ref gl_ctx) = GL_CONTEXT {
             gl_ctx.viewport(x, y, width, height);
         }
@@ -308,7 +372,7 @@ impl Backend for WebGLBackend {
 }
 
 impl Drop for WebGLBackend {
-    fn drop(&mut self) { 
+    fn drop(&mut self) {
         unsafe {
             if let Some(ref gl_ctx) = GL_CONTEXT {
                 gl_ctx.delete_program(Some(&self.shader));
@@ -320,4 +384,3 @@ impl Drop for WebGLBackend {
         }
     }
 }
-

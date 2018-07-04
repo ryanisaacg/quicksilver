@@ -1,11 +1,14 @@
-use {Async, Future, error::QuicksilverError, Result};
+use error::QuicksilverError;
+use Async;
+use Future;
+use Result;
 
 /// A structure to manage the loading and use of a future
 pub struct Asset<T>(AssetData<T>);
 
 enum AssetData<T> {
     Loading(Box<Future<Item = T, Error = QuicksilverError>>),
-    Loaded(T)
+    Loaded(T),
 }
 
 impl<T> Asset<T> {
@@ -19,18 +22,22 @@ impl<T> Asset<T> {
         self.execute_or(loaded, || Ok(()))
     }
 
-    /// Run a function if the loading is complete, or a different function if it isn't
-    pub fn execute_or(&mut self, loaded: impl FnOnce(&mut T) -> Result<()>, loading: impl FnOnce() -> Result<()>) -> Result<()> {
+    /// Run a function if the loading is complete, or a different function if
+    /// it isn't
+    pub fn execute_or(&mut self, loaded: impl FnOnce(&mut T) -> Result<()>,
+                      loading: impl FnOnce() -> Result<()>)
+                      -> Result<()>
+    {
         let result = match self.0 {
             AssetData::Loading(ref mut asset) => asset.poll()?,
-            _ => Async::NotReady
+            _ => Async::NotReady,
         };
         if let Async::Ready(asset) = result {
             self.0 = AssetData::Loaded(asset);
         }
         match self.0 {
             AssetData::Loading(_) => loading(),
-            AssetData::Loaded(ref mut data) => loaded(data)
+            AssetData::Loaded(ref mut data) => loaded(data),
         }
     }
 }

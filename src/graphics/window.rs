@@ -1,11 +1,30 @@
+use error::QuicksilverError;
+use geom::{Rectangle, Transform, Vector};
+use graphics::{
+    Backend,
+    BackendImpl,
+    BlendMode,
+    Color,
+    Drawable,
+    GpuTriangle,
+    ImageScaleStrategy,
+    ResizeStrategy,
+    Vertex,
+    View,
+};
+use input::{ButtonState, Event, Gamepad, GamepadProvider, Keyboard, Mouse};
 #[cfg(target_arch = "wasm32")]
-use stdweb::{unstable::TryInto, web::{document, window, IParentNode, html_element::CanvasElement}};
-use {Result, error::QuicksilverError, geom::{Rectangle, Transform, Vector},
-     graphics::{Backend, BackendImpl, BlendMode, Color, Drawable, GpuTriangle,
-                ImageScaleStrategy, ResizeStrategy, Vertex, View},
-     input::{ButtonState, Event, Gamepad, GamepadProvider, Keyboard, Mouse}};
+use stdweb::{
+    unstable::TryInto,
+    web::{document, html_element::CanvasElement, window, IParentNode},
+};
+use Result;
 #[cfg(not(target_arch = "wasm32"))]
-use {gl, glutin, glutin::{EventsLoop, GlContext}};
+use {
+    gl,
+    glutin,
+    glutin::{EventsLoop, GlContext},
+};
 
 ///A builder that constructs a Window
 #[derive(Debug)]
@@ -26,30 +45,27 @@ pub struct WindowBuilder {
 impl WindowBuilder {
     ///Create a default window builder
     pub fn new(title: &'static str, width: u32, height: u32) -> WindowBuilder {
-        WindowBuilder {
-            title,
-            width,
-            height,
-            show_cursor: true,
-            #[cfg(not(target_arch = "wasm32"))]
-            min_size: None,
-            #[cfg(not(target_arch = "wasm32"))]
-            max_size: None,
-            resize: ResizeStrategy::Fit,
-            scale: ImageScaleStrategy::Pixelate,
-            fullscreen: false,
-        }
+        WindowBuilder { title,
+                        width,
+                        height,
+                        show_cursor: true,
+                        #[cfg(not(target_arch = "wasm32"))]
+                        min_size: None,
+                        #[cfg(not(target_arch = "wasm32"))]
+                        max_size: None,
+                        resize: ResizeStrategy::Fit,
+                        scale: ImageScaleStrategy::Pixelate,
+                        fullscreen: false, }
     }
 
     ///Set if the window should show its cursor (defaults to true)
     pub fn with_show_cursor(self, show_cursor: bool) -> WindowBuilder {
-        WindowBuilder {
-            show_cursor,
-            ..self
-        }
+        WindowBuilder { show_cursor,
+                        ..self }
     }
 
-    ///Set how the window should handle resizing (defaults to `ResizeStrategy::Fit`)
+    ///Set how the window should handle resizing (defaults to
+    /// `ResizeStrategy::Fit`)
     pub fn with_resize_strategy(self, resize: ResizeStrategy) -> WindowBuilder {
         WindowBuilder { resize, ..self }
     }
@@ -58,22 +74,18 @@ impl WindowBuilder {
     ///
     ///On the web, this does nothing.
     pub fn with_minimum_size(self, _min_size: Vector) -> WindowBuilder {
-        WindowBuilder {
-            #[cfg(not(target_arch = "wasm32"))]
-            min_size: Some(_min_size),
-            ..self
-        }
+        WindowBuilder { #[cfg(not(target_arch = "wasm32"))]
+                        min_size: Some(_min_size),
+                        ..self }
     }
 
     ///Set the maximum size for the window (no value by default)
     ///
     ///On the web, this does nothing.
     pub fn with_maximum_size(self, _max_size: Vector) -> WindowBuilder {
-        WindowBuilder {
-            #[cfg(not(target_arch = "wasm32"))]
-            max_size: Some(_max_size),
-            ..self
-        }
+        WindowBuilder { #[cfg(not(target_arch = "wasm32"))]
+                        max_size: Some(_max_size),
+                        ..self }
     }
 
     ///Set the strategy for scaling images
@@ -83,7 +95,8 @@ impl WindowBuilder {
 
     ///Set if the window should be in fullscreen mode
     ///
-    ///On desktop it's borderless fullscreen, and on the web it makes the canvas the size of the browser window
+    ///On desktop it's borderless fullscreen, and on the web it makes the
+    /// canvas the size of the browser window
     pub fn with_fullscreen(self, fullscreen: bool) -> WindowBuilder {
         WindowBuilder { fullscreen, ..self }
     }
@@ -93,9 +106,8 @@ impl WindowBuilder {
         let mut actual_width = self.width;
         let mut actual_height = self.height;
         let events = glutin::EventsLoop::new();
-        let window = glutin::WindowBuilder::new()
-            .with_decorations(!self.fullscreen)
-            .with_title(self.title);
+        let window = glutin::WindowBuilder::new().with_decorations(!self.fullscreen)
+                                                 .with_title(self.title);
         let window = match self.min_size {
             Some(v) => window.with_min_dimensions(v.x as u32, v.y as u32),
             None => window,
@@ -117,40 +129,32 @@ impl WindowBuilder {
             gl::load_with(|symbol| gl_window.get_proc_address(symbol) as *const _);
         }
         let result = gl_window.set_cursor_state(if self.show_cursor {
-            glutin::CursorState::Normal
-        } else {
-            glutin::CursorState::Hide
-        });
+                                                    glutin::CursorState::Normal
+                                                } else {
+                                                    glutin::CursorState::Hide
+                                                });
         if let Err(error) = result {
             return Err(QuicksilverError::ContextError(error));
         }
         let scale_factor = gl_window.hidpi_factor(); // Need to be calculated before moving gl_window
-        let screen_region = self.resize.resize(
-            Vector::new(self.width, self.height),
-            Vector::new(actual_width, actual_height),
-        );
+        let screen_region = self.resize.resize(Vector::new(self.width, self.height),
+                                               Vector::new(actual_width, actual_height));
         let view = View::new(Rectangle::newv_sized(screen_region.size()));
-        let window = Window {
-            gl_window,
-            gamepads: Vec::new(),
-            gamepad_buffer: Vec::new(),
-            provider: GamepadProvider::new(),
-            resize: self.resize,
-            screen_region,
-            scale_factor,
-            keyboard: Keyboard {
-                keys: [ButtonState::NotPressed; 256],
-            },
-            mouse: Mouse {
-                pos: Vector::zero(),
-                buttons: [ButtonState::NotPressed; 3],
-                wheel: Vector::zero(),
-            },
-            view,
-            backend: unsafe { BackendImpl::new(self.scale) },
-            vertices: Vec::new(),
-            triangles: Vec::new(),
-        };
+        let window = Window { gl_window,
+                              gamepads: Vec::new(),
+                              gamepad_buffer: Vec::new(),
+                              provider: GamepadProvider::new(),
+                              resize: self.resize,
+                              screen_region,
+                              scale_factor,
+                              keyboard: Keyboard { keys: [ButtonState::NotPressed; 256], },
+                              mouse: Mouse { pos: Vector::zero(),
+                                             buttons: [ButtonState::NotPressed; 3],
+                                             wheel: Vector::zero(), },
+                              view,
+                              backend: unsafe { BackendImpl::new(self.scale) },
+                              vertices: Vec::new(),
+                              triangles: Vec::new(), };
         Ok((window, events))
     }
 
@@ -184,31 +188,23 @@ impl WindowBuilder {
         canvas.set_width(actual_width);
         canvas.set_height(actual_height);
         js! ( @{canvas}.style.cursor = @{self.show_cursor} ? "auto" : "none"; );
-        let screen_region = self.resize.resize(
-            Vector::new(self.width, self.height),
-            Vector::new(actual_width, actual_height),
-        );
+        let screen_region = self.resize.resize(Vector::new(self.width, self.height),
+                                               Vector::new(actual_width, actual_height));
         let view = View::new(Rectangle::newv_sized(screen_region.size()));
-        let window = Window {
-            gamepads: Vec::new(),
-            gamepad_buffer: Vec::new(),
-            provider: GamepadProvider::new(),
-            resize: self.resize,
-            screen_region,
-            scale_factor: 1.0,
-            keyboard: Keyboard {
-                keys: [ButtonState::NotPressed; 256],
-            },
-            mouse: Mouse {
-                pos: Vector::zero(),
-                buttons: [ButtonState::NotPressed; 3],
-                wheel: Vector::zero(),
-            },
-            view,
-            backend: unsafe { BackendImpl::new(self.scale) },
-            vertices: Vec::new(),
-            triangles: Vec::new(),
-        };
+        let window = Window { gamepads: Vec::new(),
+                              gamepad_buffer: Vec::new(),
+                              provider: GamepadProvider::new(),
+                              resize: self.resize,
+                              screen_region,
+                              scale_factor: 1.0,
+                              keyboard: Keyboard { keys: [ButtonState::NotPressed; 256], },
+                              mouse: Mouse { pos: Vector::zero(),
+                                             buttons: [ButtonState::NotPressed; 3],
+                                             wheel: Vector::zero(), },
+                              view,
+                              backend: unsafe { BackendImpl::new(self.scale) },
+                              vertices: Vec::new(),
+                              triangles: Vec::new(), };
         Ok(window)
     }
 }
@@ -236,16 +232,12 @@ impl Window {
         match event {
             &Event::Key(key, state) => self.keyboard.process_event(key as usize, state),
             &Event::MouseMoved(pos) => {
-                self.mouse = Mouse {
-                    pos: self.unproject() * pos,
-                    ..self.mouse
-                }
+                self.mouse = Mouse { pos: self.unproject() * pos,
+                                     ..self.mouse }
             }
             &Event::MouseWheel(wheel) => {
-                self.mouse = Mouse {
-                    wheel,
-                    ..self.mouse
-                }
+                self.mouse = Mouse { wheel,
+                                     ..self.mouse }
             }
             &Event::MouseButton(button, state) => self.mouse.process_button(button, state),
             _ => (),
@@ -272,7 +264,8 @@ impl Window {
         self.gamepads.append(&mut self.gamepad_buffer);
     }
 
-    ///Transition temporary input states (Pressed, Released) into sustained ones (Held, NotPressed)
+    ///Transition temporary input states (Pressed, Released) into sustained
+    /// ones (Held, NotPressed)
     pub fn clear_temporary_states(&mut self) {
         self.keyboard.clear_temporary_states();
         self.mouse.clear_temporary_states();
@@ -285,36 +278,27 @@ impl Window {
     pub(crate) fn adjust_size(&mut self, available: Vector) {
         self.screen_region = self.resize.resize(self.screen_region.size(), available);
         unsafe {
-            BackendImpl::viewport(
-                self.screen_region.x as i32,
-                self.screen_region.y as i32,
-                self.screen_region.width as i32,
-                self.screen_region.height as i32,
-            );
+            BackendImpl::viewport(self.screen_region.x as i32,
+                                  self.screen_region.y as i32,
+                                  self.screen_region.width as i32,
+                                  self.screen_region.height as i32);
         }
         #[cfg(not(target_arch = "wasm32"))]
-        self.gl_window.resize(
-            self.screen_region.width as u32,
-            self.screen_region.height as u32,
-        );
+        self.gl_window.resize(self.screen_region.width as u32,
+                              self.screen_region.height as u32);
     }
 
     ///Get the view from the window
-    pub fn view(&self) -> View {
-        self.view
-    }
+    pub fn view(&self) -> View { self.view }
 
     ///Set the view the window uses
-    pub fn set_view(&mut self, view: View) {
-        self.view = view;
-    }
+    pub fn set_view(&mut self, view: View) { self.view = view; }
 
     ///Get the resize strategy used by the window
-    pub fn resize_strategy(&self) -> ResizeStrategy {
-        self.resize
-    }
+    pub fn resize_strategy(&self) -> ResizeStrategy { self.resize }
 
-    ///Switch the strategy the window uses to display content when the available area changes
+    ///Switch the strategy the window uses to display content when the
+    /// available area changes
     pub fn set_resize_strategy(&mut self, resize: ResizeStrategy) {
         //Find the previous window size and reconfigure to match the new strategy
         let available = self.resize.get_window_size(self.screen_region);
@@ -324,14 +308,10 @@ impl Window {
 
     // Get the screen offset
     #[cfg(not(target_arch = "wasm32"))]
-    pub(crate) fn screen_offset(&self) -> Vector {
-        self.screen_region.top_left()
-    }
+    pub(crate) fn screen_offset(&self) -> Vector { self.screen_region.top_left() }
 
     ///Get the screen size
-    pub fn screen_size(&self) -> Vector {
-        self.screen_region.size()
-    }
+    pub fn screen_size(&self) -> Vector { self.screen_region.size() }
 
     ///Get the unprojection matrix according to the View
     pub fn unproject(&self) -> Transform {
@@ -339,37 +319,25 @@ impl Window {
     }
 
     ///Get the projection matrix according to the View
-    pub fn project(&self) -> Transform {
-        self.unproject().inverse()
-    }
+    pub fn project(&self) -> Transform { self.unproject().inverse() }
 
     ///Get a reference to the keyboard
-    pub fn keyboard(&self) -> &Keyboard {
-        &self.keyboard
-    }
+    pub fn keyboard(&self) -> &Keyboard { &self.keyboard }
 
     ///Get an instance of a mouse, projected into the current View
     pub fn mouse(&self) -> Mouse {
-        Mouse {
-            pos: self.project() * self.mouse.pos,
-            ..self.mouse.clone()
-        }
+        Mouse { pos: self.project() * self.mouse.pos,
+                ..self.mouse.clone() }
     }
 
     ///Set the title of the Window
-    pub fn set_title(&self, title: &str) {
-        self.set_title_impl(title);
-    }
+    pub fn set_title(&self, title: &str) { self.set_title_impl(title); }
 
     #[cfg(not(target_arch = "wasm32"))]
-    fn set_title_impl(&self, title: &str) {
-        self.gl_window.set_title(title);
-    }
+    fn set_title_impl(&self, title: &str) { self.gl_window.set_title(title); }
 
     #[cfg(target_arch = "wasm32")]
-    fn set_title_impl(&self, title: &str) {
-        document().set_title(title);
-    }
+    fn set_title_impl(&self, title: &str) { document().set_title(title); }
 
     /// Clear the screen to a given color
     ///
@@ -415,8 +383,7 @@ impl Window {
     pub fn flush(&mut self) {
         self.triangles.sort();
         unsafe {
-            self.backend
-                .draw(self.vertices.as_slice(), self.triangles.as_slice());
+            self.backend.draw(self.vertices.as_slice(), self.triangles.as_slice());
         }
         self.vertices.clear();
         self.triangles.clear();
@@ -446,9 +413,7 @@ impl Window {
     /// Draw a single object to the screen
     ///
     /// It will not appear until Window::flush is called
-    pub fn draw<T: Drawable>(&mut self, item: &T) {
-        item.draw(self);
-    }
+    pub fn draw<T: Drawable>(&mut self, item: &T) { item.draw(self); }
 
     /// Add vertices directly to the list without using a Drawable
     ///
@@ -457,28 +422,19 @@ impl Window {
     /// the index must be at least 0 and at most the number of vertices.
     /// Other index values will have undefined behavior
     pub fn add_vertices<V, T>(&mut self, vertices: V, triangles: T)
-    where
-        V: Iterator<Item = Vertex>,
-        T: Iterator<Item = GpuTriangle>,
+        where V: Iterator<Item = Vertex>,
+              T: Iterator<Item = GpuTriangle>
     {
         let offset = self.vertices.len() as u32;
-        self.triangles.extend(triangles.map(|t| GpuTriangle {
-            indices: [
-                t.indices[0] + offset,
-                t.indices[1] + offset,
-                t.indices[2] + offset,
-            ],
-            ..t
-        }));
+        self.triangles.extend(triangles.map(|t| GpuTriangle { indices: [t.indices[0] + offset,
+                                                              t.indices[1] + offset,
+                                                              t.indices[2] + offset],
+                                                    ..t }));
         let opengl = self.view.opengl;
-        self.vertices.extend(vertices.map(|v| Vertex {
-            pos: opengl * v.pos,
-            ..v
-        }));
+        self.vertices.extend(vertices.map(|v| Vertex { pos: opengl * v.pos,
+                                              ..v }));
     }
 
     /// Get a reference to the connected gamepads
-    pub fn gamepads(&self) -> &Vec<Gamepad> {
-        &self.gamepads
-    }
+    pub fn gamepads(&self) -> &Vec<Gamepad> { &self.gamepads }
 }

@@ -1,17 +1,15 @@
-#[cfg(feature="nalgebra")] use nalgebra::{
-    core::Vector2,
-    geometry::Point2
-};
+#[cfg(feature = "nalgebra")]
+use nalgebra::{core::Vector2, geometry::Point2};
 
 use geom::{about_equal, Positioned, Rectangle, Scalar};
 use rand::{
+    distributions::{Distribution, Standard},
     Rng,
-    distributions::{Distribution, Standard}
 };
 use std::{
-    ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign},
     cmp::{Eq, PartialEq},
-    fmt
+    fmt,
+    ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign},
 };
 
 #[derive(Copy, Clone, Default, Debug, Deserialize, Serialize)]
@@ -25,145 +23,101 @@ pub struct Vector {
 
 impl Vector {
     ///The zero vector
-    pub fn zero() -> Vector {
-        Vector { x: 0f32, y: 0f32 }
-    }
+    pub fn zero() -> Vector { Vector { x: 0f32, y: 0f32 } }
 
     ///A vector with x = 1f32, y = 0f32
-    pub fn x() -> Vector {
-        Vector { x: 1f32, y: 0f32 }
-    }
+    pub fn x() -> Vector { Vector { x: 1f32, y: 0f32 } }
 
     ///A vector with x = 0f32, y = 1f32
-    pub fn y() -> Vector {
-        Vector { x: 0f32, y: 1f32 }
-    }
+    pub fn y() -> Vector { Vector { x: 0f32, y: 1f32 } }
 
     ///A vector with x = 1f32, y = 1f32
-    pub fn one() -> Vector {
-        Vector { x: 1f32, y: 1f32 }
-    }
+    pub fn one() -> Vector { Vector { x: 1f32, y: 1f32 } }
 
     ///Create a new vector
     pub fn new<T: Scalar>(x: T, y: T) -> Vector {
-        Vector { x: x.float(), y: y.float() }
+        Vector { x: x.float(),
+                 y: y.float(), }
     }
 
     ///Convert this vector into an nalgebra Vector2
-    #[cfg(feature="nalgebra")]
-    pub fn into_vector(self) -> Vector2<f32> {
-        Vector2::new(self.x, self.y)
-    }
-   
+    #[cfg(feature = "nalgebra")]
+    pub fn into_vector(self) -> Vector2<f32> { Vector2::new(self.x, self.y) }
+
     ///Convert this vector into an nalgebra Point2
-    #[cfg(feature="nalgebra")]
-    pub fn into_point(self) -> Point2<f32> {
-        Point2::new(self.x, self.y)
-    }
+    #[cfg(feature = "nalgebra")]
+    pub fn into_point(self) -> Point2<f32> { Point2::new(self.x, self.y) }
 
     ///Create a unit vector at a given angle
     pub fn from_angle<T: Scalar>(angle: T) -> Vector {
-        Vector::new(angle.float().to_radians().cos(), angle.float().to_radians().sin())
+        Vector::new(angle.float().to_radians().cos(),
+                    angle.float().to_radians().sin())
     }
 
     ///Get the squared length of the vector (faster than getting the length)
-    pub fn len2(self) -> f32 {
-        self.x * self.x + self.y * self.y
-    }
+    pub fn len2(self) -> f32 { self.x * self.x + self.y * self.y }
 
     ///Get the length of the vector
-    pub fn len(self) -> f32 {
-        self.len2().sqrt()
-    }
+    pub fn len(self) -> f32 { self.len2().sqrt() }
 
     ///Clamp a vector somewhere between a minimum and a maximum
     pub fn clamp(self, min_bound: Vector, max_bound: Vector) -> Vector {
-        Vector::new(
-            max_bound.x.min(min_bound.x.max(self.x)),
-            max_bound.y.min(min_bound.y.max(self.y)),
-        )
+        Vector::new(max_bound.x.min(min_bound.x.max(self.x)),
+                    max_bound.y.min(min_bound.y.max(self.y)))
     }
 
     ///Get the cross product of a vector
-    pub fn cross(self, other: Vector) -> f32 {
-        self.x * other.y - self.y * other.x
-    }
+    pub fn cross(self, other: Vector) -> f32 { self.x * other.y - self.y * other.x }
 
     ///Get the dot product of a vector
-    pub fn dot(self, other: Vector) -> f32 {
-        self.x * other.x + self.y * other.y
-    }
+    pub fn dot(self, other: Vector) -> f32 { self.x * other.x + self.y * other.y }
 
     ///Normalize the vector's length from [0, 1]
-    pub fn normalize(self) -> Vector {
-        self / self.len()
-    }
+    pub fn normalize(self) -> Vector { self / self.len() }
 
     ///Get only the X component of the Vector, represented as a vector
-    pub fn x_comp(self) -> Vector {
-        Vector::new(self.x, 0f32)
-    }
+    pub fn x_comp(self) -> Vector { Vector::new(self.x, 0f32) }
 
     ///Get only the Y component of the Vector, represented as a vector
-    pub fn y_comp(self) -> Vector {
-        Vector::new(0f32, self.y)
-    }
+    pub fn y_comp(self) -> Vector { Vector::new(0f32, self.y) }
 
     ///Get the vector equal to Vector(1 / x, 1 / y)
-    pub fn recip(self) -> Vector {
-        Vector::new(self.x.recip(), self.y.recip())
-    }
+    pub fn recip(self) -> Vector { Vector::new(self.x.recip(), self.y.recip()) }
 
     ///Multiply the components in the matching places
-    pub fn times(self, other: Vector) -> Vector {
-        Vector::new(self.x * other.x, self.y * other.y)
-    }
+    pub fn times(self, other: Vector) -> Vector { Vector::new(self.x * other.x, self.y * other.y) }
 
     ///Get the angle a vector forms with the positive x-axis, counter clockwise
-    pub fn angle(self) -> f32 {
-        self.y.atan2(self.x).to_degrees()
-    }
+    pub fn angle(self) -> f32 { self.y.atan2(self.x).to_degrees() }
 
     ///Create a vector with the same angle and the given length
-    pub fn with_len(self, length: f32) -> Vector {
-        self.normalize() * length
-    }
+    pub fn with_len(self, length: f32) -> Vector { self.normalize() * length }
 }
 
 impl Neg for Vector {
     type Output = Vector;
 
-    fn neg(self) -> Vector {
-        Vector::new(-self.x, -self.y)
-    }
+    fn neg(self) -> Vector { Vector::new(-self.x, -self.y) }
 }
 
 impl Add for Vector {
     type Output = Vector;
 
-    fn add(self, rhs: Vector) -> Vector {
-        Vector::new(self.x + rhs.x, self.y + rhs.y)
-    }
+    fn add(self, rhs: Vector) -> Vector { Vector::new(self.x + rhs.x, self.y + rhs.y) }
 }
 
 impl AddAssign for Vector {
-    fn add_assign(&mut self, rhs: Vector) -> () {
-        *self = *self + rhs;
-    }
+    fn add_assign(&mut self, rhs: Vector) -> () { *self = *self + rhs; }
 }
 
 impl Sub for Vector {
     type Output = Vector;
 
-    fn sub(self, rhs: Vector) -> Vector {
-        self + (-rhs)
-    }
+    fn sub(self, rhs: Vector) -> Vector { self + (-rhs) }
 }
 
 impl SubAssign for Vector {
-    fn sub_assign(&mut self, rhs: Vector) -> () {
-        *self = *self - rhs;
-    }
+    fn sub_assign(&mut self, rhs: Vector) -> () { *self = *self - rhs; }
 }
 
 impl<T: Scalar> Div<T> for Vector {
@@ -198,7 +152,6 @@ impl<T: Scalar> MulAssign<T> for Vector {
     }
 }
 
-
 impl PartialEq for Vector {
     fn eq(&self, other: &Vector) -> bool {
         about_equal(self.x, other.x) && about_equal(self.y, other.y)
@@ -208,44 +161,31 @@ impl PartialEq for Vector {
 impl Eq for Vector {}
 
 impl fmt::Display for Vector {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "<{}, {}>", self.x, self.y)
-    }
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result { write!(f, "<{}, {}>", self.x, self.y) }
 }
 
 impl Distribution<Vector> for Standard {
     fn sample<R: Rng + ?Sized>(&self, rand: &mut R) -> Vector {
-        Vector {
-            x: self.sample(rand),
-            y: self.sample(rand)
-        }
+        Vector { x: self.sample(rand),
+                 y: self.sample(rand), }
     }
 }
 
 impl Positioned for Vector {
-    fn center(&self) -> Vector {
-        *self
-    }
-    
-    fn bounding_box(&self) -> Rectangle {
-        Rectangle::newv(*self, Vector::zero())
-    }
+    fn center(&self) -> Vector { *self }
+
+    fn bounding_box(&self) -> Rectangle { Rectangle::newv(*self, Vector::zero()) }
 }
 
-#[cfg(feature="nalgebra")]
+#[cfg(feature = "nalgebra")]
 impl From<Vector2<f32>> for Vector {
-    fn from(other: Vector2<f32>) -> Vector {
-        Vector::new(other.x, other.y)
-    }
+    fn from(other: Vector2<f32>) -> Vector { Vector::new(other.x, other.y) }
 }
 
-#[cfg(feature="nalgebra")]
+#[cfg(feature = "nalgebra")]
 impl From<Point2<f32>> for Vector {
-    fn from(other: Point2<f32>) -> Vector {
-        Vector::new(other.x, other.y)
-    }
+    fn from(other: Point2<f32>) -> Vector { Vector::new(other.x, other.y) }
 }
-
 
 #[cfg(test)]
 mod tests {

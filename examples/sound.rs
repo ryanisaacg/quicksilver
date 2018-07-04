@@ -2,20 +2,25 @@
 extern crate futures;
 extern crate quicksilver;
 
-use quicksilver::{run, Asset, Result, State, geom::Rectangle,
-                  graphics::{Color, Sprite, Window, WindowBuilder},
-                  input::{ButtonState, MouseButton}, sound::Sound};
+use quicksilver::{
+    geom::Rectangle,
+    graphics::{Color, Sprite, Window, WindowBuilder},
+    input::{ButtonState, MouseButton},
+    run,
+    sound::Sound,
+    Asset,
+    Result,
+    State,
+};
 
 struct SoundPlayer {
     asset: Asset<Sound>,
 }
 
-const BUTTON_AREA: Rectangle = Rectangle {
-    x: 350.0,
-    y: 250.0,
-    width: 100.0,
-    height: 100.0,
-};
+const BUTTON_AREA: Rectangle = Rectangle { x: 350.0,
+                                           y: 250.0,
+                                           width: 100.0,
+                                           height: 100.0, };
 
 impl State for SoundPlayer {
     fn new() -> Result<SoundPlayer> {
@@ -25,13 +30,13 @@ impl State for SoundPlayer {
 
     fn update(&mut self, window: &mut Window) -> Result<()> {
         self.asset.execute(|sound| {
-            if window.mouse()[MouseButton::Left] == ButtonState::Pressed
-                && BUTTON_AREA.contains(window.mouse().pos())
-            {
-                sound.play();
-            }
-            Ok(())
-        })
+                               if window.mouse()[MouseButton::Left] == ButtonState::Pressed
+                                  && BUTTON_AREA.contains(window.mouse().pos())
+                               {
+                                   sound.play();
+                               }
+                               Ok(())
+                           })
     }
 
     fn draw(&mut self, window: &mut Window) -> Result<()> {
@@ -45,6 +50,4 @@ impl State for SoundPlayer {
     }
 }
 
-fn main() {
-    run::<SoundPlayer>(WindowBuilder::new("Sound Example", 800, 600)).unwrap();
-}
+fn main() { run::<SoundPlayer>(WindowBuilder::new("Sound Example", 800, 600)).unwrap(); }

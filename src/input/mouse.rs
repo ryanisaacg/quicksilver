@@ -1,4 +1,4 @@
-#[cfg(not(target_arch="wasm32"))]
+#[cfg(not(target_arch = "wasm32"))]
 extern crate glutin;
 
 use geom::Vector;
@@ -9,21 +9,22 @@ use std::ops::Index;
 /// The different buttons a user can press on a mouse
 pub enum MouseButton {
     /// The left mouse button
-    Left = 0, 
+    Left = 0,
     /// The right mouse button
-    Right = 1, 
+    Right = 1,
     /// The middle mouse button
-    Middle = 2
+    Middle = 2,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 /// A simple mouse cursor abstraction
 ///
-/// Mice are owned and maintained a `Window` and can be accessed via the `mouse` function.
+/// Mice are owned and maintained a `Window` and can be accessed via the
+/// `mouse` function.
 pub struct Mouse {
     pub(crate) pos: Vector,
     pub(crate) buttons: [ButtonState; 3],
-    pub(crate) wheel: Vector
+    pub(crate) wheel: Vector,
 }
 
 impl Mouse {
@@ -39,20 +40,14 @@ impl Mouse {
     }
 
     ///The location of the cursor in the viewport space
-    pub fn pos(&self) -> Vector {
-        self.pos
-    }
+    pub fn pos(&self) -> Vector { self.pos }
 
     ///The amount the wheel moved this frame
-    pub fn wheel(&self) -> Vector {
-        self.wheel
-    }
+    pub fn wheel(&self) -> Vector { self.wheel }
 }
 
 impl Index<MouseButton> for Mouse {
     type Output = ButtonState;
 
-    fn index(&self, index: MouseButton) -> &ButtonState {
-        &self.buttons[index as usize]
-    }
+    fn index(&self, index: MouseButton) -> &ButtonState { &self.buttons[index as usize] }
 }
