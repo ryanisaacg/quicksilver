@@ -12,7 +12,7 @@ impl State for DrawGeometry {
     }
 
     fn draw(&mut self, window: &mut Window) -> Result<()> {
-        window.clear(Color::black());
+        window.clear(Color::black())?;
         window.draw(&Sprite::rectangle(Rectangle::new(100, 100, 32, 32)).with_color(Color::red()));
         window.draw(&Sprite::rectangle(Rectangle::new(400, 300, 32, 32))
             .with_color(Color::blue())
