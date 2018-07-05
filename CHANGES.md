@@ -14,6 +14,7 @@
 - Dependencies
     - Versions
         - alga: ``0.5 -> 0.6``
+        - glutin: ``0.16 -> 0.17``
         - nalgebra: ``0.14 -> 0.15.1``
         - ncollide2d ``0.15 -> 0.16.0``
     - Highlights

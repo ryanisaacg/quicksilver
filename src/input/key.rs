@@ -7,9 +7,9 @@ pub enum Key {
     Down, Back, Return, Space, Compose, Caret, Numlock, Numpad0, Numpad1, Numpad2, Numpad3, Numpad4, Numpad5, 
     Numpad6, Numpad7, Numpad8, Numpad9, AbntC1, AbntC2, Add, Apostrophe, Apps, At, Ax, Backslash, Calculator, 
     Capital, Colon, Comma, Convert, Decimal, Divide, Equals, Grave, Kana, Kanji, LAlt, LBracket, LControl, 
-    LMenu, LShift, LWin, Mail, MediaSelect, MediaStop, Minus, Multiply, Mute, MyComputer, NavigateForward, 
+    LShift, LWin, Mail, MediaSelect, MediaStop, Minus, Multiply, Mute, MyComputer, NavigateForward, 
     NavigateBackward, NextTrack, NoConvert, NumpadComma, NumpadEnter, NumpadEquals, OEM102, Period, PlayPause, 
-    Power, PrevTrack, RAlt, RBracket, RControl, RMenu, RShift, RWin, Semicolon, Slash, Sleep, Stop, Subtract, 
+    Power, PrevTrack, RAlt, RBracket, RControl, RShift, RWin, Semicolon, Slash, Sleep, Stop, Subtract, 
     Sysrq, Tab, Underline, Unlabeled, VolumeDown, VolumeUp, Wake, WebBack, WebFavorites, WebForward, WebHome, 
     WebRefresh, WebSearch, WebStop, Yen,
 }
@@ -21,9 +21,9 @@ pub(crate) const KEY_LIST: &[Key] = &[Key::Key1, Key::Key2, Key::Key3, Key::Key4
     Key::Down, Key::Back, Key::Return, Key::Space, Key::Compose, Key::Caret, Key::Numlock, Key::Numpad0, Key::Numpad1, Key::Numpad2, Key::Numpad3, Key::Numpad4, Key::Numpad5, 
     Key::Numpad6, Key::Numpad7, Key::Numpad8, Key::Numpad9, Key::AbntC1, Key::AbntC2, Key::Add, Key::Apostrophe, Key::Apps, Key::At, Key::Ax, Key::Backslash, Key::Calculator, 
     Key::Capital, Key::Colon, Key::Comma, Key::Convert, Key::Decimal, Key::Divide, Key::Equals, Key::Grave, Key::Kana, Key::Kanji, Key::LAlt, Key::LBracket, Key::LControl, 
-    Key::LMenu, Key::LShift, Key::LWin, Key::Mail, Key::MediaSelect, Key::MediaStop, Key::Minus, Key::Multiply, Key::Mute, Key::MyComputer, Key::NavigateForward, 
+    Key::LShift, Key::LWin, Key::Mail, Key::MediaSelect, Key::MediaStop, Key::Minus, Key::Multiply, Key::Mute, Key::MyComputer, Key::NavigateForward, 
     Key::NavigateBackward, Key::NextTrack, Key::NoConvert, Key::NumpadComma, Key::NumpadEnter, Key::NumpadEquals, Key::OEM102, Key::Period, Key::PlayPause, 
-    Key::Power, Key::PrevTrack, Key::RAlt, Key::RBracket, Key::RControl, Key::RMenu, Key::RShift, Key::RWin, Key::Semicolon, Key::Slash, Key::Sleep, Key::Stop, Key::Subtract, 
+    Key::Power, Key::PrevTrack, Key::RAlt, Key::RBracket, Key::RControl, Key::RShift, Key::RWin, Key::Semicolon, Key::Slash, Key::Sleep, Key::Stop, Key::Subtract, 
     Key::Sysrq, Key::Tab, Key::Underline, Key::Unlabeled, Key::VolumeDown, Key::VolumeUp, Key::Wake, Key::WebBack, Key::WebFavorites, Key::WebForward, Key::WebHome, 
     Key::WebRefresh, Key::WebSearch, Key::WebStop, Key::Yen];
 
@@ -144,7 +144,6 @@ mod tests {
         assert_eq!(Key::LAlt as u32, glutin::VirtualKeyCode::LAlt as u32);
         assert_eq!(Key::LBracket as u32, glutin::VirtualKeyCode::LBracket as u32);
         assert_eq!(Key::LControl as u32, glutin::VirtualKeyCode::LControl as u32);
-        assert_eq!(Key::LMenu as u32, glutin::VirtualKeyCode::LMenu as u32);
         assert_eq!(Key::LShift as u32, glutin::VirtualKeyCode::LShift as u32);
         assert_eq!(Key::LWin as u32, glutin::VirtualKeyCode::LWin as u32);
         assert_eq!(Key::Mail as u32, glutin::VirtualKeyCode::Mail as u32);
@@ -169,7 +168,6 @@ mod tests {
         assert_eq!(Key::RAlt as u32, glutin::VirtualKeyCode::RAlt as u32);
         assert_eq!(Key::RBracket as u32, glutin::VirtualKeyCode::RBracket as u32);
         assert_eq!(Key::RControl as u32, glutin::VirtualKeyCode::RControl as u32);
-        assert_eq!(Key::RMenu as u32, glutin::VirtualKeyCode::RMenu as u32);
         assert_eq!(Key::RShift as u32, glutin::VirtualKeyCode::RShift as u32);
         assert_eq!(Key::RWin as u32, glutin::VirtualKeyCode::RWin as u32);
         assert_eq!(Key::Semicolon as u32, glutin::VirtualKeyCode::Semicolon as u32);

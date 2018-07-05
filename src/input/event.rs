@@ -76,9 +76,8 @@ impl EventProvider {
                     }
                 }
                 glutin::WindowEvent::CursorMoved { position, .. } => {
-                    let (x, y) = position;
-                    let position = (Vector::new(x as f32, y as f32) - window.screen_offset()) / window.scale_factor;
-                    let position = window.project() * position;
+                    let position: Vector = position.into();
+                    let position = window.project() * (position - window.screen_offset());
                     events.push(Event::MouseMoved(position));
                 }
                 glutin::WindowEvent::MouseInput { state, button, .. } => {
@@ -96,17 +95,17 @@ impl EventProvider {
                     events.push(Event::MouseButton(index, value));
                 }
                 glutin::WindowEvent::MouseWheel { delta, .. } => {
-                    let (x, y) = match delta {
-                        glutin::MouseScrollDelta::LineDelta(x, y) => (x * LINES_TO_PIXELS, y * -LINES_TO_PIXELS),
-                        glutin::MouseScrollDelta::PixelDelta(x, y) => (x, y)
+                    let vector = match delta {
+                        glutin::MouseScrollDelta::LineDelta(x, y) => Vector::new(x, -y) * LINES_TO_PIXELS,
+                        glutin::MouseScrollDelta::PixelDelta(delta) => delta.into()
                     };
-                    let vector = Vector::new(x, y);
                     events.push(Event::MouseMoved(vector));
                 }
-                glutin::WindowEvent::Resized(new_width, new_height) => {
+                glutin::WindowEvent::Resized(size) => {
+                    let size: Vector = size.into();
                     // Glutin reports a resize to 0, 0 when minimizing the window
-                    if new_width != 0 && new_height != 0 {
-                        window.adjust_size(Vector::new(new_width as f32, new_height as f32));
+                    if size.x != 0.0 && size.y != 0.0 {
+                        window.adjust_size(size);
                     }
                 },
                 _ => ()

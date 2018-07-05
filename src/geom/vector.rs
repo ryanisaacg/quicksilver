@@ -13,6 +13,8 @@ use std::{
     cmp::{Eq, PartialEq},
     fmt
 };
+#[cfg(not(target_arch = "wasm32"))]
+use glutin::dpi::{LogicalPosition, PhysicalPosition, LogicalSize, PhysicalSize};
 
 #[derive(Copy, Clone, Default, Debug, Deserialize, Serialize)]
 ///A 2D vector with an arbitrary numeric type
@@ -243,6 +245,62 @@ impl From<Vector2<f32>> for Vector {
 impl From<Point2<f32>> for Vector {
     fn from(other: Point2<f32>) -> Vector {
         Vector::new(other.x, other.y)
+    }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+impl From<Vector> for LogicalPosition {
+    fn from(other: Vector) -> LogicalPosition {
+        LogicalPosition::new(other.x as f64, other.y as f64)
+    }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+impl From<Vector> for PhysicalPosition {
+    fn from(other: Vector) -> PhysicalPosition {
+        PhysicalPosition::new(other.x as f64, other.y as f64)
+    }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+impl From<LogicalPosition> for Vector {
+    fn from(other: LogicalPosition) -> Vector {
+        Vector::new(other.x as f32, other.y as f32)
+    }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+impl From<PhysicalPosition> for Vector {
+    fn from(other: PhysicalPosition) -> Vector {
+        Vector::new(other.x as f32, other.y as f32)
+    }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+impl From<Vector> for LogicalSize {
+    fn from(other: Vector) -> LogicalSize {
+        LogicalSize::new(other.x as f64, other.y as f64)
+    }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+impl From<Vector> for PhysicalSize {
+    fn from(other: Vector) -> PhysicalSize {
+        PhysicalSize::new(other.x as f64, other.y as f64)
+    }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+impl From<LogicalSize> for Vector {
+    fn from(other: LogicalSize) -> Vector {
+        Vector::new(other.width as f32, other.height as f32)
+    }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+impl From<PhysicalSize> for Vector {
+    fn from(other: PhysicalSize) -> Vector {
+        Vector::new(other.width as f32, other.height as f32)
     }
 }
 
