@@ -13,16 +13,18 @@ mod surface;
 mod vertex;
 mod view;
 mod window;
+mod sprite;
 
 pub use self::{
     animation::Animation,
     atlas::{Atlas, AtlasError, AtlasItem, AtlasLoader},
     backend::{BlendMode, ImageScaleStrategy},
     color::Color,
-    drawable::{Sprite, Drawable},
+    drawable::Drawable,
     image::{Image, ImageError, ImageLoader, PixelFormat},
     resize::ResizeStrategy,
     surface::Surface,
+    sprite::Sprite,
     vertex::{Vertex, GpuTriangle},
     view::View,
     window::{Window, WindowBuilder}

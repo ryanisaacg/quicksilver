@@ -2,7 +2,7 @@
 use {error::QuicksilverError, stdweb::{unstable::TryInto, web::{document, window, IParentNode, html_element::CanvasElement}}};
 use {Result, geom::{Rectangle, Transform, Vector},
      graphics::{Backend, BackendImpl, BlendMode, Color, Drawable, GpuTriangle,
-                ImageScaleStrategy, ResizeStrategy, Vertex, View},
+                ImageScaleStrategy, ResizeStrategy, Vertex, View, Sprite},
      input::{ButtonState, Event, Gamepad, GamepadProvider, Keyboard, Mouse}};
 #[cfg(not(target_arch = "wasm32"))]
 use {gl, glutin, glutin::{EventsLoop, GlContext}};
@@ -434,8 +434,8 @@ impl Window {
     /// Draw a single object to the screen
     ///
     /// It will not appear until Window::flush is called
-    pub fn draw<T: Drawable>(&mut self, item: &T) {
-        item.draw(self);
+    pub fn draw(&mut self, sprite: &Sprite) {
+        sprite.draw(self);
     }
 
     /// Add vertices directly to the list without using a Drawable

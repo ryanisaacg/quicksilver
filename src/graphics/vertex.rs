@@ -35,7 +35,7 @@ impl Vertex {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 /// A triangle to draw to the GPU
 pub struct GpuTriangle {
     /// The plane the triangle falls on
