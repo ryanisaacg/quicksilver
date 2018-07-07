@@ -1,4 +1,4 @@
-use {Result, geom::Vector, graphics::{Color, GpuTriangle, Image, PixelFormat, Surface, Vertex}};
+use { Result, geom::Vector, graphics::{ Color, GpuTriangle, Image, PixelFormat, Surface, Vertex } };
 
 pub(crate) trait Backend {
     unsafe fn new(texture_mode: ImageScaleStrategy) -> Result<Self> where Self: Sized;
