@@ -1,11 +1,23 @@
 #[cfg(target_arch = "wasm32")]
-use {error::QuicksilverError, stdweb::{unstable::TryInto, web::{document, window, IParentNode, html_element::CanvasElement}}};
-use {Result, geom::{Rectangle, Transform, Vector},
-     graphics::{Backend, BackendImpl, BlendMode, Color, Drawable, GpuTriangle,
-                ImageScaleStrategy, ResizeStrategy, Vertex, View},
-     input::{ButtonState, Event, Gamepad, GamepadProvider, Keyboard, Mouse}};
+use {
+    error::QuicksilverError,
+    stdweb::{
+        unstable::TryInto,
+        web::{ document, window, IParentNode, html_element::CanvasElement }
+    }
+};
+use {
+    Result, 
+    geom::{ Rectangle, Transform, Vector },
+    graphics::{
+        Backend, BackendImpl, BlendMode, Color, Drawable, GpuTriangle, 
+        ImageScaleStrategy, ResizeStrategy, Vertex, View
+    },
+    input::{ ButtonState, Event, Gamepad, GamepadProvider, Keyboard, Mouse },
+    std::path::{Path, PathBuf}
+};
 #[cfg(not(target_arch = "wasm32"))]
-use {gl, glutin, glutin::{EventsLoop, GlContext}};
+use { gl, glutin::{ self, EventsLoop, Icon, GlContext } };
 
 ///A builder that constructs a Window
 #[derive(Debug)]
@@ -21,6 +33,7 @@ pub struct WindowBuilder {
     resize: ResizeStrategy,
     scale: ImageScaleStrategy,
     fullscreen: bool,
+    icon: Option<PathBuf>
 }
 
 impl WindowBuilder {
@@ -38,6 +51,7 @@ impl WindowBuilder {
             resize: ResizeStrategy::Fit,
             scale: ImageScaleStrategy::Pixelate,
             fullscreen: false,
+            icon: None
         }
     }
 
@@ -88,20 +102,28 @@ impl WindowBuilder {
         WindowBuilder { fullscreen, ..self }
     }
 
+    /// Set the path to the icon of the window or the webpage
+    pub fn with_icon(self, icon: impl AsRef<Path>) -> WindowBuilder {
+        let icon = Some(PathBuf::from(icon.as_ref()));
+        WindowBuilder { icon, ..self }
+    }
+
     #[cfg(not(target_arch = "wasm32"))]
     pub(crate) fn build(self) -> Result<(Window, EventsLoop)> {
         let events = glutin::EventsLoop::new();
-        let window = glutin::WindowBuilder::new()
+        let mut window = glutin::WindowBuilder::new()
             .with_decorations(!self.fullscreen)
             .with_title(self.title);
-        let window = match self.min_size {
-            Some(v) => window.with_min_dimensions(v.into()),
-            None => window,
-        };
-        let window = match self.max_size {
-            Some(v) => window.with_max_dimensions(v.into()),
-            None => window,
-        };
+        if let Some(v) = self.min_size {
+            window = window.with_min_dimensions(v.into());
+        }
+        if let Some(v) = self.max_size {
+            window = window.with_max_dimensions(v.into());
+        }
+        if let Some(path) = self.icon {
+            let icon = Icon::from_path(path)?;
+            window = window.with_window_icon(Some(icon));
+        }
         let size = if self.fullscreen {
             events.get_primary_monitor().get_dimensions().into()
         } else {
@@ -153,20 +175,20 @@ impl WindowBuilder {
         let window = window();
         let element = match document.query_selector("#canvas") {
             Ok(Some(element)) => element,
-            _ => {
-                return Err(QuicksilverError::ContextError(
-                    "Canvas element could not be found".to_owned(),
-                ))
-            }
+            _ => return Err(QuicksilverError::ContextError("Canvas element could not be found".to_owned()))
         };
         let canvas: CanvasElement = match element.try_into() {
             Ok(canvas) => canvas,
-            _ => {
-                return Err(QuicksilverError::ContextError(
-                    "Element with id 'canvas' is not a CanvasElement".to_owned(),
-                ))
-            }
+            _ => return Err(QuicksilverError::ContextError("Element with id 'canvas' is not a CanvasElement".to_owned()))
         };
+        if let Some(path) = self.icon {
+            match path.as_path().to_str() {
+                Some(path) => {
+                    // TODO: web icons
+                }
+                None => return Err(QuicksilverError::ContextError("Icon path is not a valid path".to_owned()))
+            }
+        }
         document.set_title(self.title);
         if self.fullscreen {
             actual_width = window.inner_width() as u32;
