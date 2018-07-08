@@ -17,7 +17,6 @@ Then replace `src/main.rs` with the following (the contents of quicksilver's exa
 
 ```rust
 // Draw some multi-colored geometry to the screen
-// Draw some multi-colored geometry to the screen
 extern crate quicksilver;
 
 use quicksilver::{run, Result, State, geom::{Circle, Rectangle, Transform, Vector},
@@ -31,13 +30,13 @@ impl State for DrawGeometry {
     }
 
     fn draw(&mut self, window: &mut Window) -> Result<()> {
-        window.clear(Color::black());
-        window.draw(&Sprite::rectangle(Rectangle::new(100, 100, 32, 32)).with_color(Color::red()));
+        window.clear(Color::BLACK);
+        window.draw(&Sprite::rectangle(Rectangle::new(100, 100, 32, 32)).with_color(Color::BLUE));
         window.draw(&Sprite::rectangle(Rectangle::new(400, 300, 32, 32))
-            .with_color(Color::blue())
+            .with_color(Color::BLUE)
             .with_transform(Transform::rotate(45))
             .with_z(10));
-        window.draw(&Sprite::circle(Circle::new(400, 300, 100)).with_color(Color::green()));
+        window.draw(&Sprite::circle(Circle::new(400, 300, 100)).with_color(Color::GREEN()));
         window.draw(&Sprite::line(
             Vector::new(100, 150),
             Vector::new(450, 350),

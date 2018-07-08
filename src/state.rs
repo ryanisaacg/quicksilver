@@ -39,7 +39,7 @@ pub trait State: 'static {
     /// By default it draws a black screen
     fn draw(&mut self, window: &mut Window) -> Result<()> {
         use graphics::Color;
-        window.clear(Color::black())?;
+        window.clear(Color::BLACK)?;
         window.present()?;
         Ok(())
     }
