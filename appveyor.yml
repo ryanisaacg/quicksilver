@@ -44,9 +44,7 @@ environment:
     - channel: stable
       target: x86_64-pc-windows-msvc
 
-branches:
-  only:
-    - master
+skip_branch_with_pr: true
 ### Allowed failures ###
 
 
