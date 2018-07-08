@@ -83,7 +83,7 @@ impl State for Raycast {
                         self.vertices.push(Vertex {
                             pos,
                             tex_pos: None,
-                            col: Color::white(),
+                            col: Color::WHITE,
                         });
                     }
                 };
@@ -104,7 +104,7 @@ impl State for Raycast {
                 Vertex {
                     pos: mouse,
                     tex_pos: None,
-                    col: Color::white(),
+                    col: Color::WHITE,
                 },
             );
         }
@@ -112,7 +112,7 @@ impl State for Raycast {
     }
 
     fn draw(&mut self, window: &mut Window) -> Result<()> {
-        window.clear(Color::black());
+        window.clear(Color::BLACK);
         if self.vertices.len() >= 3 {
             // Calculate the number of triangles needed to draw the poly
             let triangle_count = self.vertices.len() as u32 - 1;

@@ -12,14 +12,14 @@ struct SampleText {
 impl State for SampleText {
     fn new() -> Result<SampleText> {
         let asset = Asset::new(Font::load("examples/assets/font.ttf").map(|font| {
-            let style = FontStyle::new(72.0, Color::black());
+            let style = FontStyle::new(72.0, Color::BLACK);
             font.render("Sample Text", style)
         }));
         Ok(SampleText { asset })
     }
 
     fn draw(&mut self, window: &mut Window) -> Result<()> {
-        window.clear(Color::white());
+        window.clear(Color::WHITE);
         self.asset.execute(|image| {
             window.draw(&Sprite::image(image, Vector::new(400, 300)));
             Ok(())

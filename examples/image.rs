@@ -15,7 +15,7 @@ impl State for ImageViewer {
     }
 
     fn draw(&mut self, window: &mut Window) -> Result<()> {
-        window.clear(Color::white());
+        window.clear(Color::WHITE);
         self.asset.execute(|image| {
             window.draw(&Sprite::image(image, Vector::new(400, 300)));
             Ok(())

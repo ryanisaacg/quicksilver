@@ -367,7 +367,7 @@ impl Window {
         self.vertices.clear();
         self.triangles.clear();
         unsafe {
-            self.backend.clear_color(color, Color::black());
+            self.backend.clear_color(color, Color::BLACK);
             self.backend.reset_blend_mode();
         }
     }
