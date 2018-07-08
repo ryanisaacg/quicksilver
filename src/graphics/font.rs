@@ -1,20 +1,22 @@
 extern crate futures;
 extern crate rusttype;
 
-use graphics::{Color, Image, PixelFormat};
-use error::QuicksilverError;
-use FileLoader;
-
-use futures::{Async, Future, Map, Poll};
-use rusttype::{Font as RTFont, FontCollection, PositionedGlyph, Scale, point};
-use std::path::Path;
+use {
+    FileLoader,
+    Result,
+    error::QuicksilverError,
+    futures::{Async, Future, Map, Poll},
+    graphics::{Color, Image, PixelFormat},
+    rusttype::{Font as RTFont, FontCollection, PositionedGlyph, Scale, point},
+    std::path::Path
+};
 
 /// An in-memory TTF font that can render text on demand
 pub struct Font {
     data: RTFont<'static>
 }
 
-type LoadFunction = fn(Vec<u8>) -> Result<Font, QuicksilverError>;
+type LoadFunction = fn(Vec<u8>) -> Result<Font>;
 /// A future to load a font
 pub struct FontLoader(Map<FileLoader, LoadFunction>);
 
@@ -38,14 +40,14 @@ impl Font {
     }
 
     /// Creates font from bytes sequence.
-    pub fn from_slice(data: &'static [u8]) -> Result<Self, QuicksilverError> {
+    pub fn from_slice(data: &'static [u8]) -> Result<Self> {
         Ok(Font {
             data: FontCollection::from_bytes(data)?.into_font()?
         })
     }
 
     /// Creates font from owned bytes sequence.
-    pub fn from_bytes(data: Vec<u8>) -> Result<Self, QuicksilverError> {
+    pub fn from_bytes(data: Vec<u8>) -> Result<Self> {
         Ok(Font {
             data: FontCollection::from_bytes(data)?.into_font()?
         })
@@ -54,7 +56,7 @@ impl Font {
     /// Render a text string to an Image
     ///
     /// This function does not take into account unicode normalization or vertical layout
-    pub fn render(&self, text: &str, style: FontStyle) -> Image {
+    pub fn render(&self, text: &str, style: FontStyle) -> Result<Image> {
         let scale = Scale { x: style.size, y: style.size };
         //Avoid clipping
         let offset = point(0.0, self.data.v_metrics(scale).ascent);
@@ -85,7 +87,7 @@ impl Font {
     }
 }
 
-fn parse(data: Vec<u8>) -> Result<Font, QuicksilverError> {
+fn parse(data: Vec<u8>) -> Result<Font> {
     Font::from_bytes(data)
 }
 
