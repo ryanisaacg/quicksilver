@@ -31,7 +31,7 @@ impl Sprite {
         Sprite {
             item: DrawPayload::Image(image.clone()),
             position,
-            color: Color::white(),
+            color: Color::WHITE,
             transform: Transform::identity(),
             z: 0.0,
         }
@@ -66,7 +66,7 @@ impl Sprite {
         Sprite {
             item: DrawPayload::Rectangle(rect.size()),
             position: rect.center(),
-            color: Color::white(),
+            color: Color::WHITE,
             transform: Transform::translate(Vector::new(trans_x, trans_y)) * Transform::rotate(dy.atan2(dx).to_degrees()),
             z: 0.0,
         }
@@ -77,7 +77,7 @@ impl Sprite {
         Sprite {
             item: DrawPayload::Rectangle(rectangle.size()),
             position: rectangle.center(),
-            color: Color::white(),
+            color: Color::WHITE,
             transform: Transform::identity(),
             z: 0.0,
         }
@@ -88,7 +88,7 @@ impl Sprite {
         Sprite {
             item: DrawPayload::Circle(circle.radius),
             position: circle.center(),
-            color: Color::white(),
+            color: Color::WHITE,
             transform: Transform::identity(),
             z: 0.0,
         }

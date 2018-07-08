@@ -35,10 +35,10 @@ impl State for SoundPlayer {
     }
 
     fn draw(&mut self, window: &mut Window) -> Result<()> {
-        window.clear(Color::white())?;
+        window.clear(Color::WHITE)?;
         // If the sound is loaded, draw the button
         self.asset.execute(|_| {
-            window.draw(&Sprite::rectangle(BUTTON_AREA).with_color(Color::blue()));
+            window.draw(&Sprite::rectangle(BUTTON_AREA).with_color(Color::BLUE));
             Ok(())
         })?;
         window.present()
