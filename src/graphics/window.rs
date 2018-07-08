@@ -1,11 +1,16 @@
 #[cfg(target_arch = "wasm32")]
-use {error::QuicksilverError, stdweb::{unstable::TryInto, web::{document, window, IParentNode, html_element::CanvasElement}}};
-use {Result, geom::{Rectangle, Transform, Vector},
-     graphics::{Backend, BackendImpl, BlendMode, Color, Drawable, GpuTriangle,
-                ImageScaleStrategy, ResizeStrategy, Vertex, View},
-     input::{ButtonState, Event, Gamepad, GamepadProvider, Keyboard, Mouse}};
+use stdweb::web::{document, window,};
+use {
+    Result, 
+    geom::{Rectangle, Transform, Vector},
+     graphics::{
+        Backend, BackendImpl, BlendMode, Color, Drawable, GpuTriangle,
+        ImageScaleStrategy, ResizeStrategy, Vertex, View
+    },
+    input::{ButtonState, Event, Gamepad, GamepadProvider, Keyboard, Mouse}
+};
 #[cfg(not(target_arch = "wasm32"))]
-use {gl, glutin, glutin::{EventsLoop, GlContext}};
+use {gl, glutin::{self, EventsLoop, GlContext}};
 
 ///A builder that constructs a Window
 #[derive(Debug)]
@@ -138,7 +143,7 @@ impl WindowBuilder {
                 wheel: Vector::zero(),
             },
             view,
-            backend: unsafe { BackendImpl::new(self.scale) },
+            backend: unsafe { BackendImpl::new(self.scale)? },
             vertices: Vec::new(),
             triangles: Vec::new(),
         };
@@ -151,22 +156,7 @@ impl WindowBuilder {
         let mut actual_height = self.height;
         let document = document();
         let window = window();
-        let element = match document.query_selector("#canvas") {
-            Ok(Some(element)) => element,
-            _ => {
-                return Err(QuicksilverError::ContextError(
-                    "Canvas element could not be found".to_owned(),
-                ))
-            }
-        };
-        let canvas: CanvasElement = match element.try_into() {
-            Ok(canvas) => canvas,
-            _ => {
-                return Err(QuicksilverError::ContextError(
-                    "Element with id 'canvas' is not a CanvasElement".to_owned(),
-                ))
-            }
-        };
+        let canvas = ::get_canvas()?;
         document.set_title(self.title);
         if self.fullscreen {
             actual_width = window.inner_width() as u32;
@@ -195,7 +185,7 @@ impl WindowBuilder {
                 wheel: Vector::zero(),
             },
             view,
-            backend: unsafe { BackendImpl::new(self.scale) },
+            backend: unsafe { BackendImpl::new(self.scale)? },
             vertices: Vec::new(),
             triangles: Vec::new(),
         };
@@ -363,31 +353,32 @@ impl Window {
     ///
     /// The blend mode is also automatically reset,
     /// and any un-flushed draw calls are dropped.
-    pub fn clear(&mut self, color: Color) {
+    pub fn clear(&mut self, color: Color) -> Result<()> {
         self.vertices.clear();
         self.triangles.clear();
         unsafe {
-            self.backend.clear_color(color, Color::BLACK);
+            self.backend.clear_color(color, Color::BLACK)?;
             self.backend.reset_blend_mode();
         }
+        Ok(())
     }
 
     /// Clear the screen to a given color, with a given letterbox color
     ///
     /// The blend mode is also automatically reset,
     /// and any un-flushed draw calls are dropped.
-    pub fn clear_letterbox_color(&mut self, color: Color, letterbox: Color) {
+    pub fn clear_letterbox_color(&mut self, color: Color, letterbox: Color) -> Result<()> {
         self.vertices.clear();
         self.triangles.clear();
         unsafe {
-            self.backend.clear_color(color, letterbox);
             self.backend.reset_blend_mode();
+            self.backend.clear_color(color, letterbox)
         }
     }
 
     /// Flush changes and also present the changes to the window
     pub fn present(&mut self) -> Result<()> {
-        self.flush();
+        self.flush()?;
         #[cfg(not(target_arch = "wasm32"))]
         self.gl_window.swap_buffers()?;
         Ok(())
@@ -400,35 +391,38 @@ impl Window {
     ///
     /// Generally it's a bad idea to call this manually; as a general rule,
     /// the fewer times your application needs to flush the faster it will run.
-    pub fn flush(&mut self) {
+    pub fn flush(&mut self) -> Result<()> {
         self.triangles.sort();
         unsafe {
             self.backend
-                .draw(self.vertices.as_slice(), self.triangles.as_slice());
+                .draw(self.vertices.as_slice(), self.triangles.as_slice())?;
         }
         self.vertices.clear();
         self.triangles.clear();
+        Ok(())
     }
 
     /// Set the blend mode for the window
     ///
     /// This will flush all of the drawn items to the screen and
     /// switch to the new blend mode.
-    pub fn set_blend_mode(&mut self, blend: BlendMode) {
-        self.flush();
+    pub fn set_blend_mode(&mut self, blend: BlendMode) -> Result<()> {
+        self.flush()?;
         unsafe {
             self.backend.set_blend_mode(blend);
         }
+        Ok(())
     }
 
     /// Reset the blend mode for the window to the default alpha blending
     ///
     /// This will flush all of the drawn items to the screen
-    pub fn reset_blend_mode(&mut self) {
-        self.flush();
+    pub fn reset_blend_mode(&mut self) -> Result<()> {
+        self.flush()?;
         unsafe {
             self.backend.reset_blend_mode();
         }
+        Ok(())
     }
 
     /// Draw a single object to the screen

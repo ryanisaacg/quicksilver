@@ -2,8 +2,11 @@
 extern crate futures;
 extern crate quicksilver;
 
-use quicksilver::{run, Asset, Future, Result, State, geom::Vector,
-                  graphics::{Color, Font, FontStyle, Image, Sprite, Window, WindowBuilder}};
+use quicksilver::{
+    run, Asset, Future, Result, State, 
+    geom::Vector,
+    graphics::{Color, Font, FontStyle, Image, Sprite, Window, WindowBuilder}
+};
 
 struct SampleText {
     asset: Asset<Image>,
@@ -13,13 +16,13 @@ impl State for SampleText {
     fn new() -> Result<SampleText> {
         let asset = Asset::new(Font::load("examples/assets/font.ttf").map(|font| {
             let style = FontStyle::new(72.0, Color::BLACK);
-            font.render("Sample Text", style)
+            font.render("Sample Text", style).unwrap()
         }));
         Ok(SampleText { asset })
     }
 
     fn draw(&mut self, window: &mut Window) -> Result<()> {
-        window.clear(Color::WHITE);
+        window.clear(Color::WHITE)?;
         self.asset.execute(|image| {
             window.draw(&Sprite::image(image, Vector::new(400, 300)));
             Ok(())

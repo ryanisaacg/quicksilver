@@ -1,10 +1,10 @@
 use {Result, graphics::{Window, WindowBuilder}, input::Event};
 #[cfg(target_arch = "wasm32")]
-use {error::QuicksilverError, geom::Vector,
+use { geom::Vector,
      input::{ButtonState, MouseButton, KEY_LIST, LINES_TO_PIXELS},
      std::{cell::{RefCell, RefMut}, collections::HashMap, rc::Rc},
      stdweb::{Value, unstable::TryInto,
-              web::{document, window, IEventTarget, IParentNode, IWindowOrWorker,
+              web::{document, window, IEventTarget,  IWindowOrWorker,
                     event::{BlurEvent, ConcreteEvent, FocusEvent, GamepadConnectedEvent,
                             GamepadDisconnectedEvent, IGamepadEvent, IKeyboardEvent,
                             IMouseEvent, KeyDownEvent, KeyUpEvent,
@@ -39,7 +39,7 @@ pub trait State: 'static {
     /// By default it draws a black screen
     fn draw(&mut self, window: &mut Window) -> Result<()> {
         use graphics::Color;
-        window.clear(Color::BLACK);
+        window.clear(Color::BLACK)?;
         window.present()?;
         Ok(())
     }
@@ -122,14 +122,7 @@ fn run_impl<T: State>(builder: WindowBuilder) -> Result<()> {
 
     let document = document();
     let window = window();
-    let canvas = match document.query_selector("#canvas") {
-        Ok(Some(element)) => element,
-        _ => {
-            return Err(QuicksilverError::ContextError(
-                "Canvas element not found".to_owned(),
-            ))
-        }
-    };
+    let canvas = ::get_canvas()?;
 
     let application = app.clone();
     let close_handler = move || application.borrow_mut().event_buffer.push(Event::Closed);

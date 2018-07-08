@@ -19,7 +19,7 @@ impl State for PulsingCircle {
     }
 
     fn draw(&mut self, window: &mut Window) -> Result<()> {
-        window.clear(Color::BLACK);
+        window.clear(Color::BLACK)?;
         let scale = Transform::scale(Vector::one() * (1.0 + (self.step.to_radians().sin() / 2.0)));
         window.draw(&Sprite::circle(Circle::new(400, 300, 50))
             .with_color(Color::GREEN)
