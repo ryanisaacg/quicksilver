@@ -1,6 +1,7 @@
 extern crate futures;
 extern crate image;
 
+use Result;
 use error::QuicksilverError;
 use file::FileLoader;
 use futures::{Async, Future, Poll};
@@ -43,7 +44,7 @@ impl Future for ImageLoader {
                 let img = image::load_from_memory(data.as_slice())?.to_rgba();
                 let width = img.width();
                 let height = img.height(); 
-                Image::from_raw(img.into_raw().as_slice(), width, height, PixelFormat::RGBA)
+                Image::from_raw(img.into_raw().as_slice(), width, height, PixelFormat::RGBA)?
             }),
             Async::NotReady => Async::NotReady
         })
@@ -64,15 +65,15 @@ impl Image {
         ImageLoader(FileLoader::load(path))
     }
 
-    pub(crate) fn new_null(width: u32, height: u32, format: PixelFormat) -> Image {
+    pub(crate) fn new_null(width: u32, height: u32, format: PixelFormat) -> Result<Image> {
         Image::from_raw(&[], width, height, format)
     }
 
     ///Load an image from raw bytes
-    pub fn from_raw(data: &[u8], width: u32, height: u32, format: PixelFormat) -> Image {
-        unsafe {
-            Image::new(BackendImpl::create_texture(data, width, height, format))
-        }
+    pub fn from_raw(data: &[u8], width: u32, height: u32, format: PixelFormat) -> Result<Image> {
+        Ok(unsafe {
+            Image::new(BackendImpl::create_texture(data, width, height, format)?)
+        })
     }
 
     #[cfg(target_arch="wasm32")]
