@@ -20,7 +20,8 @@
     - Highlights
         - Sebcrozet added official wasm32 support for nalgebra
         - Added deps.rs badge to readme for a visual indicator
-- Added a `line` method to `Sprite`
+- Implemented `Line` as object
+- Added `distance` method to `Vector`
 
 ## v0.2.1
 

@@ -131,6 +131,11 @@ impl Vector {
     pub fn with_len(self, length: f32) -> Vector {
         self.normalize() * length
     }
+
+    ///Get the Euclidean distance to another vector
+    pub fn distance(self, other: Vector) -> f32 {
+        ((other.x - self.x).powi(2) + (other.y - self.y).powi(2)).sqrt()
+    }
 }
 
 impl Neg for Vector {
@@ -382,5 +387,16 @@ mod tests {
         assert_eq!(a.angle(), 0.0);
         assert_eq!(b.angle(), 90.0);
         assert_eq!(c.angle(), 45.0);
+    }
+
+    #[test]
+    fn distance() {
+        let a = Vector::x();
+        let b = Vector::y();
+        let c = a + b;
+        assert_eq!(a.distance(a), 0.0);
+        assert_eq!(a.distance(Vector::zero()), 1.0);
+        assert_eq!(b.distance(a), 2_f32.sqrt());
+        assert_eq!(c.distance(Vector::zero()), 2_f32.sqrt());
     }
 }
