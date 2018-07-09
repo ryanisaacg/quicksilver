@@ -4,6 +4,7 @@
 };
 
 use geom::{about_equal, Positioned, Rectangle, Scalar};
+use graphics::{DrawAttributes, Drawable, Window};
 use rand::{
     Rng,
     distributions::{Distribution, Standard}
@@ -304,6 +305,11 @@ impl From<PhysicalSize> for Vector {
     }
 }
 
+impl Drawable for Vector {
+    fn draw(&self, window: &mut Window, params: DrawAttributes) {
+        Rectangle::newv(*self, Vector::one()).draw(window, params);
+    }
+}
 
 #[cfg(test)]
 mod tests {

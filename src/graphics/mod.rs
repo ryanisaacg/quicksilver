@@ -19,7 +19,7 @@ pub use self::{
     atlas::{Atlas, AtlasError, AtlasItem, AtlasLoader},
     backend::{BlendMode, ImageScaleStrategy},
     color::Color,
-    drawable::{Sprite, Drawable},
+    drawable::{DrawAttributes, Drawable},
     image::{Image, ImageError, ImageLoader, PixelFormat},
     resize::ResizeStrategy,
     surface::Surface,

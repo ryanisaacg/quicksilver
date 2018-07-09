@@ -1,8 +1,11 @@
 // Draw a pulsing circle in the middle of the window
 extern crate quicksilver;
 
-use quicksilver::{run, Result, State, geom::{Circle, Transform, Vector},
-                  graphics::{Color, Sprite, Window, WindowBuilder}};
+use quicksilver::{
+    run, Result, State,
+    geom::{Circle, Transform, Vector},
+    graphics::{Color, Window, WindowBuilder}
+};
 
 struct PulsingCircle {
     step: f32,
@@ -21,9 +24,7 @@ impl State for PulsingCircle {
     fn draw(&mut self, window: &mut Window) -> Result<()> {
         window.clear(Color::BLACK)?;
         let scale = Transform::scale(Vector::one() * (1.0 + (self.step.to_radians().sin() / 2.0)));
-        window.draw(&Sprite::circle(Circle::new(400, 300, 50))
-            .with_color(Color::GREEN)
-            .with_transform(scale));
+        window.draw_color(&Circle::new(400, 300, 50), scale, Color::GREEN);
         window.present()
     }
 }
