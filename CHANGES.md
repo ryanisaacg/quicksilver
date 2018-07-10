@@ -21,7 +21,8 @@
     - Highlights
         - Sebcrozet added official wasm32 support for nalgebra
         - Added deps.rs badge to readme for a visual indicator
-- Implemented `Line` as object
+- Implemented `Line` as drawable object
+- Implemented `Triangle` as drawable object
 - Added `distance` method to `Vector`
 
 ## v0.2.1
