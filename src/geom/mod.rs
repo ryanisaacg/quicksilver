@@ -21,7 +21,7 @@ pub use self::{
     vector::Vector,
     rectangle::Rectangle,
     circle::Circle,
-    objects::Line,
+    objects::{Line, Triangle},
     positioned::Positioned,
     shape::Shape,
     tilemap::{Tile, Tilemap},

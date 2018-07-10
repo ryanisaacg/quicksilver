@@ -55,7 +55,7 @@ impl Line {
         let d2 = ((self.b.x - self.a.x) * (self.a.y - l.a.y) - (self.b.y - self.a.y) * (self.a.x - l.a.x))
             / ((l.b.y - l.a.y) * (self.b.x - self.a.x) - (l.b.x - l.a.x) * (self.b.y - self.a.y));
 
-        // if uA and uB are between 0-1, lines are colliding
+        // if d1 and d2 are between 0-1, lines are colliding
         if d1 >= 0.0 && d1 <= 1.0 && d2 >= 0.0 && d2 <= 1.0 {
             return true;
 
@@ -110,11 +110,6 @@ impl Line {
         if c.contains(self.a) || c.contains(self.b) {
             return true;
         }
-
-        // get length of the line
-        let dist_x = self.a.x - self.b.x;
-        let dist_y = self.a.y - self.b.y;
-        let len = ((dist_x*dist_x) + (dist_y*dist_y)).sqrt();
 
         // get dot product of the line and circle
         let dot = ( ((c.x-self.a.x)*(self.b.x-self.a.x)) + ((c.y-self.a.y)*(self.b.y-self.a.y)) )
@@ -265,6 +260,10 @@ mod tests {
 
     #[test]
     fn translate() {
-
+        let line = Line::newv_sized(Vector::one()).translate(Vector::new(3, 5));
+        assert_eq!(line.a.x, 3.0);
+        assert_eq!(line.a.y, 5.0);
+        assert_eq!(line.b.x, 4.0);
+        assert_eq!(line.b.y, 6.0);
     }
 }
