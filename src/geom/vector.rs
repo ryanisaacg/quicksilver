@@ -86,6 +86,11 @@ impl Vector {
             max_bound.y.min(min_bound.y.max(self.y)),
         )
     }
+    
+    ///Constrain a vector within a Rectangle
+    pub fn constrain(self, bounds: Rectangle) -> Vector {
+        self.clamp(bounds.top_left(), bounds.top_left() + bounds.size())
+    }
 
     ///Get the cross product of a vector
     pub fn cross(self, other: Vector) -> f32 {

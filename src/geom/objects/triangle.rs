@@ -69,7 +69,10 @@ impl Triangle {
 
     ///Move the triangle so it is entirely contained within a rectangle
     pub fn constrain(self, outer: Rectangle) -> Triangle {
-        unimplemented!()
+        let a_diff = self.a.constrain(outer) - self.a;
+        let b_diff = self.b.constrain(outer) - self.b;
+        let c_diff = self.c.constrain(outer) - self.c;
+        self.translate(a_diff + b_diff + c_diff)
     }
 
     ///Translate the triangle by a given vector

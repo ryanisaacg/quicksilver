@@ -5,11 +5,11 @@ use std::cmp::{Eq, PartialEq};
 #[derive(Clone, Copy, Default, Debug, Deserialize, Serialize)]
 ///A line with a starting and end point
 pub struct Line {
-    ///The starting point
+    /// The starting point
     pub a: Vector,
-    ///The end point
+    /// The end point
     pub b: Vector,
-    ///The thickness
+    /// The thickness, used only for rendering and not collision
     pub t: f32,
 }
 
@@ -68,73 +68,41 @@ impl Line {
 
     ///Check if a line overlaps a rectangle
     pub fn overlaps_rect(self, b: Rectangle) -> bool {
-        // check if start or end point is in the rectangle
-        if b.contains(self.a) || b.contains(self.b) {
-            return true;
-        }
-
         // check each edge (top, bottom, left, right) if it overlaps our line
         let top_left = b.top_left();
         let top_right = top_left + Vector::new(b.width, 0.0);
-
-        // check top
-        if self.overlaps_line(Line::newv(top_left, top_right)) {
-            return true; // instantly return because we do not have to check the others
-        }
-
         let bottom_left = top_left + Vector::new(0.0, b.height);
-
-        // check left
-        if self.overlaps_line(Line::newv(top_left, bottom_left)) {
-            return true;
-        }
-
         let bottom_right = top_left + Vector::new(b.width, b.height);
 
-        // check right
-        if self.overlaps_line(Line::newv(top_right, bottom_right)) {
-            return true;
-        }
-
-        // check bottom
-        if self.overlaps_line(Line::newv(bottom_left, bottom_right)) {
-            return true;
-        }
-
-        false
+        b.contains(self.a) || b.contains(self.b)
+            || self.overlaps_line(Line::newv(top_left, top_right))
+            || self.overlaps_line(Line::newv(top_left, bottom_left))
+            || self.overlaps_line(Line::newv(top_right, bottom_right))
+            || self.overlaps_line(Line::newv(bottom_left, bottom_right))
     }
 
     ///Check if a line overlaps a circle
     pub fn overlaps_circ(self, c: Circle) -> bool {
         // check if start or end point is in the circle
         if c.contains(self.a) || c.contains(self.b) {
-            return true;
+            true
+        } else {
+            let length = self.b - self.a;
+            // get dot product of the line and circle
+            let dot = length.dot(c.center() - self.a) / length.len2();
+            // find the closest point on the line
+            let closest = self.a + length * dot;
+            // make sure the point is on the line, and in the circle
+            self.contains(closest)
+                && (closest - c.center()).len2() <= c.radius.powi(2)
         }
-
-        // get dot product of the line and circle
-        let dot = ( ((c.x-self.a.x)*(self.b.x-self.a.x)) + ((c.y-self.a.y)*(self.b.y-self.a.y)) )
-            / self.a.distance(self.b).powi(2);
-
-        // find the closest point on the line
-        let closest_x = self.a.x + (dot * (self.b.x-self.a.x));
-        let closest_y = self.a.y + (dot * (self.b.y-self.a.y));
-
-        // is this point actually on the line segment?
-        // if so keep going, but if not, return false
-        if !self.contains(Vector::new(closest_x, closest_y)) { return false; }
-
-        // get distance to closest point
-        let distance = c.center().distance(Vector::new(closest_x, closest_y));
-
-        if distance <= c.radius {
-            return true;
-        }
-        false
     }
 
     ///Move the line so it is entirely contained within a rectangle
     pub fn constrain(self, outer: Rectangle) -> Line {
-        unimplemented!()
+        let a_diff = self.a.constrain(outer) - self.a;
+        let b_diff = self.b.constrain(outer) - self.b;
+        self.translate(a_diff + b_diff)
     }
 
     ///Translate the line by a given vector
@@ -186,14 +154,11 @@ impl Drawable for Line {
         let rect = Rectangle::new(self.a.x, self.a.y + self.t / 2.0, self.a.distance(self.b), self.t);
 
         // shift position of rectangle
-        let trans_x = (self.a.x + self.b.x) / 2.0 - rect.center().x;
-        let trans_y = (self.a.y + self.b.y) / 2.0 - rect.center().y;
+        let trans = (self.a + self.b) / 2 - rect.center();
+        let length = self.b - self.a;
 
-        let dx = self.b.x - self.a.x;
-        let dy = self.b.y - self.a.y;
-
-        let transform = Transform::translate(Vector::new(trans_x, trans_y))
-            * Transform::rotate(dy.atan2(dx).to_degrees());
+        let transform = Transform::translate(trans)
+            * Transform::rotate(length.angle());
 
         let new_params = DrawAttributes {
             transform: transform * params.transform,
