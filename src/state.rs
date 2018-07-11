@@ -104,10 +104,10 @@ fn run_impl<T: State>(window: WindowBuilder) -> Result<()> {
         app.process_events()?;
         timer.tick(|| -> Result<Duration> {
             app.update()?;
+            app.window.clear_temporary_states();
             Ok(Duration::from_millis(16))
         })?;
         app.draw()?;
-        app.window.clear_temporary_states();
     }
     Ok(())
 }
