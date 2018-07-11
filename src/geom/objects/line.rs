@@ -1,5 +1,5 @@
 use geom::{about_equal, Circle, Positioned, Scalar, Transform, Vector, Rectangle};
-use graphics::{DrawAttributes, Drawable, GpuTriangle, Vertex, Window};
+use graphics::{DrawAttributes, Drawable, Window};
 use std::cmp::{Eq, PartialEq};
 
 #[derive(Clone, Copy, Default, Debug, Deserialize, Serialize)]
@@ -220,7 +220,15 @@ mod tests {
 
     #[test]
     fn constraint() {
-
+        let line = Line::new(5, 5, 10, 7);
+        let fits = Rectangle::new(0, 0, 15, 15);
+        let not_fit = Rectangle::new(0, 0, 9, 6);
+        let fits_line = line.constrain(fits);
+        let not_fits_line = line.constrain(not_fit);
+        assert_eq!(line.a, fits_line.a);
+        assert_eq!(line.b, fits_line.b);
+        assert_eq!(Vector::new(4, 4), not_fits_line.a);
+        assert_eq!(Vector::new(9, 6), not_fits_line.b);
     }
 
     #[test]
