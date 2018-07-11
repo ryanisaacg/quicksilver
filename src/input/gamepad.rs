@@ -7,8 +7,11 @@ use gilrs::Button;
 #[cfg(target_arch="wasm32")]
 use stdweb::web::Gamepad as WebGamepad;
 
-use input::{ButtonState, Event};
-use std::ops::Index;
+use {
+    Result,
+    input::{ButtonState, Event},
+    std::ops::Index
+};
 
 /// A queryable traditional 2-stick gamepad
 #[derive(Copy, Clone, Debug)]
@@ -55,11 +58,11 @@ pub(crate) struct GamepadProvider {
 }
 
 impl GamepadProvider {
-    pub fn new() -> GamepadProvider {
-        GamepadProvider {
+    pub fn new() -> Result<GamepadProvider> {
+        Ok(GamepadProvider {
             #[cfg(all(not(any(target_arch="wasm32", target_os="macos")), feature = "gamepads"))]
-            gilrs: gilrs::Gilrs::new().unwrap()
-        }
+            gilrs: gilrs::Gilrs::new()?
+        })
     }
 
     pub fn provide_gamepads(&mut self, buffer: &mut Vec<Gamepad>) {
