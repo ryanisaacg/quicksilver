@@ -2,6 +2,7 @@
 extern crate futures;
 extern crate quicksilver;
 
+use futures::future::result;
 use quicksilver::{
     run, Asset, Future, Result, State, 
     geom::{Vector, Transform},
@@ -14,10 +15,11 @@ struct SampleText {
 
 impl State for SampleText {
     fn new() -> Result<SampleText> {
-        let asset = Asset::new(Font::load("examples/assets/font.ttf").map(|font| {
-            let style = FontStyle::new(72.0, Color::BLACK);
-            font.render("Sample Text", style).unwrap()
-        }));
+        let asset = Asset::new(Font::load("examples/assets/font.ttf")
+            .and_then(|font| {
+                let style = FontStyle::new(72.0, Color::BLACK);
+                result(font.render("Sample Text", style))
+            }));
         Ok(SampleText { asset })
     }
 
