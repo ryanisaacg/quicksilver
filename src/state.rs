@@ -234,6 +234,7 @@ fn run_impl<T: State>(builder: WindowBuilder) -> Result<()> {
 fn update<T: State>(app: Rc<RefCell<Application<T>>>) -> Result<()> {
     app.borrow_mut().process_events()?;
     app.borrow_mut().update()?;
+    app.borrow_mut().window.clear_temporary_states();
     window().set_timeout(move || update(app).unwrap(), 16);
     Ok(())
 }
