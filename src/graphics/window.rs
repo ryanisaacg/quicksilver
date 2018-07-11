@@ -131,7 +131,7 @@ impl WindowBuilder {
             gl_window,
             gamepads: Vec::new(),
             gamepad_buffer: Vec::new(),
-            provider: GamepadProvider::new(),
+            provider: GamepadProvider::new()?,
             resize: self.resize,
             screen_region,
             keyboard: Keyboard {
@@ -173,7 +173,7 @@ impl WindowBuilder {
         let window = Window {
             gamepads: Vec::new(),
             gamepad_buffer: Vec::new(),
-            provider: GamepadProvider::new(),
+            provider: GamepadProvider::new()?,
             resize: self.resize,
             screen_region,
             keyboard: Keyboard {

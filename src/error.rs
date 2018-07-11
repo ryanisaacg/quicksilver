@@ -1,3 +1,5 @@
+#[cfg(all(not(target_arch = "wasm32"), feature = "gamepads"))]
+extern crate gilrs;
 #[cfg(not(target_arch = "wasm32"))]
 extern crate glutin;
 extern crate image;
@@ -26,6 +28,9 @@ pub enum QuicksilverError {
     ImageError(ImageError),
     /// An error from loading a file
     IOError(IOError),
+    /// An error when creating a gilrs context
+    #[cfg(all(not(target_arch = "wasm32"), feature = "gamepads"))]
+    GilrsError(gilrs::Error),
     /// An error from loading a sound
     #[cfg(feature = "sounds")]
     SoundError(SoundError),
@@ -50,6 +55,8 @@ impl Error for QuicksilverError {
             QuicksilverError::ContextError(string) => string.as_str(),
             QuicksilverError::ImageError(err) => err.description(),
             QuicksilverError::IOError(err) => err.description(),
+            #[cfg(all(not(target_arch = "wasm32"), feature = "gamepads"))]
+            QuicksilverError::GilrsError(err) => err.description(),
             #[cfg(feature = "sounds")]
             QuicksilverError::SoundError(err) => err.description(),
             #[cfg(feature = "saving")]
@@ -65,6 +72,8 @@ impl Error for QuicksilverError {
             QuicksilverError::ContextError(_) => None,
             QuicksilverError::ImageError(err) => Some(err),
             QuicksilverError::IOError(err) => Some(err),
+            #[cfg(all(not(target_arch = "wasm32"), feature = "gamepads"))]
+            QuicksilverError::GilrsError(err) => Some(err),
             #[cfg(feature = "sounds")]
             QuicksilverError::SoundError(err) => Some(err),
             #[cfg(feature = "saving")]
@@ -176,5 +185,13 @@ impl From<glutin::ContextError> for QuicksilverError {
                 QuicksilverError::ContextError("Context lost".to_owned())
             }
         }
+    }
+}
+
+#[doc(hidden)]
+#[cfg(all(not(target_arch = "wasm32"), feature = "gamepads"))]
+impl From<gilrs::Error> for QuicksilverError {
+    fn from(err: gilrs::Error) -> QuicksilverError {
+        QuicksilverError::GilrsError(err)
     }
 }
