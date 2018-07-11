@@ -100,9 +100,9 @@ impl Line {
 
     ///Move the line so it is entirely contained within a rectangle
     pub fn constrain(self, outer: Rectangle) -> Line {
-        let a_diff = self.a.constrain(outer) - self.a;
-        let b_diff = self.b.constrain(outer) - self.b;
-        self.translate(a_diff + b_diff)
+        let mut line = self;
+        line = line.translate(line.a.constrain(outer) - line.a);
+        line.translate(line.b.constrain(outer) - line.b)
     }
 
     ///Translate the line by a given vector

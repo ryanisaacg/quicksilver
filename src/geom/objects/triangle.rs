@@ -69,10 +69,10 @@ impl Triangle {
 
     ///Move the triangle so it is entirely contained within a rectangle
     pub fn constrain(self, outer: Rectangle) -> Triangle {
-        let a_diff = self.a.constrain(outer) - self.a;
-        let b_diff = self.b.constrain(outer) - self.b;
-        let c_diff = self.c.constrain(outer) - self.c;
-        self.translate(a_diff + b_diff + c_diff)
+        let mut line = self;
+        line = line.translate(line.a.constrain(outer) - line.a);
+        line = line.translate(line.b.constrain(outer) - line.b);
+        line.translate(line.c.constrain(outer) - line.c)
     }
 
     ///Translate the triangle by a given vector
@@ -183,7 +183,17 @@ mod tests {
 
     #[test]
     fn constraint() {
-
+        let tri = Triangle::new(5, 5, 10, 7, 8, 8);
+        let fits = Rectangle::new(0, 0, 15, 15);
+        let not_fit = Rectangle::new(0, 0, 9, 6);
+        let fits_tri = tri.constrain(fits);
+        let not_fits_tri = tri.constrain(not_fit);
+        assert_eq!(tri.a, fits_tri.a);
+        assert_eq!(tri.b, fits_tri.b);
+        assert_eq!(tri.c, fits_tri.c);
+        assert_eq!(Vector::new(4, 3), not_fits_tri.a);
+        assert_eq!(Vector::new(9, 5), not_fits_tri.b);
+        assert_eq!(Vector::new(7, 6), not_fits_tri.c);
     }
 
     #[test]
