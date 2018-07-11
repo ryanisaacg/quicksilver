@@ -36,12 +36,10 @@ use std::{
 pub struct Transform([[f32; 3]; 3]);
 
 impl Transform {
-    ///Create an identity transformation
-    pub fn identity() -> Transform {
-        Transform([[1f32, 0f32, 0f32],
+    ///The identity transformation
+    pub const IDENTITY: Transform = Transform([[1f32, 0f32, 0f32],
                   [0f32, 1f32, 0f32],
-                  [0f32, 0f32, 1f32]])
-    }
+                  [0f32, 0f32, 1f32]]);
 
     ///Create a rotation transformation
     pub fn rotate<T: Scalar>(angle: T) -> Transform {
@@ -96,7 +94,7 @@ impl Transform {
 
         let inv_det = det.recip();
 
-        let mut inverse = Transform::identity();
+        let mut inverse = Transform::IDENTITY;
         inverse.0[0][0] = self.0[1][1] * self.0[2][2] - self.0[2][1] * self.0[1][2];
         inverse.0[0][1] = self.0[0][2] * self.0[2][1] - self.0[0][1] * self.0[2][2];
         inverse.0[0][2] = self.0[0][1] * self.0[1][2] - self.0[0][2] * self.0[1][1];
@@ -115,7 +113,7 @@ impl Mul<Transform> for Transform {
     type Output = Transform;
 
     fn mul(self, other: Transform) -> Transform {
-        let mut returnval = Transform::identity();
+        let mut returnval = Transform::IDENTITY;
         for i in 0..3 {
             for j in 0..3 {
                 returnval.0[i][j] = 0f32;
@@ -149,7 +147,7 @@ impl<T: Scalar> Mul<T> for Transform {
 
     fn mul(self, other: T) -> Transform {
         let other = other.float();
-        let mut ret = Transform::identity();
+        let mut ret = Transform::IDENTITY;
         for i in 0..3 {
             for j in 0..3 {
                 ret.0[i][j] = self.0[i][j] * other;
@@ -174,7 +172,7 @@ impl fmt::Display for Transform {
 
 impl Default for Transform {
     fn default() -> Transform {
-        Transform::identity()
+        Transform::IDENTITY
     }
 }
 
@@ -239,7 +237,7 @@ mod tests {
 
     #[test]
     fn identity() {
-        let trans = Transform::identity() * Transform::translate(Vector::zero()) *
+        let trans = Transform::IDENTITY * Transform::translate(Vector::zero()) *
             Transform::rotate(0f32) * Transform::scale(Vector::one());
         let vec = Vector::new(15, 12);
         assert_eq!(vec, trans * vec);

@@ -8,11 +8,14 @@
 //! ## A quick example
 //!
 //! ```no_run
-//! // Draw some multi-colored geometry to the screen
+// Draw some multi-colored geometry to the screen
 //! extern crate quicksilver;
 //! 
-//! use quicksilver::{run, Result, State, geom::{Circle, Rectangle, Transform, Vector},
-//!                   graphics::{Color, Sprite, Window, WindowBuilder}};
+//! use quicksilver::{
+//!     run, Result, State,
+//!     geom::{Circle, Rectangle, Vector, Transform},
+//!     graphics::{Color, Window, WindowBuilder}
+//! };
 //! 
 //! struct DrawGeometry;
 //! 
@@ -22,18 +25,11 @@
 //!     }
 //! 
 //!     fn draw(&mut self, window: &mut Window) -> Result<()> {
-//!         window.clear(Color::BLACK);
-//!         window.draw(&Sprite::rectangle(Rectangle::new(100, 100, 32, 32)).with_color(Color::RED));
-//!         window.draw(&Sprite::rectangle(Rectangle::new(400, 300, 32, 32))
-//!             .with_color(Color::BLUE)
-//!             .with_transform(Transform::rotate(45))
-//!             .with_z(10));
-//!         window.draw(&Sprite::circle(Circle::new(400, 300, 100)).with_color(Color::GREEN));
-//!         window.draw(&Sprite::line(
-//!             Vector::new(100, 150),
-//!             Vector::new(450, 350),
-//!             2.0,
-//!         ));
+//!         window.clear(Color::BLACK)?;
+//!         window.draw_color(&Rectangle::new(100, 100, 32, 32), Transform::IDENTITY, Color::BLUE);
+//!         window.draw_ex(&Rectangle::new(400, 300, 32, 32), Transform::rotate(45), Color::BLUE, 10);
+//!         window.draw_color(&Circle::new(400, 300, 100), Transform::IDENTITY, Color::GREEN);
+//!         // TODO: restore line rendering functionality
 //!         window.present()
 //!     }
 //! }

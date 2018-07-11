@@ -4,8 +4,8 @@ extern crate quicksilver;
 
 use quicksilver::{
     run, Asset, Future, Result, State, 
-    geom::Vector,
-    graphics::{Color, Font, FontStyle, Image, Sprite, Window, WindowBuilder}
+    geom::{Vector, Transform},
+    graphics::{Color, Font, FontStyle, Image, Window, WindowBuilder}
 };
 
 struct SampleText {
@@ -24,7 +24,7 @@ impl State for SampleText {
     fn draw(&mut self, window: &mut Window) -> Result<()> {
         window.clear(Color::WHITE)?;
         self.asset.execute(|image| {
-            window.draw(&Sprite::image(image, Vector::new(400, 300)));
+            window.draw(image, Transform::translate(Vector::new(400, 300)));
             Ok(())
         })?;
         window.present()

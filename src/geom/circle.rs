@@ -1,6 +1,10 @@
 #[cfg(feature="ncollide2d")] use ncollide2d::shape::Ball;
-use geom::{about_equal, Positioned, Rectangle, Scalar, Vector};
-use std::cmp::{Eq, PartialEq};
+use geom::{about_equal, Positioned, Rectangle, Scalar, Transform, Vector};
+use graphics::{DrawAttributes, Drawable, GpuTriangle, Vertex, Window};
+use std::{
+    cmp::{Eq, PartialEq},
+    iter
+};
 
 #[derive(Clone, Copy, Default, Debug, Deserialize, Serialize)]
 ///A circle with a center and a radius
@@ -85,6 +89,51 @@ impl Positioned for Circle {
 
     fn bounding_box(&self) -> Rectangle {
         Rectangle::new(self.x - self.radius, self.y - self.radius, self.radius * 2.0, self.radius * 2.0)
+    }
+}
+
+// Until there's serious compile-time calculations in Rust,
+// it's best to just pre-write the points on a rasterized circle
+const CIRCLE_POINTS: [Vector; 24] = [
+    Vector { x: 1.0, y: 0.0 },
+    Vector { x: -0.7596879128588213, y: 0.6502878401571168 },
+    Vector { x: 0.15425144988758405, y: -0.9880316240928618 },
+    Vector { x: 0.5253219888177297, y: 0.8509035245341184 },
+    Vector { x: -0.9524129804151563, y: -0.3048106211022167 },
+    Vector { x: 0.9217512697247493, y: -0.38778163540943045 },
+    Vector { x: -0.4480736161291701, y: 0.8939966636005579 },
+    Vector { x: -0.24095904923620143, y: -0.9705352835374847 },
+    Vector { x: 0.8141809705265618, y: 0.5806111842123143 },
+    Vector { x: -0.9960878351411849, y: 0.08836868610400143 },
+    Vector { x: 0.6992508064783751, y: -0.7148764296291646 },
+    Vector { x: -0.06633693633562374, y: 0.9977972794498907 },
+    Vector { x: -0.5984600690578581, y: -0.8011526357338304 },
+    Vector { x: 0.9756226979194443, y: 0.21945466799406363 },
+    Vector { x: -0.8838774731823718, y: 0.46771851834275896 },
+    Vector { x: 0.36731936773024515, y: -0.9300948780045254 },
+    Vector { x: 0.32578130553514806, y: 0.9454451549211168 },
+    Vector { x: -0.8623036078310824, y: -0.5063916349244909 },
+    Vector { x: 0.9843819506325049, y: -0.1760459464712114 },
+    Vector { x: -0.6333425312327234, y: 0.7738715902084317 },
+    Vector { x: -0.022096619278683942, y: -0.9997558399011495 },
+    Vector { x: 0.6669156003948422, y: 0.7451332645574127 },
+    Vector { x: -0.9911988217552068, y: -0.13238162920545193 },
+    Vector { x: 0.8390879278598296, y: -0.5439958173735323 }
+];
+
+impl Drawable for Circle {
+    fn draw(&self, window: &mut Window, params: DrawAttributes) {
+        let transform = Transform::translate(self.center())
+            * params.transform
+            * Transform::scale(Vector::one() * self.radius);
+        let vertices = CIRCLE_POINTS
+            .iter()
+            .map(|point| Vertex::new_untextured(transform * point.clone(), params.color));
+        let indices = iter::repeat(params.z)
+            .take(CIRCLE_POINTS.len() - 1)
+            .enumerate()
+            .map(|(index, z)| GpuTriangle::new_untextured([0, index as u32, index as u32 + 1], z));
+        window.add_vertices(vertices, indices);
     }
 }
 
