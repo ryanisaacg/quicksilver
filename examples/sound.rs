@@ -2,9 +2,13 @@
 extern crate futures;
 extern crate quicksilver;
 
-use quicksilver::{run, Asset, Result, State, geom::Rectangle,
-                  graphics::{Color, Sprite, Window, WindowBuilder},
-                  input::{ButtonState, MouseButton}, sound::Sound};
+use quicksilver::{
+    run, Asset, Result, State,
+    geom::{Rectangle, Transform},
+    graphics::{Color, Window, WindowBuilder},
+    input::{ButtonState, MouseButton}, 
+    sound::Sound
+};
 
 struct SoundPlayer {
     asset: Asset<Sound>,
@@ -26,8 +30,7 @@ impl State for SoundPlayer {
     fn update(&mut self, window: &mut Window) -> Result<()> {
         self.asset.execute(|sound| {
             if window.mouse()[MouseButton::Left] == ButtonState::Pressed
-                && BUTTON_AREA.contains(window.mouse().pos())
-            {
+                && BUTTON_AREA.contains(window.mouse().pos()) {
                 sound.play();
             }
             Ok(())
@@ -38,7 +41,7 @@ impl State for SoundPlayer {
         window.clear(Color::WHITE)?;
         // If the sound is loaded, draw the button
         self.asset.execute(|_| {
-            window.draw(&Sprite::rectangle(BUTTON_AREA).with_color(Color::BLUE));
+            window.draw_color(&BUTTON_AREA, Transform::IDENTITY, Color::BLUE);
             Ok(())
         })?;
         window.present()
