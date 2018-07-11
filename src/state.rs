@@ -104,10 +104,10 @@ fn run_impl<T: State>(window: WindowBuilder) -> Result<()> {
         app.process_events()?;
         timer.tick(|| -> Result<Duration> {
             app.update()?;
+            app.window.clear_temporary_states();
             Ok(Duration::from_millis(16))
         })?;
         app.draw()?;
-        app.window.clear_temporary_states();
     }
     Ok(())
 }
@@ -234,6 +234,7 @@ fn run_impl<T: State>(builder: WindowBuilder) -> Result<()> {
 fn update<T: State>(app: Rc<RefCell<Application<T>>>) -> Result<()> {
     app.borrow_mut().process_events()?;
     app.borrow_mut().update()?;
+    app.borrow_mut().window.clear_temporary_states();
     window().set_timeout(move || update(app).unwrap(), 16);
     Ok(())
 }
