@@ -263,17 +263,15 @@ impl Window {
     ///Handle the available size for the window changing
     pub(crate) fn adjust_size(&mut self, available: Vector) {
         self.screen_region = self.resize.resize(self.screen_region.size(), available);
+        let position = self.screen_region.top_left() * self.gl_window.get_hidpi_factor() as f32;
+        let size = self.screen_region.size() * self.gl_window.get_hidpi_factor() as f32;
         unsafe {
             BackendImpl::viewport(
-                self.screen_region.x as i32,
-                self.screen_region.y as i32,
-                self.screen_region.width as i32,
-                self.screen_region.height as i32,
+                position.x as i32,
+                position.y as i32,
+                size.x as i32,
+                size.y as i32,
             );
-        }
-        #[cfg(not(target_arch = "wasm32"))] {
-            let size: glutin::dpi::LogicalSize = self.screen_region.size().into();
-            self.gl_window.resize(size.to_physical(self.gl_window.get_hidpi_factor()));
         }
     }
 
