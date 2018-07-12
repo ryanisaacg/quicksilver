@@ -24,7 +24,9 @@ impl Line {
     }
 
     ///Create a line from `Vector`s of the start and end point
-    pub fn newv(start: Vector, end: Vector) -> Line {
+    pub fn newv<V: Into<Vector>>(start: V, end: V) -> Line {
+        let start = start.into();
+        let end = end.into();
         Line {
             a: start,
             b: end,
@@ -34,16 +36,18 @@ impl Line {
 
     ///Create a line starting at the origin with a given length on the x axis
     pub fn new_sized<T: Scalar>(length: T) -> Line {
-        Line::newv(Vector::zero(), Vector::new(length.float(), 0.0))
+        Line::newv(Vector::ZERO, Vector::new(length.float(), 0.0))
     }
 
     ///Create a line starting at the origin and ending on the given point
-    pub fn newv_sized(end: Vector) -> Line {
-        Line::newv(Vector::zero(), end)
+    pub fn newv_sized<V: Into<Vector>>(end: V) -> Line {
+        let end = end.into();
+        Line::newv(Vector::ZERO, end)
     }
 
     ///Check if a point falls on the line
-    pub fn contains(self, v: Vector) -> bool {
+    pub fn contains<V: Into<Vector>>(self, v: V) -> bool {
+        let v = v.into();
         about_equal(v.distance(self.a) + v.distance(self.b), self.a.distance(self.b))
     }
 
@@ -106,12 +110,14 @@ impl Line {
     }
 
     ///Translate the line by a given vector
-    pub fn translate(self, v: Vector) -> Line {
+    pub fn translate<V: Into<Vector>>(self, v: V) -> Line {
+        let v = v.into();
         Line::newv(self.a + v, self.b + v)
     }
 
     ///Create a line with the same size at a given center
-    pub fn with_center(self, v: Vector) -> Line {
+    pub fn with_center<V: Into<Vector>>(self, v: V) -> Line {
+        let v = v.into();
         self.translate(v - self.center())
     }
 
@@ -233,7 +239,7 @@ mod tests {
 
     #[test]
     fn translate() {
-        let line = Line::newv_sized(Vector::one()).translate(Vector::new(3, 5));
+        let line = Line::newv_sized(Vector::ONE).translate(Vector::new(3, 5));
         assert_eq!(line.a.x, 3.0);
         assert_eq!(line.a.y, 5.0);
         assert_eq!(line.b.x, 4.0);

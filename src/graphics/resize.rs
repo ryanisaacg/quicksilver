@@ -15,7 +15,8 @@ pub enum ResizeStrategy {
 
 impl ResizeStrategy {
     ///Calculate the content offset and the content size
-    pub(crate) fn resize(self, old_size: Vector, new_size: Vector) -> Rectangle {
+    pub(crate) fn resize<V: Into<Vector>>(self, old_size: V, new_size: V) -> Rectangle {
+        let (old_size, new_size) = (old_size.into(), new_size.into());
         let content_area = match self {
             ResizeStrategy::Maintain => old_size,
             ResizeStrategy::Stretch => new_size,

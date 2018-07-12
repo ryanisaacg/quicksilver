@@ -31,7 +31,8 @@ impl Rectangle {
     }
 
     ///Create a rectangle from a top-left vector and a size vector
-    pub fn newv(pos: Vector, size: Vector) -> Rectangle {
+    pub fn newv<V: Into<Vector>>(pos: V, size: V) -> Rectangle {
+        let (pos, size) = (pos.into(), size.into());
         Rectangle::new(pos.x, pos.y, size.x, size.y)
     }
 
@@ -46,13 +47,15 @@ impl Rectangle {
     }
 
     ///Create a rectangle at the origin with a size given by a Vector
-    pub fn newv_sized(size: Vector) -> Rectangle {
-        Rectangle::newv(Vector::zero(), size)
+    pub fn newv_sized<V: Into<Vector>>(size: V) -> Rectangle {
+        let size = size.into();
+        Rectangle::newv(Vector::ZERO, size)
     }
 
     #[cfg(feature="ncollide2d")]
     ///Create a rectangle with a given center and Cuboid from ncollide
-    pub fn from_cuboid(center: Vector, cuboid: &Cuboid<f32>) -> Rectangle {
+    pub fn from_cuboid<V: Into<Vector>>(center: V, cuboid: &Cuboid<f32>) -> Rectangle {
+        let center = center.into();
         let half_size = cuboid.half_extents().clone().into();
         Rectangle::newv(center - half_size, half_size * 2)
     }
@@ -82,7 +85,8 @@ impl Rectangle {
     }
 
     ///Checks if a point falls within the rectangle
-    pub fn contains(self, v: Vector) -> bool {
+    pub fn contains<V: Into<Vector>>(self, v: V) -> bool {
+        let v = v.into();
         v.x >= self.x && v.y >= self.y && v.x < self.x + self.width && v.y < self.y + self.height
     }
 
@@ -105,12 +109,14 @@ impl Rectangle {
     }
 
     ///Translate the rectangle by a given vector
-    pub fn translate(self, v: Vector) -> Rectangle {
+    pub fn translate<V: Into<Vector>>(self, v: V) -> Rectangle {
+        let v = v.into();
         Rectangle::new(self.x + v.x, self.y + v.y, self.width, self.height)
     }
 
     ///Create a rectangle with the same size at a given center
-    pub fn with_center(self, v: Vector) -> Rectangle {
+    pub fn with_center<V: Into<Vector>>(self, v: V) -> Rectangle {
+        let v = v.into();
         self.translate(v - self.center())
     }
 }
@@ -137,7 +143,7 @@ impl Positioned for Rectangle {
 #[cfg(feature="ncollide2d")]
 impl From<AABB<f32>> for Rectangle {
     fn from(other: AABB<f32>) -> Rectangle {
-        Rectangle::newv(other.mins().clone().into(), other.maxs().clone().into())
+        Rectangle::newv(other.mins().clone(), other.maxs().clone())
     }
 }
 
@@ -148,10 +154,10 @@ impl Drawable for Rectangle {
             * Transform::translate(-self.size() / 2)
             * Transform::scale(self.size());
         let vertices = &[
-            Vertex::new_untextured(trans * Vector::zero(), params.color),
-            Vertex::new_untextured(trans * Vector::x(), params.color),
-            Vertex::new_untextured(trans * Vector::one(), params.color),
-            Vertex::new_untextured(trans * Vector::y(), params.color),
+            Vertex::new_untextured(trans * Vector::ZERO, params.color),
+            Vertex::new_untextured(trans * Vector::X, params.color),
+            Vertex::new_untextured(trans * Vector::ONE, params.color),
+            Vertex::new_untextured(trans * Vector::Y, params.color),
         ];
         let triangles = &[
             GpuTriangle::new_untextured([0, 1, 2], params.z),
