@@ -28,7 +28,8 @@ impl Circle {
     }
 
     /// Create a circle with the center as a vector
-    pub fn newv<T: Scalar>(center: Vector, radius: T) -> Circle {
+    pub fn newv<T: Scalar, V: Into<Vector>>(center: V, radius: T) -> Circle {
+        let center = center.into();
         Circle {
             x: center.x,
             y: center.y,
@@ -38,7 +39,8 @@ impl Circle {
 
     ///Construct a circle from a center and a Ball
     #[cfg(feature="ncollide2d")]
-    pub fn from_ball(center: Vector, ball: Ball<f32>) -> Circle {
+    pub fn from_ball<V: Into<Vector>>(center: V, ball: Ball<f32>) -> Circle {
+        let center = center.into();
         Circle::newv(center, ball.radius())
     }
 
@@ -49,7 +51,8 @@ impl Circle {
     }
 
     /// Check to see if a circle contains a point
-    pub fn contains(self, v: Vector) -> bool {
+    pub fn contains<V: Into<Vector>>(self, v: V) -> bool {
+        let v = v.into();
         (v - self.center()).len2() < self.radius.powi(2)
     }
 
@@ -64,7 +67,8 @@ impl Circle {
     }
 
     ///Translate a circle by a given vector
-    pub fn translate(self, v: Vector) -> Circle {
+    pub fn translate<V: Into<Vector>>(self, v: V) -> Circle {
+        let v = v.into();
         Circle::new(self.x + v.x, self.y + v.y, self.radius)
     }
 
@@ -97,7 +101,7 @@ impl Drawable for Circle {
     fn draw(&self, window: &mut Window, params: DrawAttributes) {
         let transform = Transform::translate(self.center())
             * params.transform
-            * Transform::scale(Vector::one() * self.radius);
+            * Transform::scale(Vector::ONE * self.radius);
         let vertices = CIRCLE_POINTS
             .iter()
             .map(|point| Vertex::new_untextured(transform * point.clone(), params.color));

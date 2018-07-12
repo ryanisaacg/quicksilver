@@ -24,12 +24,14 @@ impl Triangle {
     }
 
     ///Create a triangle from `Vector`s of all three points
-    pub fn newv(a: Vector, b: Vector, c: Vector) -> Triangle {
+    pub fn newv<V: Into<Vector>>(a: V, b: V, c: V) -> Triangle {
+        let (a, b, c) = (a.into(), b.into(), c.into());
         Triangle { a, b, c }
     }
 
     ///Check if a point is inside the triangle
-    pub fn contains(self, v: Vector) -> bool {
+    pub fn contains<V: Into<Vector>>(self, v: V) -> bool {
+        let v = v.into();
         // form three triangles with this new vector
         let t_1 = Triangle::newv(v, self.a, self.b);
         let t_2 = Triangle::newv(v, self.b, self.c);
@@ -76,12 +78,14 @@ impl Triangle {
     }
 
     ///Translate the triangle by a given vector
-    pub fn translate(self, v: Vector) -> Triangle {
+    pub fn translate<V: Into<Vector>>(self, v: V) -> Triangle {
+        let v = v.into();
         Triangle::newv(self.a + v, self.b + v, self.c + v)
     }
 
     ///Create a triangle with the same size at a given center
-    pub fn with_center(self, v: Vector) -> Triangle {
+    pub fn with_center<V: Into<Vector>>(self, v: V) -> Triangle {
+        let v = v.into();
         self.translate(v - self.center())
     }
 
@@ -198,7 +202,7 @@ mod tests {
 
     #[test]
     fn translate() {
-        let triangle = Triangle::new(0, 0, 1, 0, 0, 1).translate(Vector::one());
+        let triangle = Triangle::new(0, 0, 1, 0, 0, 1).translate(Vector::ONE);
         assert_eq!(triangle, Triangle::new(1, 1, 2, 1, 1, 2));
     }
 

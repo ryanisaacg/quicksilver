@@ -30,7 +30,10 @@ pub struct WindowBuilder {
 
 impl WindowBuilder {
     ///Create a default window builder
-    pub fn new(title: &'static str, width: u32, height: u32) -> WindowBuilder {
+    pub fn new<V: Into<Vector>>(title: &'static str, size: V) -> WindowBuilder {
+        let size: Vector = size.into();
+        let (width, height) = (size.x as u32, size.y as u32);
+
         WindowBuilder {
             title,
             width,
@@ -62,7 +65,8 @@ impl WindowBuilder {
     ///Set the minimum size for the window (no value by default)
     ///
     ///On the web, this does nothing.
-    pub fn with_minimum_size(self, _min_size: Vector) -> WindowBuilder {
+    pub fn with_minimum_size<V: Into<Vector>>(self, _min_size: V) -> WindowBuilder {
+        let _min_size = _min_size.into();
         WindowBuilder {
             #[cfg(not(target_arch = "wasm32"))]
             min_size: Some(_min_size),
@@ -73,7 +77,8 @@ impl WindowBuilder {
     ///Set the maximum size for the window (no value by default)
     ///
     ///On the web, this does nothing.
-    pub fn with_maximum_size(self, _max_size: Vector) -> WindowBuilder {
+    pub fn with_maximum_size<V: Into<Vector>>(self, _max_size: V) -> WindowBuilder {
+        let _max_size = _max_size.into();
         WindowBuilder {
             #[cfg(not(target_arch = "wasm32"))]
             max_size: Some(_max_size),
@@ -138,9 +143,9 @@ impl WindowBuilder {
                 keys: [ButtonState::NotPressed; 256],
             },
             mouse: Mouse {
-                pos: Vector::zero(),
+                pos: Vector::ZERO,
                 buttons: [ButtonState::NotPressed; 3],
-                wheel: Vector::zero(),
+                wheel: Vector::ZERO,
             },
             view,
             backend: unsafe { BackendImpl::new(self.scale)? },
@@ -180,9 +185,9 @@ impl WindowBuilder {
                 keys: [ButtonState::NotPressed; 256],
             },
             mouse: Mouse {
-                pos: Vector::zero(),
+                pos: Vector::ZERO,
                 buttons: [ButtonState::NotPressed; 3],
-                wheel: Vector::zero(),
+                wheel: Vector::ZERO,
             },
             view,
             backend: unsafe { BackendImpl::new(self.scale)? },
@@ -261,7 +266,8 @@ impl Window {
     }
 
     ///Handle the available size for the window changing
-    pub(crate) fn adjust_size(&mut self, available: Vector) {
+    pub(crate) fn adjust_size<V: Into<Vector>>(&mut self, available: V) {
+        let available = available.into();
         self.screen_region = self.resize.resize(self.screen_region.size(), available);
         unsafe {
             BackendImpl::viewport(

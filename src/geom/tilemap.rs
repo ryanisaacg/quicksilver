@@ -38,13 +38,15 @@ pub struct Tilemap<T: Clone> {
 
 impl<T: Clone> Tilemap<T> {
     ///Create a map full of empty, non-solid tiles of a given size
-    pub fn new(map_size: Vector, tile_size: Vector ) -> Tilemap<T> {
+    pub fn new<V: Into<Vector>>(map_size: V, tile_size: V ) -> Tilemap<T> {
+        let (map_size, tile_size) = (map_size.into(), tile_size.into());
         let data = vec![Tile::empty(None);(map_size.x / tile_size.x * map_size.y / tile_size.y) as usize];
         Tilemap { data, map_size, tile_size }
     }
 
     ///Create a map with pre-filled data
-    pub fn with_data(data: Vec<Tile<T>>, map_size: Vector, tile_size: Vector) -> Tilemap<T> {
+    pub fn with_data<V: Into<Vector>>(data: Vec<Tile<T>>, map_size: V, tile_size: V) -> Tilemap<T> {
+        let (map_size, tile_size) = (map_size.into(), tile_size.into());
         Tilemap { data, map_size, tile_size }
     }
 
@@ -84,7 +86,8 @@ impl<T: Clone> Tilemap<T> {
     }
 
     ///Check if a point is within the map bounds
-    pub fn valid(&self, index: Vector) -> bool {
+    pub fn valid<V: Into<Vector>>(&self, index: V) -> bool {
+        let index = index.into();
         self.region().contains(index)
     }
 
@@ -94,13 +97,15 @@ impl<T: Clone> Tilemap<T> {
         self.valid(bbox.top_left()) && self.valid(bbox.top_left() + bbox.size())
     }
 
-    fn array_index(&self, index: Vector) -> usize {
+    fn array_index<V: Into<Vector>>(&self, index: V) -> usize {
+        let index = index.into();
         ((index.x / self.tile_width()).trunc() * (self.height() / self.tile_height()).trunc() +
              (index.y / self.tile_height()).trunc()) as usize
     }
 
     ///Get the tile found at a given point, if it is valid
-    pub fn get(&self, index: Vector) -> Option<&Tile<T>> {
+    pub fn get<V: Into<Vector>>(&self, index: V) -> Option<&Tile<T>> {
+        let index = index.into();
         if self.valid(index) {
             Some(&self.data[self.array_index(index)])
         } else {
@@ -109,7 +114,8 @@ impl<T: Clone> Tilemap<T> {
     }
 
     ///Get a mutable reference to a tile at a given point, if it is valid
-    pub fn get_mut(&mut self, index: Vector) -> Option<&mut Tile<T>> {
+    pub fn get_mut<V: Into<Vector>>(&mut self, index: V) -> Option<&mut Tile<T>> {
+        let index = index.into();
         if self.valid(index) {
             let index = self.array_index(index);
             Some(&mut self.data[index])
@@ -119,7 +125,8 @@ impl<T: Clone> Tilemap<T> {
     }
 
     ///Set the value at a given point
-    pub fn set(&mut self, index: Vector, value: Tile<T>) {
+    pub fn set<V: Into<Vector>>(&mut self, index: V, value: Tile<T>) {
+        let index = index.into();
         match self.get_mut(index) {
             Some(tile) => *tile = value,
             None => (),
@@ -127,7 +134,8 @@ impl<T: Clone> Tilemap<T> {
     }
 
     ///Find if a point's tile is empty
-    pub fn point_empty(&self, index: Vector) -> bool {
+    pub fn point_empty<V: Into<Vector>>(&self, index: V) -> bool {
+        let index = index.into();
         match self.get(index) {
             Some(tile) => tile.empty,
             None => false,
@@ -178,17 +186,18 @@ impl<T: Clone> Tilemap<T> {
     }
 
     ///Find the furthest a shape can move along a vector, and what its future speed should be
-    pub fn move_until_contact(&self, bounds: Shape, speed: Vector) -> (Shape, Vector) {
+    pub fn move_until_contact<V: Into<Vector>>(&self, bounds: Shape, speed: V) -> (Shape, Vector) {
+        let speed = speed.into();
         let rectangle = Shape::Rectangle(bounds.bounding_box());
-        let attempt = Vector::zero();
+        let attempt = Vector::ZERO;
         let slide_x = |diff: f32, mut attempt: Vector| {
-            while diff.abs() > 0.0 && (attempt.x + diff).abs() <= speed.x.abs() && self.shape_empty(rectangle.translate(attempt + Vector::x() * diff)) {
+            while diff.abs() > 0.0 && (attempt.x + diff).abs() <= speed.x.abs() && self.shape_empty(rectangle.translate(attempt + Vector::X * diff)) {
                 attempt.x += diff;
             }
             attempt
         };
         let slide_y = |diff: f32, mut attempt: Vector| {
-            while diff.abs() > 0.0 && (attempt.y + diff).abs() <= speed.y.abs() && self.shape_empty(rectangle.translate(attempt + Vector::y() * diff)) {
+            while diff.abs() > 0.0 && (attempt.y + diff).abs() <= speed.y.abs() && self.shape_empty(rectangle.translate(attempt + Vector::Y * diff)) {
                 attempt.y += diff;
             }
             attempt
@@ -232,7 +241,7 @@ mod tests {
     #[test]
     fn tile_values() {
         let map = setup();
-        assert!(match map.get(Vector::x() * -1) {
+        assert!(match map.get(Vector::X * -1) {
             None => true,
             _ => false,
         });
@@ -258,7 +267,7 @@ mod tests {
                 Rectangle::new(300, 5, 32, 32),
                 Vector::new(0, -10),
                 Vector::new(300, 0),
-                Vector::zero(),
+                Vector::ZERO,
             ),
             (
                 Rectangle::new(80, 10, 16, 16),
@@ -280,39 +289,39 @@ mod tests {
             ),
             (
                 Rectangle::new(5, 5, 10, 10),
-                Vector::x() * -7.2,
+                Vector::X * -7.2,
                 Vector::new(0, 5),
-                Vector::zero(),
+                Vector::ZERO,
             ),
             (
                 Rectangle::new(0, 0, 30, 30),
-                Vector::x() * 2,
+                Vector::X * 2,
                 Vector::new(2, 0),
-                Vector::x() * 2,
+                Vector::X * 2,
             ),
             (
                 Rectangle::new(0, 0, 30, 30),
-                Vector::x() * 100,
-                Vector::x() * 100,
-                Vector::x() * 100,
+                Vector::X * 100,
+                Vector::X * 100,
+                Vector::X * 100,
             ),
             (
                 Rectangle::new(0, 0, 30, 30),
-                Vector::y() * 100,
-                Vector::y() * 100,
-                Vector::y() * 100,
+                Vector::Y * 100,
+                Vector::Y * 100,
+                Vector::Y * 100,
             ),
             (
                 Rectangle::new(150, 0, 30, 30),
-                Vector::x() * -100,
-                Vector::x() * 50,
-                Vector::x() * -100,
+                Vector::X * -100,
+                Vector::X * 50,
+                Vector::X * -100,
             ),
             (
                 Rectangle::new(0, 150, 30, 30),
-                Vector::y() * -200,
-                Vector::zero(),
-                Vector::zero(),
+                Vector::Y * -200,
+                Vector::ZERO,
+                Vector::ZERO,
             ),
         ];
         for case in test_cases.iter() {

@@ -35,7 +35,7 @@
 //! }
 //! 
 //! fn main() {
-//!     run::<DrawGeometry>(WindowBuilder::new("Draw Geometry", 800, 600)).unwrap();
+//!     run::<DrawGeometry>(WindowBuilder::new("Draw Geometry", (800, 600))).unwrap();
 //! }
 //! ```
 //! Run this with `cargo run` or, if you have the wasm32 toolchain installed, you can build for the web

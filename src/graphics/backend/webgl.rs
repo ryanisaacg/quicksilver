@@ -144,7 +144,7 @@ impl Backend for WebGLBackend {
             vertices.iter().for_each(|vertex| {
                 self.vertices.push(vertex.pos.x);
                 self.vertices.push(vertex.pos.y);
-                let tex_pos = vertex.tex_pos.unwrap_or(Vector::zero());
+                let tex_pos = vertex.tex_pos.unwrap_or(Vector::ZERO);
                 self.vertices.push(tex_pos.x);
                 self.vertices.push(tex_pos.y);
                 self.vertices.push(vertex.col.r);
