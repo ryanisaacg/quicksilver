@@ -2,7 +2,8 @@
     bounding_volume::AABB,
     shape::Cuboid
 };
-use geom::{about_equal, Circle, Positioned, Scalar, Vector};
+use geom::{about_equal, Circle, Positioned, Scalar, Transform, Vector};
+use graphics::{DrawAttributes, Drawable, GpuTriangle, Vertex, Window};
 use std::cmp::{Eq, PartialEq};
 
 #[derive(Clone, Copy, Default, Debug, Deserialize, Serialize)]
@@ -137,6 +138,26 @@ impl Positioned for Rectangle {
 impl From<AABB<f32>> for Rectangle {
     fn from(other: AABB<f32>) -> Rectangle {
         Rectangle::newv(other.mins().clone().into(), other.maxs().clone().into())
+    }
+}
+
+impl Drawable for Rectangle {
+    fn draw(&self, window: &mut Window, params: DrawAttributes) {
+        let trans = Transform::translate(self.top_left() + self.size() / 2)
+            * params.transform
+            * Transform::translate(-self.size() / 2)
+            * Transform::scale(self.size());
+        let vertices = &[
+            Vertex::new_untextured(trans * Vector::zero(), params.color),
+            Vertex::new_untextured(trans * Vector::x(), params.color),
+            Vertex::new_untextured(trans * Vector::one(), params.color),
+            Vertex::new_untextured(trans * Vector::y(), params.color),
+        ];
+        let triangles = &[
+            GpuTriangle::new_untextured([0, 1, 2], params.z),
+            GpuTriangle::new_untextured([2, 3, 0], params.z)
+        ];
+        window.add_vertices(vertices.iter().cloned(), triangles.iter().cloned());
     }
 }
 

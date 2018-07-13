@@ -4,6 +4,7 @@
 };
 
 use geom::{about_equal, Positioned, Rectangle, Scalar};
+use graphics::{DrawAttributes, Drawable, Window};
 use rand::{
     Rng,
     distributions::{Distribution, Standard}
@@ -85,6 +86,11 @@ impl Vector {
             max_bound.y.min(min_bound.y.max(self.y)),
         )
     }
+    
+    ///Constrain a vector within a Rectangle
+    pub fn constrain(self, bounds: Rectangle) -> Vector {
+        self.clamp(bounds.top_left(), bounds.top_left() + bounds.size())
+    }
 
     ///Get the cross product of a vector
     pub fn cross(self, other: Vector) -> f32 {
@@ -129,6 +135,11 @@ impl Vector {
     ///Create a vector with the same angle and the given length
     pub fn with_len(self, length: f32) -> Vector {
         self.normalize() * length
+    }
+
+    ///Get the Euclidean distance to another vector
+    pub fn distance(self, other: Vector) -> f32 {
+        ((other.x - self.x).powi(2) + (other.y - self.y).powi(2)).sqrt()
     }
 }
 
@@ -304,6 +315,11 @@ impl From<PhysicalSize> for Vector {
     }
 }
 
+impl Drawable for Vector {
+    fn draw(&self, window: &mut Window, params: DrawAttributes) {
+        Rectangle::newv(*self, Vector::one()).draw(window, params);
+    }
+}
 
 #[cfg(test)]
 mod tests {
@@ -376,5 +392,16 @@ mod tests {
         assert_eq!(a.angle(), 0.0);
         assert_eq!(b.angle(), 90.0);
         assert_eq!(c.angle(), 45.0);
+    }
+
+    #[test]
+    fn distance() {
+        let a = Vector::x();
+        let b = Vector::y();
+        let c = a + b;
+        assert_eq!(a.distance(a), 0.0);
+        assert_eq!(a.distance(Vector::zero()), 1.0);
+        assert_eq!(b.distance(a), 2_f32.sqrt());
+        assert_eq!(c.distance(Vector::zero()), 2_f32.sqrt());
     }
 }

@@ -2,10 +2,10 @@
 use stdweb::web::{document, window,};
 use {
     Result, 
-    geom::{Rectangle, Transform, Vector},
+    geom::{Rectangle, Scalar, Transform, Vector},
      graphics::{
-        Backend, BackendImpl, BlendMode, Color, Drawable, GpuTriangle,
-        ImageScaleStrategy, ResizeStrategy, Vertex, View
+        Backend, BackendImpl, BlendMode, Color, DrawAttributes, Drawable, 
+        GpuTriangle, ImageScaleStrategy, ResizeStrategy, Vertex, View
     },
     input::{ButtonState, Event, Gamepad, GamepadProvider, Keyboard, Mouse}
 };
@@ -435,8 +435,36 @@ impl Window {
     /// Draw a single object to the screen
     ///
     /// It will not appear until Window::flush is called
-    pub fn draw<T: Drawable>(&mut self, item: &T) {
-        item.draw(self);
+    #[inline]
+    pub fn draw(&mut self, item: &impl Drawable, trans: Transform) {
+        self.draw_color(item, trans, Color::WHITE);
+    }
+
+    /// Draw a single object to the screen
+    ///
+    /// It will not appear until Window::flush is called
+    #[inline]
+    pub fn draw_color(&mut self, item: &impl Drawable, trans: Transform, color: Color) {
+        self.draw_ex(item, trans, color, 0.0);
+    }
+
+    /// Draw a single object to the screen
+    ///
+    /// It will not appear until Window::flush is called
+    #[inline]
+    pub fn draw_ex(&mut self, item: &impl Drawable, trans: Transform, color: Color, z: impl Scalar) {
+        self.draw_params(item, DrawAttributes::new()
+            .with_transform(trans)
+            .with_color(color)
+            .with_z(z.float()));
+    }
+
+    /// Draw a single object to the screen
+    ///
+    /// It will not appear until Window::flush is called
+    #[inline]
+    pub fn draw_params(&mut self, item: &impl Drawable, params: DrawAttributes) {
+        item.draw(self, params);
     }
 
     /// Add vertices directly to the list without using a Drawable

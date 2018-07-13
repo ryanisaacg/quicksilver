@@ -5,8 +5,8 @@ use Result;
 use error::QuicksilverError;
 use file::FileLoader;
 use futures::{Async, Future, Poll};
-use geom::{Rectangle, Vector};
-use graphics::{Backend, BackendImpl, ImageData};
+use geom::{Rectangle, Transform, Vector};
+use graphics::{Backend, BackendImpl, DrawAttributes, Drawable, GpuTriangle, ImageData, Vertex, Window};
 use std::{
     error::Error,
     fmt,
@@ -158,5 +158,29 @@ impl Error for ImageError {
             &ImageError::DecodingError(ref err) => Some(err),
             &ImageError::IOError(ref err) => Some(err),
         }
+    }
+}
+
+impl Drawable for Image {
+    fn draw(&self, window: &mut Window, params: DrawAttributes) {
+        let area = self.area();
+        let trans = Transform::translate(area.size() / 2)
+            * params.transform
+            * Transform::translate(-area.size() / 2)
+            * Transform::scale(area.size());
+        let recip_size = self.source_size().recip();
+        let normalized_pos = area.top_left().times(recip_size);
+        let normalized_size = area.size().times(recip_size);
+        let vertices = &[
+            Vertex::new_textured(trans * Vector::zero(), normalized_pos + Vector::zero().times(normalized_size), params.color),
+            Vertex::new_textured(trans * Vector::x(), normalized_pos +  Vector::x().times(normalized_size), params.color),
+            Vertex::new_textured(trans * Vector::one(), normalized_pos +  Vector::one().times(normalized_size), params.color),
+            Vertex::new_textured(trans * Vector::y(), normalized_pos + Vector::y().times(normalized_size), params.color),
+        ];
+        let triangles = &[
+            GpuTriangle::new_textured([0, 1, 2], params.z, self.clone()),
+            GpuTriangle::new_textured([2, 3, 0], params.z, self.clone())
+        ];
+        window.add_vertices(vertices.iter().cloned(), triangles.iter().cloned());
     }
 }
