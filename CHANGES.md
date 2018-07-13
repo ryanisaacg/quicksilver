@@ -12,6 +12,11 @@
 - [Breaking] Added a Result return to all of the State methods
 - [Breaking] Move the Font parameters into their own structure
 - [Breaking] Split the Sprite into Drawable and DrawAttributes objects, with convenient function overloads
+- Implemented `Line` as drawable object
+- Implemented `Triangle` as drawable object
+- Added `distance` method to `Vector`
+- Fixed bug with Windows not scaling the viewport by DPI
+- Fixed bug with macOS not letterboxing correctly
 - Dependencies
     - Versions
         - alga: ``0.5 -> 0.6``
@@ -21,9 +26,6 @@
     - Highlights
         - Sebcrozet added official wasm32 support for nalgebra
         - Added deps.rs badge to readme for a visual indicator
-- Implemented `Line` as drawable object
-- Implemented `Triangle` as drawable object
-- Added `distance` method to `Vector`
 
 ## v0.2.1
 
