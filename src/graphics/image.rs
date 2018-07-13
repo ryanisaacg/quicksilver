@@ -3,8 +3,8 @@ extern crate image;
 
 use Result;
 use error::QuicksilverError;
-use file::FileLoader;
-use futures::{Async, Future, Poll};
+use file::load_file;
+use futures::{Future, future};
 use geom::{Rectangle, Transform, Vector};
 use graphics::{Backend, BackendImpl, DrawAttributes, Drawable, GpuTriangle, ImageData, Vertex, Window};
 use std::{
@@ -31,26 +31,6 @@ pub struct Image {
     region: Rectangle,
 }
 
-/// A future for loading images
-pub struct ImageLoader(FileLoader);
-
-impl Future for ImageLoader {
-    type Item = Image;
-    type Error = QuicksilverError;
-    
-    fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
-        Ok(match self.0.poll()? {
-            Async::Ready(data) => Async::Ready({
-                let img = image::load_from_memory(data.as_slice())?.to_rgba();
-                let width = img.width();
-                let height = img.height(); 
-                Image::from_raw(img.into_raw().as_slice(), width, height, PixelFormat::RGBA)?
-            }),
-            Async::NotReady => Async::NotReady
-        })
-    }
-}
-
 impl Image {
     pub(crate) fn new(data: ImageData) -> Image {
         let region = Rectangle::new_sized(data.width, data.height);
@@ -61,8 +41,15 @@ impl Image {
     }
    
     /// Start loading a texture from a given path
-    pub fn load<P: AsRef<Path>>(path: P) -> ImageLoader {
-        ImageLoader(FileLoader::load(path))
+    pub fn load<P: AsRef<Path>>(path: P) -> impl Future<Item = Image, Error = QuicksilverError> {
+        load_file(path)
+            .map(|data| {
+                let img = image::load_from_memory(data.as_slice())?.to_rgba();
+                let width = img.width();
+                let height = img.height(); 
+                Image::from_raw(img.into_raw().as_slice(), width, height, PixelFormat::RGBA)
+            })
+            .and_then(future::result)
     }
 
     pub(crate) fn new_null(width: u32, height: u32, format: PixelFormat) -> Result<Image> {

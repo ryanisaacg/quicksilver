@@ -106,7 +106,7 @@ mod state;
 mod timer;
 pub use asset::Asset;
 pub use error::QuicksilverError as Error;
-pub use file::FileLoader;
+pub use file::load_file;
 pub use state::{run, State};
 pub use timer::Timer;
 
