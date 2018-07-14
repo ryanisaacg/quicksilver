@@ -16,16 +16,16 @@ mod window;
 
 pub use self::{
     animation::Animation,
-    atlas::{Atlas, AtlasError, AtlasItem, AtlasLoader},
+    atlas::{Atlas, AtlasError, AtlasItem},
     backend::{BlendMode, ImageScaleStrategy},
     color::Color,
     drawable::{DrawAttributes, Drawable},
-    image::{Image, ImageError, ImageLoader, PixelFormat},
+    image::{Image, ImageError, PixelFormat},
     resize::ResizeStrategy,
     surface::Surface,
     vertex::{Vertex, GpuTriangle},
     view::View,
     window::{Window, WindowBuilder}
 };
-#[cfg(feature="fonts")] pub use self::font::{Font, FontStyle, FontLoader};
+#[cfg(feature="fonts")] pub use self::font::{Font, FontStyle};
 pub(crate) use self::backend::{Backend, BackendImpl, ImageData, SurfaceData};

@@ -12,6 +12,7 @@
 - [Breaking] Added a Result return to all of the State methods
 - [Breaking] Move the Font parameters into their own structure
 - [Breaking] Split the Sprite into Drawable and DrawAttributes objects, with convenient function overloads
+- [Breaking] Remove the Loader types in favor of a new Asset type
 - Implemented `Line` as drawable object
 - Implemented `Triangle` as drawable object
 - Added `distance` method to `Vector`
