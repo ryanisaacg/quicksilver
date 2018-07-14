@@ -121,8 +121,10 @@ pub use futures::{Async, Future};
 
 #[cfg(target_arch = "wasm32")]
 fn get_canvas() -> Result<stdweb::web::html_element::CanvasElement> {
-    use stdweb::{unstable::TryInto,
-              web::{IParentNode, document, html_element::{CanvasElement}}};
+    use stdweb::{
+        unstable::TryInto,
+        web::{IParentNode, document, html_element::CanvasElement}
+    };
     let element = match document().query_selector("#canvas") {
         Ok(Some(element)) => element,
         _ => return Err(Error::ContextError("Element with id 'canvas' not found".to_owned()))
