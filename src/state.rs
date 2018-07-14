@@ -64,7 +64,7 @@ pub trait State: 'static {
     /// place at the error site. However, on the web especially, logging errors can be difficult,
     /// so this provides a way to log other than a panic.
     fn handle_error(error: Error) {
-        panic!(error);
+        panic!("Unhandled error: {:?}", error);
     }
 }
 
