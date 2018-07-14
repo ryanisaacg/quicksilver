@@ -3,13 +3,16 @@
 //! On the desktop, currently all sounds are loaded into memory, but streaming sounds may be
 //! introduced in the future. On the web, it can be different from browser to browser
 
-use error::QuicksilverError;
-use futures::{Future, future};
-use std::{
-    error::Error,
-    fmt,
-    io::Error as IOError,
-    path::Path
+use {
+    Result,
+    error::QuicksilverError,
+    futures::{Future, future},
+    std::{
+        error::Error,
+        fmt,
+        io::Error as IOError,
+        path::Path
+    }
 };
 #[cfg(not(target_arch="wasm32"))]
 use {
