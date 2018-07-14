@@ -57,7 +57,13 @@
 //! Each are enabled by default, but you can [specify which features](https://doc.rust-lang.org/cargo/reference/specifying-dependencies.html#choosing-features) you actually want to use.
 
 #![doc(html_root_url = "https://docs.rs/quicksilver/0.2.0")]
-#![deny(missing_docs)]
+#![deny(
+    bare_trait_object,
+    missing_docs,
+    unused_extern_crates,
+    unused_import_braces,
+    unused_qualifications
+)]
 
 extern crate futures;
 extern crate image;
@@ -77,8 +83,6 @@ extern crate stdweb;
 #[cfg(target_arch = "wasm32")]
 extern crate webgl_stdweb;
 
-#[cfg(feature = "alga")]
-extern crate alga;
 #[cfg(all(feature = "gilrs", not(target_arch = "wasm32")))]
 extern crate gilrs;
 #[cfg(feature = "nalgebra")]
@@ -117,8 +121,10 @@ pub use futures::{Async, Future};
 
 #[cfg(target_arch = "wasm32")]
 fn get_canvas() -> Result<stdweb::web::html_element::CanvasElement> {
-    use stdweb::{unstable::TryInto,
-              web::{IParentNode, document, html_element::{CanvasElement}}};
+    use stdweb::{
+        unstable::TryInto,
+        web::{IParentNode, document, html_element::CanvasElement}
+    };
     let element = match document().query_selector("#canvas") {
         Ok(Some(element)) => element,
         _ => return Err(Error::ContextError("Element with id 'canvas' not found".to_owned()))

@@ -1,12 +1,10 @@
-extern crate futures;
-extern crate image;
-
 use Result;
 use error::QuicksilverError;
 use file::load_file;
 use futures::{Future, future};
 use geom::{Rectangle, Transform, Vector};
 use graphics::{Backend, BackendImpl, DrawAttributes, Drawable, GpuTriangle, ImageData, Vertex, Window};
+use image;
 use std::{
     error::Error,
     fmt,

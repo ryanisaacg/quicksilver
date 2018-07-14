@@ -5,12 +5,9 @@
 //! should store data. This module allows any type that implements Serde serialize and deserialize
 //! to be saved and loaded.
 
-extern crate serde;
-extern crate serde_json;
-
-use serde_json::Error as SerdeError;
 
 use serde::{Deserialize, Serialize};
+use serde_json::{self, Error as SerdeError};
 use std::{
     error::Error,
     fmt,
