@@ -46,6 +46,7 @@ impl Shape {
     }
 
     ///Create a shape moved by a given amount
+    #[must_use]
     pub fn translate(&self, vec: Vector) -> Shape {
         match *self {
             Shape::Circle(this) => Shape::Circle(this.translate(vec)),
@@ -55,6 +56,7 @@ impl Shape {
     }
 
     ///Create a copy of the shape with a given center
+    #[must_use]
     pub fn with_center(&self, vec: Vector) -> Shape {
         match *self {
             Shape::Circle(this) => Shape::Circle(Circle::new(vec.x, vec.y, this.radius)),

@@ -33,6 +33,7 @@ impl ButtonState {
     /// Convert the button from a temporary state to a permanent state
     ///
     /// Pressed states become Held, Released states become NotPressed
+    #[must_use]
     pub fn clear_temporary(&self) -> ButtonState {
         if self.is_down() {
             ButtonState::Held

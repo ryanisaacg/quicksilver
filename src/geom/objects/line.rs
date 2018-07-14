@@ -99,6 +99,7 @@ impl Line {
     }
 
     ///Move the line so it is entirely contained within a rectangle
+    #[must_use]
     pub fn constrain(self, outer: Rectangle) -> Line {
         let mut line = self;
         line = line.translate(line.a.constrain(outer) - line.a);
@@ -106,16 +107,19 @@ impl Line {
     }
 
     ///Translate the line by a given vector
+    #[must_use]
     pub fn translate(self, v: Vector) -> Line {
         Line::newv(self.a + v, self.b + v)
     }
 
     ///Create a line with the same size at a given center
+    #[must_use]
     pub fn with_center(self, v: Vector) -> Line {
         self.translate(v - self.center())
     }
 
     ///Create a line with a changed thickness
+    #[must_use]
     pub fn with_thickness(self, thickness: f32) -> Line {
         Line {
             t: thickness,

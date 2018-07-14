@@ -98,6 +98,7 @@ impl Rectangle {
     }
 
     ///Move the rectangle so it is entirely contained with another
+    #[must_use]
     pub fn constrain(self, outer: Rectangle) -> Rectangle {
         Rectangle::newv(self.top_left().clamp(
             outer.top_left(), outer.top_left() + outer.size() - self.size()
@@ -105,11 +106,13 @@ impl Rectangle {
     }
 
     ///Translate the rectangle by a given vector
+    #[must_use]
     pub fn translate(self, v: Vector) -> Rectangle {
         Rectangle::new(self.x + v.x, self.y + v.y, self.width, self.height)
     }
 
     ///Create a rectangle with the same size at a given center
+    #[must_use]
     pub fn with_center(self, v: Vector) -> Rectangle {
         self.translate(v - self.center())
     }
