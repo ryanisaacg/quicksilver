@@ -12,6 +12,7 @@
 - [Breaking] Added a Result return to all of the State methods
 - [Breaking] Move the Font parameters into their own structure
 - [Breaking] Split the Sprite into Drawable and DrawAttributes objects, with convenient function overloads
+- [Breaking] Remove the Loader types in favor of a new Asset type
 - Dependencies
     - Versions
         - alga: ``0.5 -> 0.6``
