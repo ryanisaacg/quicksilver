@@ -3,10 +3,6 @@
 //! On the desktop, currently all sounds are loaded into memory, but streaming sounds may be
 //! introduced in the future. On the web, it can be different from browser to browser
 
-extern crate futures;
-#[cfg(not(target_arch="wasm32"))]
-extern crate rodio;
-
 use error::QuicksilverError;
 use futures::{Future, future};
 use std::{
@@ -19,10 +15,9 @@ use std::{
 use {
     Result,
     rodio::{
-        Decoder, 
-        Source,
-        decoder::DecoderError,
-        source::{SamplesConverter, Amplify},
+        self,
+        decoder::{Decoder, DecoderError},
+        source::{SamplesConverter, Source,Amplify},
     },
     std::{
         fs::File,

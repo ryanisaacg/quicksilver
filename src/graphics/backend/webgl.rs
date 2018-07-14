@@ -1,21 +1,22 @@
-use {Result, geom::Vector, error::QuicksilverError, graphics::{
-    backend::{Backend, BlendMode, ImageData, ImageScaleStrategy, SurfaceData, VERTEX_SIZE},
-    Color, GpuTriangle, Image, PixelFormat, Surface, Vertex
-},
- std::mem::size_of,
- stdweb::{
-    web::
-        TypedArray
-    ,
-    unstable::{TryInto}
-},
- webgl_stdweb::{
-    WebGLBuffer,
-    WebGLProgram,
-    WebGL2RenderingContext as gl,
-    WebGLShader,
-    WebGLUniformLocation
-}};
+use {
+    Result, geom::Vector, error::QuicksilverError, 
+    graphics::{
+        backend::{Backend, BlendMode, ImageData, ImageScaleStrategy, SurfaceData, VERTEX_SIZE},
+        Color, GpuTriangle, Image, PixelFormat, Surface, Vertex
+    },
+    std::mem::size_of,
+    stdweb::{
+        web::TypedArray,
+        unstable::TryInto
+    },
+    webgl_stdweb::{
+        WebGLBuffer,
+        WebGLProgram,
+        WebGL2RenderingContext as gl,
+        WebGLShader,
+        WebGLUniformLocation
+    }
+};
 
 
 pub struct WebGLBackend {

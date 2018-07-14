@@ -1,6 +1,3 @@
-#[cfg(not(target_arch="wasm32"))]
-extern crate glutin;
-
 use geom::Vector;
 use input::ButtonState;
 use std::ops::Index;
