@@ -31,6 +31,7 @@
 - Implement `Triangle` as drawable object
 - Add `distance` method to `Vector`
 - [Breaking] Use constants instead of functions for `Vector`s' "presets"
+- Add an optional method to `State` to handle error logging
 
 ## v0.2.1
 

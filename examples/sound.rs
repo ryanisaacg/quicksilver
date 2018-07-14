@@ -49,5 +49,5 @@ impl State for SoundPlayer {
 }
 
 fn main() {
-    run::<SoundPlayer>(WindowBuilder::new("Sound Example", 800, 600)).unwrap();
+    run::<SoundPlayer>(WindowBuilder::new("Sound Example", 800, 600));
 }

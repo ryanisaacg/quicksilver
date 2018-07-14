@@ -28,5 +28,5 @@ impl State for ImageViewer {
 }
 
 fn main() {
-    run::<ImageViewer>(WindowBuilder::new("Image Example", 800, 600)).unwrap();
+    run::<ImageViewer>(WindowBuilder::new("Image Example", 800, 600));
 }
