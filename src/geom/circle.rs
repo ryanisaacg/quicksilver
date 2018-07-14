@@ -64,11 +64,13 @@ impl Circle {
     }
 
     ///Translate a circle by a given vector
+    #[must_use]
     pub fn translate(self, v: Vector) -> Circle {
         Circle::new(self.x + v.x, self.y + v.y, self.radius)
     }
 
     ///Move a circle so it is entirely contained within a Rectangle
+    #[must_use]
     pub fn constrain(self, outer: Rectangle) -> Circle {
         Circle::newv(Rectangle::new(self.x - self.radius, self.y - self.radius, self.radius * 2.0, self.radius * 2.0).constrain(outer).center(), self.radius)
     }

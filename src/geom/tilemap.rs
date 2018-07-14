@@ -178,6 +178,7 @@ impl<T: Clone> Tilemap<T> {
     }
 
     ///Find the furthest a shape can move along a vector, and what its future speed should be
+    #[must_use]
     pub fn move_until_contact(&self, bounds: Shape, speed: Vector) -> (Shape, Vector) {
         let rectangle = Shape::Rectangle(bounds.bounding_box());
         let attempt = Vector::ZERO;
