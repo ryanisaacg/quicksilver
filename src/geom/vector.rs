@@ -39,7 +39,7 @@ impl Vector {
 
 impl Vector {
     ///Create a new vector
-    pub fn new<T: Scalar>(x: T, y: T) -> Vector {
+    pub fn new(x: impl Scalar, y: impl Scalar) -> Vector {
         Vector { x: x.float(), y: y.float() }
     }
 
@@ -303,6 +303,12 @@ impl From<LogicalSize> for Vector {
 impl From<PhysicalSize> for Vector {
     fn from(other: PhysicalSize) -> Vector {
         Vector::new(other.width as f32, other.height as f32)
+    }
+}
+
+impl<T: Scalar, U: Scalar> From<(T, U)> for Vector {
+    fn from(other: (T, U)) -> Vector {
+        Vector::new(other.0, other.1)
     }
 }
 
