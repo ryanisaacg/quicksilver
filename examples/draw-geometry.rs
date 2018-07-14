@@ -35,5 +35,5 @@ impl State for DrawGeometry {
 }
 
 fn main() {
-    run::<DrawGeometry>(WindowBuilder::new("Draw Geometry", 800, 600)).unwrap();
+    run::<DrawGeometry>(WindowBuilder::new("Draw Geometry", 800, 600));
 }

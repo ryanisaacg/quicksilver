@@ -30,5 +30,5 @@ impl State for PulsingCircle {
 }
 
 fn main() {
-    run::<PulsingCircle>(WindowBuilder::new("Pulsing Circle", 800, 600)).unwrap();
+    run::<PulsingCircle>(WindowBuilder::new("Pulsing Circle", 800, 600));
 }

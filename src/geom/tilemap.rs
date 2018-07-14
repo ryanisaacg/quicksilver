@@ -237,10 +237,10 @@ mod tests {
             None => true,
             _ => false,
         });
-        assert!(map.get(Vector::new(32, 0)).unwrap().empty);
-        assert!(!map.get(Vector::new(32, 32)).unwrap().empty);
-        assert!(!map.get(Vector::new(32, 32)).unwrap().empty);
-        assert_eq!(map.get(Vector::new(32, 32)).unwrap().value.unwrap(), 5);
+        assert!(map.get(Vector::new(32, 0)).expect("Exists").empty);
+        assert!(!map.get(Vector::new(32, 32)).expect("Exists").empty);
+        assert!(!map.get(Vector::new(32, 32)).expect("Exists").empty);
+        assert_eq!(map.get(Vector::new(32, 32)).expect("Exists").value.expect("Exists"), 5);
     }
 
     #[test]

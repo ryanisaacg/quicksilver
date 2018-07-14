@@ -34,5 +34,5 @@ impl State for SampleText {
 }
 
 fn main() {
-    run::<SampleText>(WindowBuilder::new("Font Example", 800, 600)).unwrap();
+    run::<SampleText>(WindowBuilder::new("Font Example", 800, 600));
 }
