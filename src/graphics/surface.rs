@@ -1,4 +1,4 @@
-use {Result, geom::{Transform, Vector},
+use {Result, geom::{Transform},
 graphics::{Backend, BackendImpl, Image, PixelFormat, SurfaceData, Window, View},
 std::rc::Rc};
 
@@ -31,7 +31,7 @@ impl Surface {
             BackendImpl::bind_surface(self)
         };
         window.flush()?;
-        window.set_view(View::new_transformed(self.image.area(), Transform::scale(Vector::new(1, -1))));
+        window.set_view(View::new_transformed(self.image.area(), Transform::scale((1, -1))));
         func(window)?;
         window.set_view(view);
         window.flush()?;

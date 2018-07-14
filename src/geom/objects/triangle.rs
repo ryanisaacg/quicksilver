@@ -15,7 +15,7 @@ pub struct Triangle {
 
 impl Triangle {
     ///Create a triangle from x and y coordinates of the three points
-    pub fn new<T: Scalar>(x_1: T, y_1: T, x_2: T, y_2: T, x_3: T, y_3: T) -> Triangle {
+    pub fn new(x_1: impl Scalar, y_1: impl Scalar, x_2: impl Scalar, y_2: impl Scalar, x_3: impl Scalar, y_3: impl Scalar) -> Triangle {
         Triangle {
             a: Vector::new(x_1, y_1),
             b: Vector::new(x_2, y_2),
@@ -24,12 +24,14 @@ impl Triangle {
     }
 
     ///Create a triangle from `Vector`s of all three points
-    pub fn newv(a: Vector, b: Vector, c: Vector) -> Triangle {
+    pub fn newv<V1: Into<Vector>, V2: Into<Vector>, V3: Into<Vector>>(a: V1, b: V2, c: V3) -> Triangle {
+        let (a, b, c) = (a.into(), b.into(), c.into());
         Triangle { a, b, c }
     }
 
     ///Check if a point is inside the triangle
-    pub fn contains(self, v: Vector) -> bool {
+    pub fn contains<V: Into<Vector>>(self, v: V) -> bool {
+        let v = v.into();
         // form three triangles with this new vector
         let t_1 = Triangle::newv(v, self.a, self.b);
         let t_2 = Triangle::newv(v, self.b, self.c);
@@ -76,12 +78,14 @@ impl Triangle {
     }
 
     ///Translate the triangle by a given vector
-    pub fn translate(self, v: Vector) -> Triangle {
+    pub fn translate<V: Into<Vector>>(self, v: V) -> Triangle {
+        let v = v.into();
         Triangle::newv(self.a + v, self.b + v, self.c + v)
     }
 
     ///Create a triangle with the same size at a given center
-    pub fn with_center(self, v: Vector) -> Triangle {
+    pub fn with_center<V: Into<Vector>>(self, v: V) -> Triangle {
+        let v = v.into();
         self.translate(v - self.center())
     }
 
@@ -173,9 +177,9 @@ mod tests {
     #[test]
     fn contains() {
         let triangle = Triangle::new(0, 0, 1, 0, 0, 1);
-        let p_in = Vector::new(0.25, 0.25);
-        let p_on = Vector::new(0.5, 0.5);
-        let p_off = Vector::new(1, 1);
+        let p_in = (0.25, 0.25);
+        let p_on = (0.5, 0.5);
+        let p_off = (1, 1);
         assert!(triangle.contains(p_in));
         assert!(triangle.contains(p_on));
         assert!(!triangle.contains(p_off));

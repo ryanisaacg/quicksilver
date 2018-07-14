@@ -76,9 +76,9 @@ impl Atlas {
                         let index = getval(&mut get_values_from_line(getval(&mut lines)?)?)??;
                         let rotate = getval(&mut rotate)??;
                         let region = Rectangle::new(getval(&mut xy)??, getval(&mut xy)??, getval(&mut size)??, getval(&mut size)??);
-                        let original_size = Vector::new(getval(&mut orig)??, getval(&mut orig)??);
-                        let offset = Vector::new(getval(&mut offset)??, getval(&mut offset)??);
-                        let center = region.center() + (original_size - region.size() - offset.x_comp() + offset.y_comp());
+                        let original_size: Vector = (getval(&mut orig)??, getval(&mut orig)??).into();
+                        let offset: Vector = (getval(&mut offset)??, getval(&mut offset)??).into();
+                        let center = region.center() + original_size - region.size() - offset.x_comp() + offset.y_comp();
                         let image = images.len() - 1;
                         regions.push(Region { image, name, region, rotate, center, index });
                     }

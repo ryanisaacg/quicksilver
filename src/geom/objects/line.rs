@@ -15,7 +15,7 @@ pub struct Line {
 
 impl Line {
     ///Create a line from x and y coordinates of the start and end point
-    pub fn new<T: Scalar>(x_1: T, y_1: T, x_2: T, y_2: T) -> Line {
+    pub fn new(x_1: impl Scalar, y_1: impl Scalar, x_2: impl Scalar, y_2: impl Scalar) -> Line {
         Line {
             a: Vector::new(x_1, y_1),
             b: Vector::new(x_2, y_2),
@@ -24,7 +24,9 @@ impl Line {
     }
 
     ///Create a line from `Vector`s of the start and end point
-    pub fn newv(start: Vector, end: Vector) -> Line {
+    pub fn newv<V1: Into<Vector>, V2: Into<Vector>>(start: V1, end: V2) -> Line {
+        let start = start.into();
+        let end = end.into();
         Line {
             a: start,
             b: end,
@@ -33,17 +35,19 @@ impl Line {
     }
 
     ///Create a line starting at the origin with a given length on the x axis
-    pub fn new_sized<T: Scalar>(length: T) -> Line {
-        Line::newv(Vector::ZERO, Vector::new(length.float(), 0.0))
+    pub fn new_sized(length: impl Scalar) -> Line {
+        Line::newv(Vector::ZERO, (length, 0.0))
     }
 
     ///Create a line starting at the origin and ending on the given point
-    pub fn newv_sized(end: Vector) -> Line {
+    pub fn newv_sized<V: Into<Vector>>(end: V) -> Line {
+        let end = end.into();
         Line::newv(Vector::ZERO, end)
     }
 
     ///Check if a point falls on the line
-    pub fn contains(self, v: Vector) -> bool {
+    pub fn contains<V: Into<Vector>>(self, v: V) -> bool {
+        let v = v.into();
         about_equal(v.distance(self.a) + v.distance(self.b), self.a.distance(self.b))
     }
 
@@ -70,9 +74,9 @@ impl Line {
     pub fn overlaps_rect(self, b: Rectangle) -> bool {
         // check each edge (top, bottom, left, right) if it overlaps our line
         let top_left = b.top_left();
-        let top_right = top_left + Vector::new(b.width, 0.0);
-        let bottom_left = top_left + Vector::new(0.0, b.height);
-        let bottom_right = top_left + Vector::new(b.width, b.height);
+        let top_right = top_left + (b.width, 0.0).into();
+        let bottom_left = top_left + (0.0, b.height).into();
+        let bottom_right = top_left + (b.width, b.height).into();
 
         b.contains(self.a) || b.contains(self.b)
             || self.overlaps_line(Line::newv(top_left, top_right))
@@ -106,12 +110,14 @@ impl Line {
     }
 
     ///Translate the line by a given vector
-    pub fn translate(self, v: Vector) -> Line {
+    pub fn translate<V: Into<Vector>>(self, v: V) -> Line {
+        let v = v.into();
         Line::newv(self.a + v, self.b + v)
     }
 
     ///Create a line with the same size at a given center
-    pub fn with_center(self, v: Vector) -> Line {
+    pub fn with_center<V: Into<Vector>>(self, v: V) -> Line {
+        let v = v.into();
         self.translate(v - self.center())
     }
 
@@ -138,7 +144,7 @@ impl Positioned for Line {
     }
 
     fn bounding_box(&self) -> Rectangle {
-        let top_left = Vector::new(self.a.x.min(self.b.x), self.a.y.min(self.b.y));
+        let top_left: Vector = (self.a.x.min(self.b.x), self.a.y.min(self.b.y)).into();
         Rectangle::new(
             top_left.x,
             top_left.y,
@@ -210,9 +216,9 @@ mod tests {
     #[test]
     fn contains() {
         let line = Line::new_sized(1);
-        let v_on = Vector::new(0.3, 0.0);
-        let v_close = Vector::new(0.999, 0.1);
-        let v_off = Vector::new(3, 5);
+        let v_on = (0.3, 0.0);
+        let v_close = (0.999, 0.1);
+        let v_off = (3, 5);
         assert!(line.contains(v_on));
         assert!(!line.contains(v_close));
         assert!(!line.contains(v_off));
@@ -233,7 +239,7 @@ mod tests {
 
     #[test]
     fn translate() {
-        let line = Line::newv_sized(Vector::ONE).translate(Vector::new(3, 5));
+        let line = Line::newv_sized(Vector::ONE).translate((3, 5));
         assert_eq!(line.a.x, 3.0);
         assert_eq!(line.a.y, 5.0);
         assert_eq!(line.b.x, 4.0);

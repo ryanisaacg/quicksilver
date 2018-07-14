@@ -139,7 +139,7 @@ fn run_impl<T: State>(builder: WindowBuilder) -> Result<()> {
             .borrow_mut()
             .event_buffer
             .push(Event::MouseWheel(
-                Vector::new(x as f32, y as f32) * if mode != 0 { LINES_TO_PIXELS } else { 1.0 },
+                (x as f32, y as f32) * if mode != 0 { LINES_TO_PIXELS } else { 1.0 },
             ));
     };
     js! {
@@ -164,7 +164,7 @@ fn run_impl<T: State>(builder: WindowBuilder) -> Result<()> {
     });
 
     handle_event(&canvas, &app, |mut app, event: MouseMoveEvent| {
-        let pointer = Vector::new(event.offset_x() as f32, event.offset_y() as f32);
+        let pointer = (event.offset_x() as f32, event.offset_y() as f32);
         app.event_buffer.push(Event::MouseMoved(pointer));
     });
     handle_event(&canvas, &app, |mut app, event: MouseUpEvent| {

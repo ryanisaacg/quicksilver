@@ -95,8 +95,8 @@ impl EventProvider {
                     events.push(Event::MouseButton(index, value));
                 }
                 glutin::WindowEvent::MouseWheel { delta, .. } => {
-                    let vector = match delta {
-                        glutin::MouseScrollDelta::LineDelta(x, y) => Vector::new(x, -y) * LINES_TO_PIXELS,
+                    let vector: Vector = match delta {
+                        glutin::MouseScrollDelta::LineDelta(x, y) => Vector{x, y:-y} * LINES_TO_PIXELS,
                         glutin::MouseScrollDelta::PixelDelta(delta) => delta.into()
                     };
                     events.push(Event::MouseMoved(vector));

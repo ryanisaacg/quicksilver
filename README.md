@@ -38,8 +38,8 @@ impl State for DrawGeometry {
             .with_z(10));
         window.draw(&Sprite::circle(Circle::new(400, 300, 100)).with_color(Color::GREEN()));
         window.draw(&Sprite::line(
-            Vector::new(100, 150),
-            Vector::new(450, 350),
+            (100, 150),
+            (450, 350),
             2.0,
         ));
         window.present()

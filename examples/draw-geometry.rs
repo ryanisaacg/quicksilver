@@ -3,7 +3,7 @@ extern crate quicksilver;
 
 use quicksilver::{
     run, Result, State,
-    geom::{Circle, Rectangle, Vector, Transform, Line, Triangle},
+    geom::{Circle, Rectangle, Transform, Line, Triangle},
     graphics::{Color, Window, WindowBuilder}
 };
 
@@ -20,14 +20,14 @@ impl State for DrawGeometry {
         window.draw_ex(&Rectangle::new(400, 300, 32, 32), Transform::rotate(45), Color::BLUE, 10);
         window.draw_color(&Circle::new(400, 300, 100), Transform::IDENTITY, Color::GREEN);
         window.draw_ex(
-            &Line::newv(Vector::new(50, 80),Vector::new(600, 450)).with_thickness(2.0),
+            &Line::newv((50, 80), (600, 450)).with_thickness(2.0),
             Transform::IDENTITY,
             Color::RED,
             5
         );
         window.draw_color(
             &Triangle::new(500, 50, 450, 100, 650, 150),
-            Transform::rotate(45) * Transform::scale(Vector::new(0.5, 0.5)),
+            Transform::rotate(45) * Transform::scale((0.5, 0.5)),
             Color::RED
         );
         window.present()

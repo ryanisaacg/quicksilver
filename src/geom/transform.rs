@@ -24,12 +24,12 @@ use std::{
 /// that involves rotating a shape 30 degrees and then moving it six units up could be written as
 /// ```no_run
 /// use quicksilver::geom::{Transform, Vector};
-/// let transform = Transform::rotate(30) * Transform::translate(Vector::new(0, -6));
+/// let transform = Transform::rotate(30) * Transform::translate((0, -6));
 /// ```
 /// and then applied to a Vector
 /// ```no_run
 /// # use quicksilver::geom::{Transform, Vector};
-/// # let transform  = Transform::rotate(30) * Transform::translate(Vector::new(0, -6));
+/// # let transform  = Transform::rotate(30) * Transform::translate((0, -6));
 /// transform * Vector::new(5, 5)
 /// # ;
 /// ```
@@ -42,7 +42,7 @@ impl Transform {
                   [0f32, 0f32, 1f32]]);
 
     ///Create a rotation transformation
-    pub fn rotate<T: Scalar>(angle: T) -> Transform {
+    pub fn rotate(angle: impl Scalar) -> Transform {
         let angle = angle.float();
         let c = (angle * PI / 180f32).cos();
         let s = (angle * PI / 180f32).sin();
@@ -52,14 +52,16 @@ impl Transform {
     }
 
     ///Create a translation transformation
-    pub fn translate(vec: Vector) -> Transform {
+    pub fn translate<V: Into<Vector>>(vec: V) -> Transform {
+        let vec = vec.into();
         Transform([[1f32, 0f32, vec.x],
                   [0f32, 1f32, vec.y],
                   [0f32, 0f32, 1f32]])
     }
 
     ///Create a scale transformation
-    pub fn scale(vec: Vector) -> Transform {
+    pub fn scale<V: Into<Vector>>(vec: V) -> Transform {
+        let vec = vec.into();
         Transform([[vec.x, 0f32, 0f32],
                   [0f32, vec.y, 0f32],
                   [0f32, 0f32, 1f32]])
@@ -80,9 +82,9 @@ impl Transform {
     /// A transform's inverse will cancel it out when multplied with it, as seen below:
     /// ```
     /// # use quicksilver::geom::{Transform, Vector};
-    /// let transform = Transform::translate(Vector::new(4, 5));
+    /// let transform = Transform::translate((4, 5));
     /// let inverse = transform.inverse();
-    /// let vector = Vector::new(10, 10);
+    /// let vector: Vector = (10, 10).into();
     /// assert_eq!(vector, transform * inverse * vector);
     /// assert_eq!(vector, inverse * transform * vector);
     /// ```
@@ -131,10 +133,10 @@ impl Mul<Vector> for Transform {
     type Output = Vector;
 
     fn mul(self, other: Vector) -> Vector {
-        Vector::new(
+        (
             other.x * self.0[0][0] + other.y * self.0[0][1] + self.0[0][2],
             other.x * self.0[1][0] + other.y * self.0[1][1] + self.0[1][2],
-        )
+        ).into()
     }
 }
 
@@ -245,7 +247,7 @@ mod tests {
 
     #[test]
     fn complex_inverse() {
-        let a = Transform::rotate(5f32) * Transform::scale(Vector::new(0.2, 1.23)) *
+        let a = Transform::rotate(5f32) * Transform::scale((0.2, 1.23)) *
             Transform::translate(Vector::ONE * 100f32);
         let a_inv = a.inverse();
         let vec = Vector::new(120f32, 151f32);
