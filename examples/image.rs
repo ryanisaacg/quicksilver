@@ -2,43 +2,29 @@
 extern crate quicksilver;
 
 use quicksilver::{
-    Async, Future, Result, State, run,
-    geom::Vector,
-    graphics::{Color, Image, ImageLoader, Sprite, Window, WindowBuilder}
+    run, Asset, Result, State,
+    geom::{Transform, Vector},
+    graphics::{Color, Image, Window, WindowBuilder}
 };
 
-enum ImageViewer {
-    Loading(ImageLoader),
-    Loaded(Image)
+struct ImageViewer {
+    asset: Asset<Image>,
 }
 
 impl State for ImageViewer {
-    fn new() -> Result<ImageViewer> { 
-        Ok(ImageViewer::Loading(Image::load("examples/assets/image.png")))
+    fn new() -> Result<ImageViewer> {
+        let asset = Asset::new(Image::load("examples/assets/image.png"));
+        Ok(ImageViewer { asset })
     }
 
-   fn update(&mut self, _: &mut Window) -> Result<()> {
-       // Check to see the progress of the loading image
-       let result = match self {
-           &mut ImageViewer::Loading(ref mut loader) => loader.poll().unwrap(),
-           _ => Async::NotReady
-       };
-       // If the image has been loaded move to the loaded state
-       if let Async::Ready(asset) = result {
-           *self = ImageViewer::Loaded(asset);
-       }
-       Ok(())
-   }
-
-   fn draw(&mut self, window: &mut Window) -> Result<()> {
-        window.clear(Color::white());
-        // If the image is loaded draw it
-        if let &mut ImageViewer::Loaded(ref image) = self {
-            window.draw(&Sprite::image(image, Vector::new(400, 300)));
-        }
-        window.present();
-        Ok(())
-   }
+    fn draw(&mut self, window: &mut Window) -> Result<()> {
+        window.clear(Color::WHITE)?;
+        self.asset.execute(|image| {
+            window.draw(image, Transform::translate(Vector::new(400, 300)));
+            Ok(())
+        })?;
+        window.present()
+    }
 }
 
 fn main() {

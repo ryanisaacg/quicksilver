@@ -3,6 +3,7 @@
 ## In-development
 
 - Add new methods of initializing fonts `Font::from_slice` and `Font::from_bytes` using byte sequences
+- [Breaking] Add more fields to `Error`, and add a Result alias to make error bubbling more convenient
 - [Breaking] Renamed type `Draw` to `Sprite` (and updated the readme accordingly)
 - [Breaking] Renamed type `QuicksilverError` to `Error`
 - [Breaking] Added `SaveError`, a new error type
@@ -10,9 +11,17 @@
 - Added a Result type alias
 - [Breaking] Added a Result return to all of the State methods
 - [Breaking] Move the Font parameters into their own structure
+- [Breaking] Split the Sprite into Drawable and DrawAttributes objects, with convenient function overloads
+- [Breaking] Remove the Loader types in favor of a new Asset type
+- Implemented `Line` as drawable object
+- Implemented `Triangle` as drawable object
+- Added `distance` method to `Vector`
+- Fixed bug with Windows not scaling the viewport by DPI
+- Fixed bug with macOS not letterboxing correctly
 - Dependencies
     - Versions
         - alga: ``0.5 -> 0.6``
+        - glutin: ``0.16 -> 0.17``
         - nalgebra: ``0.14 -> 0.15.1``
         - ncollide2d ``0.15 -> 0.16.0``
     - Highlights

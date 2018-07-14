@@ -10,7 +10,7 @@ pub struct View {
 impl View {
     ///Create a new view that looks at a given area
     pub fn new(world: Rectangle) -> View {
-        View::new_transformed(world, Transform::identity())
+        View::new_transformed(world, Transform::IDENTITY)
     }
    
     ///Create a new view that looks at a given area with a transform

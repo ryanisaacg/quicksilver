@@ -4,6 +4,7 @@
 };
 
 use geom::{about_equal, Positioned, Rectangle, Scalar};
+use graphics::{DrawAttributes, Drawable, Window};
 use rand::{
     Rng,
     distributions::{Distribution, Standard}
@@ -13,6 +14,8 @@ use std::{
     cmp::{Eq, PartialEq},
     fmt
 };
+#[cfg(not(target_arch = "wasm32"))]
+use glutin::dpi::{LogicalPosition, PhysicalPosition, LogicalSize, PhysicalSize};
 
 #[derive(Copy, Clone, Default, Debug, Deserialize, Serialize)]
 ///A 2D vector with an arbitrary numeric type
@@ -83,6 +86,11 @@ impl Vector {
             max_bound.y.min(min_bound.y.max(self.y)),
         )
     }
+    
+    ///Constrain a vector within a Rectangle
+    pub fn constrain(self, bounds: Rectangle) -> Vector {
+        self.clamp(bounds.top_left(), bounds.top_left() + bounds.size())
+    }
 
     ///Get the cross product of a vector
     pub fn cross(self, other: Vector) -> f32 {
@@ -127,6 +135,11 @@ impl Vector {
     ///Create a vector with the same angle and the given length
     pub fn with_len(self, length: f32) -> Vector {
         self.normalize() * length
+    }
+
+    ///Get the Euclidean distance to another vector
+    pub fn distance(self, other: Vector) -> f32 {
+        ((other.x - self.x).powi(2) + (other.y - self.y).powi(2)).sqrt()
     }
 }
 
@@ -246,6 +259,67 @@ impl From<Point2<f32>> for Vector {
     }
 }
 
+#[cfg(not(target_arch = "wasm32"))]
+impl From<Vector> for LogicalPosition {
+    fn from(other: Vector) -> LogicalPosition {
+        LogicalPosition::new(other.x as f64, other.y as f64)
+    }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+impl From<Vector> for PhysicalPosition {
+    fn from(other: Vector) -> PhysicalPosition {
+        PhysicalPosition::new(other.x as f64, other.y as f64)
+    }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+impl From<LogicalPosition> for Vector {
+    fn from(other: LogicalPosition) -> Vector {
+        Vector::new(other.x as f32, other.y as f32)
+    }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+impl From<PhysicalPosition> for Vector {
+    fn from(other: PhysicalPosition) -> Vector {
+        Vector::new(other.x as f32, other.y as f32)
+    }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+impl From<Vector> for LogicalSize {
+    fn from(other: Vector) -> LogicalSize {
+        LogicalSize::new(other.x as f64, other.y as f64)
+    }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+impl From<Vector> for PhysicalSize {
+    fn from(other: Vector) -> PhysicalSize {
+        PhysicalSize::new(other.x as f64, other.y as f64)
+    }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+impl From<LogicalSize> for Vector {
+    fn from(other: LogicalSize) -> Vector {
+        Vector::new(other.width as f32, other.height as f32)
+    }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+impl From<PhysicalSize> for Vector {
+    fn from(other: PhysicalSize) -> Vector {
+        Vector::new(other.width as f32, other.height as f32)
+    }
+}
+
+impl Drawable for Vector {
+    fn draw(&self, window: &mut Window, params: DrawAttributes) {
+        Rectangle::newv(*self, Vector::one()).draw(window, params);
+    }
+}
 
 #[cfg(test)]
 mod tests {
@@ -318,5 +392,16 @@ mod tests {
         assert_eq!(a.angle(), 0.0);
         assert_eq!(b.angle(), 90.0);
         assert_eq!(c.angle(), 45.0);
+    }
+
+    #[test]
+    fn distance() {
+        let a = Vector::x();
+        let b = Vector::y();
+        let c = a + b;
+        assert_eq!(a.distance(a), 0.0);
+        assert_eq!(a.distance(Vector::zero()), 1.0);
+        assert_eq!(b.distance(a), 2_f32.sqrt());
+        assert_eq!(c.distance(Vector::zero()), 2_f32.sqrt());
     }
 }

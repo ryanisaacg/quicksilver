@@ -1,4 +1,5 @@
 use geom::{Circle, Positioned, Rectangle, Vector};
+use graphics::{DrawAttributes, Drawable, Window};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize, Serialize)]
 ///A universal shape union
@@ -79,6 +80,16 @@ impl Positioned for Shape {
 
     fn bounding_box(&self) -> Rectangle {
         self.as_positioned().bounding_box()
+    }
+}
+
+impl Drawable for Shape {
+    fn draw(&self, window: &mut Window, params: DrawAttributes) {
+        match self {
+            Shape::Circle(this) => this as &Drawable,
+            Shape::Rectangle(this) => this as &Drawable,
+            Shape::Vector(this) => this as &Drawable,
+        }.draw(window, params);
     }
 }
 

@@ -2,46 +2,35 @@
 extern crate futures;
 extern crate quicksilver;
 
-use futures::{Async, Future};
+use futures::future::result;
 use quicksilver::{
-    Result, State, run,
-    geom::Vector,
-    graphics::{Color, Font, FontLoader, FontStyle, Image, Sprite, Window, WindowBuilder}
+    run, Asset, Future, Result, State, 
+    geom::{Vector, Transform},
+    graphics::{Color, Font, FontStyle, Image, Window, WindowBuilder}
 };
 
-enum SampleText {
-    Loading(FontLoader),
-    Loaded(Image)
+struct SampleText {
+    asset: Asset<Image>,
 }
 
 impl State for SampleText {
-    fn new() -> Result<SampleText> { 
-        Ok(SampleText::Loading(Font::load("examples/assets/font.ttf")))
+    fn new() -> Result<SampleText> {
+        let asset = Asset::new(Font::load("examples/assets/font.ttf")
+            .and_then(|font| {
+                let style = FontStyle::new(72.0, Color::BLACK);
+                result(font.render("Sample Text", style))
+            }));
+        Ok(SampleText { asset })
     }
 
-   fn update(&mut self, _: &mut Window) -> Result<()> {
-       // Check to see the progress of the loading font 
-       let result = match self {
-           &mut SampleText::Loading(ref mut loader) => loader.poll().unwrap(),
-           _ => Async::NotReady
-       };
-       // If the image has been loaded move to the loaded state
-       if let Async::Ready(font) = result {
-           let style = FontStyle::new(72.0, Color::black());
-           *self = SampleText::Loaded(font.render("Sample Text", style));
-       }
-       Ok(())
-   }
-
-   fn draw(&mut self, window: &mut Window) -> Result<()> {
-        window.clear(Color::white());
-        // If the image is loaded draw it
-        if let &mut SampleText::Loaded(ref image) = self {
-            window.draw(&Sprite::image(image, Vector::new(400, 300)));
-        }
-        window.present();
-        Ok(())
-   }
+    fn draw(&mut self, window: &mut Window) -> Result<()> {
+        window.clear(Color::WHITE)?;
+        self.asset.execute(|image| {
+            window.draw(image, Transform::translate(Vector::new(400, 300)));
+            Ok(())
+        })?;
+        window.present()
+    }
 }
 
 fn main() {
