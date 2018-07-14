@@ -180,15 +180,15 @@ impl<T: Clone> Tilemap<T> {
     ///Find the furthest a shape can move along a vector, and what its future speed should be
     pub fn move_until_contact(&self, bounds: Shape, speed: Vector) -> (Shape, Vector) {
         let rectangle = Shape::Rectangle(bounds.bounding_box());
-        let attempt = Vector::zero();
+        let attempt = Vector::ZERO;
         let slide_x = |diff: f32, mut attempt: Vector| {
-            while diff.abs() > 0.0 && (attempt.x + diff).abs() <= speed.x.abs() && self.shape_empty(rectangle.translate(attempt + Vector::x() * diff)) {
+            while diff.abs() > 0.0 && (attempt.x + diff).abs() <= speed.x.abs() && self.shape_empty(rectangle.translate(attempt + Vector::X * diff)) {
                 attempt.x += diff;
             }
             attempt
         };
         let slide_y = |diff: f32, mut attempt: Vector| {
-            while diff.abs() > 0.0 && (attempt.y + diff).abs() <= speed.y.abs() && self.shape_empty(rectangle.translate(attempt + Vector::y() * diff)) {
+            while diff.abs() > 0.0 && (attempt.y + diff).abs() <= speed.y.abs() && self.shape_empty(rectangle.translate(attempt + Vector::Y * diff)) {
                 attempt.y += diff;
             }
             attempt
@@ -232,7 +232,7 @@ mod tests {
     #[test]
     fn tile_values() {
         let map = setup();
-        assert!(match map.get(Vector::x() * -1) {
+        assert!(match map.get(Vector::X * -1) {
             None => true,
             _ => false,
         });
@@ -258,7 +258,7 @@ mod tests {
                 Rectangle::new(300, 5, 32, 32),
                 Vector::new(0, -10),
                 Vector::new(300, 0),
-                Vector::zero(),
+                Vector::ZERO,
             ),
             (
                 Rectangle::new(80, 10, 16, 16),
@@ -280,39 +280,39 @@ mod tests {
             ),
             (
                 Rectangle::new(5, 5, 10, 10),
-                Vector::x() * -7.2,
+                Vector::X * -7.2,
                 Vector::new(0, 5),
-                Vector::zero(),
+                Vector::ZERO,
             ),
             (
                 Rectangle::new(0, 0, 30, 30),
-                Vector::x() * 2,
+                Vector::X * 2,
                 Vector::new(2, 0),
-                Vector::x() * 2,
+                Vector::X * 2,
             ),
             (
                 Rectangle::new(0, 0, 30, 30),
-                Vector::x() * 100,
-                Vector::x() * 100,
-                Vector::x() * 100,
+                Vector::X * 100,
+                Vector::X * 100,
+                Vector::X * 100,
             ),
             (
                 Rectangle::new(0, 0, 30, 30),
-                Vector::y() * 100,
-                Vector::y() * 100,
-                Vector::y() * 100,
+                Vector::Y * 100,
+                Vector::Y * 100,
+                Vector::Y * 100,
             ),
             (
                 Rectangle::new(150, 0, 30, 30),
-                Vector::x() * -100,
-                Vector::x() * 50,
-                Vector::x() * -100,
+                Vector::X * -100,
+                Vector::X * 50,
+                Vector::X * -100,
             ),
             (
                 Rectangle::new(0, 150, 30, 30),
-                Vector::y() * -200,
-                Vector::zero(),
-                Vector::zero(),
+                Vector::Y * -200,
+                Vector::ZERO,
+                Vector::ZERO,
             ),
         ];
         for case in test_cases.iter() {

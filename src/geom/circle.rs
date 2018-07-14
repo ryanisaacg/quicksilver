@@ -97,7 +97,7 @@ impl Drawable for Circle {
     fn draw(&self, window: &mut Window, params: DrawAttributes) {
         let transform = Transform::translate(self.center())
             * params.transform
-            * Transform::scale(Vector::one() * self.radius);
+            * Transform::scale(Vector::ONE * self.radius);
         let vertices = CIRCLE_POINTS
             .iter()
             .map(|point| Vertex::new_untextured(transform * point.clone(), params.color));

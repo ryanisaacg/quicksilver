@@ -138,9 +138,9 @@ impl WindowBuilder {
                 keys: [ButtonState::NotPressed; 256],
             },
             mouse: Mouse {
-                pos: Vector::zero(),
+                pos: Vector::ZERO,
                 buttons: [ButtonState::NotPressed; 3],
-                wheel: Vector::zero(),
+                wheel: Vector::ZERO,
             },
             view,
             backend: unsafe { BackendImpl::new(self.scale)? },
@@ -180,9 +180,9 @@ impl WindowBuilder {
                 keys: [ButtonState::NotPressed; 256],
             },
             mouse: Mouse {
-                pos: Vector::zero(),
+                pos: Vector::ZERO,
                 buttons: [ButtonState::NotPressed; 3],
-                wheel: Vector::zero(),
+                wheel: Vector::ZERO,
             },
             view,
             backend: unsafe { BackendImpl::new(self.scale)? },
