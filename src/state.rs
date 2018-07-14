@@ -139,7 +139,7 @@ fn run_impl<T: State>(builder: WindowBuilder) -> Result<()> {
             .borrow_mut()
             .event_buffer
             .push(Event::MouseWheel(
-                (x as f32, y as f32) * if mode != 0 { LINES_TO_PIXELS } else { 1.0 },
+                Vector::new(x as f32, y as f32) * if mode != 0 { LINES_TO_PIXELS } else { 1.0 },
             ));
     };
     js! {
