@@ -1,5 +1,3 @@
-extern crate futures;
-
 use {Result, load_file};
 use error::QuicksilverError;
 use futures::{Future, future};

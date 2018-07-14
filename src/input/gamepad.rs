@@ -1,8 +1,5 @@
 #[cfg(all(not(any(target_arch="wasm32", target_os="macos")), feature = "gamepads"))]
-extern crate gilrs;
-
-#[cfg(all(not(any(target_arch="wasm32", target_os="macos")), feature = "gamepads"))]
-use gilrs::Button;
+use gilrs::{self, Button};
 
 #[cfg(target_arch="wasm32")]
 use stdweb::web::Gamepad as WebGamepad;
@@ -245,7 +242,7 @@ const GAMEPAD_BUTTON_LIST: &[GamepadButton] = &[
 ];
 
 #[cfg(all(not(any(target_arch="wasm32", target_os="macos")), feature = "gamepads"))]
-const GILRS_GAMEPAD_LIST: &[gilrs::Button] = &[
+const GILRS_GAMEPAD_LIST: &[Button] = &[
     Button::South,
     Button::East,
     Button::North,
