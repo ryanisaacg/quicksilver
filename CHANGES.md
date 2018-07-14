@@ -18,6 +18,7 @@
 - Added `distance` method to `Vector`
 - Fixed bug with Windows not scaling the viewport by DPI
 - Fixed bug with macOS not letterboxing correctly
+- Mark some functions #[must_use]
 - Dependencies
     - Versions
         - alga: ``0.5 -> 0.6``
