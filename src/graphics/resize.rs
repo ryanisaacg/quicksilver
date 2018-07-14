@@ -15,17 +15,18 @@ pub enum ResizeStrategy {
 
 impl ResizeStrategy {
     ///Calculate the content offset and the content size
-    pub(crate) fn resize(self, old_size: Vector, new_size: Vector) -> Rectangle {
-        let content_area = match self {
-            ResizeStrategy::Maintain => old_size,
-            ResizeStrategy::Stretch => new_size,
-            ResizeStrategy::Fill | ResizeStrategy::Fit => {
+    pub(crate) fn resize<V1: Into<Vector>, V2: Into<Vector>>(self, old_size: V1, new_size: V2) -> Rectangle {
+        let (old_size, new_size) = (old_size.into(), new_size.into());
+        let content_area: Vector = match self {
+            ResizeStrategy::Maintain                    => old_size,
+            ResizeStrategy::Stretch                     => new_size,
+            ResizeStrategy::Fill | ResizeStrategy::Fit  => {
                 let target_ratio = old_size.x / old_size.y; 
                 let window_ratio = new_size.x / new_size.y;
                 if (self == ResizeStrategy::Fill) == (window_ratio < target_ratio) {
-                    Vector::new(target_ratio * new_size.y, new_size.y)
+                    (target_ratio * new_size.y, new_size.y).into()
                 } else {
-                    Vector::new(new_size.x, new_size.x / target_ratio)
+                    (new_size.x, new_size.x / target_ratio).into()
                 } 
             }
         };

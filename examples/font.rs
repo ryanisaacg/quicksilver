@@ -5,7 +5,7 @@ extern crate quicksilver;
 use futures::future::result;
 use quicksilver::{
     run, Asset, Future, Result, State, 
-    geom::{Vector, Transform},
+    geom::{Transform},
     graphics::{Color, Font, FontStyle, Image, Window, WindowBuilder}
 };
 
@@ -26,7 +26,7 @@ impl State for SampleText {
     fn draw(&mut self, window: &mut Window) -> Result<()> {
         window.clear(Color::WHITE)?;
         self.asset.execute(|image| {
-            window.draw(image, Transform::translate(Vector::new(400, 300)));
+            window.draw(image, Transform::translate((400, 300)));
             Ok(())
         })?;
         window.present()

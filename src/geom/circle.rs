@@ -19,7 +19,7 @@ pub struct Circle {
 
 impl Circle {
     /// Create a new circle with the given dimensions
-    pub fn new<T: Scalar>(x: T, y: T, radius: T) -> Circle {
+    pub fn new(x: impl Scalar, y: impl Scalar, radius: impl Scalar) -> Circle {
         Circle {
             x: x.float(),
             y: y.float(),
@@ -28,7 +28,8 @@ impl Circle {
     }
 
     /// Create a circle with the center as a vector
-    pub fn newv<T: Scalar>(center: Vector, radius: T) -> Circle {
+    pub fn newv<V: Into<Vector>>(center: V, radius: impl Scalar) -> Circle {
+        let center = center.into();
         Circle {
             x: center.x,
             y: center.y,
@@ -38,7 +39,8 @@ impl Circle {
 
     ///Construct a circle from a center and a Ball
     #[cfg(feature="ncollide2d")]
-    pub fn from_ball(center: Vector, ball: Ball<f32>) -> Circle {
+    pub fn from_ball<V: Into<Vector>>(center: V, ball: Ball<f32>) -> Circle {
+        let center = center.into();
         Circle::newv(center, ball.radius())
     }
 
@@ -49,7 +51,8 @@ impl Circle {
     }
 
     /// Check to see if a circle contains a point
-    pub fn contains(self, v: Vector) -> bool {
+    pub fn contains<V: Into<Vector>>(self, v: V) -> bool {
+        let v = v.into();
         (v - self.center()).len2() < self.radius.powi(2)
     }
 
@@ -64,7 +67,8 @@ impl Circle {
     }
 
     ///Translate a circle by a given vector
-    pub fn translate(self, v: Vector) -> Circle {
+    pub fn translate<V: Into<Vector>>(self, v: V) -> Circle {
+        let v = v.into();
         Circle::new(self.x + v.x, self.y + v.y, self.radius)
     }
 
@@ -221,8 +225,8 @@ mod tests {
     #[test]
     fn contains() {
         let circ = Circle::new(0, 0, 10);
-        let vec1 = Vector::new(0, 0);
-        let vec2 = Vector::new(11, 11);
+        let vec1 = (0, 0);
+        let vec2 = (11, 11);
         assert!(circ.contains(vec1));
         assert!(!circ.contains(vec2));
     }

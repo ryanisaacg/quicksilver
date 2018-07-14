@@ -21,7 +21,7 @@ impl View {
                 * Transform::translate(world.size() / 2)
                 * transform
                 * Transform::translate(-world.top_left() - world.size() / 2);
-        let opengl = Transform::scale(Vector::new(2, -2))
+        let opengl = Transform::scale((2, -2))
             * Transform::translate(-Vector::ONE / 2)
             * normalize;
         View { normalize, opengl }
@@ -46,7 +46,7 @@ mod tests {
     #[test]
     fn projection() {
         let view = View::new(Rectangle::new_sized(50, 50));
-        let screen_size = Vector::new(100, 100);
+        let screen_size = (100, 100);
         let unproject = Transform::scale(screen_size) * view.normalize;
         let project = unproject.inverse();
         let screen_bottom = Vector::Y * 100;

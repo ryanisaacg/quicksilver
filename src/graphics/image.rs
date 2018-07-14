@@ -79,7 +79,7 @@ impl Image {
     }
 
     pub(crate) fn source_size(&self) -> Vector {
-        Vector::new(self.source_width(), self.source_height())
+        (self.source_width(), self.source_height()).into()
     }
 
     ///The area of the source image this subimage takes up

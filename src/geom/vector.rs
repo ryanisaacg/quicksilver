@@ -39,7 +39,7 @@ impl Vector {
 
 impl Vector {
     ///Create a new vector
-    pub fn new<T: Scalar>(x: T, y: T) -> Vector {
+    pub fn new(x: impl Scalar, y: impl Scalar) -> Vector {
         Vector { x: x.float(), y: y.float() }
     }
 
@@ -57,7 +57,7 @@ impl Vector {
 
     ///Create a unit vector at a given angle
     pub fn from_angle<T: Scalar>(angle: T) -> Vector {
-        Vector::new(angle.float().to_radians().cos(), angle.float().to_radians().sin())
+        (angle.float().to_radians().cos(), angle.float().to_radians().sin()).into()
     }
 
     ///Get the squared length of the vector (faster than getting the length)
@@ -71,11 +71,13 @@ impl Vector {
     }
 
     ///Clamp a vector somewhere between a minimum and a maximum
-    pub fn clamp(self, min_bound: Vector, max_bound: Vector) -> Vector {
-        Vector::new(
+    pub fn clamp<V: Into<Vector>>(self, min_bound: V, max_bound: V) -> Vector {
+        let min_bound = min_bound.into();
+        let max_bound = max_bound.into();
+        (
             max_bound.x.min(min_bound.x.max(self.x)),
             max_bound.y.min(min_bound.y.max(self.y)),
-        )
+        ).into()
     }
     
     ///Constrain a vector within a Rectangle
@@ -84,12 +86,14 @@ impl Vector {
     }
 
     ///Get the cross product of a vector
-    pub fn cross(self, other: Vector) -> f32 {
+    pub fn cross<V: Into<Vector>>(self, other: V) -> f32 {
+        let other = other.into();
         self.x * other.y - self.y * other.x
     }
 
     ///Get the dot product of a vector
-    pub fn dot(self, other: Vector) -> f32 {
+    pub fn dot<V: Into<Vector>>(self, other: V) -> f32 {
+        let other = other.into();
         self.x * other.x + self.y * other.y
     }
 
@@ -100,22 +104,23 @@ impl Vector {
 
     ///Get only the X component of the Vector, represented as a vector
     pub fn x_comp(self) -> Vector {
-        Vector::new(self.x, 0f32)
+        (self.x, 0f32).into()
     }
 
     ///Get only the Y component of the Vector, represented as a vector
     pub fn y_comp(self) -> Vector {
-        Vector::new(0f32, self.y)
+        (0f32, self.y).into()
     }
 
     ///Get the vector equal to Vector(1 / x, 1 / y)
     pub fn recip(self) -> Vector {
-        Vector::new(self.x.recip(), self.y.recip())
+        (self.x.recip(), self.y.recip()).into()
     }
 
     ///Multiply the components in the matching places
-    pub fn times(self, other: Vector) -> Vector {
-        Vector::new(self.x * other.x, self.y * other.y)
+    pub fn times<V: Into<Vector>>(self, other: V) -> Vector {
+        let other = other.into();
+        (self.x * other.x, self.y * other.y).into()
     }
 
     ///Get the angle a vector forms with the positive x-axis, counter clockwise
@@ -129,7 +134,8 @@ impl Vector {
     }
 
     ///Get the Euclidean distance to another vector
-    pub fn distance(self, other: Vector) -> f32 {
+    pub fn distance<V: Into<Vector>>(self, other: V) -> f32 {
+        let other = other.into();
         ((other.x - self.x).powi(2) + (other.y - self.y).powi(2)).sqrt()
     }
 }
@@ -138,7 +144,7 @@ impl Neg for Vector {
     type Output = Vector;
 
     fn neg(self) -> Vector {
-        Vector::new(-self.x, -self.y)
+        (-self.x, -self.y).into()
     }
 }
 
@@ -175,7 +181,7 @@ impl<T: Scalar> Div<T> for Vector {
 
     fn div(self, rhs: T) -> Vector {
         let rhs = rhs.float();
-        Vector::new(self.x / rhs, self.y / rhs)
+        (self.x / rhs, self.y / rhs).into()
     }
 }
 
@@ -191,7 +197,7 @@ impl<T: Scalar> Mul<T> for Vector {
 
     fn mul(self, rhs: T) -> Vector {
         let rhs = rhs.float();
-        Vector::new(self.x * rhs, self.y * rhs)
+        (self.x * rhs, self.y * rhs).into()
     }
 }
 
@@ -239,14 +245,14 @@ impl Positioned for Vector {
 #[cfg(feature="nalgebra")]
 impl From<Vector2<f32>> for Vector {
     fn from(other: Vector2<f32>) -> Vector {
-        Vector::new(other.x, other.y)
+        (other.x, other.y).into()
     }
 }
 
 #[cfg(feature="nalgebra")]
 impl From<Point2<f32>> for Vector {
     fn from(other: Point2<f32>) -> Vector {
-        Vector::new(other.x, other.y)
+        (other.x, other.y).into()
     }
 }
 
@@ -267,14 +273,14 @@ impl From<Vector> for PhysicalPosition {
 #[cfg(not(target_arch = "wasm32"))]
 impl From<LogicalPosition> for Vector {
     fn from(other: LogicalPosition) -> Vector {
-        Vector::new(other.x as f32, other.y as f32)
+        (other.x as f32, other.y as f32).into()
     }
 }
 
 #[cfg(not(target_arch = "wasm32"))]
 impl From<PhysicalPosition> for Vector {
     fn from(other: PhysicalPosition) -> Vector {
-        Vector::new(other.x as f32, other.y as f32)
+        (other.x as f32, other.y as f32).into()
     }
 }
 
@@ -295,7 +301,7 @@ impl From<Vector> for PhysicalSize {
 #[cfg(not(target_arch = "wasm32"))]
 impl From<LogicalSize> for Vector {
     fn from(other: LogicalSize) -> Vector {
-        Vector::new(other.width as f32, other.height as f32)
+        (other.width as f32, other.height as f32).into()
     }
 }
 
@@ -306,11 +312,20 @@ impl From<PhysicalSize> for Vector {
     }
 }
 
+impl<T: Scalar, U: Scalar> From<(T, U)> for Vector {
+    fn from(other: (T, U)) -> Vector {
+        Vector::new(other.0, other.1)
+    }
+}
+
 impl Drawable for Vector {
     fn draw(&self, window: &mut Window, params: DrawAttributes) {
         Rectangle::newv(*self, Vector::ONE).draw(window, params);
     }
 }
+
+
+
 
 #[cfg(test)]
 mod tests {
@@ -318,8 +333,8 @@ mod tests {
 
     #[test]
     fn arithmetic() {
-        let a = Vector::new(5, 10);
-        let b = Vector::new(1, -2);
+        let a: Vector = (5, 10).into();
+        let b: Vector = (1, -2).into();
         assert!((a + b).x == 6f32);
         assert!((a - b).y == 12f32);
     }
@@ -332,7 +347,7 @@ mod tests {
 
     #[test]
     fn inverse() {
-        let vec = Vector::new(3, 5);
+        let vec: Vector = (3, 5).into();
         let inverse = vec.recip();
         assert_eq!(Vector::new(1.0 / 3.0, 1.0 / 5.0), inverse);
     }
@@ -355,9 +370,9 @@ mod tests {
 
     #[test]
     fn clamp() {
-        let min = Vector::new(-10, -2);
-        let max = Vector::new(5, 6);
-        let vec = Vector::new(-11, 3);
+        let min = (-10, -2);
+        let max = (5, 6);
+        let vec: Vector = (-11, 3).into();
         let clamped = vec.clamp(min, max);
         let expected = Vector::new(-10, 3);
         assert_eq!(clamped, expected);
@@ -365,12 +380,12 @@ mod tests {
 
     #[test]
     fn dot() {
-        assert!(about_equal(Vector::new(6, 5).dot(Vector::new(2, -8)), -28f32));
+        assert!(about_equal(Vector::new(6, 5).dot((2, -8)), -28f32));
     }
 
     #[test]
     fn times() {
-        let vec = Vector::new(3, -2);
+        let vec: Vector = (3, -2).into();
         let two = Vector::ONE * 2;
         assert_eq!(vec.times(two), vec * 2);
     }
@@ -394,5 +409,16 @@ mod tests {
         assert_eq!(a.distance(Vector::ZERO), 1.0);
         assert_eq!(b.distance(a), 2_f32.sqrt());
         assert_eq!(c.distance(Vector::ZERO), 2_f32.sqrt());
+    }
+
+    #[test]
+    fn conversion() {
+        let a = Vector::new(2, 3);
+        let b: Vector = (4, 2).into();
+        let c: Vector = (2, 3).into();
+
+        assert_ne!(a, b);
+        assert_eq!(a, c);
+        assert_ne!(b, c);
     }
 }

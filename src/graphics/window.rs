@@ -62,7 +62,8 @@ impl WindowBuilder {
     ///Set the minimum size for the window (no value by default)
     ///
     ///On the web, this does nothing.
-    pub fn with_minimum_size(self, _min_size: Vector) -> WindowBuilder {
+    pub fn with_minimum_size<V: Into<Vector>>(self, _min_size: V) -> WindowBuilder {
+        let _min_size = _min_size.into();
         WindowBuilder {
             #[cfg(not(target_arch = "wasm32"))]
             min_size: Some(_min_size),
@@ -73,7 +74,8 @@ impl WindowBuilder {
     ///Set the maximum size for the window (no value by default)
     ///
     ///On the web, this does nothing.
-    pub fn with_maximum_size(self, _max_size: Vector) -> WindowBuilder {
+    pub fn with_maximum_size<V: Into<Vector>>(self, _max_size: V) -> WindowBuilder {
+        let _max_size = _max_size.into();
         WindowBuilder {
             #[cfg(not(target_arch = "wasm32"))]
             max_size: Some(_max_size),
@@ -110,7 +112,7 @@ impl WindowBuilder {
         let size = if self.fullscreen {
             events.get_primary_monitor().get_dimensions().into()
         } else {
-            Vector::new(self.width, self.height)
+            (self.width, self.height)
         };
         let window = window.with_dimensions(size.into());
         let context = glutin::ContextBuilder::new().with_vsync(true);
@@ -123,7 +125,7 @@ impl WindowBuilder {
             gl_window.hide_cursor(true);
         }
         let screen_region = self.resize.resize(
-            Vector::new(self.width, self.height),
+            (self.width, self.height),
             size,
         );
         let view = View::new(Rectangle::newv_sized(screen_region.size()));
@@ -166,8 +168,8 @@ impl WindowBuilder {
         canvas.set_height(actual_height);
         js! ( @{canvas}.style.cursor = @{self.show_cursor} ? "auto" : "none"; );
         let screen_region = self.resize.resize(
-            Vector::new(self.width, self.height),
-            Vector::new(actual_width, actual_height),
+            (self.width, self.height),
+            (actual_width, actual_height),
         );
         let view = View::new(Rectangle::newv_sized(screen_region.size()));
         let window = Window {
@@ -261,26 +263,20 @@ impl Window {
     }
 
     ///Handle the available size for the window changing
-    pub(crate) fn adjust_size(&mut self, available: Vector) {
+    pub(crate) fn adjust_size<V: Into<Vector>>(&mut self, available: V) {
+        let available = available.into();
         self.screen_region = self.resize.resize(self.screen_region.size(), available);
-        let dpi;
+        unsafe {
+            BackendImpl::viewport(
+                self.screen_region.x as i32,
+                self.screen_region.y as i32,
+                self.screen_region.width as i32,
+                self.screen_region.height as i32,
+            );
+        }
         #[cfg(not(target_arch = "wasm32"))] {
             let size: glutin::dpi::LogicalSize = self.screen_region.size().into();
             self.gl_window.resize(size.to_physical(self.gl_window.get_hidpi_factor()));
-            dpi = self.gl_window.get_hidpi_factor();
-        }
-        #[cfg(target_arch = "wasm32")] {
-            dpi = 1.0;
-        }
-        let position = self.screen_region.top_left() * dpi as f32;
-        let size = self.screen_region.size() * dpi as f32;
-        unsafe {
-            BackendImpl::viewport(
-                position.x as i32,
-                position.y as i32,
-                size.x as i32,
-                size.y as i32,
-            );
         }
     }
 

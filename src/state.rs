@@ -164,7 +164,7 @@ fn run_impl<T: State>(builder: WindowBuilder) -> Result<()> {
     });
 
     handle_event(&canvas, &app, |mut app, event: MouseMoveEvent| {
-        let pointer = Vector::new(event.offset_x() as f32, event.offset_y() as f32);
+        let pointer: Vector = (event.offset_x() as f32, event.offset_y() as f32).into();
         app.event_buffer.push(Event::MouseMoved(pointer));
     });
     handle_event(&canvas, &app, |mut app, event: MouseUpEvent| {

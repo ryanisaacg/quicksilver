@@ -30,6 +30,7 @@
 - Implement `Triangle` as drawable object
 - Add `distance` method to `Vector`
 - [Breaking] Use constants instead of functions for `Vector`s' "presets"
+- Add a conversion function: from tuples of two `Scalar`s to `Vector`s.
 
 ## v0.2.1
 
