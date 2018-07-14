@@ -16,7 +16,6 @@ use {
 };
 #[cfg(not(target_arch="wasm32"))]
 use {
-    Result,
     rodio::{
         self,
         decoder::{Decoder, DecoderError},
