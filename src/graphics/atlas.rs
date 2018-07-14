@@ -1,11 +1,8 @@
-extern crate futures;
-
+use {Result, load_file};
 use error::QuicksilverError;
-use futures::{Async, Future, Poll};
-use futures::future::{JoinAll, join_all};
+use futures::{Future, future};
 use geom::{Positioned, Rectangle, Vector};
-use graphics::{Image, ImageLoader, ImageError};
-use FileLoader;
+use graphics::{Image, ImageError};
 use std::{
     cmp::Ordering,
     collections::HashMap,
@@ -13,7 +10,7 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
     io::Error as IOError,
     num::ParseIntError,
-    path::Path,
+    path::{Path, PathBuf},
     str::{FromStr, ParseBoolError}
 };
 
@@ -37,10 +34,58 @@ pub struct Atlas {
 
 impl Atlas {
     /// Load an atlas at a given path
-    pub fn load<'a, P: 'static + AsRef<Path>>(path: P) -> AtlasLoader {
-        AtlasLoader(Box::new(FileLoader::load(path.as_ref())
-            .and_then(|data| parse(data, path))
-            .map(create)))
+    pub fn load<'a, P: 'static + AsRef<Path>>(path: P) -> impl Future<Item = Atlas, Error = QuicksilverError> {
+        load_file(PathBuf::from(path.as_ref()))
+            .map(move |data| {
+                let path = path.as_ref();
+
+                let data = match String::from_utf8(data) {
+                    Ok(string) => string,
+                    Err(_) => return Err(AtlasError::ParseError("Failed to parse provided file as UTF8 text").into())
+                };
+
+                let mut lines = data.lines();
+                let mut images = Vec::new();
+                let mut regions = Vec::new();
+                let directory: &Path = if let Some(parent) = path.parent() { parent } else { path.as_ref() };
+                while let Some(line) = lines.next() {
+                    use std::path::PathBuf;
+                    //Create a path relative to the atlas location
+                    let path: PathBuf = [directory, &Path::new(line)].iter().collect();
+                    images.push(Image::load(path));
+                    //Skip some lines the loader doesn't use
+                    for _ in 0..4 {
+                        getval(&mut lines)?;
+                    }
+                    //Parse each region
+                    while let Some(line) = lines.next() {
+                        //If there's an empty line, move onto a different page
+                        if line.len() == 0 { break; }
+                        let name = line.to_owned();
+                        let mut rotate = get_values_from_line(getval(&mut lines)?)?;
+                        let mut xy = get_values_from_line::<i32>(getval(&mut lines)?)?;
+                        let mut size = get_values_from_line(getval(&mut lines)?)?;
+                        let mut line = getval(&mut lines)?;
+                        while !line.contains("orig") {
+                            line = getval(&mut lines)?;
+                        } 
+                        let mut orig = get_values_from_line::<i32>(line)?;
+                        let mut offset = get_values_from_line::<i32>(getval(&mut lines)?)?;
+                        let index = getval(&mut get_values_from_line(getval(&mut lines)?)?)??;
+                        let rotate = getval(&mut rotate)??;
+                        let region = Rectangle::new(getval(&mut xy)??, getval(&mut xy)??, getval(&mut size)??, getval(&mut size)??);
+                        let original_size = Vector::new(getval(&mut orig)??, getval(&mut orig)??);
+                        let offset = Vector::new(getval(&mut offset)??, getval(&mut offset)??);
+                        let center = region.center() + (original_size - region.size() - offset.x_comp() + offset.y_comp());
+                        let image = images.len() - 1;
+                        regions.push(Region { image, name, region, rotate, center, index });
+                    }
+                }
+                Ok((future::join_all(images), regions))
+            })
+            .and_then(future::result)
+            .and_then(|(image_loader, regions)| image_loader.map(|images| (images, regions)))
+            .map(create)
     }
 
     /// Get an image or animation with a given name
@@ -49,34 +94,23 @@ impl Atlas {
     }
 }
 
-type ManifestContents = Result<(JoinAll<Vec<ImageLoader>>, Vec<Region>), &'static str>;
-struct ManifestLoader(ManifestContents);
-
-/// A Future to load an Atlas
-pub struct AtlasLoader(Box<Future<Item=Atlas, Error=QuicksilverError>>);
-
-impl Future for ManifestLoader {
-    type Item = (Vec<Image>, Vec<Region>);
-    type Error = QuicksilverError;
-
-    fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
-        match self.0 {
-            Ok(ref mut item) => match item.0.poll() {
-                Ok(Async::Ready(images)) => Ok(Async::Ready((images, item.1.clone()))),
-                Ok(Async::NotReady) => Ok(Async::NotReady),
-                Err(err) => Err(err.into())
-            }
-            Err(err) => Err(AtlasError::ParseError(err).into())
-        }
-    }
+// Split a line into its right-hand values
+fn get_values_from_line<'a, T: FromStr>(line: &'a str) -> Result<impl 'a + Iterator<Item = Result<T>>> {
+    let mut split = line.split(": ");
+    // Discard the name label
+    getval(&mut split)?;
+    Ok(getval(&mut split)?.split(", ").map(|item| match item.parse() {
+        Ok(item) => Ok(item),
+        Err(_) => Err(AtlasError::ParseError("Failed to parse item in manifest").into())
+    }))
 }
 
-impl Future for AtlasLoader {
-    type Item = Atlas;
-    type Error = QuicksilverError;
-
-    fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
-        self.0.poll()
+// Get a value from the iterator (repackages Iterator::next into a Result rather than an
+// Option)
+fn getval<T>(lines: &mut impl Iterator<Item = T>) -> Result<T> {
+    match lines.next() {
+        Some(val) => Ok(val),
+        None => Err(AtlasError::ParseError("Unexpected end of data").into())
     }
 }
 
@@ -116,75 +150,6 @@ fn create(data: (Vec<Image>, Vec<Region>)) -> Atlas {
     Atlas { data }
 }
 
-// Parse a manifest file into a future to load the contents of the atlas
-fn parse<P: AsRef<Path>>(data: Vec<u8>, path: P) -> ManifestLoader {
-    return ManifestLoader(parse_body(data, path.as_ref())); 
-    fn parse_body(data: Vec<u8>, path: &Path) -> ManifestContents {
-        let data = match String::from_utf8(data) {
-            Ok(string) => string,
-            Err(_) => return Err("Failed to parse provided file as UTF8 text")
-        };
-
-        // Split a line into its right-hand values
-        fn get_values_from_line<'a, T: FromStr>(line: &'a str) -> Result<impl 'a + Iterator<Item = Result<T, &'static str>>, &'static str> {
-            let mut split = line.split(": ");
-            // Discard the name label
-            getval(&mut split)?;
-            Ok(getval(&mut split)?.split(", ").map(|item| match item.parse() {
-                Ok(item) => Ok(item),
-                Err(_) => Err("Failed to parse value in manifest")
-            }))
-        }
-
-        // Get a value from the iterator (repackages Iterator::next into a Result rather than an
-        // Option)
-        fn getval<T>(lines: &mut impl Iterator<Item = T>) -> Result<T, &'static str> {
-            match lines.next() {
-                Some(val) => Ok(val),
-                None => Err("Unexpected end of data")
-            }
-        }
-
-        let mut lines = data.lines();
-        let mut images = Vec::new();
-        let mut regions = Vec::new();
-        let directory: &Path = if let Some(parent) = path.parent() { parent } else { path.as_ref() };
-        while let Some(line) = lines.next() {
-            use std::path::PathBuf;
-            //Create a path relative to the atlas location
-            let path: PathBuf = [directory, &Path::new(line)].iter().collect();
-            images.push(Image::load(path));
-            //Skip some lines the loader doesn't use
-            for _ in 0..4 {
-                getval(&mut lines)?;
-            }
-            //Parse each region
-            while let Some(line) = lines.next() {
-                //If there's an empty line, move onto a different page
-                if line.len() == 0 { break; }
-                let name = line.to_owned();
-                let mut rotate = get_values_from_line(getval(&mut lines)?)?;
-                let mut xy = get_values_from_line::<i32>(getval(&mut lines)?)?;
-                let mut size = get_values_from_line(getval(&mut lines)?)?;
-                let mut line = getval(&mut lines)?;
-                while !line.contains("orig") {
-                    line = getval(&mut lines)?;
-                } 
-                let mut orig = get_values_from_line::<i32>(line)?;
-                let mut offset = get_values_from_line::<i32>(getval(&mut lines)?)?;
-                let index = getval(&mut get_values_from_line(getval(&mut lines)?)?)??;
-                let rotate = getval(&mut rotate)??;
-                let region = Rectangle::new(getval(&mut xy)??, getval(&mut xy)??, getval(&mut size)??, getval(&mut size)??);
-                let original_size = Vector::new(getval(&mut orig)??, getval(&mut orig)??);
-                let offset = Vector::new(getval(&mut offset)??, getval(&mut offset)??);
-                let center = region.center() + (original_size - region.size() - offset.x_comp() + offset.y_comp());
-                let image = images.len() - 1;
-                regions.push(Region { image, name, region, rotate, center, index });
-            }
-        }
-        Ok((join_all(images), regions))
-    }
-}
 
 
 #[derive(Clone, Debug)]

@@ -3,12 +3,8 @@
 //! On the desktop, currently all sounds are loaded into memory, but streaming sounds may be
 //! introduced in the future. On the web, it can be different from browser to browser
 
-extern crate futures;
-#[cfg(not(target_arch="wasm32"))]
-extern crate rodio;
-
 use error::QuicksilverError;
-use futures::{Async, Future, Poll};
+use futures::{Future, future};
 use std::{
     error::Error,
     fmt,
@@ -17,21 +13,21 @@ use std::{
 };
 #[cfg(not(target_arch="wasm32"))]
 use {
+    Result,
     rodio::{
-        Decoder, 
-        Source,
-        decoder::DecoderError,
-        source::{SamplesConverter, Amplify},
+        self,
+        decoder::{Decoder, DecoderError},
+        source::{SamplesConverter, Source,Amplify},
     },
     std::{
         fs::File,
-        io::{BufReader, Cursor, Read},
-        path::PathBuf,
+        io::{Cursor, Read},
         sync::Arc
     }
 };
 #[cfg(target_arch="wasm32")]
 use {
+    futures::Async,
     std::io::ErrorKind,
     stdweb::{
         unstable::TryInto,
@@ -56,22 +52,35 @@ pub struct Sound {
 
 impl Sound {
     /// Start loading a sound from a given path
-    pub fn load<P: AsRef<Path>>(path: P) -> SoundLoader {
-        Sound::load_impl(path)
+    pub fn load(path: impl AsRef<Path>) -> impl Future<Item = Sound, Error = QuicksilverError> {
+        Sound::load_impl(path.as_ref())
     }
 
     #[cfg(not(target_arch="wasm32"))]
-    fn load_impl<P: AsRef<Path>>(path: P) -> SoundLoader {
-        SoundLoader {
-            path: PathBuf::from(path.as_ref())
-        }
+    fn load_impl(path: &Path) -> impl Future<Item = Sound, Error = QuicksilverError> {
+        future::result(load(path))
     }
 
     #[cfg(target_arch="wasm32")]
-    fn load_impl<P: AsRef<Path>>(path: P) -> SoundLoader {
-        let sound = js! ( new Audio(@{path.as_ref().to_str().unwrap()}); );
-        let sound = sound.try_into().unwrap();
-        SoundLoader { sound }
+    fn load_impl(path: &Path) -> impl Future<Item = Sound, Error = QuicksilverError> {
+        let sound = js! ( new Audio(@{path.to_str().unwrap()}); );
+        let sound: Reference = sound.try_into().unwrap();
+        future::poll_fn(move || {
+            if js! ( @{&sound}.networkState == 3 ).try_into().unwrap() {
+                let error = IOError::new(ErrorKind::NotFound, "Sound not found");
+                let error = SoundError::IOError(error);
+                let error = QuicksilverError::SoundError(error);
+                Err(error)
+            } else if js! ( @{&sound}.readyState == 4).try_into().unwrap() {
+                let sound = sound.clone();
+                Ok(Async::Ready(Sound {
+                    sound,
+                    volume: 1f32
+                }))
+            } else {
+                Ok(Async::NotReady)
+            }
+        })
     }
     
 
@@ -124,48 +133,17 @@ impl Sound {
     }
 }
 
-/// A future for loading images
-pub struct SoundLoader { 
-    #[cfg(not(target_arch="wasm32"))]
-    path: PathBuf,
-    #[cfg(target_arch="wasm32")]
-    sound: Reference
-}
-
-impl Future for SoundLoader {
-    type Item = Sound;
-    type Error = QuicksilverError;
-
-    #[cfg(not(target_arch="wasm32"))]
-    fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
-        let mut bytes = Vec::new();
-        BufReader::new(File::open(&self.path)?).read_to_end(&mut bytes)?;
-        let val = Arc::new(bytes);
-        let sound = Sound {
-            val,
-            volume: 1f32
-        };
-        Decoder::new(Cursor::new(sound.clone()))?;
-        Ok(Async::Ready(sound))
-    }
-
-    #[cfg(target_arch="wasm32")]
-    fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
-        if js! ( @{&self.sound}.networkState == 3 ).try_into().unwrap() {
-            let error = IOError::new(ErrorKind::NotFound, "Sound not found");
-            let error = SoundError::IOError(error);
-            let error = QuicksilverError::SoundError(error);
-            Err(error)
-        } else if js! ( @{&self.sound}.readyState == 4).try_into().unwrap() {
-            let sound = self.sound.clone();
-            Ok(Async::Ready(Sound {
-                sound,
-                volume: 1f32
-            }))
-        } else {
-            Ok(Async::NotReady)
-        }
-    }
+#[cfg(not(target_arch="wasm32"))]
+fn load(path: &Path) -> Result<Sound> {
+    let mut bytes = Vec::new();
+    File::open(path)?.read_to_end(&mut bytes)?;
+    let val = Arc::new(bytes);
+    let sound = Sound {
+        val,
+        volume: 1f32
+    };
+    Decoder::new(Cursor::new(sound.clone()))?;
+    Ok(sound)
 }
 
 #[doc(hidden)]

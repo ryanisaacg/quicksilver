@@ -34,12 +34,12 @@ impl Line {
 
     ///Create a line starting at the origin with a given length on the x axis
     pub fn new_sized<T: Scalar>(length: T) -> Line {
-        Line::newv(Vector::zero(), Vector::new(length.float(), 0.0))
+        Line::newv(Vector::ZERO, Vector::new(length.float(), 0.0))
     }
 
     ///Create a line starting at the origin and ending on the given point
     pub fn newv_sized(end: Vector) -> Line {
-        Line::newv(Vector::zero(), end)
+        Line::newv(Vector::ZERO, end)
     }
 
     ///Check if a point falls on the line
@@ -233,7 +233,7 @@ mod tests {
 
     #[test]
     fn translate() {
-        let line = Line::newv_sized(Vector::one()).translate(Vector::new(3, 5));
+        let line = Line::newv_sized(Vector::ONE).translate(Vector::new(3, 5));
         assert_eq!(line.a.x, 3.0);
         assert_eq!(line.a.y, 5.0);
         assert_eq!(line.b.x, 4.0);

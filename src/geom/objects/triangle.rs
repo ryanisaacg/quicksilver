@@ -198,7 +198,7 @@ mod tests {
 
     #[test]
     fn translate() {
-        let triangle = Triangle::new(0, 0, 1, 0, 0, 1).translate(Vector::one());
+        let triangle = Triangle::new(0, 0, 1, 0, 0, 1).translate(Vector::ONE);
         assert_eq!(triangle, Triangle::new(1, 1, 2, 1, 1, 2));
     }
 

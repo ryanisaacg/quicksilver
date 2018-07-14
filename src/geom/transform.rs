@@ -204,12 +204,13 @@ impl From<Matrix3<f32>> for Transform {
 
 #[cfg(test)]
 mod tests {
+    extern crate alga;
     use super::*;
 
     #[test]
     fn inverse() {
         let vec = Vector::new(2, 4);
-        let translate = Transform::scale(Vector::one() * 0.5);
+        let translate = Transform::scale(Vector::ONE * 0.5);
         let inverse = translate.inverse();
         let transformed = inverse * vec;
         let expected = vec * 2;
@@ -218,7 +219,7 @@ mod tests {
 
     #[test]
     fn scale() {
-        let trans = Transform::scale(Vector::one() * 2);
+        let trans = Transform::scale(Vector::ONE * 2);
         let vec = Vector::new(2, 5);
         let scaled = trans * vec;
         let expected = vec * 2;
@@ -229,7 +230,7 @@ mod tests {
     fn translate() {
         let translate = Vector::new(3, 4);
         let trans = Transform::translate(translate);
-        let vec = Vector::one();
+        let vec = Vector::ONE;
         let translated = trans * vec;
         let expected = vec + translate;
         assert_eq!(translated, expected);
@@ -237,8 +238,8 @@ mod tests {
 
     #[test]
     fn identity() {
-        let trans = Transform::IDENTITY * Transform::translate(Vector::zero()) *
-            Transform::rotate(0f32) * Transform::scale(Vector::one());
+        let trans = Transform::IDENTITY * Transform::translate(Vector::ZERO) *
+            Transform::rotate(0f32) * Transform::scale(Vector::ONE);
         let vec = Vector::new(15, 12);
         assert_eq!(vec, trans * vec);
     }
@@ -246,7 +247,7 @@ mod tests {
     #[test]
     fn complex_inverse() {
         let a = Transform::rotate(5f32) * Transform::scale(Vector::new(0.2, 1.23)) *
-            Transform::translate(Vector::one() * 100f32);
+            Transform::translate(Vector::ONE * 100f32);
         let a_inv = a.inverse();
         let vec = Vector::new(120f32, 151f32);
         assert_eq!(vec, a * a_inv * vec);
@@ -256,7 +257,7 @@ mod tests {
     #[test]
     #[cfg(feature="nalgebra")]
     fn conversion() {
-        use alga::linear::Transformation;
+        use self::alga::linear::Transformation;
         let transform = Transform::rotate(5);
         let vector = Vector::new(1, 2);
         let na_matrix = transform.into_matrix();

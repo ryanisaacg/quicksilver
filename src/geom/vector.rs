@@ -27,26 +27,17 @@ pub struct Vector {
 }
 
 impl Vector {
-    ///The zero vector
-    pub fn zero() -> Vector {
-        Vector { x: 0f32, y: 0f32 }
-    }
+    /// A vector with x = 0, y = 0
+    pub const ZERO: Vector = Vector { x: 0f32, y: 0f32 };
+    /// A vector with x = 1, y = 0
+    pub const X: Vector    = Vector { x: 1f32, y: 0f32 };
+    /// A vector with x = 0, y = 1
+    pub const Y: Vector    =  Vector { x: 0f32, y: 1f32 };
+    /// A vector with x = 1, y = 1
+    pub const ONE: Vector  =  Vector { x: 1f32, y: 1f32 };
+}
 
-    ///A vector with x = 1f32, y = 0f32
-    pub fn x() -> Vector {
-        Vector { x: 1f32, y: 0f32 }
-    }
-
-    ///A vector with x = 0f32, y = 1f32
-    pub fn y() -> Vector {
-        Vector { x: 0f32, y: 1f32 }
-    }
-
-    ///A vector with x = 1f32, y = 1f32
-    pub fn one() -> Vector {
-        Vector { x: 1f32, y: 1f32 }
-    }
-
+impl Vector {
     ///Create a new vector
     pub fn new<T: Scalar>(x: T, y: T) -> Vector {
         Vector { x: x.float(), y: y.float() }
@@ -241,7 +232,7 @@ impl Positioned for Vector {
     }
     
     fn bounding_box(&self) -> Rectangle {
-        Rectangle::newv(*self, Vector::zero())
+        Rectangle::newv(*self, Vector::ZERO)
     }
 }
 
@@ -317,7 +308,7 @@ impl From<PhysicalSize> for Vector {
 
 impl Drawable for Vector {
     fn draw(&self, window: &mut Window, params: DrawAttributes) {
-        Rectangle::newv(*self, Vector::one()).draw(window, params);
+        Rectangle::newv(*self, Vector::ONE).draw(window, params);
     }
 }
 
@@ -348,7 +339,7 @@ mod tests {
 
     #[test]
     fn length() {
-        let vec = Vector::x() * 5;
+        let vec = Vector::X * 5;
         assert!(about_equal(vec.len2(), 25f32));
         assert!(about_equal(vec.len(), 5f32));
     }
@@ -380,14 +371,14 @@ mod tests {
     #[test]
     fn times() {
         let vec = Vector::new(3, -2);
-        let two = Vector::one() * 2;
+        let two = Vector::ONE * 2;
         assert_eq!(vec.times(two), vec * 2);
     }
 
     #[test]
     fn angle() {
-        let a = Vector::x();
-        let b = Vector::y();
+        let a = Vector::X;
+        let b = Vector::Y;
         let c = a + b;
         assert_eq!(a.angle(), 0.0);
         assert_eq!(b.angle(), 90.0);
@@ -396,12 +387,12 @@ mod tests {
 
     #[test]
     fn distance() {
-        let a = Vector::x();
-        let b = Vector::y();
+        let a = Vector::X;
+        let b = Vector::Y;
         let c = a + b;
         assert_eq!(a.distance(a), 0.0);
-        assert_eq!(a.distance(Vector::zero()), 1.0);
+        assert_eq!(a.distance(Vector::ZERO), 1.0);
         assert_eq!(b.distance(a), 2_f32.sqrt());
-        assert_eq!(c.distance(Vector::zero()), 2_f32.sqrt());
+        assert_eq!(c.distance(Vector::ZERO), 2_f32.sqrt());
     }
 }

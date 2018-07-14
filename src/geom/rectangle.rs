@@ -47,7 +47,7 @@ impl Rectangle {
 
     ///Create a rectangle at the origin with a size given by a Vector
     pub fn newv_sized(size: Vector) -> Rectangle {
-        Rectangle::newv(Vector::zero(), size)
+        Rectangle::newv(Vector::ZERO, size)
     }
 
     #[cfg(feature="ncollide2d")]
@@ -148,10 +148,10 @@ impl Drawable for Rectangle {
             * Transform::translate(-self.size() / 2)
             * Transform::scale(self.size());
         let vertices = &[
-            Vertex::new_untextured(trans * Vector::zero(), params.color),
-            Vertex::new_untextured(trans * Vector::x(), params.color),
-            Vertex::new_untextured(trans * Vector::one(), params.color),
-            Vertex::new_untextured(trans * Vector::y(), params.color),
+            Vertex::new_untextured(trans * Vector::ZERO, params.color),
+            Vertex::new_untextured(trans * Vector::X, params.color),
+            Vertex::new_untextured(trans * Vector::ONE, params.color),
+            Vertex::new_untextured(trans * Vector::Y, params.color),
         ];
         let triangles = &[
             GpuTriangle::new_untextured([0, 1, 2], params.z),
