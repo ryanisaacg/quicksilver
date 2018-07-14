@@ -11,10 +11,10 @@
 <!--- You can drag image files into GitHub's edit-window -->
 
 ## Types of changes
-<!--- What types of changes does your code introduce? Put an `x` in all the boxes that apply: -->
-- [ ] Breaking change (fix or feature that would cause existing functionality to change)
-- [ ] New feature (non-breaking change which adds functionality)
-- [ ] Bug fix (non-breaking change which fixes an issue)
+<!--- What types of changes does your code introduce? Remove all those that do not apply -->
+- Breaking change (fix or feature that would cause existing functionality to change)
+- New feature (non-breaking change which adds functionality)
+- Bug fix (non-breaking change which fixes an issue)
 
 ## Checks
 <!--- Go over all the following points, and put an `x` in all the boxes that apply. -->
@@ -27,7 +27,7 @@
 - [ ] I have updated the documentation accordingly if necessary
 
 **Testing**
-- [ ] I have updated / added tests to cover my changes.
+- [ ] I have updated / added tests to cover my changes if necessary
 
 <!-- Remove these checks if this Pull Request does not affect the public API -->
 **If this Pull Request introduces a breaking change**
