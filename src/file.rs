@@ -1,12 +1,19 @@
 //! A collection of general utilities
 
 use error::QuicksilverError;
-use futures::{Async, Future, Poll};
+use futures::{Future, future};
 use std::path::Path;
 #[cfg(not(target_arch="wasm32"))]
-use std::path::PathBuf;
+use {
+    Result,
+    std::{
+        fs::File,
+        io::Read,
+    }
+};
 #[cfg(target_arch="wasm32")]
 use {
+    futures::Async,
     std::{
         error::Error,
         fmt,
@@ -19,33 +26,16 @@ use {
     }
 };
 
-/// A Future that loads a file into an owned Vec of bytes
+/// Create a Future that loads a file into an owned Vec of bytes
 ///
 /// It exists for loading files from the server with Javascript on the web, and providing a unified
 /// API between desktop and the web when it comes to file loading
-#[derive(Debug)]
-pub struct FileLoader {
+pub fn load_file(path: impl AsRef<Path>) -> impl Future<Item = Vec<u8>, Error = QuicksilverError> { 
     #[cfg(not(target_arch="wasm32"))]
-    path: PathBuf, 
-    #[cfg(target_arch="wasm32")]
-    xhr: Value
-}
-
-impl FileLoader {
-    /// Create a FileLoader for a given path
-    pub fn load<P: AsRef<Path>>(path: P) -> FileLoader {
-        FileLoader::new_impl(path)
-    }
-
-    #[cfg(not(target_arch="wasm32"))]
-    fn new_impl<P: AsRef<Path>>(path: P) -> FileLoader {
-        FileLoader {
-            path: PathBuf::from(path.as_ref())
-        }
-    }
+    return future::result(load(path));
     
     #[cfg(target_arch="wasm32")]
-    fn new_impl<P: AsRef<Path>>(path: P) -> FileLoader {
+    return {
         let xhr = js! {
             let xhr = new XMLHttpRequest();
             xhr.open("GET", @{path.as_ref().to_str().unwrap()});
@@ -53,40 +43,30 @@ impl FileLoader {
             xhr.responseType = "arraybuffer";
             return xhr;
         };
-        FileLoader { xhr }
-    }
+        future::poll_fn(move || {
+            let status = js! ( @{&xhr}.status );
+            let status: i32 = status.try_into().unwrap();
+            match status / 100 {
+                0 => Ok(Async::NotReady),
+                2 => {
+                    let response = js! { 
+                        return new Uint8Array(@{&xhr}.response);
+                    };
+                    let response = if let Value::Reference(reference) = response { reference } else { unreachable!() };
+                    let array: TypedArray<u8> = response.downcast().unwrap();
+                    Ok(Async::Ready(array.to_vec()))
+                },
+                _ => Err(IOError::new(ErrorKind::NotFound, Box::new(WasmIOError)).into())
+            }
+        })
+    };
 }
 
-impl Future for FileLoader {
-    type Item = Vec<u8>;
-    type Error = QuicksilverError;
-
-    #[cfg(not(target_arch="wasm32"))]
-    fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
-        use std::fs::File;
-        use std::io::Read;
-        let mut data = Vec::new();
-        File::open(&self.path)?.read_to_end(&mut data)?;
-        Ok(Async::Ready(data))
-    }
-
-    #[cfg(target_arch="wasm32")]
-    fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
-        let status = js! ( @{&self.xhr}.status );
-        let status: i32 = status.try_into().unwrap();
-        match status / 100 {
-            0 => Ok(Async::NotReady),
-            2 => {
-                let response = js! { 
-                    return new Uint8Array(@{&self.xhr}.response);
-                };
-                let response = if let Value::Reference(reference) = response { reference } else { unreachable!() };
-                let array: TypedArray<u8> = response.downcast().unwrap();
-                Ok(Async::Ready(array.to_vec()))
-            },
-            _ => Err(IOError::new(ErrorKind::NotFound, Box::new(WasmIOError)).into())
-        }
-    }
+#[cfg(not(target_arch="wasm32"))]
+fn load(path: impl AsRef<Path>) -> Result<Vec<u8>> {
+    let mut data = Vec::new();
+    File::open(path)?.read_to_end(&mut data)?;
+    Ok(data)
 }
 
 #[derive(Debug)]

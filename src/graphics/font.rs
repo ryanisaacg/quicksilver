@@ -2,10 +2,10 @@ extern crate futures;
 extern crate rusttype;
 
 use {
-    FileLoader,
+    load_file,
     Result,
     error::QuicksilverError,
-    futures::{Async, Future, Map, Poll},
+    futures::{Future, future},
     graphics::{Color, Image, PixelFormat},
     rusttype::{Font as RTFont, FontCollection, PositionedGlyph, Scale, point},
     std::path::Path
@@ -16,27 +16,12 @@ pub struct Font {
     data: RTFont<'static>
 }
 
-type LoadFunction = fn(Vec<u8>) -> Result<Font>;
-/// A future to load a font
-pub struct FontLoader(Map<FileLoader, LoadFunction>);
-
-impl Future for FontLoader {
-    type Item = Font;
-    type Error = QuicksilverError;
-
-    fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
-        Ok(match self.0.poll()? {
-            Async::Ready(data) => Async::Ready(data?),
-            Async::NotReady => Async::NotReady
-        })
-    }
-}
-
 impl Font {
     /// Load a font at a given file
-    pub fn load<P: AsRef<Path>>(path: P) -> FontLoader {
-        FontLoader(FileLoader::load(path)
-                   .map(parse as LoadFunction))
+    pub fn load(path: impl AsRef<Path>) -> impl Future<Item = Font, Error = QuicksilverError> {
+        load_file(path)
+            .map(Font::from_bytes)
+            .and_then(future::result)
     }
 
     /// Creates font from bytes sequence.
@@ -85,10 +70,6 @@ impl Font {
         }
         Image::from_raw(pixels.as_slice(), width as u32, style.size as u32, PixelFormat::RGBA)
     }
-}
-
-fn parse(data: Vec<u8>) -> Result<Font> {
-    Font::from_bytes(data)
 }
 
 /// The way text should appear on the screen
