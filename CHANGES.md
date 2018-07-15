@@ -30,6 +30,10 @@
 - Implement `Triangle` as drawable object
 - Add `distance` method to `Vector`
 - [Breaking] Use constants instead of functions for `Vector`s' "presets"
+- [Breaking] Remove `Line::new_sized`
+- [Breaking] Remove all the `newv` functions
+- Add a conversion from tuples with two `Scalar`s two `Vector`s
+- [Breaking] Take `Vector`s in any function-argument where sensible (positions and sizes)
 
 ## v0.2.1
 
