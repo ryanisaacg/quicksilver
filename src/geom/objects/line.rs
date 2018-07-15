@@ -15,7 +15,7 @@ pub struct Line {
 
 impl Line {
     ///Create a new line with a start- and an endpoint 
-    pub fn new(start: impl ToVector, end: impl ToVector) -> Line {
+    pub fn new(start: impl Into<Vector>, end: impl Into<Vector>) -> Line {
         Line {
             a: start.into(),
             b: end.into(),
@@ -24,7 +24,7 @@ impl Line {
     }
 
     ///Check if a point falls on the line
-    pub fn contains(self, v: impl ToVector) -> bool {
+    pub fn contains(self, v: impl Into<Vector>) -> bool {
         let v = v.into();
         about_equal(v.distance(self.a) + v.distance(self.b), self.a.distance(self.b))
     }
@@ -90,14 +90,14 @@ impl Line {
 
     ///Translate the line by a given vector
     #[must_use]
-    pub fn translate(self, vec: impl ToVector) -> Line {
+    pub fn translate(self, vec: impl Into<Vector>) -> Line {
         let vec = vec.into();
         Line::new(self.a + vec, self.b + vec)
     }
 
     ///Create a line with the same size at a given center
     #[must_use]
-    pub fn with_center(self, v: impl ToVector) -> Line {
+    pub fn with_center(self, v: impl Into<Vector>) -> Line {
         self.translate(v.into() - self.center())
     }
 

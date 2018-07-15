@@ -17,6 +17,7 @@ use std::{
 #[cfg(not(target_arch = "wasm32"))]
 use glutin::dpi::{LogicalPosition, PhysicalPosition, LogicalSize, PhysicalSize};
 
+
 #[derive(Copy, Clone, Default, Debug, Deserialize, Serialize)]
 ///A 2D vector with an arbitrary numeric type
 pub struct Vector {
@@ -73,7 +74,7 @@ impl Vector {
 
     ///Clamp a vector somewhere between a minimum and a maximum
     #[must_use]
-    pub fn clamp(self, min_bound: impl ToVector, max_bound: impl ToVector) -> Vector {
+    pub fn clamp(self, min_bound: impl Into<Vector>, max_bound: impl Into<Vector>) -> Vector {
         let (min_bound, max_bound) = (min_bound.into(), max_bound.into());
         Vector::new(
             max_bound.x.min(min_bound.x.max(self.x)),
@@ -88,13 +89,13 @@ impl Vector {
     }
 
     ///Get the cross product of a vector
-    pub fn cross(self, other: impl ToVector) -> f32 {
+    pub fn cross(self, other: impl Into<Vector>) -> f32 {
         let other = other.into();
         self.x * other.y - self.y * other.x
     }
 
     ///Get the dot product of a vector
-    pub fn dot(self, other: impl ToVector) -> f32 {
+    pub fn dot(self, other: impl Into<Vector>) -> f32 {
         let other = other.into();
         self.x * other.x + self.y * other.y
     }
@@ -125,7 +126,7 @@ impl Vector {
 
     ///Multiply the components in the matching places
     #[must_use]
-    pub fn times(self, other: impl ToVector) -> Vector {
+    pub fn times(self, other: impl Into<Vector>) -> Vector {
         let other = other.into();
         Vector::new(self.x * other.x, self.y * other.y)
     }
@@ -142,7 +143,7 @@ impl Vector {
     }
 
     ///Get the Euclidean distance to another vector
-    pub fn distance(self, other: impl ToVector) -> f32 {
+    pub fn distance(self, other: impl Into<Vector>) -> f32 {
         let other = other.into();
         ((other.x - self.x).powi(2) + (other.y - self.y).powi(2)).sqrt()
     }

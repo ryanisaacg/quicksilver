@@ -15,7 +15,7 @@ pub struct Triangle {
 
 impl Triangle {
     ///Create a triangle from `Vector`s of all three points
-    pub fn new(a: impl ToVector, b: impl ToVector, c: impl ToVector) -> Triangle {
+    pub fn new(a: impl Into<Vector>, b: impl Into<Vector>, c: impl Into<Vector>) -> Triangle {
         Triangle { 
             a: a.into(),
             b: b.into(),
@@ -24,7 +24,7 @@ impl Triangle {
     }
 
     ///Check if a point is inside the triangle
-    pub fn contains(self, v: impl ToVector) -> bool {
+    pub fn contains(self, v: impl Into<Vector>) -> bool {
         let v = v.into();
         // form three triangles with this new vector
         let t_1 = Triangle::new(v, self.a, self.b);
@@ -74,14 +74,14 @@ impl Triangle {
 
     ///Translate the triangle by a given vector
     #[must_use]
-    pub fn translate(self, v: impl ToVector) -> Triangle {
+    pub fn translate(self, v: impl Into<Vector>) -> Triangle {
         let v = v.into();
         Triangle::new(self.a + v, self.b + v, self.c + v)
     }
 
     ///Create a triangle with the same size at a given center
     #[must_use]
-    pub fn with_center(self, v: impl ToVector) -> Triangle {
+    pub fn with_center(self, v: impl Into<Vector>) -> Triangle {
         self.translate(v.into() - self.center())
     }
 
