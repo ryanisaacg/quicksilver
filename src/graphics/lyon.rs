@@ -1,10 +1,11 @@
 use geom::Vector;
-use graphics::{Color, GpuTriangle, Vertex, Window};
+use graphics::{Color, DrawAttributes, Drawable, GpuTriangle, Vertex, Window};
 use lyon::tessellation::{
     geometry_builder::{Count, GeometryBuilder, VertexId},
     FillVertex, VertexConstructor
 };
 
+/// A way to render complex shapes using the lyon API
 pub struct ShapeRenderer {
     vertices: Vec<Vertex>,
     indices: Vec<GpuTriangle>,
@@ -13,46 +14,48 @@ pub struct ShapeRenderer {
 }
 
 impl ShapeRenderer {
-    pub fn new() -> ShapeRenderer {
+    /// Create a shape renderer with an initial color
+    pub fn new(color: Color) -> ShapeRenderer {
         ShapeRenderer {
             vertices: Vec::new(),
             indices: Vec::new(),
-            color: Color::WHITE,
+            color,
             z: 0.0
         }
     }
 
+    /// Get the current color of the renderer
     pub fn color(&self) -> Color {
         self.color
     }
 
+    /// Set the color of the renderer
     pub fn set_color(&mut self, color: Color) {
         self.color = color;
     }
 
+    /// Get the Z position of the shapes
     pub fn z(&self) -> f32 {
         self.z
     }
 
+    /// Set the Z position of the shapes
     pub fn set_z(&mut self, z: f32) {
         self.z = z;
-    }
-
-    pub fn draw(&self, window: &mut Window) {
-        window.add_vertices(self.vertices.iter().cloned(), self.indices.iter().cloned());
     }
 }
 
 impl<Input> GeometryBuilder<Input> for ShapeRenderer 
         where Color: VertexConstructor<Input, Vertex> {
     fn begin_geometry(&mut self) {
+        println!("pls");
+        //TODO: don't require a drawn between multiple begin
         self.vertices.clear();
         self.indices.clear();
-        self.color = Color::WHITE;
-        self.z = 0.0;
     }
 
     fn end_geometry(&mut self) -> Count {
+        println!("{:?}", self.vertices);
         Count {
             vertices: self.vertices.len() as u32,
             indices: self.indices.len() as u32 * 3
@@ -78,5 +81,25 @@ impl VertexConstructor<FillVertex, Vertex> for Color {
     fn new_vertex(&mut self, vertex: FillVertex) -> Vertex {
         let position = Vector::new(vertex.position.x, vertex.position.y);
         Vertex::new_untextured(position, *self)
+    }
+}
+
+// TODO: document the peculiarites of the draw attributes
+
+impl Drawable for ShapeRenderer {
+    fn draw(&self, window: &mut Window, params: DrawAttributes) {
+        let vertices = self.vertices
+            .iter()
+            .map(|vertex| Vertex::new_untextured(
+                params.transform * vertex.pos,
+                vertex.col.blend(params.color)
+            ));
+        let indices = self.indices
+            .iter()
+            .map(|triangle| GpuTriangle::new_untextured(
+                triangle.indices,
+                triangle.z + params.z
+            ));
+        window.add_vertices(vertices, indices);
     }
 }

@@ -29,4 +29,5 @@ pub use self::{
     window::{Window, WindowBuilder}
 };
 #[cfg(feature="fonts")] pub use self::font::{Font, FontStyle};
+#[cfg(feature="lyon")] pub use self::lyon::ShapeRenderer;
 pub(crate) use self::backend::{Backend, BackendImpl, ImageData, SurfaceData};

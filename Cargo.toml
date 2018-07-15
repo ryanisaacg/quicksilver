@@ -28,7 +28,7 @@ maintenance = { status = "actively-developed" }
 [dependencies]
 futures = "0.1"
 image = "0.19"
-lyon = { version = "0.11", optional = true }
+lyon = { version = "0.11", features = ["extra"], optional = true }
 rand = { version = "0.5.0", features = ["stdweb"] }
 serde = "1.0"
 serde_derive = "1.0"
@@ -80,3 +80,8 @@ required-features = ["collisions"]
 
 [[example]]
 name = "rgb-triangle"
+required-features = []
+
+[[example]]
+name = "lyon"
+required-features = ["complex_shapes"]
