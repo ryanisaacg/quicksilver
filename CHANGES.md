@@ -17,6 +17,7 @@
 - Added `distance` method to `Vector`
 - Fixed bug with Windows not scaling the viewport by DPI
 - Fixed bug with macOS not letterboxing correctly
+- Mark some functions #[must_use]
 - Dependencies
     - Versions
         - alga: ``0.5 -> 0.6``
@@ -30,6 +31,7 @@
 - Implement `Triangle` as drawable object
 - Add `distance` method to `Vector`
 - [Breaking] Use constants instead of functions for `Vector`s' "presets"
+- Add an optional method to `State` to handle error logging
 - [Breaking] Remove `Line::new_sized`
 - [Breaking] Remove all the `newv` functions
 - Add a conversion from tuples with two `Scalar`s two `Vector`s

@@ -186,6 +186,7 @@ impl<T: Clone> Tilemap<T> {
     }
 
     ///Find the furthest a shape can move along a vector, and what its future speed should be
+    #[must_use]
     pub fn move_until_contact<V: Into<Vector>>(&self, bounds: Shape, speed: V) -> (Shape, Vector) {
         let speed = speed.into();
         let rectangle = Shape::Rectangle(bounds.bounding_box());
@@ -245,10 +246,10 @@ mod tests {
             None => true,
             _ => false,
         });
-        assert!(map.get(Vector::new(32, 0)).unwrap().empty);
-        assert!(!map.get(Vector::new(32, 32)).unwrap().empty);
-        assert!(!map.get(Vector::new(32, 32)).unwrap().empty);
-        assert_eq!(map.get(Vector::new(32, 32)).unwrap().value.unwrap(), 5);
+        assert!(map.get(Vector::new(32, 0)).expect("Exists").empty);
+        assert!(!map.get(Vector::new(32, 32)).expect("Exists").empty);
+        assert!(!map.get(Vector::new(32, 32)).expect("Exists").empty);
+        assert_eq!(map.get(Vector::new(32, 32)).expect("Exists").value.expect("Exists"), 5);
     }
 
     #[test]

@@ -47,6 +47,7 @@ impl Shape {
     }
 
     ///Create a shape moved by a given amount
+    #[must_use]
     pub fn translate<V: Into<Vector>>(&self, vec: V) -> Shape {
         let vec: Vector = vec.into();
         match *self {
@@ -57,6 +58,7 @@ impl Shape {
     }
 
     ///Create a copy of the shape with a given center
+    #[must_use]
     pub fn with_center<V: Into<Vector>>(&self, vec: V) -> Shape {
         let vec = vec.into();
         match *self {

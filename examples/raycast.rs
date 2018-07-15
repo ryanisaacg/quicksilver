@@ -139,5 +139,5 @@ impl State for Raycast {
 }
 
 fn main() {
-    run::<Raycast>(WindowBuilder::new("Raycast", (800, 600))).unwrap();
+    run::<Raycast>(WindowBuilder::new("Raycast", (800, 600)));
 }

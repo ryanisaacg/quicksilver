@@ -64,6 +64,7 @@ impl Triangle {
     }
 
     ///Move the triangle so it is entirely contained within a rectangle
+    #[must_use]
     pub fn constrain(self, outer: Rectangle) -> Triangle {
         let mut line = self;
         line = line.translate(line.a.constrain(outer) - line.a);
@@ -72,12 +73,14 @@ impl Triangle {
     }
 
     ///Translate the triangle by a given vector
+    #[must_use]
     pub fn translate<V: Into<Vector>>(self, v: V) -> Triangle {
         let v = v.into();
         Triangle::new(self.a + v, self.b + v, self.c + v)
     }
 
     ///Create a triangle with the same size at a given center
+    #[must_use]
     pub fn with_center<V: Into<Vector>>(self, v: V) -> Triangle {
         self.translate(v.into() - self.center())
     }

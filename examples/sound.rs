@@ -29,7 +29,7 @@ impl State for SoundPlayer {
         self.asset.execute(|sound| {
             if window.mouse()[MouseButton::Left] == ButtonState::Pressed
                 && BUTTON_AREA.contains(window.mouse().pos()) {
-                sound.play();
+                sound.play()?;
             }
             Ok(())
         })
@@ -47,5 +47,5 @@ impl State for SoundPlayer {
 }
 
 fn main() {
-    run::<SoundPlayer>(WindowBuilder::new("Sound Example", (800, 600))).unwrap();
+    run::<SoundPlayer>(WindowBuilder::new("Sound Example", (800, 600)));
 }

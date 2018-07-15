@@ -88,6 +88,7 @@ impl Transform {
     /// assert_eq!(vector, transform * inverse * vector);
     /// assert_eq!(vector, inverse * transform * vector);
     /// ```
+    #[must_use]
     pub fn inverse(&self) -> Transform {
         let det = 
             self.0[0][0] * (self.0[1][1] * self.0[2][2] - self.0[2][1] * self.0[1][2])

@@ -71,6 +71,7 @@ impl Vector {
     }
 
     ///Clamp a vector somewhere between a minimum and a maximum
+    #[must_use]
     pub fn clamp<V1: Into<Vector>, V2: Into<Vector>>(self, min_bound: V1, max_bound: V2) -> Vector {
         let (min_bound, max_bound) = (min_bound.into(), max_bound.into());
         Vector::new(
@@ -80,6 +81,7 @@ impl Vector {
     }
     
     ///Constrain a vector within a Rectangle
+    #[must_use]
     pub fn constrain(self, bounds: Rectangle) -> Vector {
         self.clamp(bounds.top_left(), bounds.top_left() + bounds.size())
     }
@@ -97,26 +99,31 @@ impl Vector {
     }
 
     ///Normalize the vector's length from [0, 1]
+    #[must_use]
     pub fn normalize(self) -> Vector {
         self / self.len()
     }
 
     ///Get only the X component of the Vector, represented as a vector
+    #[must_use]
     pub fn x_comp(self) -> Vector {
         Vector::new(self.x, 0f32)
     }
 
     ///Get only the Y component of the Vector, represented as a vector
+    #[must_use]
     pub fn y_comp(self) -> Vector {
         Vector::new(0f32, self.y)
     }
 
     ///Get the vector equal to Vector(1 / x, 1 / y)
+    #[must_use]
     pub fn recip(self) -> Vector {
         Vector::new(self.x.recip(), self.y.recip())
     }
 
     ///Multiply the components in the matching places
+    #[must_use]
     pub fn times<V: Into<Vector>>(self, other: V) -> Vector {
         let other = other.into();
         Vector::new(self.x * other.x, self.y * other.y)
@@ -128,6 +135,7 @@ impl Vector {
     }
 
     ///Create a vector with the same angle and the given length
+    #[must_use]
     pub fn with_len(self, length: f32) -> Vector {
         self.normalize() * length
     }
