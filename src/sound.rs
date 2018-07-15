@@ -192,7 +192,7 @@ impl Error for SoundError {
         }
     }
 
-    fn cause(&self) -> Option<&Error> {
+    fn cause(&self) -> Option<&dyn Error> {
         match self {
             SoundError::UnrecognizedFormat
                 | SoundError::NoOutputAvailable => None,

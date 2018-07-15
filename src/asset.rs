@@ -4,7 +4,7 @@ use {Async, Future, error::QuicksilverError, Result};
 pub struct Asset<T>(AssetData<T>);
 
 enum AssetData<T> {
-    Loading(Box<Future<Item = T, Error = QuicksilverError>>),
+    Loading(Box<dyn Future<Item = T, Error = QuicksilverError>>),
     Loaded(T)
 }
 

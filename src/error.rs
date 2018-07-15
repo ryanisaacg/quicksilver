@@ -63,7 +63,7 @@ impl Error for QuicksilverError {
         }
     }
 
-    fn cause(&self) -> Option<&Error> {
+    fn cause(&self) -> Option<&dyn Error> {
         match self {
             QuicksilverError::AtlasError(err) => Some(err),
             QuicksilverError::ContextError(_) => None,

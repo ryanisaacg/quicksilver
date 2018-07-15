@@ -31,7 +31,7 @@ pub struct Image {
 
 impl Image {
     pub(crate) fn new(data: ImageData) -> Image {
-        let region = Rectangle::new_sized(data.width, data.height);
+        let region = Rectangle::new_sized((data.width, data.height));
         Image {
             source: Rc::new(data),
             region
@@ -92,11 +92,15 @@ impl Image {
         Image {
             source: self.source.clone(),
             region: Rectangle::new(
-                self.region.x + rect.x,
-                self.region.y + rect.y,
-                rect.width,
-                rect.height,
-            ),
+                (
+                    self.region.pos.x + rect.pos.x,
+                    self.region.pos.y + rect.pos.y
+                ),
+                (
+                    rect.width(),
+                    rect.height()
+                )
+            )
         }
     }
 }
@@ -138,7 +142,7 @@ impl Error for ImageError {
         }
     }
     
-    fn cause(&self) -> Option<&Error> {
+    fn cause(&self) -> Option<&dyn Error> {
         match self {
             &ImageError::DecodingError(ref err) => Some(err),
             &ImageError::IOError(ref err) => Some(err),
