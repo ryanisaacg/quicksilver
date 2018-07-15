@@ -31,7 +31,7 @@ impl State for SoundPlayer {
         self.asset.execute(|sound| {
             if window.mouse()[MouseButton::Left] == ButtonState::Pressed
                 && BUTTON_AREA.contains(window.mouse().pos()) {
-                sound.play();
+                sound.play()?;
             }
             Ok(())
         })
