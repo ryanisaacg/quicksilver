@@ -11,9 +11,10 @@ readme = "README.md"
 repository = "https://github.com/ryanisaacg/quicksilver"
 
 [features]
-default = ["collisions", "fonts", "gamepads", "saving", "sounds"]
+default = ["collisions", "fonts", "gamepads", "complex_shapes", "saving", "sounds"]
 
 collisions = ["nalgebra", "ncollide2d"]
+complex_shapes = ["lyon"]
 fonts = ["rusttype"]
 gamepads = ["gilrs"]
 saving = ["serde_json"]
@@ -27,6 +28,7 @@ maintenance = { status = "actively-developed" }
 [dependencies]
 futures = "0.1"
 image = "0.19"
+lyon = { version = "0.11", optional = true }
 rand = { version = "0.5.0", features = ["stdweb"] }
 serde = "1.0"
 serde_derive = "1.0"

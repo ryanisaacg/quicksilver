@@ -7,6 +7,7 @@ mod backend;
 mod color;
 mod drawable;
 #[cfg(feature="fonts")] mod font;
+#[cfg(feature="lyon")] mod lyon;
 mod image;
 mod resize;
 mod surface;
