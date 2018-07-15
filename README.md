@@ -31,15 +31,15 @@ impl State for DrawGeometry {
 
     fn draw(&mut self, window: &mut Window) -> Result<()> {
         window.clear(Color::BLACK);
-        window.draw(&Sprite::rectangle(Rectangle::new(100, 100, 32, 32)).with_color(Color::BLUE));
-        window.draw(&Sprite::rectangle(Rectangle::new(400, 300, 32, 32))
+        window.draw(&Sprite::rectangle(Rectangle::new((100, 100), (32, 32))).with_color(Color::BLUE));
+        window.draw(&Sprite::rectangle(Rectangle::new((400, 300), (32, 32)))
             .with_color(Color::BLUE)
             .with_transform(Transform::rotate(45))
             .with_z(10));
-        window.draw(&Sprite::circle(Circle::new(400, 300, 100)).with_color(Color::GREEN()));
+        window.draw(&Sprite::circle(Circle::new((400, 300), 100)).with_color(Color::GREEN()));
         window.draw(&Sprite::line(
-            Vector::new(100, 150),
-            Vector::new(450, 350),
+            (100, 150),
+            (450, 350),
             2.0,
         ));
         window.present()
@@ -47,7 +47,7 @@ impl State for DrawGeometry {
 }
 
 fn main() {
-    run::<DrawGeometry>(WindowBuilder::new("Draw Geometry", 800, 600)).unwrap();
+    run::<DrawGeometry>(WindowBuilder::new("Draw Geometry", (800, 600))).unwrap();
 }
 ```
 
