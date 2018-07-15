@@ -28,5 +28,5 @@ impl State for RgbTriangle {
 }
 
 fn main() {
-    run::<RgbTriangle>(WindowBuilder::new("RGB Triangle", 800, 600)).unwrap();
+    run::<RgbTriangle>(WindowBuilder::new("RGB Triangle", (800, 600))).unwrap();
 }

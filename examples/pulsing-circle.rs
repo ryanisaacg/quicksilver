@@ -24,11 +24,11 @@ impl State for PulsingCircle {
     fn draw(&mut self, window: &mut Window) -> Result<()> {
         window.clear(Color::BLACK)?;
         let scale = Transform::scale(Vector::ONE * (1.0 + (self.step.to_radians().sin() / 2.0)));
-        window.draw_color(&Circle::new(400, 300, 50), scale, Color::GREEN);
+        window.draw_color(&Circle::new((400, 300), 50), scale, Color::GREEN);
         window.present()
     }
 }
 
 fn main() {
-    run::<PulsingCircle>(WindowBuilder::new("Pulsing Circle", 800, 600)).unwrap();
+    run::<PulsingCircle>(WindowBuilder::new("Pulsing Circle", (800, 600))).unwrap();
 }

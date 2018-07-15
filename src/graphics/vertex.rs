@@ -17,19 +17,19 @@ pub struct Vertex {
 
 impl Vertex {
     /// Create a new untextured GPU vertex
-    pub fn new_untextured(pos: Vector, col: Color) -> Vertex {
+    pub fn new_untextured<V: Into<Vector>>(pos: V, col: Color) -> Vertex {
         Vertex {
-            pos,
+            pos:     pos.into(),
             tex_pos: None,
             col
         }
     }
 
     /// Create a new textured GPU vertex
-    pub fn new_textured(pos: Vector, tex_pos: Vector, col: Color) -> Vertex {
+    pub fn new_textured<V1: Into<Vector>, V2: Into<Vector>>(pos: V1, tex_pos: V2, col: Color) -> Vertex {
         Vertex {
-            pos,
-            tex_pos: Some(tex_pos),
+            pos:     pos.into(),
+            tex_pos: Some(tex_pos.into()),
             col
         }
     }

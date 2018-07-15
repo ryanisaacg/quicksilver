@@ -71,7 +71,8 @@ impl Vector {
     }
 
     ///Clamp a vector somewhere between a minimum and a maximum
-    pub fn clamp(self, min_bound: Vector, max_bound: Vector) -> Vector {
+    pub fn clamp<V1: Into<Vector>, V2: Into<Vector>>(self, min_bound: V1, max_bound: V2) -> Vector {
+        let (min_bound, max_bound) = (min_bound.into(), max_bound.into());
         Vector::new(
             max_bound.x.min(min_bound.x.max(self.x)),
             max_bound.y.min(min_bound.y.max(self.y)),
@@ -84,12 +85,14 @@ impl Vector {
     }
 
     ///Get the cross product of a vector
-    pub fn cross(self, other: Vector) -> f32 {
+    pub fn cross<V: Into<Vector>>(self, other: V) -> f32 {
+        let other = other.into();
         self.x * other.y - self.y * other.x
     }
 
     ///Get the dot product of a vector
-    pub fn dot(self, other: Vector) -> f32 {
+    pub fn dot<V: Into<Vector>>(self, other: V) -> f32 {
+        let other = other.into();
         self.x * other.x + self.y * other.y
     }
 
@@ -114,7 +117,8 @@ impl Vector {
     }
 
     ///Multiply the components in the matching places
-    pub fn times(self, other: Vector) -> Vector {
+    pub fn times<V: Into<Vector>>(self, other: V) -> Vector {
+        let other = other.into();
         Vector::new(self.x * other.x, self.y * other.y)
     }
 
@@ -129,7 +133,8 @@ impl Vector {
     }
 
     ///Get the Euclidean distance to another vector
-    pub fn distance(self, other: Vector) -> f32 {
+    pub fn distance<V: Into<Vector>>(self, other: V) -> f32 {
+        let other = other.into();
         ((other.x - self.x).powi(2) + (other.y - self.y).powi(2)).sqrt()
     }
 }
@@ -232,7 +237,7 @@ impl Positioned for Vector {
     }
     
     fn bounding_box(&self) -> Rectangle {
-        Rectangle::newv(*self, Vector::ZERO)
+        Rectangle::new(*self, Vector::ZERO)
     }
 }
 
@@ -314,7 +319,7 @@ impl<T: Scalar, U: Scalar> From<(T, U)> for Vector {
 
 impl Drawable for Vector {
     fn draw(&self, window: &mut Window, params: DrawAttributes) {
-        Rectangle::newv(*self, Vector::ONE).draw(window, params);
+        Rectangle::new(*self, Vector::ONE).draw(window, params);
     }
 }
 

@@ -143,7 +143,7 @@ impl Error for SaveError {
         }
     }
 
-    fn cause(&self) -> Option<&Error> {
+    fn cause(&self) -> Option<&dyn Error> {
         match self {
             SaveError::SerdeError(err) => Some(err),
             SaveError::IOError(err) => Some(err),

@@ -52,14 +52,16 @@ impl Transform {
     }
 
     ///Create a translation transformation
-    pub fn translate(vec: Vector) -> Transform {
+    pub fn translate<V: Into<Vector>>(vec: V) -> Transform {
+        let vec = vec.into();
         Transform([[1f32, 0f32, vec.x],
                   [0f32, 1f32, vec.y],
                   [0f32, 0f32, 1f32]])
     }
 
     ///Create a scale transformation
-    pub fn scale(vec: Vector) -> Transform {
+    pub fn scale<V: Into<Vector>>(vec: V) -> Transform {
+        let vec = vec.into();
         Transform([[vec.x, 0f32, 0f32],
                   [0f32, vec.y, 0f32],
                   [0f32, 0f32, 1f32]])
