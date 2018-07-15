@@ -48,7 +48,7 @@ impl<T: Clone> Tilemap<T> {
     pub fn with_data(data: Vec<Tile<T>>, map_size: impl Into<Vector>, tile_size: impl Into<Vector>) -> Tilemap<T> {
         Tilemap { 
             data,
-            map_size:  map_size.into(),
+            map_size: map_size.into(),
             tile_size: tile_size.into()
         }
     }

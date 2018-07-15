@@ -19,7 +19,7 @@ impl Vertex {
     /// Create a new untextured GPU vertex
     pub fn new_untextured(pos: impl Into<Vector>, col: Color) -> Vertex {
         Vertex {
-            pos:     pos.into(),
+            pos: pos.into(),
             tex_pos: None,
             col
         }
@@ -28,7 +28,7 @@ impl Vertex {
     /// Create a new textured GPU vertex
     pub fn new_textured(pos: impl Into<Vector>, tex_pos: impl Into<Vector>, col: Color) -> Vertex {
         Vertex {
-            pos:     pos.into(),
+            pos: pos.into(),
             tex_pos: Some(tex_pos.into()),
             col
         }
