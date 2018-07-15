@@ -127,7 +127,7 @@ pub use timer::Timer;
 /// A Result that returns either success or a Quicksilver Error
 pub type Result<T> = ::std::result::Result<T, Error>;
 /// Necessary types from futures-rs
-pub use futures::{Async, Future};
+pub use futures::{Async, Future, future as combinators};
 
 #[cfg(target_arch = "wasm32")]
 fn get_canvas() -> Result<stdweb::web::html_element::CanvasElement> {
