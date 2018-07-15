@@ -38,14 +38,14 @@ pub struct Tilemap<T: Clone> {
 
 impl<T: Clone> Tilemap<T> {
     ///Create a map full of empty, non-solid tiles of a given size
-    pub fn new<V1: Into<Vector>, V2: Into<Vector>>(map_size: V1, tile_size: V2 ) -> Tilemap<T> {
+    pub fn new(map_size: impl ToVector, tile_size: impl ToVector ) -> Tilemap<T> {
         let (map_size, tile_size) = (map_size.into(), tile_size.into());
         let data = vec![Tile::empty(None);(map_size.x / tile_size.x * map_size.y / tile_size.y) as usize];
         Tilemap { data, map_size, tile_size }
     }
 
     ///Create a map with pre-filled data
-    pub fn with_data<V1: Into<Vector>, V2: Into<Vector>>(data: Vec<Tile<T>>, map_size: V1, tile_size: V2) -> Tilemap<T> {
+    pub fn with_data(data: Vec<Tile<T>>, map_size: impl ToVector, tile_size: impl ToVector) -> Tilemap<T> {
         Tilemap { 
             data,
             map_size:  map_size.into(),
@@ -89,7 +89,7 @@ impl<T: Clone> Tilemap<T> {
     }
 
     ///Check if a point is within the map bounds
-    pub fn valid<V: Into<Vector>>(&self, index: V) -> bool {
+    pub fn valid(&self, index: impl ToVector) -> bool {
         self.region().contains(index.into())
     }
 
@@ -105,7 +105,7 @@ impl<T: Clone> Tilemap<T> {
     }
 
     ///Get the tile found at a given point, if it is valid
-    pub fn get<V: Into<Vector>>(&self, index: V) -> Option<&Tile<T>> {
+    pub fn get(&self, index: impl ToVector) -> Option<&Tile<T>> {
         let index = index.into();
         if self.valid(index) {
             Some(&self.data[self.array_index(index)])
@@ -115,7 +115,7 @@ impl<T: Clone> Tilemap<T> {
     }
 
     ///Get a mutable reference to a tile at a given point, if it is valid
-    pub fn get_mut<V: Into<Vector>>(&mut self, index: V) -> Option<&mut Tile<T>> {
+    pub fn get_mut(&mut self, index: impl ToVector) -> Option<&mut Tile<T>> {
         let index = index.into();
         if self.valid(index) {
             let index = self.array_index(index);
@@ -126,7 +126,7 @@ impl<T: Clone> Tilemap<T> {
     }
 
     ///Set the value at a given point
-    pub fn set<V: Into<Vector>>(&mut self, index: V, value: Tile<T>) {
+    pub fn set(&mut self, index: impl ToVector, value: Tile<T>) {
         let index = index.into();
         match self.get_mut(index) {
             Some(tile) => *tile = value,
@@ -135,7 +135,7 @@ impl<T: Clone> Tilemap<T> {
     }
 
     ///Find if a point's tile is empty
-    pub fn point_empty<V: Into<Vector>>(&self, index: V) -> bool {
+    pub fn point_empty(&self, index: impl ToVector) -> bool {
         match self.get(index.into()) {
             Some(tile) => tile.empty,
             None => false,
@@ -187,7 +187,7 @@ impl<T: Clone> Tilemap<T> {
 
     ///Find the furthest a shape can move along a vector, and what its future speed should be
     #[must_use]
-    pub fn move_until_contact<V: Into<Vector>>(&self, bounds: Shape, speed: V) -> (Shape, Vector) {
+    pub fn move_until_contact(&self, bounds: Shape, speed: impl ToVector) -> (Shape, Vector) {
         let speed = speed.into();
         let rectangle = Shape::Rectangle(bounds.bounding_box());
         let attempt = Vector::ZERO;

@@ -17,7 +17,7 @@ pub struct Circle {
 
 impl Circle {
     /// Create a circle with the center as a vector
-    pub fn new<V: Into<Vector>>(center: V, radius: impl Scalar) -> Circle {
+    pub fn new(center: impl Into<Vector>, radius: impl Scalar) -> Circle {
         Circle {
             pos:    center.into(),
             radius: radius.float()
@@ -26,7 +26,7 @@ impl Circle {
 
     ///Construct a circle from a center and a Ball
     #[cfg(feature="ncollide2d")]
-    pub fn from_ball<V: Into<Vector>>(center: V, ball: Ball<f32>) -> Circle {
+    pub fn from_ball(center: impl Into<Vector>, ball: Ball<f32>) -> Circle {
         Circle::new(center.into(), ball.radius())
     }
 
@@ -37,7 +37,7 @@ impl Circle {
     }
 
     /// Check to see if a circle contains a point
-    pub fn contains<V: Into<Vector>>(self, v: V) -> bool {
+    pub fn contains(self, v: impl Into<Vector>) -> bool {
         (v.into() - self.center()).len2() < self.radius.powi(2)
     }
 
@@ -53,7 +53,7 @@ impl Circle {
 
     ///Translate a circle by a given vector
     #[must_use]
-    pub fn translate<V: Into<Vector>>(self, v: V) -> Circle {
+    pub fn translate(self, v: impl Into<Vector>) -> Circle {
         Circle::new(self.pos + v.into(), self.radius)
     }
 

@@ -17,7 +17,7 @@ pub struct Rectangle {
 
 impl Rectangle {
     ///Create a rectangle from a top-left vector and a size vector
-    pub fn new<V1: Into<Vector>, V2: Into<Vector>>(pos: V1, size: V2) -> Rectangle {
+    pub fn new(pos: impl ToVector, size: impl ToVector) -> Rectangle {
         Rectangle {
             pos:  pos.into(),
             size: size.into()
@@ -25,7 +25,7 @@ impl Rectangle {
     }
 
     ///Create a rectangle at the origin with the given size
-    pub fn new_sized<V: Into<Vector>>(size: V) -> Rectangle {
+    pub fn new_sized(size: impl ToVector) -> Rectangle {
         Rectangle {
             pos:  Vector::ZERO,
             size: size.into()
@@ -34,7 +34,7 @@ impl Rectangle {
 
     #[cfg(feature="ncollide2d")]
     ///Create a rectangle with a given center and Cuboid from ncollide
-    pub fn from_cuboid<V: Into<Vector>>(center: V, cuboid: &Cuboid<f32>) -> Rectangle {
+    pub fn from_cuboid(center: impl ToVector, cuboid: &Cuboid<f32>) -> Rectangle {
         let half_size = cuboid.half_extents().clone().into();
         Rectangle::new(center.into() - half_size, half_size * 2)
     }
@@ -86,7 +86,7 @@ impl Rectangle {
     }
 
     ///Checks if a point falls within the rectangle
-    pub fn contains<V: Into<Vector>>(self, point: V) -> bool {
+    pub fn contains(self, point: impl ToVector) -> bool {
         let p = point.into();
 
         return p.x >= self.x()
@@ -116,13 +116,13 @@ impl Rectangle {
 
     ///Translate the rectangle by a given vector
     #[must_use]
-    pub fn translate<V: Into<Vector>>(self, v: V) -> Rectangle {
+    pub fn translate(self, v: impl ToVector) -> Rectangle {
         Rectangle::new(self.pos + v.into(), self.size)
     }
 
     ///Create a rectangle with the same size at a given center
     #[must_use]
-    pub fn with_center<V: Into<Vector>>(self, v: V) -> Rectangle {
+    pub fn with_center(self, v: impl ToVector) -> Rectangle {
         self.translate(v.into() - self.center())
     }
 }

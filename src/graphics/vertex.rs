@@ -17,7 +17,7 @@ pub struct Vertex {
 
 impl Vertex {
     /// Create a new untextured GPU vertex
-    pub fn new_untextured<V: Into<Vector>>(pos: V, col: Color) -> Vertex {
+    pub fn new_untextured(pos: impl ToVector, col: Color) -> Vertex {
         Vertex {
             pos:     pos.into(),
             tex_pos: None,
@@ -26,7 +26,7 @@ impl Vertex {
     }
 
     /// Create a new textured GPU vertex
-    pub fn new_textured<V1: Into<Vector>, V2: Into<Vector>>(pos: V1, tex_pos: V2, col: Color) -> Vertex {
+    pub fn new_textured(pos: impl ToVector, tex_pos: impl ToVector, col: Color) -> Vertex {
         Vertex {
             pos:     pos.into(),
             tex_pos: Some(tex_pos.into()),

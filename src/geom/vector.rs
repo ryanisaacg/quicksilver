@@ -26,6 +26,7 @@ pub struct Vector {
     pub y: f32,
 }
 
+
 impl Vector {
     /// A vector with x = 0, y = 0
     pub const ZERO: Vector = Vector { x: 0f32, y: 0f32 };
@@ -72,7 +73,7 @@ impl Vector {
 
     ///Clamp a vector somewhere between a minimum and a maximum
     #[must_use]
-    pub fn clamp<V1: Into<Vector>, V2: Into<Vector>>(self, min_bound: V1, max_bound: V2) -> Vector {
+    pub fn clamp(self, min_bound: impl ToVector, max_bound: impl ToVector) -> Vector {
         let (min_bound, max_bound) = (min_bound.into(), max_bound.into());
         Vector::new(
             max_bound.x.min(min_bound.x.max(self.x)),
@@ -87,13 +88,13 @@ impl Vector {
     }
 
     ///Get the cross product of a vector
-    pub fn cross<V: Into<Vector>>(self, other: V) -> f32 {
+    pub fn cross(self, other: impl ToVector) -> f32 {
         let other = other.into();
         self.x * other.y - self.y * other.x
     }
 
     ///Get the dot product of a vector
-    pub fn dot<V: Into<Vector>>(self, other: V) -> f32 {
+    pub fn dot(self, other: impl ToVector) -> f32 {
         let other = other.into();
         self.x * other.x + self.y * other.y
     }
@@ -124,7 +125,7 @@ impl Vector {
 
     ///Multiply the components in the matching places
     #[must_use]
-    pub fn times<V: Into<Vector>>(self, other: V) -> Vector {
+    pub fn times(self, other: impl ToVector) -> Vector {
         let other = other.into();
         Vector::new(self.x * other.x, self.y * other.y)
     }
@@ -141,7 +142,7 @@ impl Vector {
     }
 
     ///Get the Euclidean distance to another vector
-    pub fn distance<V: Into<Vector>>(self, other: V) -> f32 {
+    pub fn distance(self, other: impl ToVector) -> f32 {
         let other = other.into();
         ((other.x - self.x).powi(2) + (other.y - self.y).powi(2)).sqrt()
     }

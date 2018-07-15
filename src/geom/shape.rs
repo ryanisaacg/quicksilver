@@ -28,7 +28,7 @@ impl Shape {
     }
 
     ///Check if the shape contains a vector
-    pub fn contains<V: Into<Vector>>(&self, vec: V) -> bool {
+    pub fn contains(&self, vec: impl ToVector) -> bool {
         let vec = vec.into();
         match *self {
             Shape::Circle(this) => this.contains(vec),
@@ -48,7 +48,7 @@ impl Shape {
 
     ///Create a shape moved by a given amount
     #[must_use]
-    pub fn translate<V: Into<Vector>>(&self, vec: V) -> Shape {
+    pub fn translate(&self, vec: impl ToVector) -> Shape {
         let vec: Vector = vec.into();
         match *self {
             Shape::Circle(this) => Shape::Circle(this.translate(vec)),
@@ -59,7 +59,7 @@ impl Shape {
 
     ///Create a copy of the shape with a given center
     #[must_use]
-    pub fn with_center<V: Into<Vector>>(&self, vec: V) -> Shape {
+    pub fn with_center(&self, vec: impl ToVector) -> Shape {
         let vec = vec.into();
         match *self {
             Shape::Circle(this) => Shape::Circle(Circle::new((vec.x, vec.y), this.radius)),

@@ -30,7 +30,7 @@ pub struct WindowBuilder {
 
 impl WindowBuilder {
     ///Create a default window builder
-    pub fn new<V: Into<Vector>>(title: &'static str, size: V) -> WindowBuilder {
+    pub fn new(title: &'static str, size: impl ToVector) -> WindowBuilder {
         let size = size.into();
         WindowBuilder {
             title,
@@ -63,7 +63,7 @@ impl WindowBuilder {
     ///Set the minimum size for the window (no value by default)
     ///
     ///On the web, this does nothing.
-    pub fn with_minimum_size<V: Into<Vector>>(self, _min_size: V) -> WindowBuilder {
+    pub fn with_minimum_size(self, _min_size: impl ToVector) -> WindowBuilder {
         WindowBuilder {
             #[cfg(not(target_arch = "wasm32"))]
             min_size: Some(_min_size.into()),
@@ -74,7 +74,7 @@ impl WindowBuilder {
     ///Set the maximum size for the window (no value by default)
     ///
     ///On the web, this does nothing.
-    pub fn with_maximum_size<V: Into<Vector>>(self, _max_size: V) -> WindowBuilder {
+    pub fn with_maximum_size(self, _max_size: impl ToVector) -> WindowBuilder {
         WindowBuilder {
             #[cfg(not(target_arch = "wasm32"))]
             max_size: Some(_max_size.into()),
