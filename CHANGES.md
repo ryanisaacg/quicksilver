@@ -32,6 +32,7 @@
 - Add `distance` method to `Vector`
 - [Breaking] Use constants instead of functions for `Vector`s' "presets"
 - Add an optional method to `State` to handle error logging
+- Re-export the `futures::future` module as the `combinators` module
 
 ## v0.2.1
 
