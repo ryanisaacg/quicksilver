@@ -1,13 +1,17 @@
-use geom::Vector;
-use graphics::{
-    backend::{Backend, BlendMode, ImageScaleStrategy, VERTEX_SIZE},
-    Color, GpuTriangle, Image, ImageData, PixelFormat, Surface, SurfaceData, Vertex
-};
-use std::{
-    ffi::CString,
-    mem::size_of,
-    os::raw::c_void,
-    ptr::null
+use {
+    Result,
+    geom::Vector,
+    gl,
+    graphics::{
+        backend::{Backend, BlendMode, ImageScaleStrategy, VERTEX_SIZE},
+        Color, GpuTriangle, Image, ImageData, PixelFormat, Surface, SurfaceData, Vertex
+    },
+    std::{
+        ffi::CString,
+        mem::size_of,
+        os::raw::c_void,
+        ptr::null as nullptr
+    }
 };
 
 pub struct GL3Backend {
@@ -54,40 +58,45 @@ void main() {
 }"#;
 
 impl Backend for GL3Backend {
-    unsafe fn new(texture_mode: ImageScaleStrategy) -> GL3Backend {
+    unsafe fn new(texture_mode: ImageScaleStrategy) -> Result<GL3Backend> {
         let texture_mode = match texture_mode {
             ImageScaleStrategy::Pixelate => gl::NEAREST,
             ImageScaleStrategy::Blur => gl::LINEAR
         };
-        let vao = gl::GenVertexArray();
+        let vao = {
+            let mut array = 0;
+            gl::GenVertexArrays(1, &mut array as *mut u32);
+            array
+        };
         gl::BindVertexArray(vao);
-        let vbo = gl::GenBuffer();
-        let ebo = gl::GenBuffer();
+        let mut buffers = [0, 0];
+        gl::GenBuffers(2, (&mut buffers).as_mut_ptr());
+        let [vbo, ebo] = buffers;
         gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
         gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, ebo);
         gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
         gl::Enable( gl::BLEND );
-        let null = Image::new_null(1, 1, PixelFormat::RGBA);
+        let null = Image::new_null(1, 1, PixelFormat::RGBA)?;
         let texture = null.get_id();
         let vertex = gl::CreateShader(gl::VERTEX_SHADER);
-        let vertex_text = CString::new(DEFAULT_VERTEX_SHADER).unwrap().into_raw();
-        gl::ShaderSource(vertex, vertex_text);
+        let vertex_text: *mut i8 = CString::new(DEFAULT_VERTEX_SHADER).expect("No interior null bytes in shader").into_raw();
+        gl::ShaderSource(vertex, 1, &(vertex_text as *const i8) as *const *const i8, nullptr());
         CString::from_raw(vertex_text);
         gl::CompileShader(vertex);
         let fragment = gl::CreateShader(gl::FRAGMENT_SHADER);
-        let fragment_text = CString::new(DEFAULT_FRAGMENT_SHADER).unwrap().into_raw();
-        gl::ShaderSource(fragment, fragment_text);
+        let fragment_text: *mut i8 = CString::new(DEFAULT_FRAGMENT_SHADER).expect("No interior null bytes in shader").into_raw();
+        gl::ShaderSource(fragment, 1, &(fragment_text as *const i8) as *const *const i8, nullptr());
         CString::from_raw(fragment_text);
         gl::CompileShader(fragment);
         let shader = gl::CreateProgram();
         gl::AttachShader(shader, vertex);
         gl::AttachShader(shader, fragment);
-        let raw = CString::new("out_color").unwrap().into_raw();
+        let raw = CString::new("out_color").expect("No interior null bytes in shader").into_raw();
         gl::BindFragDataLocation(shader, 0, raw as *mut i8);
         CString::from_raw(raw);
         gl::LinkProgram(shader);
         gl::UseProgram(shader);
-        GL3Backend {
+        Ok(GL3Backend {
             texture,
             vertices: Vec::with_capacity(1024),
             indices: Vec::with_capacity(1024), 
@@ -98,7 +107,7 @@ impl Backend for GL3Backend {
             vbo, ebo, vao, 
             texture_location: 0,
             texture_mode
-        }
+        })
     }
     
     unsafe fn clear(&mut self, col: Color) {
@@ -116,12 +125,12 @@ impl Backend for GL3Backend {
         gl::BlendEquationSeparate(gl::FUNC_ADD, gl::FUNC_ADD);
     }
 
-    unsafe fn draw(&mut self, vertices: &[Vertex], triangles: &[GpuTriangle]) {
+    unsafe fn draw(&mut self, vertices: &[Vertex], triangles: &[GpuTriangle]) -> Result<()> {
         // Turn the provided vertex data into stored vertex data
         vertices.iter().for_each(|vertex| {
             self.vertices.push(vertex.pos.x);
             self.vertices.push(vertex.pos.y);
-            let tex_pos = vertex.tex_pos.unwrap_or(Vector::zero());
+            let tex_pos = vertex.tex_pos.unwrap_or(Vector::ZERO);
             self.vertices.push(tex_pos.x);
             self.vertices.push(tex_pos.y);
             self.vertices.push(vertex.col.r);
@@ -135,18 +144,18 @@ impl Backend for GL3Backend {
         if vertex_length > self.vertex_length {
             self.vertex_length = vertex_length * 2;
             // Create strings for all of the shader attributes
-            let position_string = CString::new("position").unwrap().into_raw();
-            let tex_coord_string = CString::new("tex_coord").unwrap().into_raw();
-            let color_string = CString::new("color").unwrap().into_raw();
-            let tex_string = CString::new("tex").unwrap().into_raw();
-            let use_texture_string = CString::new("uses_texture").unwrap().into_raw();
+            let position_string = CString::new("position").expect("No interior null bytes in shader").into_raw();
+            let tex_coord_string = CString::new("tex_coord").expect("No interior null bytes in shader").into_raw();
+            let color_string = CString::new("color").expect("No interior null bytes in shader").into_raw();
+            let tex_string = CString::new("tex").expect("No interior null bytes in shader").into_raw();
+            let use_texture_string = CString::new("uses_texture").expect("No interior null bytes in shader").into_raw();
             // Create the vertex array
-            gl::BufferData(gl::ARRAY_BUFFER, self.vertex_length as isize, null(), gl::STREAM_DRAW);
+            gl::BufferData(gl::ARRAY_BUFFER, self.vertex_length as isize, nullptr(), gl::STREAM_DRAW);
             let stride_distance = (VERTEX_SIZE * size_of::<f32>()) as i32;
             // Set up the vertex attributes
             let pos_attrib = gl::GetAttribLocation(self.shader, position_string as *const i8) as u32;
             gl::EnableVertexAttribArray(pos_attrib);
-            gl::VertexAttribPointer(pos_attrib, 2, gl::FLOAT, gl::FALSE, stride_distance, null());
+            gl::VertexAttribPointer(pos_attrib, 2, gl::FLOAT, gl::FALSE, stride_distance, nullptr());
             let tex_attrib = gl::GetAttribLocation(self.shader, tex_coord_string as *const i8) as u32;
             gl::EnableVertexAttribArray(tex_attrib);
             gl::VertexAttribPointer(tex_attrib, 2, gl::FLOAT, gl::FALSE, stride_distance, (2 * size_of::<f32>()) as *const c_void);
@@ -181,6 +190,7 @@ impl Backend for GL3Backend {
         // Flush any remaining triangles
         self.flush();
         self.vertices.clear();
+        Ok(())
     }
 
     unsafe fn flush(&mut self) {
@@ -190,7 +200,7 @@ impl Backend for GL3Backend {
             let index_data = self.indices.as_ptr() as *const c_void;
             if index_length > self.index_length {
                 self.index_length = index_length * 2;
-                gl::BufferData(gl::ELEMENT_ARRAY_BUFFER, self.index_length as isize, null(), gl::STREAM_DRAW);
+                gl::BufferData(gl::ELEMENT_ARRAY_BUFFER, self.index_length as isize, nullptr(), gl::STREAM_DRAW);
             }
             gl::BufferSubData(gl::ELEMENT_ARRAY_BUFFER, 0, index_length as isize, index_data);
             // Upload the texture to the GPU
@@ -202,19 +212,23 @@ impl Backend for GL3Backend {
             }
             gl::Uniform1i(self.texture_location, 0);
             // Draw the triangles
-            gl::DrawElements(gl::TRIANGLES, self.indices.len() as i32, gl::UNSIGNED_INT, null());
+            gl::DrawElements(gl::TRIANGLES, self.indices.len() as i32, gl::UNSIGNED_INT, nullptr());
             self.indices.clear();
             self.texture = self.null.get_id();
         }
     }
 
-    unsafe fn create_texture(data: &[u8], width: u32, height: u32, format: PixelFormat) -> ImageData where Self: Sized {
-        let data = if data.len() == 0 { null() } else { data.as_ptr() as *const c_void };
+    unsafe fn create_texture(data: &[u8], width: u32, height: u32, format: PixelFormat) -> Result<ImageData> where Self: Sized {
+        let data = if data.len() == 0 { nullptr() } else { data.as_ptr() as *const c_void };
         let format = match format {
             PixelFormat::RGB => gl::RGB as isize,
             PixelFormat::RGBA => gl::RGBA as isize
         };
-        let id = gl::GenTexture();
+        let id = {
+            let mut texture = 0;
+            gl::GenTextures(1, &mut texture as *mut u32);
+            texture
+        };
         gl::BindTexture(gl::TEXTURE_2D, id);
         gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_S, gl::CLAMP_TO_EDGE as i32);
         gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_T, gl::CLAMP_TO_EDGE as i32);
@@ -223,26 +237,30 @@ impl Backend for GL3Backend {
         gl::TexImage2D(gl::TEXTURE_2D, 0, gl::RGBA as i32, width as i32, 
                         height as i32, 0, format as u32, gl::UNSIGNED_BYTE, data);
         gl::GenerateMipmap(gl::TEXTURE_2D);
-        ImageData { id, width, height }
+        Ok(ImageData { id, width, height })
     }
 
     unsafe fn destroy_texture(data: &mut ImageData) where Self: Sized {
-        gl::DeleteTexture(data.id);
+        gl::DeleteTextures(1, &data.id as *const u32);
     }
 
-    unsafe fn create_surface(image: &Image) -> SurfaceData where Self: Sized {
+    unsafe fn create_surface(image: &Image) -> Result<SurfaceData> where Self: Sized {
         let surface = SurfaceData {
-            framebuffer: gl::GenFramebuffer()
+            framebuffer: {
+                let mut buffer = 0;
+                gl::GenFramebuffers(1, &mut buffer as *mut u32);
+                buffer
+            }
         };
         gl::BindFramebuffer(gl::FRAMEBUFFER, surface.framebuffer);
         gl::FramebufferTexture(gl::FRAMEBUFFER, gl::COLOR_ATTACHMENT0, image.get_id(), 0);
-        gl::DrawBuffer(gl::COLOR_ATTACHMENT0);
-        surface
+        gl::DrawBuffers(1, &gl::COLOR_ATTACHMENT0 as *const u32);
+        Ok(surface)
     }
 
     unsafe fn bind_surface(surface: &Surface) -> [i32; 4] where Self: Sized {
         let mut viewport = [0, 0, 0, 0];
-        gl::GetViewport((&mut viewport).as_mut_ptr());
+        gl::GetIntegerv(gl::VIEWPORT, (&mut viewport).as_mut_ptr());
         gl::BindFramebuffer(gl::FRAMEBUFFER, surface.data.framebuffer);
         gl::Viewport(0, 0, surface.image.source_width() as i32, surface.image.source_height() as i32);
         viewport
@@ -254,7 +272,7 @@ impl Backend for GL3Backend {
     }
 
     unsafe fn destroy_surface(surface: &SurfaceData) where Self: Sized {
-        gl::DeleteFramebuffer(surface.framebuffer);
+        gl::DeleteFramebuffers(1, &surface.framebuffer as *const u32);
     }
 
     unsafe fn viewport(x: i32, y: i32, width: i32, height: i32) where Self: Sized {
@@ -268,69 +286,8 @@ impl Drop for GL3Backend {
             gl::DeleteProgram(self.shader);
             gl::DeleteShader(self.fragment);
             gl::DeleteShader(self.vertex);
-            gl::DeleteBuffer(self.vbo);
-            gl::DeleteBuffer(self.ebo);
-            gl::DeleteVertexArray(self.vao);
+            gl::DeleteBuffers(2, &[self.vbo, self.ebo] as *const u32);
+            gl::DeleteVertexArrays(1, &self.vao as *const u32);
         }
     } 
-}
-
-#[allow(non_snake_case)]
-mod gl {
-    extern crate gl;
-
-    pub use gl::*;
-
-    pub unsafe fn GetViewport(target: *mut i32) {
-        gl::GetIntegerv(gl::VIEWPORT, target);
-    }
-
-    pub unsafe fn DrawBuffer(buffer: u32) {
-        gl::DrawBuffers(1, &buffer as *const u32);
-    }
-
-    pub unsafe fn DeleteBuffer(buffer: u32) {
-        gl::DeleteBuffers(1, &buffer as *const u32);
-    }
-
-    pub unsafe fn DeleteFramebuffer(id: u32) {
-        gl::DeleteFramebuffers(1, &id as *const u32);
-    }
-
-    pub unsafe fn DeleteTexture(id: u32) {
-        gl::DeleteTextures(1, &id as *const u32);
-    }
-
-    pub unsafe fn DeleteVertexArray(array: u32) {
-        gl::DeleteVertexArrays(1, &array as *const u32);
-    }
-
-    pub unsafe fn GenBuffer() -> u32 {
-        let mut buffer = 0;
-        gl::GenBuffers(1, &mut buffer as *mut u32);
-        buffer
-    }
-
-    pub unsafe fn GenFramebuffer() -> u32 {
-        let mut buffer = 0;
-        gl::GenFramebuffers(1, &mut buffer as *mut u32);
-        buffer
-    }
-
-    pub unsafe fn GenTexture() -> u32 {
-        let mut texture = 0;
-        gl::GenTextures(1, &mut texture as *mut u32);
-        texture
-    }
-
-    pub unsafe fn GenVertexArray() -> u32 {
-        let mut array = 0;
-        gl::GenVertexArrays(1, &mut array as *mut u32);
-        array
-    }
-
-    pub unsafe fn ShaderSource(shader: u32, string: *const i8) {
-        use std::ptr::null;
-        gl::ShaderSource(shader, 1, &(string) as *const *const i8, null());
-    }
 }

@@ -1,20 +1,21 @@
 // Play a sound when a button is clicked
-extern crate futures;
 extern crate quicksilver;
 
-use quicksilver::{run, Asset, Result, State, geom::Rectangle,
-                  graphics::{Color, Sprite, Window, WindowBuilder},
-                  input::{ButtonState, MouseButton}, sound::Sound};
+use quicksilver::{
+    run, Asset, Result, State,
+    geom::{Rectangle, Transform, Vector},
+    graphics::{Color, Window, WindowBuilder},
+    input::{ButtonState, MouseButton}, 
+    sound::Sound
+};
 
 struct SoundPlayer {
     asset: Asset<Sound>,
 }
 
 const BUTTON_AREA: Rectangle = Rectangle {
-    x: 350.0,
-    y: 250.0,
-    width: 100.0,
-    height: 100.0,
+    pos:  Vector {x: 350.0, y: 250.0},
+    size: Vector {x: 100.0, y: 100.0}
 };
 
 impl State for SoundPlayer {
@@ -26,19 +27,18 @@ impl State for SoundPlayer {
     fn update(&mut self, window: &mut Window) -> Result<()> {
         self.asset.execute(|sound| {
             if window.mouse()[MouseButton::Left] == ButtonState::Pressed
-                && BUTTON_AREA.contains(window.mouse().pos())
-            {
-                sound.play();
+                && BUTTON_AREA.contains(window.mouse().pos()) {
+                sound.play()?;
             }
             Ok(())
         })
     }
 
     fn draw(&mut self, window: &mut Window) -> Result<()> {
-        window.clear(Color::white());
+        window.clear(Color::WHITE)?;
         // If the sound is loaded, draw the button
         self.asset.execute(|_| {
-            window.draw(&Sprite::rectangle(BUTTON_AREA).with_color(Color::blue()));
+            window.draw_color(&BUTTON_AREA, Transform::IDENTITY, Color::BLUE);
             Ok(())
         })?;
         window.present()
@@ -46,5 +46,5 @@ impl State for SoundPlayer {
 }
 
 fn main() {
-    run::<SoundPlayer>(WindowBuilder::new("Sound Example", 800, 600)).unwrap();
+    run::<SoundPlayer>(WindowBuilder::new("Sound Example", (800, 600)));
 }

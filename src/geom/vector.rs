@@ -4,6 +4,7 @@
 };
 
 use geom::{about_equal, Positioned, Rectangle, Scalar};
+use graphics::{DrawAttributes, Drawable, Window};
 use rand::{
     Rng,
     distributions::{Distribution, Standard}
@@ -16,6 +17,7 @@ use std::{
 #[cfg(not(target_arch = "wasm32"))]
 use glutin::dpi::{LogicalPosition, PhysicalPosition, LogicalSize, PhysicalSize};
 
+
 #[derive(Copy, Clone, Default, Debug, Deserialize, Serialize)]
 ///A 2D vector with an arbitrary numeric type
 pub struct Vector {
@@ -25,29 +27,21 @@ pub struct Vector {
     pub y: f32,
 }
 
+
 impl Vector {
-    ///The zero vector
-    pub fn zero() -> Vector {
-        Vector { x: 0f32, y: 0f32 }
-    }
+    /// A vector with x = 0, y = 0
+    pub const ZERO: Vector = Vector { x: 0f32, y: 0f32 };
+    /// A vector with x = 1, y = 0
+    pub const X: Vector    = Vector { x: 1f32, y: 0f32 };
+    /// A vector with x = 0, y = 1
+    pub const Y: Vector    =  Vector { x: 0f32, y: 1f32 };
+    /// A vector with x = 1, y = 1
+    pub const ONE: Vector  =  Vector { x: 1f32, y: 1f32 };
+}
 
-    ///A vector with x = 1f32, y = 0f32
-    pub fn x() -> Vector {
-        Vector { x: 1f32, y: 0f32 }
-    }
-
-    ///A vector with x = 0f32, y = 1f32
-    pub fn y() -> Vector {
-        Vector { x: 0f32, y: 1f32 }
-    }
-
-    ///A vector with x = 1f32, y = 1f32
-    pub fn one() -> Vector {
-        Vector { x: 1f32, y: 1f32 }
-    }
-
+impl Vector {
     ///Create a new vector
-    pub fn new<T: Scalar>(x: T, y: T) -> Vector {
+    pub fn new(x: impl Scalar, y: impl Scalar) -> Vector {
         Vector { x: x.float(), y: y.float() }
     }
 
@@ -79,45 +73,61 @@ impl Vector {
     }
 
     ///Clamp a vector somewhere between a minimum and a maximum
-    pub fn clamp(self, min_bound: Vector, max_bound: Vector) -> Vector {
+    #[must_use]
+    pub fn clamp(self, min_bound: impl Into<Vector>, max_bound: impl Into<Vector>) -> Vector {
+        let (min_bound, max_bound) = (min_bound.into(), max_bound.into());
         Vector::new(
             max_bound.x.min(min_bound.x.max(self.x)),
             max_bound.y.min(min_bound.y.max(self.y)),
         )
     }
+    
+    ///Constrain a vector within a Rectangle
+    #[must_use]
+    pub fn constrain(self, bounds: Rectangle) -> Vector {
+        self.clamp(bounds.top_left(), bounds.top_left() + bounds.size())
+    }
 
     ///Get the cross product of a vector
-    pub fn cross(self, other: Vector) -> f32 {
+    pub fn cross(self, other: impl Into<Vector>) -> f32 {
+        let other = other.into();
         self.x * other.y - self.y * other.x
     }
 
     ///Get the dot product of a vector
-    pub fn dot(self, other: Vector) -> f32 {
+    pub fn dot(self, other: impl Into<Vector>) -> f32 {
+        let other = other.into();
         self.x * other.x + self.y * other.y
     }
 
     ///Normalize the vector's length from [0, 1]
+    #[must_use]
     pub fn normalize(self) -> Vector {
         self / self.len()
     }
 
     ///Get only the X component of the Vector, represented as a vector
+    #[must_use]
     pub fn x_comp(self) -> Vector {
         Vector::new(self.x, 0f32)
     }
 
     ///Get only the Y component of the Vector, represented as a vector
+    #[must_use]
     pub fn y_comp(self) -> Vector {
         Vector::new(0f32, self.y)
     }
 
     ///Get the vector equal to Vector(1 / x, 1 / y)
+    #[must_use]
     pub fn recip(self) -> Vector {
         Vector::new(self.x.recip(), self.y.recip())
     }
 
     ///Multiply the components in the matching places
-    pub fn times(self, other: Vector) -> Vector {
+    #[must_use]
+    pub fn times(self, other: impl Into<Vector>) -> Vector {
+        let other = other.into();
         Vector::new(self.x * other.x, self.y * other.y)
     }
 
@@ -127,8 +137,15 @@ impl Vector {
     }
 
     ///Create a vector with the same angle and the given length
+    #[must_use]
     pub fn with_len(self, length: f32) -> Vector {
         self.normalize() * length
+    }
+
+    ///Get the Euclidean distance to another vector
+    pub fn distance(self, other: impl Into<Vector>) -> f32 {
+        let other = other.into();
+        ((other.x - self.x).powi(2) + (other.y - self.y).powi(2)).sqrt()
     }
 }
 
@@ -230,7 +247,7 @@ impl Positioned for Vector {
     }
     
     fn bounding_box(&self) -> Rectangle {
-        Rectangle::newv(*self, Vector::zero())
+        Rectangle::new(*self, Vector::ZERO)
     }
 }
 
@@ -304,6 +321,17 @@ impl From<PhysicalSize> for Vector {
     }
 }
 
+impl<T: Scalar, U: Scalar> From<(T, U)> for Vector {
+    fn from(other: (T, U)) -> Vector {
+        Vector::new(other.0, other.1)
+    }
+}
+
+impl Drawable for Vector {
+    fn draw(&self, window: &mut Window, params: DrawAttributes) {
+        Rectangle::new(*self, Vector::ONE).draw(window, params);
+    }
+}
 
 #[cfg(test)]
 mod tests {
@@ -332,7 +360,7 @@ mod tests {
 
     #[test]
     fn length() {
-        let vec = Vector::x() * 5;
+        let vec = Vector::X * 5;
         assert!(about_equal(vec.len2(), 25f32));
         assert!(about_equal(vec.len(), 5f32));
     }
@@ -364,17 +392,28 @@ mod tests {
     #[test]
     fn times() {
         let vec = Vector::new(3, -2);
-        let two = Vector::one() * 2;
+        let two = Vector::ONE * 2;
         assert_eq!(vec.times(two), vec * 2);
     }
 
     #[test]
     fn angle() {
-        let a = Vector::x();
-        let b = Vector::y();
+        let a = Vector::X;
+        let b = Vector::Y;
         let c = a + b;
         assert_eq!(a.angle(), 0.0);
         assert_eq!(b.angle(), 90.0);
         assert_eq!(c.angle(), 45.0);
+    }
+
+    #[test]
+    fn distance() {
+        let a = Vector::X;
+        let b = Vector::Y;
+        let c = a + b;
+        assert_eq!(a.distance(a), 0.0);
+        assert_eq!(a.distance(Vector::ZERO), 1.0);
+        assert_eq!(b.distance(a), 2_f32.sqrt());
+        assert_eq!(c.distance(Vector::ZERO), 2_f32.sqrt());
     }
 }

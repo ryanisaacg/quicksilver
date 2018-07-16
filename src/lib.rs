@@ -11,8 +11,11 @@
 //! // Draw some multi-colored geometry to the screen
 //! extern crate quicksilver;
 //! 
-//! use quicksilver::{run, Result, State, geom::{Circle, Rectangle, Transform, Vector},
-//!                   graphics::{Color, Sprite, Window, WindowBuilder}};
+//! use quicksilver::{
+//!     run, Result, State,
+//!     geom::{Circle, Rectangle, Vector, Transform, Line, Triangle},
+//!     graphics::{Color, Window, WindowBuilder}
+//! };
 //! 
 //! struct DrawGeometry;
 //! 
@@ -22,24 +25,27 @@
 //!     }
 //! 
 //!     fn draw(&mut self, window: &mut Window) -> Result<()> {
-//!         window.clear(Color::black());
-//!         window.draw(&Sprite::rectangle(Rectangle::new(100, 100, 32, 32)).with_color(Color::red()));
-//!         window.draw(&Sprite::rectangle(Rectangle::new(400, 300, 32, 32))
-//!             .with_color(Color::blue())
-//!             .with_transform(Transform::rotate(45))
-//!             .with_z(10));
-//!         window.draw(&Sprite::circle(Circle::new(400, 300, 100)).with_color(Color::green()));
-//!         window.draw(&Sprite::line(
-//!             Vector::new(100, 150),
-//!             Vector::new(450, 350),
-//!             2.0,
-//!         ));
+//!         window.clear(Color::BLACK)?;
+//!         window.draw_color(&Rectangle::new((100, 100), (32, 32)), Transform::IDENTITY, Color::BLUE);
+//!         window.draw_ex(&Rectangle::new((400, 300), (32, 32)), Transform::rotate(45), Color::BLUE, 10);
+//!         window.draw_color(&Circle::new((400, 300), 100), Transform::IDENTITY, Color::GREEN);
+//!         window.draw_ex(
+//!             &Line::new(Vector::new(50, 80),Vector::new(600, 450)).with_thickness(2.0),
+//!             Transform::IDENTITY,
+//!             Color::RED,
+//!             5
+//!         );
+//!         window.draw_color(
+//!             &Triangle::new((500, 50), (450, 100), (650, 150)),
+//!             Transform::rotate(45) * Transform::scale((0.5, 0.5)),
+//!             Color::RED
+//!         );
 //!         window.present()
 //!     }
 //! }
 //! 
 //! fn main() {
-//!     run::<DrawGeometry>(WindowBuilder::new("Draw Geometry", 800, 600)).unwrap();
+//!     run::<DrawGeometry>(WindowBuilder::new("Draw Geometry", (800, 600)));
 //! }
 //! ```
 //! Run this with `cargo run` or, if you have the wasm32 toolchain installed, you can build for the web
@@ -61,7 +67,13 @@
 //! Each are enabled by default, but you can [specify which features](https://doc.rust-lang.org/cargo/reference/specifying-dependencies.html#choosing-features) you actually want to use.
 
 #![doc(html_root_url = "https://docs.rs/quicksilver/0.2.0")]
-#![deny(missing_docs)]
+#![deny(
+    bare_trait_object,
+    missing_docs,
+    unused_extern_crates,
+    unused_import_braces,
+    unused_qualifications
+)]
 
 extern crate futures;
 extern crate image;
@@ -81,8 +93,6 @@ extern crate stdweb;
 #[cfg(target_arch = "wasm32")]
 extern crate webgl_stdweb;
 
-#[cfg(feature = "alga")]
-extern crate alga;
 #[cfg(all(feature = "gilrs", not(target_arch = "wasm32")))]
 extern crate gilrs;
 #[cfg(feature = "nalgebra")]
@@ -110,11 +120,33 @@ mod state;
 mod timer;
 pub use asset::Asset;
 pub use error::QuicksilverError as Error;
-pub use file::FileLoader;
+pub use file::load_file;
 pub use state::{run, State};
 pub use timer::Timer;
 
 /// A Result that returns either success or a Quicksilver Error
 pub type Result<T> = ::std::result::Result<T, Error>;
-/// Necessary types from futures-rs
+/// Types that represents a "future" computation, used to load assets
 pub use futures::{Async, Future};
+/// Helpers that allow chaining computations together in a single Future
+///
+/// This allows one Asset object that contains all of the various resources
+/// an application needs to load.
+pub use futures::future as combinators;
+
+#[cfg(target_arch = "wasm32")]
+fn get_canvas() -> Result<stdweb::web::html_element::CanvasElement> {
+    use stdweb::{
+        unstable::TryInto,
+        web::{IParentNode, document, html_element::CanvasElement}
+    };
+    let element = match document().query_selector("#canvas") {
+        Ok(Some(element)) => element,
+        _ => return Err(Error::ContextError("Element with id 'canvas' not found".to_owned()))
+    };
+    let canvas: CanvasElement = match element.try_into() {
+        Ok(canvas) => canvas,
+        _ => return Err(Error::ContextError("Element with id 'canvas' not a CanvasElement".to_owned()))
+    };
+    Ok(canvas)
+}

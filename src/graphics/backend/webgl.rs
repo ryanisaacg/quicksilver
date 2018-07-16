@@ -1,24 +1,21 @@
-use geom::Vector;
-use graphics::{
-    backend::{Backend, BlendMode, ImageData, ImageScaleStrategy, SurfaceData, VERTEX_SIZE},
-    Color, GpuTriangle, Image, PixelFormat, Surface, Vertex
-};
-use std::mem::size_of;
-use stdweb::{
-    web::{
-        document,
-        html_element::CanvasElement,
-        IParentNode,
-        TypedArray
+use {
+    Result, geom::Vector, error::QuicksilverError, 
+    graphics::{
+        backend::{Backend, BlendMode, ImageData, ImageScaleStrategy, SurfaceData, VERTEX_SIZE},
+        Color, GpuTriangle, Image, PixelFormat, Surface, Vertex
     },
-    unstable::{TryInto}
-};
-use webgl_stdweb::{
-    WebGLBuffer,
-    WebGLProgram,
-    WebGL2RenderingContext as gl,
-    WebGLShader,
-    WebGLUniformLocation
+    std::mem::size_of,
+    stdweb::{
+        web::TypedArray,
+        unstable::TryInto
+    },
+    webgl_stdweb::{
+        WebGLBuffer,
+        WebGLProgram,
+        WebGL2RenderingContext as gl,
+        WebGLShader,
+        WebGLUniformLocation
+    }
 };
 
 
@@ -64,36 +61,51 @@ void main() {
 static mut GL_CONTEXT: Option<gl> = None;
 static mut TEXTURE_COUNT: u32 = 0;
 
+fn try_opt<T>(opt: Option<T>, operation: &str) -> Result<T> {
+    match opt {
+        Some(val) => Ok(val),
+        None => {
+            let mut error = String::new();
+            error.push_str("WebGL2 operation failed: ");
+            error.push_str(operation);
+            Err(QuicksilverError::ContextError(error))
+        }
+    }
+}
+
 impl Backend for WebGLBackend {
-    unsafe fn new(texture_mode: ImageScaleStrategy) -> WebGLBackend {
-        let canvas: CanvasElement = document().query_selector("#canvas").unwrap().unwrap().try_into().unwrap();
-        let ctx: gl = canvas.get_context().unwrap();
+    unsafe fn new(texture_mode: ImageScaleStrategy) -> Result<WebGLBackend> {
+        let canvas = ::get_canvas()?;
+        let ctx: gl = match canvas.get_context() {
+            Ok(ctx) => ctx,
+            _ => return Err(QuicksilverError::ContextError("Could not create WebGL2 context".to_owned()))
+        };
         let texture_mode = match texture_mode {
             ImageScaleStrategy::Pixelate => gl::NEAREST,
             ImageScaleStrategy::Blur => gl::LINEAR
         };
-        let vbo = ctx.create_buffer().unwrap();
-        let ebo = ctx.create_buffer().unwrap();
+        let vbo = try_opt(ctx.create_buffer(), "Create vertex buffer")?;
+        let ebo = try_opt(ctx.create_buffer(), "Create index buffer")?;
         ctx.bind_buffer(gl::ARRAY_BUFFER, Some(&vbo));
         ctx.bind_buffer(gl::ELEMENT_ARRAY_BUFFER, Some(&ebo));
         ctx.blend_func(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
         ctx.enable(gl::BLEND);
-        let vertex = ctx.create_shader(gl::VERTEX_SHADER).unwrap();
+        let vertex = try_opt(ctx.create_shader(gl::VERTEX_SHADER), "Create vertex shader")?;
         ctx.shader_source(&vertex, DEFAULT_VERTEX_SHADER);
         ctx.compile_shader(&vertex);
-        let fragment = ctx.create_shader(gl::FRAGMENT_SHADER).unwrap();
+        let fragment = try_opt(ctx.create_shader(gl::FRAGMENT_SHADER), "Create fragment shader")?;
         ctx.shader_source(&fragment, DEFAULT_FRAGMENT_SHADER);
         ctx.compile_shader(&fragment);
-        let shader = ctx.create_program().unwrap();
+        let shader = try_opt(ctx.create_program(), "Create shader program")?;
         ctx.attach_shader(&shader, &vertex);
         ctx.attach_shader(&shader, &fragment);
         ctx.link_program(&shader);
         ctx.use_program(Some(&shader));
         GL_CONTEXT = Some(ctx);
         // GL CALLS ARE ONLY SAFE AFTER THIS POINT
-        let null = Image::new_null(1, 1, PixelFormat::RGBA);
+        let null = Image::new_null(1, 1, PixelFormat::RGBA)?;
         let texture = null.clone();
-        WebGLBackend {
+        Ok(WebGLBackend {
             texture,
             vertices: Vec::with_capacity(1024),
             indices: Vec::with_capacity(1024), 
@@ -103,7 +115,7 @@ impl Backend for WebGLBackend {
             shader, fragment, vertex, vbo, ebo, 
             texture_location: None,
             texture_mode
-        }
+        })
     }
     
     unsafe fn clear(&mut self, col: Color) {
@@ -127,13 +139,13 @@ impl Backend for WebGLBackend {
         }
     }
 
-    unsafe fn draw(&mut self, vertices: &[Vertex], triangles: &[GpuTriangle]) {
+    unsafe fn draw(&mut self, vertices: &[Vertex], triangles: &[GpuTriangle]) -> Result<()> {
         if let Some(ref gl_ctx) = GL_CONTEXT {
             // Turn the provided vertex data into stored vertex data
             vertices.iter().for_each(|vertex| {
                 self.vertices.push(vertex.pos.x);
                 self.vertices.push(vertex.pos.y);
-                let tex_pos = vertex.tex_pos.unwrap_or(Vector::zero());
+                let tex_pos = vertex.tex_pos.unwrap_or(Vector::ZERO);
                 self.vertices.push(tex_pos.x);
                 self.vertices.push(tex_pos.y);
                 self.vertices.push(vertex.col.r);
@@ -162,7 +174,7 @@ impl Backend for WebGLBackend {
                 let use_texture_attrib = gl_ctx.get_attrib_location(&self.shader, "uses_texture") as u32;
                 gl_ctx.enable_vertex_attrib_array(use_texture_attrib);
                 gl_ctx.vertex_attrib_pointer(use_texture_attrib, 1, gl::FLOAT, false, stride_distance, 8 * size_of::<f32>() as i64);
-                self.texture_location = Some(gl_ctx.get_uniform_location(&self.shader, "tex").unwrap());
+                self.texture_location = Some(try_opt(gl_ctx.get_uniform_location(&self.shader, "tex"), "Get texture uniform")?);
             }
             // Upload all of the vertex data
             let array: TypedArray<f32> = self.vertices.as_slice().into();
@@ -182,6 +194,7 @@ impl Backend for WebGLBackend {
             self.flush();
             self.vertices.clear();
         }
+        Ok(())
     }
 
     unsafe fn flush(&mut self) {
@@ -216,7 +229,7 @@ impl Backend for WebGLBackend {
         }
     }
 
-    unsafe fn create_texture(data: &[u8], width: u32, height: u32, format: PixelFormat) -> ImageData where Self: Sized {
+    unsafe fn create_texture(data: &[u8], width: u32, height: u32, format: PixelFormat) -> Result<ImageData> where Self: Sized {
         if let Some(ref gl_ctx) = GL_CONTEXT {
             let id = TEXTURE_COUNT;
             TEXTURE_COUNT += 1;
@@ -225,7 +238,7 @@ impl Backend for WebGLBackend {
                 PixelFormat::RGBA => gl::RGBA as i64
             };
 
-            let texture = gl_ctx.create_texture().unwrap();
+            let texture = try_opt(gl_ctx.create_texture(), "Create GL texture")?;
             gl_ctx.bind_texture(gl::TEXTURE_2D, Some(&texture));
             gl_ctx.tex_parameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_S, gl::CLAMP_TO_EDGE as i32);
             gl_ctx.tex_parameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_T, gl::CLAMP_TO_EDGE as i32);
@@ -244,7 +257,7 @@ impl Backend for WebGLBackend {
                 gl_ctx.tex_image2_d(gl::TEXTURE_2D, 0, gl::RGBA as i32, width, height, 0, format, gl::UNSIGNED_BYTE, Some(&array.buffer()));
             };
             gl_ctx.generate_mipmap(gl::TEXTURE_2D);
-            ImageData { id, data: texture, width, height }
+            Ok(ImageData { id, data: texture, width, height })
         } else {
             unreachable!();
         }
@@ -256,15 +269,15 @@ impl Backend for WebGLBackend {
         }
     }
 
-    unsafe fn create_surface(image: &Image) -> SurfaceData where Self: Sized {
+    unsafe fn create_surface(image: &Image) -> Result<SurfaceData> where Self: Sized {
         if let Some(ref gl_ctx) = GL_CONTEXT {
             let surface = SurfaceData {
-                framebuffer: gl_ctx.create_framebuffer().unwrap()
+                framebuffer: try_opt(gl_ctx.create_framebuffer(), "Create GL framebuffer")?
             };
             gl_ctx.bind_framebuffer(gl::FRAMEBUFFER, Some(&surface.framebuffer));
             gl_ctx.framebuffer_texture2_d(gl::FRAMEBUFFER, gl::COLOR_ATTACHMENT0, gl::TEXTURE_2D, Some(&image.data().data), 0);
             gl_ctx.draw_buffers(&[gl::COLOR_ATTACHMENT0]);
-            surface
+            Ok(surface)
         } else {
             unreachable!();
         }
@@ -274,10 +287,10 @@ impl Backend for WebGLBackend {
         if let Some(ref gl_ctx) = GL_CONTEXT {
             let viewport_data = gl_ctx.get_parameter(gl::VIEWPORT);
             let viewport = [
-                js! { @{&viewport_data}[0] }.try_into().unwrap(),
-                js! { @{&viewport_data}[1] }.try_into().unwrap(),
-                js! { @{&viewport_data}[2] }.try_into().unwrap(),
-                js! { @{&viewport_data}[3] }.try_into().unwrap(),
+                js! { @{&viewport_data}[0] }.try_into().expect("Malformed GL viewport attribute"),
+                js! { @{&viewport_data}[1] }.try_into().expect("Malformed GL viewport attribute"),
+                js! { @{&viewport_data}[2] }.try_into().expect("Malformed GL viewport attribute"),
+                js! { @{&viewport_data}[3] }.try_into().expect("Malformed GL viewport attribute"),
             ];
             gl_ctx.bind_framebuffer(gl::FRAMEBUFFER, Some(&surface.data.framebuffer));
             gl_ctx.viewport(0, 0, surface.image.source_width() as i32, surface.image.source_height() as i32);

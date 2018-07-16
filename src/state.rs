@@ -1,15 +1,30 @@
-use {Result, graphics::{Window, WindowBuilder}, input::Event};
+use {
+    Error, Result,
+    graphics::{Window, WindowBuilder},
+    input::Event
+};
 #[cfg(target_arch = "wasm32")]
-use {error::QuicksilverError, geom::Vector,
-     input::{ButtonState, MouseButton, KEY_LIST, LINES_TO_PIXELS},
-     std::{cell::{RefCell, RefMut}, collections::HashMap, rc::Rc},
-     stdweb::{Value, unstable::TryInto,
-              web::{document, window, IEventTarget, IParentNode, IWindowOrWorker,
-                    event::{BlurEvent, ConcreteEvent, FocusEvent, GamepadConnectedEvent,
-                            GamepadDisconnectedEvent, IGamepadEvent, IKeyboardEvent,
-                            IMouseEvent, KeyDownEvent, KeyUpEvent,
-                            MouseButton as WebMouseButton, MouseDownEvent, MouseMoveEvent,
-                            MouseOutEvent, MouseOverEvent, MouseUpEvent}}}};
+use {
+    geom::Vector,
+    input::{ButtonState, MouseButton, KEY_LIST, LINES_TO_PIXELS},
+    std::{
+        cell::{RefCell, RefMut},
+        collections::HashMap,
+        rc::Rc
+    },
+    stdweb::{
+        Value, unstable::TryInto,
+        web::{
+            document, window, IEventTarget,  IWindowOrWorker,
+            event::{
+                BlurEvent, ConcreteEvent, FocusEvent, GamepadConnectedEvent, GamepadDisconnectedEvent,
+                IGamepadEvent, IKeyboardEvent, IMouseEvent, KeyDownEvent, KeyUpEvent, 
+                MouseButton as WebMouseButton, MouseDownEvent, MouseMoveEvent, MouseOutEvent, 
+                MouseOverEvent, MouseUpEvent
+            }
+        }
+    }
+};
 
 /// The structure responsible for managing the game loop state
 pub trait State: 'static {
@@ -39,9 +54,17 @@ pub trait State: 'static {
     /// By default it draws a black screen
     fn draw(&mut self, window: &mut Window) -> Result<()> {
         use graphics::Color;
-        window.clear(Color::black());
+        window.clear(Color::BLACK)?;
         window.present()?;
         Ok(())
+    }
+    /// Log and report an error in some way
+    ///
+    /// There's no way to *recover from* the error at this stage, because error handling should take
+    /// place at the error site. However, on the web especially, logging errors can be difficult,
+    /// so this provides a way to log other than a panic.
+    fn handle_error(error: Error) {
+        panic!("Unhandled error: {:?}", error);
     }
 }
 
@@ -49,8 +72,10 @@ pub trait State: 'static {
 ///
 /// On desktop platforms, this yields control to a simple game loop controlled by a Timer. On wasm,
 /// this yields control to the browser functions setInterval and requestAnimationFrame
-pub fn run<T: State>(window: WindowBuilder) -> Result<()> {
-    run_impl::<T>(window)
+pub fn run<T: State>(window: WindowBuilder) {
+    if let Err(error) = run_impl::<T>(window) {
+        T::handle_error(error);
+    }
 }
 
 struct Application<T: State> {
@@ -104,10 +129,10 @@ fn run_impl<T: State>(window: WindowBuilder) -> Result<()> {
         app.process_events()?;
         timer.tick(|| -> Result<Duration> {
             app.update()?;
+            app.window.clear_temporary_states();
             Ok(Duration::from_millis(16))
         })?;
         app.draw()?;
-        app.window.clear_temporary_states();
     }
     Ok(())
 }
@@ -122,14 +147,7 @@ fn run_impl<T: State>(builder: WindowBuilder) -> Result<()> {
 
     let document = document();
     let window = window();
-    let canvas = match document.query_selector("#canvas") {
-        Ok(Some(element)) => element,
-        _ => {
-            return Err(QuicksilverError::ContextError(
-                "Canvas element not found".to_owned(),
-            ))
-        }
-    };
+    let canvas = ::get_canvas()?;
 
     let application = app.clone();
     let close_handler = move || application.borrow_mut().event_buffer.push(Event::Closed);
@@ -231,24 +249,23 @@ fn run_impl<T: State>(builder: WindowBuilder) -> Result<()> {
     draw(app.clone())
 }
 
-//TODO: Add error handling to subsequent calls to unwrap and draw
-// Basically, there is no stack on the web because the state is a black box that the runtime calls
-// This means the best way to do error handling is probably have either custom unwrap() that does
-// not panic (because panicking on wasm is not great) or have the user pass in custom
-// error-reporting
-
 #[cfg(target_arch = "wasm32")]
 fn update<T: State>(app: Rc<RefCell<Application<T>>>) -> Result<()> {
     app.borrow_mut().process_events()?;
     app.borrow_mut().update()?;
-    window().set_timeout(move || update(app).unwrap(), 16);
+    app.borrow_mut().window.clear_temporary_states();
+    window().set_timeout(move || if let Err(error) = update(app) {
+        T::handle_error(error)
+    }, 16);
     Ok(())
 }
 
 #[cfg(target_arch = "wasm32")]
 fn draw<T: State>(app: Rc<RefCell<Application<T>>>) -> Result<()> {
     app.borrow_mut().draw()?;
-    window().request_animation_frame(move |_| draw(app).unwrap());
+    window().request_animation_frame(move |_| if let Err(error) = draw(app) {
+        T::handle_error(error)
+    });
     Ok(())
 }
 

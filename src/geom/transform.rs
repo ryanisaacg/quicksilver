@@ -36,12 +36,10 @@ use std::{
 pub struct Transform([[f32; 3]; 3]);
 
 impl Transform {
-    ///Create an identity transformation
-    pub fn identity() -> Transform {
-        Transform([[1f32, 0f32, 0f32],
+    ///The identity transformation
+    pub const IDENTITY: Transform = Transform([[1f32, 0f32, 0f32],
                   [0f32, 1f32, 0f32],
-                  [0f32, 0f32, 1f32]])
-    }
+                  [0f32, 0f32, 1f32]]);
 
     ///Create a rotation transformation
     pub fn rotate<T: Scalar>(angle: T) -> Transform {
@@ -54,14 +52,16 @@ impl Transform {
     }
 
     ///Create a translation transformation
-    pub fn translate(vec: Vector) -> Transform {
+    pub fn translate(vec: impl Into<Vector>) -> Transform {
+        let vec = vec.into();
         Transform([[1f32, 0f32, vec.x],
                   [0f32, 1f32, vec.y],
                   [0f32, 0f32, 1f32]])
     }
 
     ///Create a scale transformation
-    pub fn scale(vec: Vector) -> Transform {
+    pub fn scale(vec: impl Into<Vector>) -> Transform {
+        let vec = vec.into();
         Transform([[vec.x, 0f32, 0f32],
                   [0f32, vec.y, 0f32],
                   [0f32, 0f32, 1f32]])
@@ -88,6 +88,7 @@ impl Transform {
     /// assert_eq!(vector, transform * inverse * vector);
     /// assert_eq!(vector, inverse * transform * vector);
     /// ```
+    #[must_use]
     pub fn inverse(&self) -> Transform {
         let det = 
             self.0[0][0] * (self.0[1][1] * self.0[2][2] - self.0[2][1] * self.0[1][2])
@@ -96,7 +97,7 @@ impl Transform {
 
         let inv_det = det.recip();
 
-        let mut inverse = Transform::identity();
+        let mut inverse = Transform::IDENTITY;
         inverse.0[0][0] = self.0[1][1] * self.0[2][2] - self.0[2][1] * self.0[1][2];
         inverse.0[0][1] = self.0[0][2] * self.0[2][1] - self.0[0][1] * self.0[2][2];
         inverse.0[0][2] = self.0[0][1] * self.0[1][2] - self.0[0][2] * self.0[1][1];
@@ -115,7 +116,7 @@ impl Mul<Transform> for Transform {
     type Output = Transform;
 
     fn mul(self, other: Transform) -> Transform {
-        let mut returnval = Transform::identity();
+        let mut returnval = Transform::IDENTITY;
         for i in 0..3 {
             for j in 0..3 {
                 returnval.0[i][j] = 0f32;
@@ -149,7 +150,7 @@ impl<T: Scalar> Mul<T> for Transform {
 
     fn mul(self, other: T) -> Transform {
         let other = other.float();
-        let mut ret = Transform::identity();
+        let mut ret = Transform::IDENTITY;
         for i in 0..3 {
             for j in 0..3 {
                 ret.0[i][j] = self.0[i][j] * other;
@@ -174,7 +175,7 @@ impl fmt::Display for Transform {
 
 impl Default for Transform {
     fn default() -> Transform {
-        Transform::identity()
+        Transform::IDENTITY
     }
 }
 
@@ -206,12 +207,13 @@ impl From<Matrix3<f32>> for Transform {
 
 #[cfg(test)]
 mod tests {
+    extern crate alga;
     use super::*;
 
     #[test]
     fn inverse() {
         let vec = Vector::new(2, 4);
-        let translate = Transform::scale(Vector::one() * 0.5);
+        let translate = Transform::scale(Vector::ONE * 0.5);
         let inverse = translate.inverse();
         let transformed = inverse * vec;
         let expected = vec * 2;
@@ -220,7 +222,7 @@ mod tests {
 
     #[test]
     fn scale() {
-        let trans = Transform::scale(Vector::one() * 2);
+        let trans = Transform::scale(Vector::ONE * 2);
         let vec = Vector::new(2, 5);
         let scaled = trans * vec;
         let expected = vec * 2;
@@ -231,7 +233,7 @@ mod tests {
     fn translate() {
         let translate = Vector::new(3, 4);
         let trans = Transform::translate(translate);
-        let vec = Vector::one();
+        let vec = Vector::ONE;
         let translated = trans * vec;
         let expected = vec + translate;
         assert_eq!(translated, expected);
@@ -239,8 +241,8 @@ mod tests {
 
     #[test]
     fn identity() {
-        let trans = Transform::identity() * Transform::translate(Vector::zero()) *
-            Transform::rotate(0f32) * Transform::scale(Vector::one());
+        let trans = Transform::IDENTITY * Transform::translate(Vector::ZERO) *
+            Transform::rotate(0f32) * Transform::scale(Vector::ONE);
         let vec = Vector::new(15, 12);
         assert_eq!(vec, trans * vec);
     }
@@ -248,7 +250,7 @@ mod tests {
     #[test]
     fn complex_inverse() {
         let a = Transform::rotate(5f32) * Transform::scale(Vector::new(0.2, 1.23)) *
-            Transform::translate(Vector::one() * 100f32);
+            Transform::translate(Vector::ONE * 100f32);
         let a_inv = a.inverse();
         let vec = Vector::new(120f32, 151f32);
         assert_eq!(vec, a * a_inv * vec);
@@ -258,7 +260,7 @@ mod tests {
     #[test]
     #[cfg(feature="nalgebra")]
     fn conversion() {
-        use alga::linear::Transformation;
+        use self::alga::linear::Transformation;
         let transform = Transform::rotate(5);
         let vector = Vector::new(1, 2);
         let na_matrix = transform.into_matrix();
