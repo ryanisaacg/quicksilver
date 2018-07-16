@@ -34,10 +34,10 @@ mod tests {
 
     #[test]
     fn opengl_projection() {
-        let view = View::new(Rectangle::new_sized(50, 50));
+        let view = View::new(Rectangle::new_sized((50, 50)));
         let world_bottom = Vector::Y * 50;
         assert_eq!(view.opengl * world_bottom, -Vector::ONE);
-        let view = View::new(Rectangle::new(50, 50, 50, 50));
+        let view = View::new(Rectangle::new((50, 50), (50, 50)));
         let world_top = Vector::ONE * 50;
         let expected = -Vector::X + Vector::Y;
         assert_eq!(view.opengl * world_top, expected);
@@ -45,7 +45,7 @@ mod tests {
     
     #[test]
     fn projection() {
-        let view = View::new(Rectangle::new_sized(50, 50));
+        let view = View::new(Rectangle::new_sized((50, 50)));
         let screen_size = Vector::new(100, 100);
         let unproject = Transform::scale(screen_size) * view.normalize;
         let project = unproject.inverse();

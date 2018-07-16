@@ -17,6 +17,7 @@ use std::{
 #[cfg(not(target_arch = "wasm32"))]
 use glutin::dpi::{LogicalPosition, PhysicalPosition, LogicalSize, PhysicalSize};
 
+
 #[derive(Copy, Clone, Default, Debug, Deserialize, Serialize)]
 ///A 2D vector with an arbitrary numeric type
 pub struct Vector {
@@ -25,6 +26,7 @@ pub struct Vector {
     ///The y coordinate of the vector
     pub y: f32,
 }
+
 
 impl Vector {
     /// A vector with x = 0, y = 0
@@ -39,7 +41,7 @@ impl Vector {
 
 impl Vector {
     ///Create a new vector
-    pub fn new<T: Scalar>(x: T, y: T) -> Vector {
+    pub fn new(x: impl Scalar, y: impl Scalar) -> Vector {
         Vector { x: x.float(), y: y.float() }
     }
 
@@ -72,7 +74,8 @@ impl Vector {
 
     ///Clamp a vector somewhere between a minimum and a maximum
     #[must_use]
-    pub fn clamp(self, min_bound: Vector, max_bound: Vector) -> Vector {
+    pub fn clamp(self, min_bound: impl Into<Vector>, max_bound: impl Into<Vector>) -> Vector {
+        let (min_bound, max_bound) = (min_bound.into(), max_bound.into());
         Vector::new(
             max_bound.x.min(min_bound.x.max(self.x)),
             max_bound.y.min(min_bound.y.max(self.y)),
@@ -86,12 +89,14 @@ impl Vector {
     }
 
     ///Get the cross product of a vector
-    pub fn cross(self, other: Vector) -> f32 {
+    pub fn cross(self, other: impl Into<Vector>) -> f32 {
+        let other = other.into();
         self.x * other.y - self.y * other.x
     }
 
     ///Get the dot product of a vector
-    pub fn dot(self, other: Vector) -> f32 {
+    pub fn dot(self, other: impl Into<Vector>) -> f32 {
+        let other = other.into();
         self.x * other.x + self.y * other.y
     }
 
@@ -121,7 +126,8 @@ impl Vector {
 
     ///Multiply the components in the matching places
     #[must_use]
-    pub fn times(self, other: Vector) -> Vector {
+    pub fn times(self, other: impl Into<Vector>) -> Vector {
+        let other = other.into();
         Vector::new(self.x * other.x, self.y * other.y)
     }
 
@@ -137,7 +143,8 @@ impl Vector {
     }
 
     ///Get the Euclidean distance to another vector
-    pub fn distance(self, other: Vector) -> f32 {
+    pub fn distance(self, other: impl Into<Vector>) -> f32 {
+        let other = other.into();
         ((other.x - self.x).powi(2) + (other.y - self.y).powi(2)).sqrt()
     }
 }
@@ -240,7 +247,7 @@ impl Positioned for Vector {
     }
     
     fn bounding_box(&self) -> Rectangle {
-        Rectangle::newv(*self, Vector::ZERO)
+        Rectangle::new(*self, Vector::ZERO)
     }
 }
 
@@ -314,9 +321,15 @@ impl From<PhysicalSize> for Vector {
     }
 }
 
+impl<T: Scalar, U: Scalar> From<(T, U)> for Vector {
+    fn from(other: (T, U)) -> Vector {
+        Vector::new(other.0, other.1)
+    }
+}
+
 impl Drawable for Vector {
     fn draw(&self, window: &mut Window, params: DrawAttributes) {
-        Rectangle::newv(*self, Vector::ONE).draw(window, params);
+        Rectangle::new(*self, Vector::ONE).draw(window, params);
     }
 }
 

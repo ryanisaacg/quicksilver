@@ -3,7 +3,7 @@ extern crate quicksilver;
 
 use quicksilver::{
     run, Asset, Result, State,
-    geom::{Rectangle, Transform},
+    geom::{Rectangle, Transform, Vector},
     graphics::{Color, Window, WindowBuilder},
     input::{ButtonState, MouseButton}, 
     sound::Sound
@@ -14,10 +14,8 @@ struct SoundPlayer {
 }
 
 const BUTTON_AREA: Rectangle = Rectangle {
-    x: 350.0,
-    y: 250.0,
-    width: 100.0,
-    height: 100.0,
+    pos:  Vector {x: 350.0, y: 250.0},
+    size: Vector {x: 100.0, y: 100.0}
 };
 
 impl State for SoundPlayer {
@@ -30,7 +28,7 @@ impl State for SoundPlayer {
         self.asset.execute(|sound| {
             if window.mouse()[MouseButton::Left] == ButtonState::Pressed
                 && BUTTON_AREA.contains(window.mouse().pos()) {
-                sound.play();
+                sound.play()?;
             }
             Ok(())
         })
@@ -48,5 +46,5 @@ impl State for SoundPlayer {
 }
 
 fn main() {
-    run::<SoundPlayer>(WindowBuilder::new("Sound Example", 800, 600));
+    run::<SoundPlayer>(WindowBuilder::new("Sound Example", (800, 600)));
 }

@@ -15,5 +15,5 @@ impl State for BlackScreen {
 
 fn main() {
     // Create a Window with the title "Hello world!" that is 800 x 600 pixels
-    run::<BlackScreen>(WindowBuilder::new("Hello world!", 800, 600));
+    run::<BlackScreen>(WindowBuilder::new("Hello world!", (800, 600)));
 }

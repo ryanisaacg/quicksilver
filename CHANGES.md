@@ -33,6 +33,10 @@
 - [Breaking] Use constants instead of functions for `Vector`s' "presets"
 - Add an optional method to `State` to handle error logging
 - Re-export the `futures::future` module as the `combinators` module
+- [Breaking] Remove `Line::new_sized`
+- [Breaking] Take `Vector`s in any function-argument where sensible (positions and sizes)
+- [Breaking] Replace the `new` functions by the `newv` functions (`new` takes `Vector`s now)
+- Add a conversion from tuples with two `Scalar`s two `Vector`s
 
 ## v0.2.1
 

@@ -64,7 +64,7 @@ impl Atlas {
                         let name = line.to_owned();
                         let mut rotate = get_values_from_line(getval(&mut lines)?)?;
                         let mut xy = get_values_from_line::<i32>(getval(&mut lines)?)?;
-                        let mut size = get_values_from_line(getval(&mut lines)?)?;
+                        let mut size = get_values_from_line::<i32>(getval(&mut lines)?)?;
                         let mut line = getval(&mut lines)?;
                         while !line.contains("orig") {
                             line = getval(&mut lines)?;
@@ -73,7 +73,7 @@ impl Atlas {
                         let mut offset = get_values_from_line::<i32>(getval(&mut lines)?)?;
                         let index = getval(&mut get_values_from_line(getval(&mut lines)?)?)??;
                         let rotate = getval(&mut rotate)??;
-                        let region = Rectangle::new(getval(&mut xy)??, getval(&mut xy)??, getval(&mut size)??, getval(&mut size)??);
+                        let region = Rectangle::new((getval(&mut xy)??, getval(&mut xy)??), (getval(&mut size)??, getval(&mut size)??));
                         let original_size = Vector::new(getval(&mut orig)??, getval(&mut orig)??);
                         let offset = Vector::new(getval(&mut offset)??, getval(&mut offset)??);
                         let center = region.center() + (original_size - region.size() - offset.x_comp() + offset.y_comp());
@@ -208,7 +208,7 @@ impl Error for AtlasError {
         }
     }
     
-    fn cause(&self) -> Option<&Error> {
+    fn cause(&self) -> Option<&dyn Error> {
         match self {
             &AtlasError::ImageError(ref err) => Some(err),
             &AtlasError::ParseError(_) => None,
