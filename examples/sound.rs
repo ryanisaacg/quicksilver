@@ -1,5 +1,4 @@
 // Play a sound when a button is clicked
-extern crate futures;
 extern crate quicksilver;
 
 use quicksilver::{
