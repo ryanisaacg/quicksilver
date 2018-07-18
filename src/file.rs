@@ -51,6 +51,7 @@ pub fn load_file(path: impl AsRef<Path>) -> impl Future<Item = Vec<u8>, Error = 
     };
 }
 
+#[cfg(target_arch="wasm32")]
 fn create_request(path: &str) -> Result<XmlHttpRequest, QuicksilverError> {
     let xhr = XmlHttpRequest::new();
     web_try(xhr.open("GET", path), "Failed to create a GET request")?;
