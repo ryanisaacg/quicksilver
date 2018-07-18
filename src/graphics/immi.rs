@@ -47,7 +47,7 @@ impl<'a> Draw for ImmiRender<'a> {
     }
 
     fn get_image_width_per_height(&mut self, image: &Image) -> f32 {
-        image.area().width / image.area().height
+        image.area().width() / image.area().height()
     }
 
     fn draw_glyph(&mut self, text_style: &FontStyle, glyph: char, matrix: &Matrix) {
