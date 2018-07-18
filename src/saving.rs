@@ -5,12 +5,9 @@
 //! should store data. This module allows any type that implements Serde serialize and deserialize
 //! to be saved and loaded.
 
-extern crate serde;
-extern crate serde_json;
-
-use serde_json::Error as SerdeError;
 
 use serde::{Deserialize, Serialize};
+use serde_json::{self, Error as SerdeError};
 use std::{
     error::Error,
     fmt,
@@ -87,8 +84,10 @@ fn load_impl<T>(appname: &str, profile: &str) -> Result<T, SaveError>
 fn save_impl<T: Serialize>(_appname: &str, profile: &str, data: &T) -> Result<(), SaveError> {
     use stdweb::web;
     let storage = web::window().local_storage();
-    storage.insert(profile, serde_json::to_string(data)?.as_str()).unwrap();
-    Ok(())
+    match storage.insert(profile, serde_json::to_string(data)?.as_str()) {
+        Ok(()) => Ok(()),
+        Err(_) => Err(SaveError::SaveWriteFailed)
+    }
 }
 
 #[cfg(target_arch="wasm32")]
@@ -111,6 +110,8 @@ pub enum SaveError {
     IOError(IOError),
     /// The user has no home directory so no save or load location can be established
     SaveLocationNotFound,
+    /// The save cannot be written (web-specific)
+    SaveWriteFailed,
     /// The save profile with the given name was not found
     ///
     /// On desktop this will more likely be reported as an IO error, but on web it will be a 
@@ -141,16 +142,19 @@ impl Error for SaveError {
         match self {
             SaveError::SerdeError(err) => err.description(),
             SaveError::IOError(err) => err.description(),
+            SaveError::SaveWriteFailed => "The save could not be written to local storage",
             SaveError::SaveLocationNotFound => "The current user has no home directory",
             SaveError::SaveNotFound(_) => "The given save profile was not found"
         }
     }
 
-    fn cause(&self) -> Option<&Error> {
+    fn cause(&self) -> Option<&dyn Error> {
         match self {
             SaveError::SerdeError(err) => Some(err),
             SaveError::IOError(err) => Some(err),
-            SaveError::SaveLocationNotFound | SaveError::SaveNotFound(_) => None
+            SaveError::SaveLocationNotFound 
+                | SaveError::SaveWriteFailed
+                | SaveError::SaveNotFound(_) => None
         }
     }
 }

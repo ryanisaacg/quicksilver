@@ -1,12 +1,10 @@
-extern crate futures;
-extern crate image;
-
 use Result;
 use error::QuicksilverError;
 use file::load_file;
 use futures::{Future, future};
 use geom::{Rectangle, Transform, Vector};
 use graphics::{Backend, BackendImpl, DrawAttributes, Drawable, GpuTriangle, ImageData, Vertex, Window};
+use image;
 use std::{
     error::Error,
     fmt,
@@ -33,7 +31,7 @@ pub struct Image {
 
 impl Image {
     pub(crate) fn new(data: ImageData) -> Image {
-        let region = Rectangle::new_sized(data.width, data.height);
+        let region = Rectangle::new_sized((data.width, data.height));
         Image {
             source: Rc::new(data),
             region
@@ -94,11 +92,15 @@ impl Image {
         Image {
             source: self.source.clone(),
             region: Rectangle::new(
-                self.region.x + rect.x,
-                self.region.y + rect.y,
-                rect.width,
-                rect.height,
-            ),
+                (
+                    self.region.pos.x + rect.pos.x,
+                    self.region.pos.y + rect.pos.y
+                ),
+                (
+                    rect.width(),
+                    rect.height()
+                )
+            )
         }
     }
 }
@@ -140,7 +142,7 @@ impl Error for ImageError {
         }
     }
     
-    fn cause(&self) -> Option<&Error> {
+    fn cause(&self) -> Option<&dyn Error> {
         match self {
             &ImageError::DecodingError(ref err) => Some(err),
             &ImageError::IOError(ref err) => Some(err),
@@ -159,10 +161,10 @@ impl Drawable for Image {
         let normalized_pos = area.top_left().times(recip_size);
         let normalized_size = area.size().times(recip_size);
         let vertices = &[
-            Vertex::new_textured(trans * Vector::zero(), normalized_pos + Vector::zero().times(normalized_size), params.color),
-            Vertex::new_textured(trans * Vector::x(), normalized_pos +  Vector::x().times(normalized_size), params.color),
-            Vertex::new_textured(trans * Vector::one(), normalized_pos +  Vector::one().times(normalized_size), params.color),
-            Vertex::new_textured(trans * Vector::y(), normalized_pos + Vector::y().times(normalized_size), params.color),
+            Vertex::new_textured(trans * Vector::ZERO, normalized_pos + Vector::ZERO.times(normalized_size), params.color),
+            Vertex::new_textured(trans * Vector::X, normalized_pos +  Vector::X.times(normalized_size), params.color),
+            Vertex::new_textured(trans * Vector::ONE, normalized_pos +  Vector::ONE.times(normalized_size), params.color),
+            Vertex::new_textured(trans * Vector::Y, normalized_pos + Vector::Y.times(normalized_size), params.color),
         ];
         let triangles = &[
             GpuTriangle::new_textured([0, 1, 2], params.z, self.clone()),

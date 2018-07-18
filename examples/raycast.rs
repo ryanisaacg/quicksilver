@@ -23,15 +23,15 @@ impl State for Raycast {
     fn new() -> Result<Raycast> {
         //The different squares that cast shadows
         let regions = vec![
-            Rectangle::new_sized(800, 600),
+            Rectangle::new_sized((800, 600)),
             // Feel free to add or remove rectangles to this list
             // to see the effect on the lighting
-            Rectangle::new(200, 200, 100, 100),
-            Rectangle::new(400, 200, 100, 100),
-            Rectangle::new(400, 400, 100, 100),
-            Rectangle::new(200, 400, 100, 100),
-            Rectangle::new(50, 50, 50, 50),
-            Rectangle::new(550, 300, 64, 64),
+            Rectangle::new((200, 200), (100, 100)),
+            Rectangle::new((400, 200), (100, 100)),
+            Rectangle::new((400, 400), (100, 100)),
+            Rectangle::new((200, 400), (100, 100)),
+            Rectangle::new((50, 50), (50, 50)),
+            Rectangle::new((550, 300), (64, 64))
         ];
         // Build the list of targets to cast rays to
         let targets = regions
@@ -139,5 +139,5 @@ impl State for Raycast {
 }
 
 fn main() {
-    run::<Raycast>(WindowBuilder::new("Raycast", 800, 600)).unwrap();
+    run::<Raycast>(WindowBuilder::new("Raycast", (800, 600)));
 }

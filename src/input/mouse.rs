@@ -1,6 +1,3 @@
-#[cfg(not(target_arch="wasm32"))]
-extern crate glutin;
-
 use geom::Vector;
 use input::ButtonState;
 use std::ops::Index;
@@ -32,7 +29,7 @@ impl Mouse {
     }
 
     pub(crate) fn clear_temporary_states(&mut self) {
-        self.wheel = Vector::zero();
+        self.wheel = Vector::ZERO;
         for button in self.buttons.iter_mut() {
             *button = button.clear_temporary();
         }

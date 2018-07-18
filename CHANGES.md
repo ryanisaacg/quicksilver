@@ -1,15 +1,14 @@
 # Changelog
 
 ## In-development
-
 - Add new methods of initializing fonts `Font::from_slice` and `Font::from_bytes` using byte sequences
 - [Breaking] Add more fields to `Error`, and add a Result alias to make error bubbling more convenient
-- [Breaking] Renamed type `Draw` to `Sprite` (and updated the readme accordingly)
-- [Breaking] Renamed type `QuicksilverError` to `Error`
-- [Breaking] Added `SaveError`, a new error type
+- [Breaking] Rename type `Draw` to `Sprite` (and updated the readme accordingly)
+- [Breaking] Rename type `QuicksilverError` to `Error`
+- [Breaking] Add `SaveError`, a new error type
 - [Breaking] Made the letterbox a configurable color
 - Added a Result type alias
-- [Breaking] Added a Result return to all of the State methods
+- [Breaking] Add a Result return to all of the State methods
 - [Breaking] Move the Font parameters into their own structure
 - [Breaking] Split the Sprite into Drawable and DrawAttributes objects, with convenient function overloads
 - [Breaking] Remove the Loader types in favor of a new Asset type
@@ -19,6 +18,17 @@
 - Fixed bug with Windows not scaling the viewport by DPI
 - Fixed bug with macOS not letterboxing correctly
 - Added an implementation of the immi renderer
+- Mark some functions #[must_use]
+- Implement `Line` as drawable object
+- Implement `Triangle` as drawable object
+- Add `distance` method to `Vector`
+- [Breaking] Use constants instead of functions for `Vector`s' "presets"
+- Add an optional method to `State` to handle error logging
+- Re-export the `futures::future` module as the `combinators` module
+- [Breaking] Remove `Line::new_sized`
+- [Breaking] Take `Vector`s in any function-argument where sensible (positions and sizes)
+- [Breaking] Replace the `new` functions by the `newv` functions (`new` takes `Vector`s now)
+- Add a conversion from tuples with two `Scalar`s two `Vector`s
 - Dependencies
     - Versions
         - alga: ``0.5 -> 0.6``

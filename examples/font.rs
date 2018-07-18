@@ -1,10 +1,9 @@
 // Draw some sample text to the screen
-extern crate futures;
 extern crate quicksilver;
 
-use futures::future::result;
 use quicksilver::{
-    run, Asset, Future, Result, State, 
+    run, Asset, Future, Result, State,
+    combinators::result,
     geom::{Vector, Transform},
     graphics::{Color, Font, FontStyle, Image, Window, WindowBuilder}
 };
@@ -34,5 +33,5 @@ impl State for SampleText {
 }
 
 fn main() {
-    run::<SampleText>(WindowBuilder::new("Font Example", 800, 600)).unwrap();
+    run::<SampleText>(WindowBuilder::new("Font Example", (800, 600)));
 }

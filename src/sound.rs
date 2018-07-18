@@ -3,26 +3,23 @@
 //! On the desktop, currently all sounds are loaded into memory, but streaming sounds may be
 //! introduced in the future. On the web, it can be different from browser to browser
 
-extern crate futures;
-#[cfg(not(target_arch="wasm32"))]
-extern crate rodio;
-
-use error::QuicksilverError;
-use futures::{Future, future};
-use std::{
-    error::Error,
-    fmt,
-    io::Error as IOError,
-    path::Path
+use {
+    Result,
+    error::QuicksilverError,
+    futures::{Future, future},
+    std::{
+        error::Error,
+        fmt,
+        io::Error as IOError,
+        path::Path
+    }
 };
 #[cfg(not(target_arch="wasm32"))]
 use {
-    Result,
     rodio::{
-        Decoder, 
-        Source,
-        decoder::DecoderError,
-        source::{SamplesConverter, Amplify},
+        self,
+        decoder::{Decoder, DecoderError},
+        source::{SamplesConverter, Source,Amplify},
     },
     std::{
         fs::File,
@@ -36,7 +33,7 @@ use {
     std::io::ErrorKind,
     stdweb::{
         unstable::TryInto,
-        Reference
+        Value
     }
 };
 
@@ -51,8 +48,16 @@ pub struct Sound {
     #[cfg(not(target_arch="wasm32"))]
     val: Arc<Vec<u8>>,
     #[cfg(target_arch="wasm32")]
-    sound: Reference,
+    sound: Value,
     volume: f32
+}
+
+
+#[cfg(target_arch="wasm32")]
+fn wasm_sound_error(error: &str) -> QuicksilverError {
+    let error = IOError::new(ErrorKind::NotFound, error);
+    let error: SoundError = error.into();
+    error.into()
 }
 
 impl Sound {
@@ -68,22 +73,20 @@ impl Sound {
 
     #[cfg(target_arch="wasm32")]
     fn load_impl(path: &Path) -> impl Future<Item = Sound, Error = QuicksilverError> {
-        let sound = js! ( new Audio(@{path.to_str().unwrap()}); );
-        let sound: Reference = sound.try_into().unwrap();
+        let sound = js! ( new Audio(@{path.to_str().expect("Path must be stringifiable")}); );
         future::poll_fn(move || {
-            if js! ( @{&sound}.networkState == 3 ).try_into().unwrap() {
-                let error = IOError::new(ErrorKind::NotFound, "Sound not found");
-                let error = SoundError::IOError(error);
-                let error = QuicksilverError::SoundError(error);
-                Err(error)
-            } else if js! ( @{&sound}.readyState == 4).try_into().unwrap() {
-                let sound = sound.clone();
-                Ok(Async::Ready(Sound {
-                    sound,
-                    volume: 1f32
-                }))
-            } else {
-                Ok(Async::NotReady)
+            match js! ( @{&sound}.networkState == 3 ).try_into() {
+                Ok(true) => (),
+                Ok(false) => return Err(wasm_sound_error("Sound object failed to load from network")),
+                Err(_) => return Err(wasm_sound_error("Sound object network state check failed"))
+            }
+            match js! ( @{&sound}.readyState == 4 ).try_into() {
+                Ok(true) => Ok(Async::Ready(Sound {
+                        sound: sound.clone(),
+                        volume: 1f32
+                    })),
+                Ok(false) => Ok(Async::NotReady),
+                Err(_) => return Err(wasm_sound_error("Sound object failed to parse"))
             }
         })
     }
@@ -108,8 +111,8 @@ impl Sound {
     }
 
     #[cfg(not(target_arch="wasm32"))]
-    fn get_source(&self) -> SamplesConverter<Amplify<Decoder<Cursor<Sound>>>, f32> {
-        Decoder::new(Cursor::new(self.clone())).unwrap().amplify(self.volume).convert_samples()
+    fn get_source(&self) -> Result<SamplesConverter<Amplify<Decoder<Cursor<Sound>>>, f32>> {
+        Ok(Decoder::new(Cursor::new(self.clone()))?.amplify(self.volume).convert_samples())
     }
 
     /// Play the sound clip at its current volume
@@ -117,14 +120,18 @@ impl Sound {
     /// The sound clip can be played over itself.
     ///
     /// Future changes in volume will not change the sound emitted by this method.
-    pub fn play(&self) {
+    pub fn play(&self) -> Result<()> {
         #[cfg(not(target_arch="wasm32"))] {
-            let endpoint = rodio::default_endpoint().unwrap();
-            rodio::play_raw(&endpoint, self.get_source());
+            let endpoint = match rodio::default_endpoint() {
+                Some(endpoint) => endpoint,
+                None => return Err(SoundError::NoOutputAvailable.into())
+            };
+            rodio::play_raw(&endpoint, self.get_source()?);
         }
         #[cfg(target_arch="wasm32")] js! {
             @{&self.sound}.play();
         }
+        Ok(())
     }
     
     #[cfg(not(target_arch="wasm32"))]
@@ -160,11 +167,13 @@ impl AsRef<[u8]> for Sound {
 }
 
 #[derive(Debug)]
-///An error generated when loading a sound
+/// An error generated when loading a sound
 pub enum SoundError {
-    ///The sound file is not in an format that can be played
+    /// The sound file is not in an format that can be played
     UnrecognizedFormat,
-    ///The Sound was not found or could not be loaded
+    /// No output device was found to play the sound
+    NoOutputAvailable,
+    /// The Sound was not found or could not be loaded
     IOError(IOError)
 }
 
@@ -177,15 +186,17 @@ impl fmt::Display for SoundError  {
 impl Error for SoundError {
     fn description(&self) -> &str {
         match self {
-            &SoundError::UnrecognizedFormat => "The sound file format was not recognized",
-            &SoundError::IOError(ref err) => err.description()
+            SoundError::UnrecognizedFormat => "The sound file format was not recognized",
+            SoundError::NoOutputAvailable => "There was no output device available for playing",
+            SoundError::IOError(err) => err.description()
         }
     }
 
-    fn cause(&self) -> Option<&Error> {
+    fn cause(&self) -> Option<&dyn Error> {
         match self {
-            &SoundError::UnrecognizedFormat => None,
-            &SoundError::IOError(ref err) => Some(err)
+            SoundError::UnrecognizedFormat
+                | SoundError::NoOutputAvailable => None,
+            SoundError::IOError(err) => Some(err)
         }
     }
 

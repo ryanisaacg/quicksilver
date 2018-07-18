@@ -1,13 +1,10 @@
 #[cfg(all(not(target_arch = "wasm32"), feature = "gamepads"))]
-extern crate gilrs;
+use gilrs;
 #[cfg(not(target_arch = "wasm32"))]
-extern crate glutin;
-extern crate image;
+use glutin;
+use image;
 #[cfg(all(not(target_arch = "wasm32"), feature = "rodio"))]
-extern crate rodio;
-#[cfg(feature = "serde_json")]
-extern crate serde_json;
-
+use rodio;
 use graphics::{AtlasError, ImageError};
 #[cfg(feature = "rusttype")]
 use rusttype::Error as FontError;
@@ -66,7 +63,7 @@ impl Error for QuicksilverError {
         }
     }
 
-    fn cause(&self) -> Option<&Error> {
+    fn cause(&self) -> Option<&dyn Error> {
         match self {
             QuicksilverError::AtlasError(err) => Some(err),
             QuicksilverError::ContextError(_) => None,

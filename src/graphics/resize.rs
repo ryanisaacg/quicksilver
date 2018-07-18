@@ -29,7 +29,7 @@ impl ResizeStrategy {
                 } 
             }
         };
-        Rectangle::newv((new_size - content_area) / 2, content_area)
+        Rectangle::new((new_size - content_area) / 2, content_area)
     }
 
     pub(crate) fn get_window_size(self, screen_region: Rectangle) -> Vector {
@@ -45,7 +45,7 @@ mod tests {
 
     fn test(resize: ResizeStrategy, new: Vector, expected: Rectangle) {
         assert_eq!(resize.resize(BASE, new), expected);
-        assert_eq!(resize.resize(expected.size(), BASE), Rectangle::newv_sized(BASE));
+        assert_eq!(resize.resize(expected.size(), BASE), Rectangle::new_sized(BASE));
     }
 
     #[test]
@@ -57,28 +57,28 @@ mod tests {
             BASE.x_comp() + BASE.y_comp() * 2
         ];
         let maintain = [
-            Rectangle::newv_sized(BASE),
-            Rectangle::newv(BASE / 2, BASE),
-            Rectangle::newv(BASE.x_comp() / 2, BASE),
-            Rectangle::newv(BASE.y_comp() / 2, BASE),
+            Rectangle::new_sized(BASE),
+            Rectangle::new(BASE / 2, BASE),
+            Rectangle::new(BASE.x_comp() / 2, BASE),
+            Rectangle::new(BASE.y_comp() / 2, BASE),
         ];
         let fill = [
-            Rectangle::newv_sized(BASE),
-            Rectangle::newv_sized(BASE * 2),
-            Rectangle::newv(-BASE.y_comp() / 2, BASE * 2),
-            Rectangle::newv(-BASE.x_comp() / 2, BASE * 2)
+            Rectangle::new_sized(BASE),
+            Rectangle::new_sized(BASE * 2),
+            Rectangle::new(-BASE.y_comp() / 2, BASE * 2),
+            Rectangle::new(-BASE.x_comp() / 2, BASE * 2)
         ];
         let fit = [
-            Rectangle::newv_sized(BASE),
-            Rectangle::newv_sized(BASE * 2),
-            Rectangle::newv(BASE.x_comp() / 2, BASE),
-            Rectangle::newv(BASE.y_comp() / 2, BASE)
+            Rectangle::new_sized(BASE),
+            Rectangle::new_sized(BASE * 2),
+            Rectangle::new(BASE.x_comp() / 2, BASE),
+            Rectangle::new(BASE.y_comp() / 2, BASE)
         ];
         for i in 0..new.len() {
             test(ResizeStrategy::Maintain, new[i], maintain[i]);
             test(ResizeStrategy::Fill, new[i], fill[i]);
             test(ResizeStrategy::Fit, new[i], fit[i]);
-            test(ResizeStrategy::Stretch, new[i], Rectangle::newv_sized(new[i]));
+            test(ResizeStrategy::Stretch, new[i], Rectangle::new_sized(new[i]));
         }
     }
 }

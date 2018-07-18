@@ -22,7 +22,7 @@ impl View {
                 * transform
                 * Transform::translate(-world.top_left() - world.size() / 2);
         let opengl = Transform::scale(Vector::new(2, -2))
-            * Transform::translate(-Vector::one() / 2)
+            * Transform::translate(-Vector::ONE / 2)
             * normalize;
         View { normalize, opengl }
     }
@@ -34,23 +34,23 @@ mod tests {
 
     #[test]
     fn opengl_projection() {
-        let view = View::new(Rectangle::new_sized(50, 50));
-        let world_bottom = Vector::y() * 50;
-        assert_eq!(view.opengl * world_bottom, -Vector::one());
-        let view = View::new(Rectangle::new(50, 50, 50, 50));
-        let world_top = Vector::one() * 50;
-        let expected = -Vector::x() + Vector::y();
+        let view = View::new(Rectangle::new_sized((50, 50)));
+        let world_bottom = Vector::Y * 50;
+        assert_eq!(view.opengl * world_bottom, -Vector::ONE);
+        let view = View::new(Rectangle::new((50, 50), (50, 50)));
+        let world_top = Vector::ONE * 50;
+        let expected = -Vector::X + Vector::Y;
         assert_eq!(view.opengl * world_top, expected);
     }
     
     #[test]
     fn projection() {
-        let view = View::new(Rectangle::new_sized(50, 50));
+        let view = View::new(Rectangle::new_sized((50, 50)));
         let screen_size = Vector::new(100, 100);
         let unproject = Transform::scale(screen_size) * view.normalize;
         let project = unproject.inverse();
-        let screen_bottom = Vector::y() * 100;
-        let world_bottom = Vector::y() * 50;
+        let screen_bottom = Vector::Y * 100;
+        let world_bottom = Vector::Y * 50;
         assert_eq!(project * screen_bottom, world_bottom);
         assert_eq!(unproject * world_bottom, screen_bottom);
     }
@@ -61,8 +61,8 @@ mod tests {
 //        let view = View::new_transformed(rect, Transform::rotate(-90f32));
 //        let unproject = Transform::scale(rect.size()) * view.normalize;
 //        let project = unproject.inverse();
-//        let point = Vector::x() * 5;
-//        let expected = Vector::y() * 5;
+//        let point = Vector::X * 5;
+//        let expected = Vector::Y * 5;
 //        assert_eq!(project * point, expected);
 //    }
 }

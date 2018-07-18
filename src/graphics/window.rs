@@ -30,11 +30,12 @@ pub struct WindowBuilder {
 
 impl WindowBuilder {
     ///Create a default window builder
-    pub fn new(title: &'static str, width: u32, height: u32) -> WindowBuilder {
+    pub fn new(title: &'static str, size: impl Into<Vector>) -> WindowBuilder {
+        let size = size.into();
         WindowBuilder {
             title,
-            width,
-            height,
+            width: size.x as u32,
+            height: size.y as u32,
             show_cursor: true,
             #[cfg(not(target_arch = "wasm32"))]
             min_size: None,
@@ -62,10 +63,10 @@ impl WindowBuilder {
     ///Set the minimum size for the window (no value by default)
     ///
     ///On the web, this does nothing.
-    pub fn with_minimum_size(self, _min_size: Vector) -> WindowBuilder {
+    pub fn with_minimum_size(self, _min_size: impl Into<Vector>) -> WindowBuilder {
         WindowBuilder {
             #[cfg(not(target_arch = "wasm32"))]
-            min_size: Some(_min_size),
+            min_size: Some(_min_size.into()),
             ..self
         }
     }
@@ -73,10 +74,10 @@ impl WindowBuilder {
     ///Set the maximum size for the window (no value by default)
     ///
     ///On the web, this does nothing.
-    pub fn with_maximum_size(self, _max_size: Vector) -> WindowBuilder {
+    pub fn with_maximum_size(self, _max_size: impl Into<Vector>) -> WindowBuilder {
         WindowBuilder {
             #[cfg(not(target_arch = "wasm32"))]
-            max_size: Some(_max_size),
+            max_size: Some(_max_size.into()),
             ..self
         }
     }
@@ -126,7 +127,7 @@ impl WindowBuilder {
             Vector::new(self.width, self.height),
             size,
         );
-        let view = View::new(Rectangle::newv_sized(screen_region.size()));
+        let view = View::new(Rectangle::new_sized(screen_region.size()));
         let window = Window {
             gl_window,
             gamepads: Vec::new(),
@@ -138,9 +139,9 @@ impl WindowBuilder {
                 keys: [ButtonState::NotPressed; 256],
             },
             mouse: Mouse {
-                pos: Vector::zero(),
+                pos: Vector::ZERO,
                 buttons: [ButtonState::NotPressed; 3],
-                wheel: Vector::zero(),
+                wheel: Vector::ZERO,
             },
             view,
             backend: unsafe { BackendImpl::new(self.scale)? },
@@ -169,7 +170,7 @@ impl WindowBuilder {
             Vector::new(self.width, self.height),
             Vector::new(actual_width, actual_height),
         );
-        let view = View::new(Rectangle::newv_sized(screen_region.size()));
+        let view = View::new(Rectangle::new_sized(screen_region.size()));
         let window = Window {
             gamepads: Vec::new(),
             gamepad_buffer: Vec::new(),
@@ -180,9 +181,9 @@ impl WindowBuilder {
                 keys: [ButtonState::NotPressed; 256],
             },
             mouse: Mouse {
-                pos: Vector::zero(),
+                pos: Vector::ZERO,
                 buttons: [ButtonState::NotPressed; 3],
-                wheel: Vector::zero(),
+                wheel: Vector::ZERO,
             },
             view,
             backend: unsafe { BackendImpl::new(self.scale)? },

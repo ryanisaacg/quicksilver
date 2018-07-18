@@ -1,21 +1,22 @@
-use {Result, geom::Vector, error::QuicksilverError, graphics::{
-    backend::{Backend, BlendMode, ImageData, ImageScaleStrategy, SurfaceData, VERTEX_SIZE},
-    Color, GpuTriangle, Image, PixelFormat, Surface, Vertex
-},
- std::mem::size_of,
- stdweb::{
-    web::
-        TypedArray
-    ,
-    unstable::{TryInto}
-},
- webgl_stdweb::{
-    WebGLBuffer,
-    WebGLProgram,
-    WebGL2RenderingContext as gl,
-    WebGLShader,
-    WebGLUniformLocation
-}};
+use {
+    Result, geom::Vector, error::QuicksilverError, 
+    graphics::{
+        backend::{Backend, BlendMode, ImageData, ImageScaleStrategy, SurfaceData, VERTEX_SIZE},
+        Color, GpuTriangle, Image, PixelFormat, Surface, Vertex
+    },
+    std::mem::size_of,
+    stdweb::{
+        web::TypedArray,
+        unstable::TryInto
+    },
+    webgl_stdweb::{
+        WebGLBuffer,
+        WebGLProgram,
+        WebGL2RenderingContext as gl,
+        WebGLShader,
+        WebGLUniformLocation
+    }
+};
 
 
 pub struct WebGLBackend {
@@ -144,7 +145,7 @@ impl Backend for WebGLBackend {
             vertices.iter().for_each(|vertex| {
                 self.vertices.push(vertex.pos.x);
                 self.vertices.push(vertex.pos.y);
-                let tex_pos = vertex.tex_pos.unwrap_or(Vector::zero());
+                let tex_pos = vertex.tex_pos.unwrap_or(Vector::ZERO);
                 self.vertices.push(tex_pos.x);
                 self.vertices.push(tex_pos.y);
                 self.vertices.push(vertex.col.r);

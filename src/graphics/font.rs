@@ -1,6 +1,3 @@
-extern crate futures;
-extern crate rusttype;
-
 use {
     load_file,
     Result,
