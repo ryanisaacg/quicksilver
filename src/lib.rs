@@ -68,7 +68,7 @@
 
 #![doc(html_root_url = "https://docs.rs/quicksilver/0.2.0")]
 #![deny(
-    bare_trait_object,
+    bare_trait_objects,
     missing_docs,
     unused_extern_crates,
     unused_import_braces,
