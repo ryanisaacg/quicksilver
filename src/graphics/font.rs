@@ -10,7 +10,7 @@ use {
 
 /// An in-memory TTF font that can render text on demand
 pub struct Font {
-    data: RTFont<'static>
+    pub(crate) data: RTFont<'static>
 }
 
 impl Font {
@@ -38,7 +38,7 @@ impl Font {
     /// Render a text string to an Image
     ///
     /// This function does not take into account unicode normalization or vertical layout
-    pub fn render(&self, text: &str, style: FontStyle) -> Result<Image> {
+    pub fn render(&self, text: &str, style: &FontStyle) -> Result<Image> {
         let scale = Scale { x: style.size, y: style.size };
         //Avoid clipping
         let offset = point(0.0, self.data.v_metrics(scale).ascent);
@@ -72,8 +72,8 @@ impl Font {
 /// The way text should appear on the screen
 #[derive(Clone, Copy, Debug)]
 pub struct FontStyle {
-    size: f32,
-    color: Color
+    pub(crate) size: f32,
+    pub(crate) color: Color
 }
 
 impl FontStyle {

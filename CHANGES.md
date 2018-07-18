@@ -17,16 +17,8 @@
 - Added `distance` method to `Vector`
 - Fixed bug with Windows not scaling the viewport by DPI
 - Fixed bug with macOS not letterboxing correctly
+- Added an implementation of the immi renderer
 - Mark some functions #[must_use]
-- Dependencies
-    - Versions
-        - alga: ``0.5 -> 0.6``
-        - glutin: ``0.16 -> 0.17``
-        - nalgebra: ``0.14 -> 0.15.1``
-        - ncollide2d ``0.15 -> 0.16.0``
-    - Highlights
-        - Sebcrozet added official wasm32 support for nalgebra
-        - Added deps.rs badge to readme for a visual indicator
 - Implement `Line` as drawable object
 - Implement `Triangle` as drawable object
 - Add `distance` method to `Vector`
@@ -37,6 +29,15 @@
 - [Breaking] Take `Vector`s in any function-argument where sensible (positions and sizes)
 - [Breaking] Replace the `new` functions by the `newv` functions (`new` takes `Vector`s now)
 - Add a conversion from tuples with two `Scalar`s two `Vector`s
+- Dependencies
+    - Versions
+        - alga: ``0.5 -> 0.6``
+        - glutin: ``0.16 -> 0.17``
+        - nalgebra: ``0.14 -> 0.15.1``
+        - ncollide2d ``0.15 -> 0.16.0``
+    - Highlights
+        - Sebcrozet added official wasm32 support for nalgebra
+        - Added deps.rs badge to readme for a visual indicator
 
 ## v0.2.1
 

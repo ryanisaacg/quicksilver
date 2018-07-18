@@ -8,6 +8,7 @@ mod color;
 mod drawable;
 #[cfg(feature="fonts")] mod font;
 mod image;
+#[cfg(feature="immi")] mod immi;
 mod resize;
 mod surface;
 mod vertex;
@@ -27,5 +28,7 @@ pub use self::{
     view::View,
     window::{Window, WindowBuilder}
 };
-#[cfg(feature="fonts")] pub use self::font::{Font, FontStyle};
+#[cfg(feature = "fonts")] pub use self::font::{Font, FontStyle};
+#[cfg(feature = "immi")] pub use self::immi::ImmiRender;
 pub(crate) use self::backend::{Backend, BackendImpl, ImageData, SurfaceData};
+
