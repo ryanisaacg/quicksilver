@@ -122,11 +122,11 @@ impl Sound {
     /// Future changes in volume will not change the sound emitted by this method.
     pub fn play(&self) -> Result<()> {
         #[cfg(not(target_arch="wasm32"))] {
-            let endpoint = match rodio::default_endpoint() {
-                Some(endpoint) => endpoint,
+            let device = match rodio::default_output_device() {
+                Some(device) => device,
                 None => return Err(SoundError::NoOutputAvailable.into())
             };
-            rodio::play_raw(&endpoint, self.get_source()?);
+            rodio::play_raw(&device, self.get_source()?);
         }
         #[cfg(target_arch="wasm32")] js! {
             @{&self.sound}.play();
@@ -139,8 +139,8 @@ impl Sound {
     //Unfortunately this means even apps that don't use sound eat the startup penalty but it's not a
     //huge one
     pub(crate) fn initialize() {
-        if let Some(ref endpoint) = rodio::default_endpoint() {
-            rodio::play_raw(endpoint, rodio::source::Empty::new())
+        if let Some(ref device) = rodio::default_output_device() {
+            rodio::play_raw(device, rodio::source::Empty::new())
         }
     }
 }

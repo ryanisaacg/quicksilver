@@ -44,7 +44,7 @@ alga = "0.6"
 gl = "0.10"
 glutin = "0.17"
 gilrs = { version = "0.6", optional = true }
-rodio = { version = "0.6", optional = true }
+rodio = { version = "0.8", optional = true }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 stdweb = "0.4.8"
