@@ -139,15 +139,16 @@ fn run_impl<T: State>(window: WindowBuilder) -> Result<()> {
 
 #[cfg(target_arch = "wasm32")]
 fn run_impl<T: State>(builder: WindowBuilder) -> Result<()> {
+    let (win, canvas) = builder.build()?; 
+
     let app = Rc::new(RefCell::new(Application {
-        window: builder.build()?,
+        window: win,
         state: T::new()?,
         event_buffer: Vec::new(),
     }));
 
     let document = document();
     let window = window();
-    let canvas = ::get_canvas()?;
 
     let application = app.clone();
     let close_handler = move || application.borrow_mut().event_buffer.push(Event::Closed);
@@ -168,7 +169,7 @@ fn run_impl<T: State>(builder: WindowBuilder) -> Result<()> {
             ));
     };
     js! {
-        document.getElementById("canvas").onwheel = function(e) {
+        @{&canvas}.onwheel = function(e) {
             @{wheel_handler}(e.deltaX, e.deltaY, e.deltaMode);
             e.preventDefault();
         }

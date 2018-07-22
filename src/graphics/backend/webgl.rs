@@ -6,7 +6,10 @@ use {
     },
     std::mem::size_of,
     stdweb::{
-        web::TypedArray,
+        web::{
+            html_element::CanvasElement,
+            TypedArray
+        },
         unstable::TryInto
     },
     webgl_stdweb::{
@@ -74,8 +77,9 @@ fn try_opt<T>(opt: Option<T>, operation: &str) -> Result<T> {
 }
 
 impl Backend for WebGLBackend {
-    unsafe fn new(texture_mode: ImageScaleStrategy) -> Result<WebGLBackend> {
-        let canvas = ::get_canvas()?;
+    type Platform = CanvasElement;
+
+    unsafe fn new(canvas: CanvasElement, texture_mode: ImageScaleStrategy) -> Result<WebGLBackend> {
         let ctx: gl = match canvas.get_context() {
             Ok(ctx) => ctx,
             _ => return Err(QuicksilverError::ContextError("Could not create WebGL2 context".to_owned()))

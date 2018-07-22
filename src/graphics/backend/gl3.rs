@@ -58,7 +58,9 @@ void main() {
 }"#;
 
 impl Backend for GL3Backend {
-    unsafe fn new(texture_mode: ImageScaleStrategy) -> Result<GL3Backend> {
+    type Platform = ();
+
+    unsafe fn new(_: (), texture_mode: ImageScaleStrategy) -> Result<GL3Backend> {
         let texture_mode = match texture_mode {
             ImageScaleStrategy::Pixelate => gl::NEAREST,
             ImageScaleStrategy::Blur => gl::LINEAR

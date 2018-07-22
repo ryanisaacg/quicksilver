@@ -1,5 +1,14 @@
 #[cfg(target_arch = "wasm32")]
-use stdweb::web::{document, window,};
+use {
+    error::QuicksilverError,
+    stdweb::{
+        web::{
+            INode, document, window,
+            html_element::CanvasElement,
+        },
+        unstable::TryInto
+    }
+};
 use {
     Result, 
     geom::{Rectangle, Scalar, Transform, Vector},
@@ -144,7 +153,7 @@ impl WindowBuilder {
                 wheel: Vector::ZERO,
             },
             view,
-            backend: unsafe { BackendImpl::new(self.scale)? },
+            backend: unsafe { BackendImpl::new((), self.scale)? },
             vertices: Vec::new(),
             triangles: Vec::new(),
         };
@@ -152,12 +161,24 @@ impl WindowBuilder {
     }
 
     #[cfg(target_arch = "wasm32")]
-    pub(crate) fn build(self) -> Result<Window> {
+    pub(crate) fn build(self) -> Result<(Window, CanvasElement)> {
         let mut actual_width = self.width;
         let mut actual_height = self.height;
         let document = document();
         let window = window();
-        let canvas = ::get_canvas()?;
+        let element = match document.create_element("canvas") {
+            Ok(elem) => elem,
+            Err(_) => return Err(QuicksilverError::ContextError("Failed to create canvas element".to_owned()))
+        };
+        let canvas: CanvasElement = match element.try_into() {
+            Ok(elem) => elem,
+            Err(_) => return Err(QuicksilverError::ContextError("Failed to create canvas element".to_owned()))
+        };
+        let body = match document.body() {
+            Some(body) => body,
+            None => return Err(QuicksilverError::ContextError("Failed to find body node".to_owned()))
+        };
+        body.append_child(&canvas);
         document.set_title(self.title);
         if self.fullscreen {
             actual_width = window.inner_width() as u32;
@@ -165,7 +186,7 @@ impl WindowBuilder {
         }
         canvas.set_width(actual_width);
         canvas.set_height(actual_height);
-        js! ( @{canvas}.style.cursor = @{self.show_cursor} ? "auto" : "none"; );
+        js! ( @{&canvas}.style.cursor = @{self.show_cursor} ? "auto" : "none"; );
         let screen_region = self.resize.resize(
             Vector::new(self.width, self.height),
             Vector::new(actual_width, actual_height),
@@ -186,11 +207,11 @@ impl WindowBuilder {
                 wheel: Vector::ZERO,
             },
             view,
-            backend: unsafe { BackendImpl::new(self.scale)? },
+            backend: unsafe { BackendImpl::new(canvas.clone(), self.scale)? },
             vertices: Vec::new(),
             triangles: Vec::new(),
         };
-        Ok(window)
+        Ok((window, canvas))
     }
 }
 
