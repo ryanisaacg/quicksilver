@@ -3,7 +3,7 @@ use error::QuicksilverError;
 use file::load_file;
 use futures::{Future, future};
 use geom::{Rectangle, Transform, Vector};
-use graphics::{Backend, BackendImpl, DrawAttributes, Drawable, GpuTriangle, ImageData, Vertex, Window};
+use graphics::{Backend, BackendImpl, DrawAttributes, Drawable, GpuTriangle, ImageData, RenderTarget, Vertex};
 use image;
 use std::{
     error::Error,
@@ -151,7 +151,7 @@ impl Error for ImageError {
 }
 
 impl Drawable for Image {
-    fn draw(&self, window: &mut Window, params: DrawAttributes) {
+    fn draw(&self, target: &mut impl RenderTarget, params: DrawAttributes) {
         let area = self.area();
         let trans = Transform::translate(area.size() / 2)
             * params.transform
@@ -170,6 +170,6 @@ impl Drawable for Image {
             GpuTriangle::new_textured([0, 1, 2], params.z, self.clone()),
             GpuTriangle::new_textured([2, 3, 0], params.z, self.clone())
         ];
-        window.add_vertices(vertices.iter().cloned(), triangles.iter().cloned());
+        target.add_vertices(vertices.iter().cloned(), triangles.iter().cloned());
     }
 }

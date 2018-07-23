@@ -6,8 +6,12 @@ extern crate quicksilver;
 
 use nalgebra::{zero, Isometry2};
 use ncollide2d::query::{Ray, RayCast};
-use quicksilver::{run, Result, State, geom::{Rectangle, Vector},
-                  graphics::{Color, GpuTriangle, Vertex, Window, WindowBuilder}, input::Event};
+use quicksilver::{
+    run, Result, State,
+    geom::{Rectangle, Vector},
+    graphics::{Color, GpuTriangle, RenderTarget, Vertex, Window, WindowBuilder},
+    input::Event
+};
 use std::{cmp::Ordering, iter::repeat};
 
 struct Raycast {

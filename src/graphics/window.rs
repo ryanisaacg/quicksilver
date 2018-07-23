@@ -2,10 +2,9 @@
 use stdweb::web::{document, window,};
 use {
     Result, 
-    geom::{Rectangle, Scalar, Transform, Vector},
+    geom::{Rectangle, Transform, Vector},
      graphics::{
-        Backend, BackendImpl, BlendMode, Color, DrawAttributes, Drawable, 
-        GpuTriangle, ImageScaleStrategy, ResizeStrategy, Vertex, View
+        Backend, BackendImpl, BlendMode, Color, GpuTriangle, ImageScaleStrategy, Mesh, RenderTarget, ResizeStrategy, Vertex, View
     },
     input::{ButtonState, Event, Gamepad, GamepadProvider, Keyboard, Mouse}
 };
@@ -145,8 +144,7 @@ impl WindowBuilder {
             },
             view,
             backend: unsafe { BackendImpl::new(self.scale)? },
-            vertices: Vec::new(),
-            triangles: Vec::new(),
+            mesh: Mesh::new()
         };
         Ok((window, events))
     }
@@ -187,8 +185,7 @@ impl WindowBuilder {
             },
             view,
             backend: unsafe { BackendImpl::new(self.scale)? },
-            vertices: Vec::new(),
-            triangles: Vec::new(),
+            mesh: Mesh::new()
         };
         Ok(window)
     }
@@ -207,8 +204,7 @@ pub struct Window {
     mouse: Mouse,
     view: View,
     pub(crate) backend: BackendImpl,
-    vertices: Vec<Vertex>,
-    triangles: Vec<GpuTriangle>,
+    mesh: Mesh
 }
 
 impl Window {
@@ -362,13 +358,7 @@ impl Window {
     /// The blend mode is also automatically reset,
     /// and any un-flushed draw calls are dropped.
     pub fn clear(&mut self, color: Color) -> Result<()> {
-        self.vertices.clear();
-        self.triangles.clear();
-        unsafe {
-            self.backend.clear_color(color, Color::BLACK)?;
-            self.backend.reset_blend_mode();
-        }
-        Ok(())
+        self.clear_letterbox_color(color, Color::BLACK)
     }
 
     /// Clear the screen to a given color, with a given letterbox color
@@ -376,8 +366,7 @@ impl Window {
     /// The blend mode is also automatically reset,
     /// and any un-flushed draw calls are dropped.
     pub fn clear_letterbox_color(&mut self, color: Color, letterbox: Color) -> Result<()> {
-        self.vertices.clear();
-        self.triangles.clear();
+        self.mesh.clear();
         unsafe {
             self.backend.reset_blend_mode();
             self.backend.clear_color(color, letterbox)
@@ -400,13 +389,11 @@ impl Window {
     /// Generally it's a bad idea to call this manually; as a general rule,
     /// the fewer times your application needs to flush the faster it will run.
     pub fn flush(&mut self) -> Result<()> {
-        self.triangles.sort();
+        self.mesh.triangles.sort();
         unsafe {
-            self.backend
-                .draw(self.vertices.as_slice(), self.triangles.as_slice())?;
+            self.backend.draw(self.mesh.vertices.as_slice(), self.mesh.triangles.as_slice())?;
         }
-        self.vertices.clear();
-        self.triangles.clear();
+        self.mesh.clear();
         Ok(())
     }
 
@@ -433,70 +420,18 @@ impl Window {
         Ok(())
     }
 
-    /// Draw a single object to the screen
-    ///
-    /// It will not appear until Window::flush is called
-    #[inline]
-    pub fn draw(&mut self, item: &impl Drawable, trans: Transform) {
-        self.draw_color(item, trans, Color::WHITE);
-    }
-
-    /// Draw a single object to the screen
-    ///
-    /// It will not appear until Window::flush is called
-    #[inline]
-    pub fn draw_color(&mut self, item: &impl Drawable, trans: Transform, color: Color) {
-        self.draw_ex(item, trans, color, 0.0);
-    }
-
-    /// Draw a single object to the screen
-    ///
-    /// It will not appear until Window::flush is called
-    #[inline]
-    pub fn draw_ex(&mut self, item: &impl Drawable, trans: Transform, color: Color, z: impl Scalar) {
-        self.draw_params(item, DrawAttributes::new()
-            .with_transform(trans)
-            .with_color(color)
-            .with_z(z.float()));
-    }
-
-    /// Draw a single object to the screen
-    ///
-    /// It will not appear until Window::flush is called
-    #[inline]
-    pub fn draw_params(&mut self, item: &impl Drawable, params: DrawAttributes) {
-        item.draw(self, params);
-    }
-
-    /// Add vertices directly to the list without using a Drawable
-    ///
-    /// Each vertex has a position in terms of the current view. The indices
-    /// of the given GPU triangles are specific to these vertices, so that
-    /// the index must be at least 0 and at most the number of vertices.
-    /// Other index values will have undefined behavior
-    pub fn add_vertices<V, T>(&mut self, vertices: V, triangles: T)
-    where
-        V: Iterator<Item = Vertex>,
-        T: Iterator<Item = GpuTriangle>,
-    {
-        let offset = self.vertices.len() as u32;
-        self.triangles.extend(triangles.map(|t| GpuTriangle {
-            indices: [
-                t.indices[0] + offset,
-                t.indices[1] + offset,
-                t.indices[2] + offset,
-            ],
-            ..t
-        }));
-        let opengl = self.view.opengl;
-        self.vertices.extend(vertices.map(|v| Vertex {
-            pos: opengl * v.pos,
-            ..v
-        }));
-    }
-
     /// Get a reference to the connected gamepads
     pub fn gamepads(&self) -> &Vec<Gamepad> {
         &self.gamepads
+    }
+}
+
+impl RenderTarget for Window {
+    fn add_vertices(&mut self, vertices: impl IntoIterator<Item = Vertex>, triangles: impl IntoIterator<Item = GpuTriangle>) {
+        let opengl = self.view.opengl;
+        self.mesh.add_vertices(vertices.into_iter().map(|v| Vertex {
+            pos: opengl * v.pos,
+            ..v
+        }), triangles);
     }
 }

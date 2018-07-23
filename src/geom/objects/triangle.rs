@@ -1,5 +1,5 @@
 use geom::{about_equal, Circle, Positioned, Transform, Vector, Rectangle, Line};
-use graphics::{DrawAttributes, Drawable, GpuTriangle, Vertex, Window};
+use graphics::{DrawAttributes, Drawable, GpuTriangle, Vertex, RenderTarget};
 use std::cmp::{Eq, PartialEq};
 
 #[derive(Clone, Copy, Default, Debug, Deserialize, Serialize)]
@@ -117,7 +117,7 @@ impl Positioned for Triangle {
 }
 
 impl Drawable for Triangle {
-    fn draw(&self, window: &mut Window, params: DrawAttributes) {
+    fn draw(&self, target: &mut impl RenderTarget, params: DrawAttributes) {
         let trans = Transform::translate(self.center())
             * params.transform
             * Transform::translate(-self.center());
@@ -129,7 +129,7 @@ impl Drawable for Triangle {
         let triangles = &[
             GpuTriangle::new_untextured([0, 1, 2], params.z),
         ];
-        window.add_vertices(vertices.iter().cloned(), triangles.iter().cloned());
+        target.add_vertices(vertices.iter().cloned(), triangles.iter().cloned());
     }
 }
 
