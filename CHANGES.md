@@ -29,6 +29,8 @@
 - [Breaking] Take `Vector`s in any function-argument where sensible (positions and sizes)
 - [Breaking] Replace the `new` functions by the `newv` functions (`new` takes `Vector`s now)
 - Add a conversion from tuples with two `Scalar`s two `Vector`s
+- Create a Mesh structure that caches drawing
+- [Breaking] Move drawing into a `RenderTarget` trait on both Mesh and Window
 - Dependencies
     - Versions
         - alga: ``0.5 -> 0.6``
