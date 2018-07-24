@@ -4,7 +4,7 @@
 };
 
 use geom::{about_equal, Positioned, Rectangle, Scalar};
-use graphics::{DrawAttributes, Drawable, Window};
+use graphics::{DrawAttributes, Drawable, RenderTarget};
 use rand::{
     Rng,
     distributions::{Distribution, Standard}
@@ -328,8 +328,8 @@ impl<T: Scalar, U: Scalar> From<(T, U)> for Vector {
 }
 
 impl Drawable for Vector {
-    fn draw(&self, window: &mut Window, params: DrawAttributes) {
-        Rectangle::new(*self, Vector::ONE).draw(window, params);
+    fn draw(&self, target: &mut impl RenderTarget, params: DrawAttributes) {
+        Rectangle::new(*self, Vector::ONE).draw(target, params);
     }
 }
 

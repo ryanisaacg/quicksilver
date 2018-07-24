@@ -1,6 +1,6 @@
 #[cfg(feature="ncollide2d")] use ncollide2d::shape::Ball;
 use geom::{about_equal, Positioned, Rectangle, Scalar, Transform, Vector};
-use graphics::{DrawAttributes, Drawable, GpuTriangle, Vertex, Window};
+use graphics::{DrawAttributes, Drawable, GpuTriangle, RenderTarget, Vertex};
 use std::{
     cmp::{Eq, PartialEq},
     iter
@@ -90,7 +90,7 @@ impl Positioned for Circle {
 
 
 impl Drawable for Circle {
-    fn draw(&self, window: &mut Window, params: DrawAttributes) {
+    fn draw(&self, target: &mut impl RenderTarget, params: DrawAttributes) {
         let transform = Transform::translate(self.center())
             * params.transform
             * Transform::scale(Vector::ONE * self.radius);
@@ -101,7 +101,7 @@ impl Drawable for Circle {
             .take(CIRCLE_POINTS.len() - 1)
             .enumerate()
             .map(|(index, z)| GpuTriangle::new_untextured([0, index as u32, index as u32 + 1], z));
-        window.add_vertices(vertices, indices);
+        target.add_vertices(vertices, indices);
     }
 }
 

@@ -3,7 +3,7 @@
     shape::Cuboid
 };
 use geom::{about_equal, Circle, Positioned, Transform, Vector};
-use graphics::{DrawAttributes, Drawable, GpuTriangle, Vertex, Window};
+use graphics::{DrawAttributes, Drawable, GpuTriangle, RenderTarget, Vertex};
 use std::cmp::{Eq, PartialEq};
 
 #[derive(Clone, Copy, Default, Debug, Deserialize, Serialize)]
@@ -154,7 +154,7 @@ impl From<AABB<f32>> for Rectangle {
 }
 
 impl Drawable for Rectangle {
-    fn draw(&self, window: &mut Window, params: DrawAttributes) {
+    fn draw(&self, target: &mut impl RenderTarget, params: DrawAttributes) {
         let trans = Transform::translate(self.top_left() + self.size() / 2)
             * params.transform
             * Transform::translate(-self.size() / 2)
@@ -169,7 +169,7 @@ impl Drawable for Rectangle {
             GpuTriangle::new_untextured([0, 1, 2], params.z),
             GpuTriangle::new_untextured([2, 3, 0], params.z)
         ];
-        window.add_vertices(vertices.iter().cloned(), triangles.iter().cloned());
+        target.add_vertices(vertices.iter().cloned(), triangles.iter().cloned());
     }
 }
 

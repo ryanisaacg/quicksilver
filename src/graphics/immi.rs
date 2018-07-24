@@ -1,21 +1,21 @@
 use geom::{Vector, Transform};
-use graphics::{Color, Font, FontStyle, GpuTriangle, Image, Vertex, Window};
+use graphics::{Color, Font, FontStyle, GpuTriangle, Image, RenderTarget, Vertex};
 use immi::{Draw, GlyphInfos, Matrix};
 use rusttype::{Point, Scale};
 
 /// A Quicksilver implementation of immi, which allows immediate GUI functionality
-pub struct ImmiRender<'a> {
-    window: &'a mut Window,
+pub struct ImmiRender<'a, T: 'a + RenderTarget> {
+    window: &'a mut T,
     font: &'a Font
 }
 
-impl<'a> ImmiRender<'a> {
+impl<'a, T: 'a + RenderTarget> ImmiRender<'a, T> {
     /// Create an instance of the renderer, which should be done every frame
     ///
     /// The renderer is a short-lived object that should not be stored
-    pub fn new(window: &'a mut Window, font: &'a Font) -> ImmiRender<'a> {
+    pub fn new(target: &'a mut T, font: &'a Font) -> ImmiRender<'a, T> {
         ImmiRender {
-            window,
+            window: target,
             font
         }
     }
@@ -31,7 +31,7 @@ fn matrix_to_trans(matrix: &Matrix) -> Transform {
 }
 
 
-impl<'a> Draw for ImmiRender<'a> {
+impl<'a, T: 'a + RenderTarget> Draw for ImmiRender<'a, T> {
     type ImageResource = Image;
     type TextStyle = FontStyle;
 
