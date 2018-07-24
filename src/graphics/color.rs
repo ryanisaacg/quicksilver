@@ -26,9 +26,20 @@ impl Color {
     pub fn with_blue(self, b: f32) -> Color {
         Color { b, ..self }
     }
+
     ///Create an identical color with a different alpha component
     pub fn with_alpha(self, a: f32) -> Color {
         Color { a, ..self }
+    }
+
+    /// Blend two colors by multiplying their components
+    pub fn multiply(self, other: Color) -> Color {
+        Color {
+            r: self.r * other.r,
+            g: self.g * other.g,
+            b: self.b * other.b,
+            a: self.a * other.a
+        }
     }
 }
 

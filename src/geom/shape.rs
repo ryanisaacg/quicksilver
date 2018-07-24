@@ -1,5 +1,5 @@
 use geom::{Circle, Positioned, Rectangle, Vector};
-use graphics::{DrawAttributes, Drawable, Window};
+use graphics::{DrawAttributes, Drawable, RenderTarget};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize, Serialize)]
 ///A universal shape union
@@ -89,12 +89,12 @@ impl Positioned for Shape {
 }
 
 impl Drawable for Shape {
-    fn draw(&self, window: &mut Window, params: DrawAttributes) {
+    fn draw(&self, target: &mut impl RenderTarget, params: DrawAttributes) {
         match self {
-            Shape::Circle(this) => this as &dyn Drawable,
-            Shape::Rectangle(this) => this as &dyn Drawable,
-            Shape::Vector(this) => this as &dyn Drawable,
-        }.draw(window, params);
+            Shape::Circle(this) => this.draw(target, params),
+            Shape::Rectangle(this) => this.draw(target, params),
+            Shape::Vector(this) => this.draw(target, params)
+        }
     }
 }
 

@@ -1,5 +1,5 @@
 use geom::{about_equal, Circle, Positioned, Transform, Vector, Rectangle};
-use graphics::{DrawAttributes, Drawable, Window};
+use graphics::{DrawAttributes, Drawable, RenderTarget};
 use std::cmp::{Eq, PartialEq};
 
 #[derive(Clone, Copy, Default, Debug, Deserialize, Serialize)]
@@ -140,7 +140,7 @@ impl Positioned for Line {
 }
 
 impl Drawable for Line {
-    fn draw(&self, window: &mut Window, params: DrawAttributes) {
+    fn draw(&self, target: &mut impl RenderTarget, params: DrawAttributes) {
         // create rectangle in right size
         let rect = Rectangle::new((self.a.x, self.a.y + self.t / 2.0), (self.a.distance(self.b), self.t));
 
@@ -155,7 +155,7 @@ impl Drawable for Line {
             transform: transform * params.transform,
             ..params
         };
-        rect.draw(window, new_params);
+        rect.draw(target, new_params);
     }
 }
 
