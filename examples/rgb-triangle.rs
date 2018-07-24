@@ -3,7 +3,6 @@ extern crate quicksilver;
 
 use quicksilver::{
     run, Result, State,
-    geom::Vector,
     graphics::{Color, GpuTriangle, RenderTarget, Vertex, Window, WindowBuilder}
 };
 
