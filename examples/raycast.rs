@@ -6,8 +6,12 @@ extern crate quicksilver;
 
 use nalgebra::{zero, Isometry2};
 use ncollide2d::query::{Ray, RayCast};
-use quicksilver::{run, Result, State, geom::{Rectangle, Vector},
-                  graphics::{Color, GpuTriangle, Vertex, Window, WindowBuilder}, input::Event};
+use quicksilver::{
+    run, Result, State,
+    geom::{Rectangle, Vector},
+    graphics::{Color, GpuTriangle, RenderTarget, Vertex, Window, WindowBuilder},
+    input::Event
+};
 use std::{cmp::Ordering, iter::repeat};
 
 struct Raycast {
@@ -23,15 +27,15 @@ impl State for Raycast {
     fn new() -> Result<Raycast> {
         //The different squares that cast shadows
         let regions = vec![
-            Rectangle::new_sized(800, 600),
+            Rectangle::new_sized((800, 600)),
             // Feel free to add or remove rectangles to this list
             // to see the effect on the lighting
-            Rectangle::new(200, 200, 100, 100),
-            Rectangle::new(400, 200, 100, 100),
-            Rectangle::new(400, 400, 100, 100),
-            Rectangle::new(200, 400, 100, 100),
-            Rectangle::new(50, 50, 50, 50),
-            Rectangle::new(550, 300, 64, 64),
+            Rectangle::new((200, 200), (100, 100)),
+            Rectangle::new((400, 200), (100, 100)),
+            Rectangle::new((400, 400), (100, 100)),
+            Rectangle::new((200, 400), (100, 100)),
+            Rectangle::new((50, 50), (50, 50)),
+            Rectangle::new((550, 300), (64, 64))
         ];
         // Build the list of targets to cast rays to
         let targets = regions
@@ -139,5 +143,5 @@ impl State for Raycast {
 }
 
 fn main() {
-    run::<Raycast>(WindowBuilder::new("Raycast", 800, 600));
+    run::<Raycast>(WindowBuilder::new("Raycast", (800, 600)));
 }

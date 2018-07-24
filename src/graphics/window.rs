@@ -1,11 +1,19 @@
 #[cfg(target_arch = "wasm32")]
-use stdweb::web::{document, window,};
+use {
+    error::QuicksilverError,
+    stdweb::{
+        web::{
+            INode, document, window,
+            html_element::CanvasElement,
+        },
+        unstable::TryInto
+    }
+};
 use {
     Result, 
-    geom::{Rectangle, Scalar, Transform, Vector},
+    geom::{Rectangle, Transform, Vector},
      graphics::{
-        Backend, BackendImpl, BlendMode, Color, DrawAttributes, Drawable, 
-        GpuTriangle, ImageScaleStrategy, ResizeStrategy, Vertex, View
+        Backend, BackendImpl, BlendMode, Color, GpuTriangle, ImageScaleStrategy, Mesh, RenderTarget, ResizeStrategy, Vertex, View
     },
     input::{ButtonState, Event, Gamepad, GamepadProvider, Keyboard, Mouse}
 };
@@ -30,11 +38,12 @@ pub struct WindowBuilder {
 
 impl WindowBuilder {
     ///Create a default window builder
-    pub fn new(title: &'static str, width: u32, height: u32) -> WindowBuilder {
+    pub fn new(title: &'static str, size: impl Into<Vector>) -> WindowBuilder {
+        let size = size.into();
         WindowBuilder {
             title,
-            width,
-            height,
+            width: size.x as u32,
+            height: size.y as u32,
             show_cursor: true,
             #[cfg(not(target_arch = "wasm32"))]
             min_size: None,
@@ -62,10 +71,10 @@ impl WindowBuilder {
     ///Set the minimum size for the window (no value by default)
     ///
     ///On the web, this does nothing.
-    pub fn with_minimum_size(self, _min_size: Vector) -> WindowBuilder {
+    pub fn with_minimum_size(self, _min_size: impl Into<Vector>) -> WindowBuilder {
         WindowBuilder {
             #[cfg(not(target_arch = "wasm32"))]
-            min_size: Some(_min_size),
+            min_size: Some(_min_size.into()),
             ..self
         }
     }
@@ -73,10 +82,10 @@ impl WindowBuilder {
     ///Set the maximum size for the window (no value by default)
     ///
     ///On the web, this does nothing.
-    pub fn with_maximum_size(self, _max_size: Vector) -> WindowBuilder {
+    pub fn with_maximum_size(self, _max_size: impl Into<Vector>) -> WindowBuilder {
         WindowBuilder {
             #[cfg(not(target_arch = "wasm32"))]
-            max_size: Some(_max_size),
+            max_size: Some(_max_size.into()),
             ..self
         }
     }
@@ -126,7 +135,7 @@ impl WindowBuilder {
             Vector::new(self.width, self.height),
             size,
         );
-        let view = View::new(Rectangle::newv_sized(screen_region.size()));
+        let view = View::new(Rectangle::new_sized(screen_region.size()));
         let window = Window {
             gl_window,
             gamepads: Vec::new(),
@@ -143,20 +152,31 @@ impl WindowBuilder {
                 wheel: Vector::ZERO,
             },
             view,
-            backend: unsafe { BackendImpl::new(self.scale)? },
-            vertices: Vec::new(),
-            triangles: Vec::new(),
+            backend: unsafe { BackendImpl::new((), self.scale)? },
+            mesh: Mesh::new()
         };
         Ok((window, events))
     }
 
     #[cfg(target_arch = "wasm32")]
-    pub(crate) fn build(self) -> Result<Window> {
+    pub(crate) fn build(self) -> Result<(Window, CanvasElement)> {
         let mut actual_width = self.width;
         let mut actual_height = self.height;
         let document = document();
         let window = window();
-        let canvas = ::get_canvas()?;
+        let element = match document.create_element("canvas") {
+            Ok(elem) => elem,
+            Err(_) => return Err(QuicksilverError::ContextError("Failed to create canvas element".to_owned()))
+        };
+        let canvas: CanvasElement = match element.try_into() {
+            Ok(elem) => elem,
+            Err(_) => return Err(QuicksilverError::ContextError("Failed to create canvas element".to_owned()))
+        };
+        let body = match document.body() {
+            Some(body) => body,
+            None => return Err(QuicksilverError::ContextError("Failed to find body node".to_owned()))
+        };
+        body.append_child(&canvas);
         document.set_title(self.title);
         if self.fullscreen {
             actual_width = window.inner_width() as u32;
@@ -164,12 +184,12 @@ impl WindowBuilder {
         }
         canvas.set_width(actual_width);
         canvas.set_height(actual_height);
-        js! ( @{canvas}.style.cursor = @{self.show_cursor} ? "auto" : "none"; );
+        js! ( @{&canvas}.style.cursor = @{self.show_cursor} ? "auto" : "none"; );
         let screen_region = self.resize.resize(
             Vector::new(self.width, self.height),
             Vector::new(actual_width, actual_height),
         );
-        let view = View::new(Rectangle::newv_sized(screen_region.size()));
+        let view = View::new(Rectangle::new_sized(screen_region.size()));
         let window = Window {
             gamepads: Vec::new(),
             gamepad_buffer: Vec::new(),
@@ -185,11 +205,10 @@ impl WindowBuilder {
                 wheel: Vector::ZERO,
             },
             view,
-            backend: unsafe { BackendImpl::new(self.scale)? },
-            vertices: Vec::new(),
-            triangles: Vec::new(),
+            backend: unsafe { BackendImpl::new(canvas.clone(), self.scale)? },
+            mesh: Mesh::new()
         };
-        Ok(window)
+        Ok((window, canvas))
     }
 }
 
@@ -206,8 +225,7 @@ pub struct Window {
     mouse: Mouse,
     view: View,
     pub(crate) backend: BackendImpl,
-    vertices: Vec<Vertex>,
-    triangles: Vec<GpuTriangle>,
+    mesh: Mesh
 }
 
 impl Window {
@@ -361,13 +379,7 @@ impl Window {
     /// The blend mode is also automatically reset,
     /// and any un-flushed draw calls are dropped.
     pub fn clear(&mut self, color: Color) -> Result<()> {
-        self.vertices.clear();
-        self.triangles.clear();
-        unsafe {
-            self.backend.clear_color(color, Color::BLACK)?;
-            self.backend.reset_blend_mode();
-        }
-        Ok(())
+        self.clear_letterbox_color(color, Color::BLACK)
     }
 
     /// Clear the screen to a given color, with a given letterbox color
@@ -375,8 +387,7 @@ impl Window {
     /// The blend mode is also automatically reset,
     /// and any un-flushed draw calls are dropped.
     pub fn clear_letterbox_color(&mut self, color: Color, letterbox: Color) -> Result<()> {
-        self.vertices.clear();
-        self.triangles.clear();
+        self.mesh.clear();
         unsafe {
             self.backend.reset_blend_mode();
             self.backend.clear_color(color, letterbox)
@@ -399,13 +410,11 @@ impl Window {
     /// Generally it's a bad idea to call this manually; as a general rule,
     /// the fewer times your application needs to flush the faster it will run.
     pub fn flush(&mut self) -> Result<()> {
-        self.triangles.sort();
+        self.mesh.triangles.sort();
         unsafe {
-            self.backend
-                .draw(self.vertices.as_slice(), self.triangles.as_slice())?;
+            self.backend.draw(self.mesh.vertices.as_slice(), self.mesh.triangles.as_slice())?;
         }
-        self.vertices.clear();
-        self.triangles.clear();
+        self.mesh.clear();
         Ok(())
     }
 
@@ -432,70 +441,18 @@ impl Window {
         Ok(())
     }
 
-    /// Draw a single object to the screen
-    ///
-    /// It will not appear until Window::flush is called
-    #[inline]
-    pub fn draw(&mut self, item: &impl Drawable, trans: Transform) {
-        self.draw_color(item, trans, Color::WHITE);
-    }
-
-    /// Draw a single object to the screen
-    ///
-    /// It will not appear until Window::flush is called
-    #[inline]
-    pub fn draw_color(&mut self, item: &impl Drawable, trans: Transform, color: Color) {
-        self.draw_ex(item, trans, color, 0.0);
-    }
-
-    /// Draw a single object to the screen
-    ///
-    /// It will not appear until Window::flush is called
-    #[inline]
-    pub fn draw_ex(&mut self, item: &impl Drawable, trans: Transform, color: Color, z: impl Scalar) {
-        self.draw_params(item, DrawAttributes::new()
-            .with_transform(trans)
-            .with_color(color)
-            .with_z(z.float()));
-    }
-
-    /// Draw a single object to the screen
-    ///
-    /// It will not appear until Window::flush is called
-    #[inline]
-    pub fn draw_params(&mut self, item: &impl Drawable, params: DrawAttributes) {
-        item.draw(self, params);
-    }
-
-    /// Add vertices directly to the list without using a Drawable
-    ///
-    /// Each vertex has a position in terms of the current view. The indices
-    /// of the given GPU triangles are specific to these vertices, so that
-    /// the index must be at least 0 and at most the number of vertices.
-    /// Other index values will have undefined behavior
-    pub fn add_vertices<V, T>(&mut self, vertices: V, triangles: T)
-    where
-        V: Iterator<Item = Vertex>,
-        T: Iterator<Item = GpuTriangle>,
-    {
-        let offset = self.vertices.len() as u32;
-        self.triangles.extend(triangles.map(|t| GpuTriangle {
-            indices: [
-                t.indices[0] + offset,
-                t.indices[1] + offset,
-                t.indices[2] + offset,
-            ],
-            ..t
-        }));
-        let opengl = self.view.opengl;
-        self.vertices.extend(vertices.map(|v| Vertex {
-            pos: opengl * v.pos,
-            ..v
-        }));
-    }
-
     /// Get a reference to the connected gamepads
     pub fn gamepads(&self) -> &Vec<Gamepad> {
         &self.gamepads
+    }
+}
+
+impl RenderTarget for Window {
+    fn add_vertices(&mut self, vertices: impl IntoIterator<Item = Vertex>, triangles: impl IntoIterator<Item = GpuTriangle>) {
+        let opengl = self.view.opengl;
+        self.mesh.add_vertices(vertices.into_iter().map(|v| Vertex {
+            pos: opengl * v.pos,
+            ..v
+        }), triangles);
     }
 }

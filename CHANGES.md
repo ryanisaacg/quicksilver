@@ -17,7 +17,20 @@
 - Added `distance` method to `Vector`
 - Fixed bug with Windows not scaling the viewport by DPI
 - Fixed bug with macOS not letterboxing correctly
+- Added an implementation of the immi renderer
 - Mark some functions #[must_use]
+- Implement `Line` as drawable object
+- Implement `Triangle` as drawable object
+- Add `distance` method to `Vector`
+- [Breaking] Use constants instead of functions for `Vector`s' "presets"
+- Add an optional method to `State` to handle error logging
+- Re-export the `futures::future` module as the `combinators` module
+- [Breaking] Remove `Line::new_sized`
+- [Breaking] Take `Vector`s in any function-argument where sensible (positions and sizes)
+- [Breaking] Replace the `new` functions by the `newv` functions (`new` takes `Vector`s now)
+- Add a conversion from tuples with two `Scalar`s two `Vector`s
+- Create a Mesh structure that caches drawing
+- [Breaking] Move drawing into a `RenderTarget` trait on both Mesh and Window
 - Dependencies
     - Versions
         - alga: ``0.5 -> 0.6``
@@ -27,11 +40,6 @@
     - Highlights
         - Sebcrozet added official wasm32 support for nalgebra
         - Added deps.rs badge to readme for a visual indicator
-- Implement `Line` as drawable object
-- Implement `Triangle` as drawable object
-- Add `distance` method to `Vector`
-- [Breaking] Use constants instead of functions for `Vector`s' "presets"
-- Add an optional method to `State` to handle error logging
 
 ## v0.2.1
 

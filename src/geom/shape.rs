@@ -1,5 +1,5 @@
 use geom::{Circle, Positioned, Rectangle, Vector};
-use graphics::{DrawAttributes, Drawable, Window};
+use graphics::{DrawAttributes, Drawable, RenderTarget};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize, Serialize)]
 ///A universal shape union
@@ -28,7 +28,8 @@ impl Shape {
     }
 
     ///Check if the shape contains a vector
-    pub fn contains(&self, vec: Vector) -> bool {
+    pub fn contains(&self, vec: impl Into<Vector>) -> bool {
+        let vec = vec.into();
         match *self {
             Shape::Circle(this) => this.contains(vec),
             Shape::Rectangle(this) => this.contains(vec),
@@ -47,7 +48,8 @@ impl Shape {
 
     ///Create a shape moved by a given amount
     #[must_use]
-    pub fn translate(&self, vec: Vector) -> Shape {
+    pub fn translate(&self, vec: impl Into<Vector>) -> Shape {
+        let vec: Vector = vec.into();
         match *self {
             Shape::Circle(this) => Shape::Circle(this.translate(vec)),
             Shape::Rectangle(this) => Shape::Rectangle(this.translate(vec)),
@@ -57,19 +59,20 @@ impl Shape {
 
     ///Create a copy of the shape with a given center
     #[must_use]
-    pub fn with_center(&self, vec: Vector) -> Shape {
+    pub fn with_center(&self, vec: impl Into<Vector>) -> Shape {
+        let vec = vec.into();
         match *self {
-            Shape::Circle(this) => Shape::Circle(Circle::new(vec.x, vec.y, this.radius)),
+            Shape::Circle(this) => Shape::Circle(Circle::new((vec.x, vec.y), this.radius)),
             Shape::Rectangle(this) => Shape::Rectangle(this.with_center(vec)),
             Shape::Vector(_) => Shape::Vector(vec)
         }
     }
 
-    fn as_positioned(&self) -> &Positioned {
+    fn as_positioned(&self) -> &dyn Positioned {
         match self {
-            &Shape::Circle(ref this) => this as &Positioned,
-            &Shape::Rectangle(ref this) => this as &Positioned,
-            &Shape::Vector(ref this) => this as &Positioned,
+            &Shape::Circle(ref this) => this as &dyn Positioned,
+            &Shape::Rectangle(ref this) => this as &dyn Positioned,
+            &Shape::Vector(ref this) => this as &dyn Positioned,
         }
 
     }
@@ -86,12 +89,12 @@ impl Positioned for Shape {
 }
 
 impl Drawable for Shape {
-    fn draw(&self, window: &mut Window, params: DrawAttributes) {
+    fn draw(&self, target: &mut impl RenderTarget, params: DrawAttributes) {
         match self {
-            Shape::Circle(this) => this as &Drawable,
-            Shape::Rectangle(this) => this as &Drawable,
-            Shape::Vector(this) => this as &Drawable,
-        }.draw(window, params);
+            Shape::Circle(this) => this.draw(target, params),
+            Shape::Rectangle(this) => this.draw(target, params),
+            Shape::Vector(this) => this.draw(target, params)
+        }
     }
 }
 
@@ -101,8 +104,8 @@ mod tests {
 
     fn get_shapes() -> [Shape; 3] {
         [
-            Shape::Circle(Circle::new(0, 0, 32)),
-            Shape::Rectangle(Rectangle::new(0, 0, 32, 32)),
+            Shape::Circle(Circle::new((0, 0), 32)),
+            Shape::Rectangle(Rectangle::new((0, 0), (32, 32))),
             Shape::Vector(Vector::new(0, 0))
         ]
     }

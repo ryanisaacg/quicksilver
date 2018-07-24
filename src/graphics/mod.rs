@@ -9,6 +9,8 @@ mod drawable;
 #[cfg(feature="fonts")] mod font;
 #[cfg(feature="lyon")] mod lyon;
 mod image;
+#[cfg(feature="immi")] mod immi;
+mod mesh;
 mod resize;
 mod surface;
 mod vertex;
@@ -20,8 +22,9 @@ pub use self::{
     atlas::{Atlas, AtlasError, AtlasItem},
     backend::{BlendMode, ImageScaleStrategy},
     color::Color,
-    drawable::{DrawAttributes, Drawable},
+    drawable::{DrawAttributes, Drawable, RenderTarget},
     image::{Image, ImageError, PixelFormat},
+    mesh::Mesh,
     resize::ResizeStrategy,
     surface::Surface,
     vertex::{Vertex, GpuTriangle},
@@ -30,4 +33,6 @@ pub use self::{
 };
 #[cfg(feature="fonts")] pub use self::font::{Font, FontStyle};
 #[cfg(feature="lyon")] pub use self::lyon::ShapeRenderer;
+#[cfg(feature = "immi")] pub use self::immi::ImmiRender;
 pub(crate) use self::backend::{Backend, BackendImpl, ImageData, SurfaceData};
+

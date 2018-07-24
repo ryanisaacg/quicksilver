@@ -2,59 +2,41 @@
     bounding_volume::AABB,
     shape::Cuboid
 };
-use geom::{about_equal, Circle, Positioned, Scalar, Transform, Vector};
-use graphics::{DrawAttributes, Drawable, GpuTriangle, Vertex, Window};
+use geom::{about_equal, Circle, Positioned, Transform, Vector};
+use graphics::{DrawAttributes, Drawable, GpuTriangle, RenderTarget, Vertex};
 use std::cmp::{Eq, PartialEq};
 
 #[derive(Clone, Copy, Default, Debug, Deserialize, Serialize)]
 ///A rectangle with a top-left position and a size
 pub struct Rectangle {
-    ///The top-left x coordinate of the rectangle
-    pub x: f32,
-    ///The top-left y coordinate of the rectangle
-    pub y: f32,
-    ///The width of the rectangle
-    pub width: f32,
-    ///The height of the rectangle
-    pub height: f32,
+    ///The top-left coordinate of the rectangle
+    pub pos: Vector,
+    ///The width and height of the rectangle
+    pub size: Vector
 }
 
 impl Rectangle {
-    ///Create a positioned rectangle with dimensions
-    pub fn new<T: Scalar>(x: T, y: T, width: T, height: T) -> Rectangle {
-        Rectangle {
-            x: x.float(),
-            y: y.float(),
-            width: width.float(),
-            height: height.float(),
-        }
-    }
-
     ///Create a rectangle from a top-left vector and a size vector
-    pub fn newv(pos: Vector, size: Vector) -> Rectangle {
-        Rectangle::new(pos.x, pos.y, size.x, size.y)
+    pub fn new(pos: impl Into<Vector>, size: impl Into<Vector>) -> Rectangle {
+        Rectangle {
+            pos:  pos.into(),
+            size: size.into()
+        }
     }
 
     ///Create a rectangle at the origin with the given size
-    pub fn new_sized<T: Scalar>(width: T, height: T) -> Rectangle {
+    pub fn new_sized(size: impl Into<Vector>) -> Rectangle {
         Rectangle {
-            x: 0.0,
-            y: 0.0,
-            width: width.float(),
-            height: height.float()
+            pos:  Vector::ZERO,
+            size: size.into()
         }
-    }
-
-    ///Create a rectangle at the origin with a size given by a Vector
-    pub fn newv_sized(size: Vector) -> Rectangle {
-        Rectangle::newv(Vector::ZERO, size)
     }
 
     #[cfg(feature="ncollide2d")]
     ///Create a rectangle with a given center and Cuboid from ncollide
-    pub fn from_cuboid(center: Vector, cuboid: &Cuboid<f32>) -> Rectangle {
+    pub fn from_cuboid(center: impl Into<Vector>, cuboid: &Cuboid<f32>) -> Rectangle {
         let half_size = cuboid.half_extents().clone().into();
-        Rectangle::newv(center - half_size, half_size * 2)
+        Rectangle::new(center.into() - half_size, half_size * 2)
     }
    
     ///Convert this rect into an ncollide Cuboid2
@@ -72,24 +54,51 @@ impl Rectangle {
     }
 
     ///Get the top left coordinate of the Rectangle
-    pub fn top_left(self) -> Vector {
-        Vector::new(self.x, self.y)
+    pub fn top_left(&self) -> Vector {
+        self.pos
+    }
+
+    ///Get the x-coordinate of the Rectangle
+    ///(The origin of a Rectangle is at the top left)
+    pub fn x(&self) -> f32 {
+        self.pos.x
+    }
+
+    ///Get the y-coordinate of the Rectangle
+    ///(The origin of a Rectangle is at the top left)
+    pub fn y(&self) -> f32 {
+        self.pos.y
     }
 
     ///Get the size of the Rectangle
-    pub fn size(self) -> Vector {
-        Vector::new(self.width, self.height)
+    pub fn size(&self) -> Vector {
+        self.size
+    }
+
+    ///Get the height of the Rectangle
+    pub fn height(&self) -> f32 {
+        self.size.y
+    }
+
+    ///Get the width of the Rectangle
+    pub fn width(&self) -> f32 {
+        self.size.x
     }
 
     ///Checks if a point falls within the rectangle
-    pub fn contains(self, v: Vector) -> bool {
-        v.x >= self.x && v.y >= self.y && v.x < self.x + self.width && v.y < self.y + self.height
+    pub fn contains(self, point: impl Into<Vector>) -> bool {
+        let p = point.into();
+
+        return p.x >= self.x()
+            && p.y >= self.y()
+            && p.x < self.x() + self.width()
+            && p.y < self.y() + self.width()
     }
 
     ///Check if any of the area bounded by this rectangle is bounded by another
     pub fn overlaps_rect(self, b: Rectangle) -> bool {
-        self.x < b.x + b.width && self.x + self.width > b.x && self.y < b.y + b.height &&
-            self.y + self.height > b.y
+        self.x() < b.pos.x + b.size.x && self.x() + self.width() > b.pos.x && self.y() < b.pos.y + b.size.y &&
+            self.y() + self.height() > b.pos.y
     }
 
     ///Check if any of the area bounded by this rectangle is bounded by a circle
@@ -100,28 +109,28 @@ impl Rectangle {
     ///Move the rectangle so it is entirely contained with another
     #[must_use]
     pub fn constrain(self, outer: Rectangle) -> Rectangle {
-        Rectangle::newv(self.top_left().clamp(
+        Rectangle::new(self.top_left().clamp(
             outer.top_left(), outer.top_left() + outer.size() - self.size()
         ), self.size())
     }
 
     ///Translate the rectangle by a given vector
     #[must_use]
-    pub fn translate(self, v: Vector) -> Rectangle {
-        Rectangle::new(self.x + v.x, self.y + v.y, self.width, self.height)
+    pub fn translate(self, v: impl Into<Vector>) -> Rectangle {
+        Rectangle::new(self.pos + v.into(), self.size)
     }
 
     ///Create a rectangle with the same size at a given center
     #[must_use]
-    pub fn with_center(self, v: Vector) -> Rectangle {
-        self.translate(v - self.center())
+    pub fn with_center(self, v: impl Into<Vector>) -> Rectangle {
+        self.translate(v.into() - self.center())
     }
 }
 
 impl PartialEq for Rectangle {
     fn eq(&self, other: &Rectangle) -> bool {
-        about_equal(self.x, other.x) && about_equal(self.y, other.y) && about_equal(self.width, other.width)
-            && about_equal(self.height, other.height)
+        about_equal(self.x(), other.pos.x) && about_equal(self.y(), other.pos.y) && about_equal(self.width(), other.size.x)
+            && about_equal(self.height(), other.size.y)
     }
 }
 
@@ -140,12 +149,12 @@ impl Positioned for Rectangle {
 #[cfg(feature="ncollide2d")]
 impl From<AABB<f32>> for Rectangle {
     fn from(other: AABB<f32>) -> Rectangle {
-        Rectangle::newv(other.mins().clone().into(), other.maxs().clone().into())
+        Rectangle::new(other.mins().clone(), other.maxs().clone())
     }
 }
 
 impl Drawable for Rectangle {
-    fn draw(&self, window: &mut Window, params: DrawAttributes) {
+    fn draw(&self, target: &mut impl RenderTarget, params: DrawAttributes) {
         let trans = Transform::translate(self.top_left() + self.size() / 2)
             * params.transform
             * Transform::translate(-self.size() / 2)
@@ -160,7 +169,7 @@ impl Drawable for Rectangle {
             GpuTriangle::new_untextured([0, 1, 2], params.z),
             GpuTriangle::new_untextured([2, 3, 0], params.z)
         ];
-        window.add_vertices(vertices.iter().cloned(), triangles.iter().cloned());
+        target.add_vertices(vertices.iter().cloned(), triangles.iter().cloned());
     }
 }
 
@@ -170,16 +179,16 @@ mod tests {
 
     #[test]
     fn overlap() {
-        let a = Rectangle::new_sized(32, 32);
-        let b = Rectangle::new(16, 16, 32, 32);
-        let c = Rectangle::new(50, 50, 5, 5);
+        let a = Rectangle::new_sized((32, 32));
+        let b = Rectangle::new((16, 16), (32, 32));
+        let c = Rectangle::new((50, 50), (5, 5));
         assert!(a.overlaps_rect(b));
         assert!(!a.overlaps_rect(c));
     }
 
     #[test]
     fn contains() {
-        let rect = Rectangle::new_sized(32, 32);
+        let rect = Rectangle::new_sized((32, 32));
         let vec1 = Vector::new(5, 5);
         let vec2 = Vector::new(33, 1);
         assert!(rect.contains(vec1));
@@ -188,9 +197,9 @@ mod tests {
 
     #[test]
     fn constraint() {
-        let constraint = Rectangle::new_sized(10, 10);
-        let a = Rectangle::new(-1, 3, 5, 5);
-        let b = Rectangle::new(4, 4, 8, 3);
+        let constraint = Rectangle::new_sized((10, 10));
+        let a = Rectangle::new((-1, 3), (5, 5));
+        let b = Rectangle::new((4, 4), (8, 3));
         let a = a.constrain(constraint);
         assert_eq!(a.top_left(), Vector::new(0, 3));
         let b = b.constrain(constraint);
@@ -199,7 +208,7 @@ mod tests {
 
     #[test]
     fn translate() {
-        let a = Rectangle::new(10, 10, 5, 5);
+        let a = Rectangle::new((10, 10), (5, 5));
         let v = Vector::new(1, -1);
         let translated = a.translate(v);
         assert_eq!(a.top_left() + v, translated.top_left());

@@ -40,6 +40,11 @@ impl Transform {
     pub const IDENTITY: Transform = Transform([[1f32, 0f32, 0f32],
                   [0f32, 1f32, 0f32],
                   [0f32, 0f32, 1f32]]);
+    
+    ///Create a Transform from an arbitrary matrix in a column-major matrix
+    pub fn from_array(array: [[f32; 3]; 3]) -> Transform {
+        Transform(array)
+    }
 
     ///Create a rotation transformation
     pub fn rotate<T: Scalar>(angle: T) -> Transform {
@@ -52,14 +57,16 @@ impl Transform {
     }
 
     ///Create a translation transformation
-    pub fn translate(vec: Vector) -> Transform {
+    pub fn translate(vec: impl Into<Vector>) -> Transform {
+        let vec = vec.into();
         Transform([[1f32, 0f32, vec.x],
                   [0f32, 1f32, vec.y],
                   [0f32, 0f32, 1f32]])
     }
 
     ///Create a scale transformation
-    pub fn scale(vec: Vector) -> Transform {
+    pub fn scale(vec: impl Into<Vector>) -> Transform {
+        let vec = vec.into();
         Transform([[vec.x, 0f32, 0f32],
                   [0f32, vec.y, 0f32],
                   [0f32, 0f32, 1f32]])

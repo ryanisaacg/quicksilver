@@ -34,18 +34,18 @@ impl State for DrawGeometry {
 
     fn draw(&mut self, window: &mut Window) -> Result<()> {
         window.clear(Color::BLACK)?;
-        window.draw_color(&Rectangle::new(100, 100, 32, 32), Transform::IDENTITY, Color::BLUE);
-        window.draw_ex(&Rectangle::new(400, 300, 32, 32), Transform::rotate(45), Color::BLUE, 10);
-        window.draw_color(&Circle::new(400, 300, 100), Transform::IDENTITY, Color::GREEN);
+        window.draw_color(&Rectangle::new((100, 100), (32, 32)), Transform::IDENTITY, Color::BLUE);
+        window.draw_ex(&Rectangle::new((400, 300), (32, 32)), Transform::rotate(45), Color::BLUE, 10);
+        window.draw_color(&Circle::new((400, 300), 100), Transform::IDENTITY, Color::GREEN);
         window.draw_ex(
-            &Line::newv(Vector::new(50, 80),Vector::new(600, 450)).with_thickness(2.0),
+            &Line::new((50, 80),(600, 450)).with_thickness(2.0),
             Transform::IDENTITY,
             Color::RED,
             5
         );
         window.draw_color(
-            &Triangle::new(500, 50, 450, 100, 650, 150),
-            Transform::rotate(45) * Transform::scale(Vector::new(0.5, 0.5)),
+            &Triangle::new((500, 50), (450, 100), (650, 150)),
+            Transform::rotate(45) * Transform::scale((0.5, 0.5)),
             Color::RED
         );
         window.present()
@@ -53,7 +53,7 @@ impl State for DrawGeometry {
 }
 
 fn main() {
-    run::<DrawGeometry>(WindowBuilder::new("Draw Geometry", 800, 600));
+    run::<DrawGeometry>(WindowBuilder::new("Draw Geometry", (800, 600)));
 }
 ```
 
@@ -79,7 +79,7 @@ If you're deploying for the web, first make sure you've
 [installed the wasm toolchain](https://www.hellorust.com/news/native-wasm-target.html) 
 and the [cargo web tool](https://github.com/koute/cargo-web). Build the 
 wasm file and its js bindings (`cargo +nightly web build --target wasm32-unknown-unknown`). Copy the .wasm and .js
-files produced (found at "target/wasm32-unknown-unknown/release") and any assets you may have used. Create an HTML file with a canvas (that has the ID "canvas") and attach the script with a `script` tag.
+files produced (found at "target/wasm32-unknown-unknown/release") and any assets you may have used. Create an HTML file and attach the script with a `script` tag.
 
 If you want to test your application locally, use `cargo +nightly web start --target wasm32-unknown-unknown` and open your favorite browser to the port it provides. 
 

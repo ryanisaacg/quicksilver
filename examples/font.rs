@@ -1,12 +1,11 @@
 // Draw some sample text to the screen
-extern crate futures;
 extern crate quicksilver;
 
-use futures::future::result;
 use quicksilver::{
-    run, Asset, Future, Result, State, 
+    run, Asset, Future, Result, State,
+    combinators::result,
     geom::{Vector, Transform},
-    graphics::{Color, Font, FontStyle, Image, Window, WindowBuilder}
+    graphics::{Color, Font, FontStyle, Image, RenderTarget, Window, WindowBuilder}
 };
 
 struct SampleText {
@@ -18,7 +17,7 @@ impl State for SampleText {
         let asset = Asset::new(Font::load("examples/assets/font.ttf")
             .and_then(|font| {
                 let style = FontStyle::new(72.0, Color::BLACK);
-                result(font.render("Sample Text", style))
+                result(font.render("Sample Text", &style))
             }));
         Ok(SampleText { asset })
     }
@@ -26,7 +25,7 @@ impl State for SampleText {
     fn draw(&mut self, window: &mut Window) -> Result<()> {
         window.clear(Color::WHITE)?;
         self.asset.execute(|image| {
-            window.draw(image, Transform::translate(Vector::new(400, 300)));
+            window.draw_ex(image, Transform::translate(Vector::new(400, 300)), Color::WHITE, 0);
             Ok(())
         })?;
         window.present()
@@ -34,5 +33,5 @@ impl State for SampleText {
 }
 
 fn main() {
-    run::<SampleText>(WindowBuilder::new("Font Example", 800, 600));
+    run::<SampleText>(WindowBuilder::new("Font Example", (800, 600)));
 }

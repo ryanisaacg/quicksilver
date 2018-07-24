@@ -1,7 +1,9 @@
 use { Result, geom::Vector, graphics::{ Color, GpuTriangle, Image, PixelFormat, Surface, Vertex } };
 
 pub(crate) trait Backend {
-    unsafe fn new(texture_mode: ImageScaleStrategy) -> Result<Self> where Self: Sized;
+    type Platform;
+
+    unsafe fn new(platform: Self::Platform, texture_mode: ImageScaleStrategy) -> Result<Self> where Self: Sized;
     unsafe fn clear(&mut self, color: Color);
     unsafe fn set_blend_mode(&mut self, blend: BlendMode);
     unsafe fn reset_blend_mode(&mut self);
