@@ -11,9 +11,10 @@ readme = "README.md"
 repository = "https://github.com/ryanisaacg/quicksilver"
 
 [features]
-default = ["collisions", "fonts", "gamepads", "immi_ui", "saving", "sounds"]
+default = ["collisions", "fonts", "gamepads", "complex_shapes", "immi_ui", "saving", "sounds"]
 
 collisions = ["nalgebra", "ncollide2d"]
+complex_shapes = ["lyon"]
 fonts = ["rusttype"]
 gamepads = ["gilrs"]
 immi_ui = ["immi", "fonts"]
@@ -28,6 +29,7 @@ maintenance = { status = "actively-developed" }
 [dependencies]
 futures = "0.1"
 image = "0.19"
+lyon = { version = "0.11", features = ["extra"], optional = true }
 rand = { version = "0.5.0", features = ["stdweb"] }
 serde = "1.0"
 serde_derive = "1.0"
@@ -77,3 +79,7 @@ required-features = ["collisions"]
 [[example]]
 name = "rgb-triangle"
 required-features = []
+
+[[example]]
+name = "lyon"
+required-features = ["complex_shapes"]

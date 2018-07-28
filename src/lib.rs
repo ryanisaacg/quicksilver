@@ -97,6 +97,8 @@ extern crate webgl_stdweb;
 
 #[cfg(all(feature = "gilrs", not(target_arch = "wasm32")))]
 extern crate gilrs;
+#[cfg(feature = "lyon")]
+pub extern crate lyon;
 #[cfg(feature = "immi")]
 extern crate immi;
 #[cfg(feature = "nalgebra")]

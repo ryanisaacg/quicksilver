@@ -30,6 +30,7 @@
 - Add a conversion from tuples with two `Scalar`s two `Vector`s
 - Create a Mesh structure that caches drawing
 - Create a Background enum that can either be a color or an image
+- Add optional `lyon` integration for vector graphics
 - Dependencies
     - Versions
         - alga: ``0.5 -> 0.6``
