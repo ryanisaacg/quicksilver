@@ -4,7 +4,6 @@
 };
 
 use geom::{about_equal, Positioned, Rectangle, Scalar};
-use graphics::{DrawAttributes, Drawable, RenderTarget};
 use rand::{
     Rng,
     distributions::{Distribution, Standard}
@@ -146,6 +145,24 @@ impl Vector {
     pub fn distance(self, other: impl Into<Vector>) -> f32 {
         let other = other.into();
         ((other.x - self.x).powi(2) + (other.y - self.y).powi(2)).sqrt()
+    }
+
+    ///Get a vector with the minimum of each component of this and another vector
+    pub fn min(self, other: impl Into<Vector>) -> Vector {
+        let other = other.into();
+        Vector::new(
+            self.x.min(other.x),
+            self.y.min(other.y)
+        )
+    }
+
+    ///Get a vector with the maximum of each component of this and another vector
+    pub fn max(self, other: impl Into<Vector>) -> Vector {
+        let other = other.into();
+        Vector::new(
+            self.x.max(other.x),
+            self.y.max(other.y)
+        )
     }
 }
 
@@ -324,12 +341,6 @@ impl From<PhysicalSize> for Vector {
 impl<T: Scalar, U: Scalar> From<(T, U)> for Vector {
     fn from(other: (T, U)) -> Vector {
         Vector::new(other.0, other.1)
-    }
-}
-
-impl Drawable for Vector {
-    fn draw(&self, target: &mut impl RenderTarget, params: DrawAttributes) {
-        Rectangle::new(*self, Vector::ONE).draw(target, params);
     }
 }
 

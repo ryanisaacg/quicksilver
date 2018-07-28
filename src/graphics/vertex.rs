@@ -1,5 +1,5 @@
-use geom::Vector;
-use graphics::{Color, Image};
+use geom::{Scalar, Vector};
+use graphics::{Background, Color, Image};
 use std::cmp::Ordering;
 
 #[derive(Clone, Copy, Debug)]
@@ -16,21 +16,12 @@ pub struct Vertex {
 }
 
 impl Vertex {
-    /// Create a new untextured GPU vertex
-    pub fn new_untextured(pos: impl Into<Vector>, col: Color) -> Vertex {
+    /// Create a new GPU vertex
+    pub fn new(pos: impl Into<Vector>, tex_pos: Option<Vector>, bkg: Background) -> Vertex {
         Vertex {
             pos: pos.into(),
-            tex_pos: None,
-            col
-        }
-    }
-
-    /// Create a new textured GPU vertex
-    pub fn new_textured(pos: impl Into<Vector>, tex_pos: impl Into<Vector>, col: Color) -> Vertex {
-        Vertex {
-            pos: pos.into(),
-            tex_pos: Some(tex_pos.into()),
-            col
+            tex_pos: tex_pos.map(|pos| pos.into()),
+            col: bkg.color()
         }
     }
 }
@@ -51,20 +42,11 @@ pub struct GpuTriangle {
 
 impl GpuTriangle {
     /// Create a new untextured GPU Triangle
-    pub fn new_untextured(indices: [u32; 3], z: f32) -> GpuTriangle {
+    pub fn new(offset: u32, indices: [u32; 3], z: impl Scalar, bkg: Background) -> GpuTriangle {
         GpuTriangle {
-            z,
-            indices,
-            image: None
-        }
-    }
-
-    /// Create a new textured GPU triangle
-    pub fn new_textured(indices: [u32; 3], z: f32, image: Image) -> GpuTriangle {
-        GpuTriangle {
-            z,
-            indices,
-            image: Some(image)
+            z: z.float(),
+            indices: [indices[0] + offset, indices[1] + offset, indices[2] + offset],
+            image: bkg.image().cloned()
         }
     }
 }

@@ -22,7 +22,7 @@ pub use self::{
     atlas::{Atlas, AtlasError, AtlasItem},
     backend::{BlendMode, ImageScaleStrategy},
     color::Color,
-    drawable::{DrawAttributes, Drawable, RenderTarget},
+    drawable::{Background, Drawable},
     image::{Image, ImageError, PixelFormat},
     mesh::Mesh,
     resize::ResizeStrategy,

@@ -61,10 +61,6 @@ name = "draw-geometry"
 required-features = []
 
 [[example]]
-name = "pulsing-circle"
-required-features = []
-
-[[example]]
 name = "image"
 required-features = []
 

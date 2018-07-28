@@ -1,19 +1,19 @@
 use geom::{Vector, Transform};
-use graphics::{Color, Font, FontStyle, GpuTriangle, Image, RenderTarget, Vertex};
+use graphics::{Background, Font, FontStyle, GpuTriangle, Image, Mesh, Vertex};
 use immi::{Draw, GlyphInfos, Matrix};
 use rusttype::{Point, Scale};
 
 /// A Quicksilver implementation of immi, which allows immediate GUI functionality
-pub struct ImmiRender<'a, T: 'a + RenderTarget> {
-    window: &'a mut T,
+pub struct ImmiRender<'a> {
+    window: &'a mut Mesh,
     font: &'a Font
 }
 
-impl<'a, T: 'a + RenderTarget> ImmiRender<'a, T> {
+impl<'a> ImmiRender<'a> {
     /// Create an instance of the renderer, which should be done every frame
     ///
     /// The renderer is a short-lived object that should not be stored
-    pub fn new(target: &'a mut T, font: &'a Font) -> ImmiRender<'a, T> {
+    pub fn new(target: &'a mut Mesh, font: &'a Font) -> ImmiRender<'a> {
         ImmiRender {
             window: target,
             font
@@ -31,19 +31,19 @@ fn matrix_to_trans(matrix: &Matrix) -> Transform {
 }
 
 
-impl<'a, T: 'a + RenderTarget> Draw for ImmiRender<'a, T> {
+impl<'a> Draw for ImmiRender<'a> {
     type ImageResource = Image;
     type TextStyle = FontStyle;
 
     fn draw_triangle(&mut self, texture: &Image, matrix: &Matrix, uv_coords: [[f32; 2]; 3]) {
         let transform = matrix_to_trans(matrix);
-        let vertices = [(-1, 1), (-1, -1), (1, 1)]
+        let offset = self.window.vertices.len() as u32;
+        self.window.vertices.extend([(-1, 1), (-1, -1), (1, 1)]
             .iter()
             .map(|(x, y)| transform * Vector::new(*x, *y))
             .zip(uv_coords.iter().map(|[x, y]| Vector::new(*x, *y)))
-            .map(|(pos, tex_coord)| Vertex::new_textured(pos, tex_coord, Color::WHITE));
-        let indices = [ GpuTriangle::new_textured([0, 1, 2], 0.0, texture.clone()) ];
-        self.window.add_vertices(vertices, indices.iter().cloned());
+            .map(|(pos, tex_coord)| Vertex::new(pos, Some(tex_coord), Background::Img(texture))));
+        self.window.triangles.push(GpuTriangle::new(offset, [0, 1, 2], 0.0, Background::Img(texture)));
     }
 
     fn get_image_width_per_height(&mut self, image: &Image) -> f32 {

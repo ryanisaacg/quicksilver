@@ -3,8 +3,8 @@ extern crate quicksilver;
 
 use quicksilver::{
     run, Asset, Result, State,
-    geom::{Rectangle, Transform, Vector},
-    graphics::{Color, RenderTarget, Window, WindowBuilder},
+    geom::{Rectangle, Vector},
+    graphics::{Background::Col, Color, Window, WindowBuilder},
     input::{ButtonState, MouseButton}, 
     sound::Sound
 };
@@ -38,7 +38,7 @@ impl State for SoundPlayer {
         window.clear(Color::WHITE)?;
         // If the sound is loaded, draw the button
         self.asset.execute(|_| {
-            window.draw_ex(&BUTTON_AREA, Transform::IDENTITY, Color::BLUE, 0);
+            window.draw(&BUTTON_AREA, Col(Color::BLUE));
             Ok(())
         })?;
         window.present()

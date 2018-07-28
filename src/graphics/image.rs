@@ -2,8 +2,8 @@ use Result;
 use error::QuicksilverError;
 use file::load_file;
 use futures::{Future, future};
-use geom::{Rectangle, Transform, Vector};
-use graphics::{Backend, BackendImpl, DrawAttributes, Drawable, GpuTriangle, ImageData, RenderTarget, Vertex};
+use geom::{Rectangle, Transform};
+use graphics::{Backend, BackendImpl, ImageData};
 use image;
 use std::{
     error::Error,
@@ -78,10 +78,6 @@ impl Image {
         self.source.height
     }
 
-    pub(crate) fn source_size(&self) -> Vector {
-        Vector::new(self.source_width(), self.source_height())
-    }
-
     ///The area of the source image this subimage takes up
     pub fn area(&self) -> Rectangle {
         self.region
@@ -102,6 +98,17 @@ impl Image {
                 )
             )
         }
+    }
+    
+    /// Create a projection matrix for a given region onto the Image
+    pub fn projection(&self, region: Rectangle) -> Transform {
+        let recip_size = self.region.size().recip();
+        let normalized_pos = self.region.top_left().times(recip_size);
+        let normalized_size = self.region.size().times(recip_size);
+        Transform::translate(normalized_pos)
+            * Transform::scale(normalized_size)
+            * Transform::scale(region.size().recip())
+            * Transform::translate(-region.top_left())
     }
 }
 
@@ -147,29 +154,5 @@ impl Error for ImageError {
             &ImageError::DecodingError(ref err) => Some(err),
             &ImageError::IOError(ref err) => Some(err),
         }
-    }
-}
-
-impl Drawable for Image {
-    fn draw(&self, target: &mut impl RenderTarget, params: DrawAttributes) {
-        let area = self.area();
-        let trans = Transform::translate(area.size() / 2)
-            * params.transform
-            * Transform::translate(-area.size() / 2)
-            * Transform::scale(area.size());
-        let recip_size = self.source_size().recip();
-        let normalized_pos = area.top_left().times(recip_size);
-        let normalized_size = area.size().times(recip_size);
-        let vertices = &[
-            Vertex::new_textured(trans * Vector::ZERO, normalized_pos + Vector::ZERO.times(normalized_size), params.color),
-            Vertex::new_textured(trans * Vector::X, normalized_pos +  Vector::X.times(normalized_size), params.color),
-            Vertex::new_textured(trans * Vector::ONE, normalized_pos +  Vector::ONE.times(normalized_size), params.color),
-            Vertex::new_textured(trans * Vector::Y, normalized_pos + Vector::Y.times(normalized_size), params.color),
-        ];
-        let triangles = &[
-            GpuTriangle::new_textured([0, 1, 2], params.z, self.clone()),
-            GpuTriangle::new_textured([2, 3, 0], params.z, self.clone())
-        ];
-        target.add_vertices(vertices.iter().cloned(), triangles.iter().cloned());
     }
 }
