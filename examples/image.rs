@@ -3,8 +3,7 @@ extern crate quicksilver;
 
 use quicksilver::{
     run, Asset, Result, State,
-    geom::Transform,
-    graphics::{Color, Image, RenderTarget, Window, WindowBuilder}
+    graphics::{Background::Img, Color, Image, Window, WindowBuilder}
 };
 
 struct ImageViewer {
@@ -20,7 +19,7 @@ impl State for ImageViewer {
     fn draw(&mut self, window: &mut Window) -> Result<()> {
         window.clear(Color::WHITE)?;
         self.asset.execute(|image| {
-            window.draw_ex(image, Transform::translate((400, 300)), Color::WHITE, 0);
+            window.draw(&image.area().with_center((400, 300)), Img(&image));
             Ok(())
         })?;
         window.present()

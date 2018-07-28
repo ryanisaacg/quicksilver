@@ -3,14 +3,13 @@
 ## In-development
 - Add new methods of initializing fonts `Font::from_slice` and `Font::from_bytes` using byte sequences
 - [Breaking] Add more fields to `Error`, and add a Result alias to make error bubbling more convenient
-- [Breaking] Rename type `Draw` to `Sprite` (and updated the readme accordingly)
 - [Breaking] Rename type `QuicksilverError` to `Error`
 - [Breaking] Add `SaveError`, a new error type
 - [Breaking] Made the letterbox a configurable color
+- [Breaking] Replace the `Draw` struct with a `Drawable` trait that draws to a mesh object
 - Added a Result type alias
 - [Breaking] Add a Result return to all of the State methods
 - [Breaking] Move the Font parameters into their own structure
-- [Breaking] Split the Sprite into Drawable and DrawAttributes objects, with convenient function overloads
 - [Breaking] Remove the Loader types in favor of a new Asset type
 - Implemented `Line` as drawable object
 - Implemented `Triangle` as drawable object
@@ -30,7 +29,7 @@
 - [Breaking] Replace the `new` functions by the `newv` functions (`new` takes `Vector`s now)
 - Add a conversion from tuples with two `Scalar`s two `Vector`s
 - Create a Mesh structure that caches drawing
-- [Breaking] Move drawing into a `RenderTarget` trait on both Mesh and Window
+- Create a Background enum that can either be a color or an image
 - Dependencies
     - Versions
         - alga: ``0.5 -> 0.6``

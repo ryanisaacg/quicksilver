@@ -59,10 +59,6 @@ name = "draw-geometry"
 required-features = []
 
 [[example]]
-name = "pulsing-circle"
-required-features = []
-
-[[example]]
 name = "image"
 required-features = []
 
@@ -80,3 +76,4 @@ required-features = ["collisions"]
 
 [[example]]
 name = "rgb-triangle"
+required-features = []

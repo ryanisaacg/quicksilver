@@ -1,5 +1,4 @@
-use geom::{about_equal, Circle, Positioned, Transform, Vector, Rectangle};
-use graphics::{DrawAttributes, Drawable, RenderTarget};
+use geom::{about_equal, Circle, Positioned, Vector, Rectangle};
 use std::cmp::{Eq, PartialEq};
 
 #[derive(Clone, Copy, Default, Debug, Deserialize, Serialize)]
@@ -136,26 +135,6 @@ impl Positioned for Line {
                 self.a.y.max(self.b.y) - top_left.y
             )
         )
-    }
-}
-
-impl Drawable for Line {
-    fn draw(&self, target: &mut impl RenderTarget, params: DrawAttributes) {
-        // create rectangle in right size
-        let rect = Rectangle::new((self.a.x, self.a.y + self.t / 2.0), (self.a.distance(self.b), self.t));
-
-        // shift position of rectangle
-        let trans = (self.a + self.b) / 2 - rect.center();
-        let length = self.b - self.a;
-
-        let transform = Transform::translate(trans)
-            * Transform::rotate(length.angle());
-
-        let new_params = DrawAttributes {
-            transform: transform * params.transform,
-            ..params
-        };
-        rect.draw(target, new_params);
     }
 }
 

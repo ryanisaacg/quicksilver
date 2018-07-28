@@ -1,9 +1,12 @@
-use graphics::{DrawAttributes, Drawable, GpuTriangle, RenderTarget, Vertex};
+use geom::{Transform, Vector};
+use graphics::{Background, GpuTriangle, Vertex};
 
 /// A way to store rendered objects without having to re-process them
 pub struct Mesh {
-    pub(crate) vertices: Vec<Vertex>,
-    pub(crate) triangles: Vec<GpuTriangle>
+    /// All the vertices in the mesh
+    pub vertices: Vec<Vertex>,
+    /// All the triangles in the mesh
+    pub triangles: Vec<GpuTriangle>
 }
 
 impl Mesh {
@@ -22,37 +25,19 @@ impl Mesh {
         self.vertices.clear();
         self.triangles.clear();
     }
-}
 
-impl RenderTarget for Mesh {
-    fn add_vertices(&mut self, vertices: impl IntoIterator<Item = Vertex>, triangles: impl IntoIterator<Item = GpuTriangle>) {
-        let offset = self.vertices.len() as u32;
-        self.triangles.extend(triangles.into_iter().map(|t| GpuTriangle {
-            indices: [
-                t.indices[0] + offset,
-                t.indices[1] + offset,
-                t.indices[2] + offset,
-            ],
-            ..t
-        }));
-        self.vertices.extend(vertices.into_iter().map(|v| Vertex {
-            pos: v.pos,
-            ..v
-        }));
+    /// Add vertices from an iterator, some transforms, and a background
+    pub fn add_positioned_vertices(&mut self, vertices: impl Iterator<Item = Vector>,
+            trans: Transform, tex_trans: Option<Transform>, bkg: Background) -> u32 {
+        let offset = self.vertices.len();
+        self.vertices.extend(vertices
+            .map(|v| Vertex::new(trans * v, tex_trans.map(|trans| trans * v), bkg)));
+        offset as u32
     }
-}
 
-impl Drawable for Mesh {
-    fn draw(&self, target: &mut impl RenderTarget, attr: DrawAttributes) {
-        let vertices = self.vertices.iter().map(|vertex| Vertex {
-            pos: attr.transform * vertex.pos,
-            tex_pos: vertex.tex_pos,
-            col: vertex.col.multiply(attr.color)
-        });
-        let triangles = self.triangles.iter().map(|triangle| GpuTriangle {
-            z: triangle.z + attr.z,
-            ..triangle.clone()
-        });
-        target.add_vertices(vertices, triangles);
+    /// Add all the data from the other mesh into this mesh
+    pub fn apply(&mut self, other: &Mesh) {
+        self.vertices.extend(other.vertices.iter().cloned());
+        self.triangles.extend(other.triangles.iter().cloned());
     }
 }

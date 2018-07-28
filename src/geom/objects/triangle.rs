@@ -1,5 +1,4 @@
-use geom::{about_equal, Circle, Positioned, Transform, Vector, Rectangle, Line};
-use graphics::{DrawAttributes, Drawable, GpuTriangle, Vertex, RenderTarget};
+use geom::{about_equal, Circle, Positioned, Vector, Rectangle, Line};
 use std::cmp::{Eq, PartialEq};
 
 #[derive(Clone, Copy, Default, Debug, Deserialize, Serialize)]
@@ -108,28 +107,9 @@ impl Positioned for Triangle {
     }
 
     fn bounding_box(&self) -> Rectangle {
-        let min_x = self.a.x.min(self.b.x.min(self.c.x));
-        let min_y = self.a.y.min(self.b.y.min(self.c.y));
-        let max_x = self.a.x.max(self.b.x.max(self.c.x));
-        let max_y = self.a.y.max(self.b.y.max(self.c.y));
-        Rectangle::new((min_x, min_y), (max_x - min_x, max_y - min_y))
-    }
-}
-
-impl Drawable for Triangle {
-    fn draw(&self, target: &mut impl RenderTarget, params: DrawAttributes) {
-        let trans = Transform::translate(self.center())
-            * params.transform
-            * Transform::translate(-self.center());
-        let vertices = &[
-            Vertex::new_untextured(trans * self.a, params.color),
-            Vertex::new_untextured(trans * self.b, params.color),
-            Vertex::new_untextured(trans * self.c, params.color)
-        ];
-        let triangles = &[
-            GpuTriangle::new_untextured([0, 1, 2], params.z),
-        ];
-        target.add_vertices(vertices.iter().cloned(), triangles.iter().cloned());
+        let min = self.a.min(self.b).min(self.c);
+        let max = self.a.max(self.b).max(self.c);
+        Rectangle::new(min, max - min)
     }
 }
 

@@ -21,8 +21,8 @@ extern crate quicksilver;
 
 use quicksilver::{
     run, Result, State,
-    geom::{Circle, Rectangle, Vector, Transform, Line, Triangle},
-    graphics::{Color, Window, WindowBuilder}
+    geom::{Circle, Rectangle, Transform, Line, Triangle},
+    graphics::{Background::Col, Color, Window, WindowBuilder}
 };
 
 struct DrawGeometry;
@@ -33,20 +33,21 @@ impl State for DrawGeometry {
     }
 
     fn draw(&mut self, window: &mut Window) -> Result<()> {
-        window.clear(Color::BLACK)?;
-        window.draw_color(&Rectangle::new((100, 100), (32, 32)), Transform::IDENTITY, Color::BLUE);
-        window.draw_ex(&Rectangle::new((400, 300), (32, 32)), Transform::rotate(45), Color::BLUE, 10);
-        window.draw_color(&Circle::new((400, 300), 100), Transform::IDENTITY, Color::GREEN);
+        window.clear(Color::WHITE)?;
+        window.draw(&Rectangle::new((100, 100), (32, 32)), Col(Color::BLUE));
+        window.draw_ex(&Rectangle::new((400, 300), (32, 32)), Col(Color::BLUE), Transform::rotate(45), 10);
+        window.draw(&Circle::new((400, 300), 100), Col(Color::GREEN));
         window.draw_ex(
             &Line::new((50, 80),(600, 450)).with_thickness(2.0),
+            Col(Color::RED),
             Transform::IDENTITY,
-            Color::RED,
             5
         );
-        window.draw_color(
+        window.draw_ex(
             &Triangle::new((500, 50), (450, 100), (650, 150)),
+            Col(Color::RED),
             Transform::rotate(45) * Transform::scale((0.5, 0.5)),
-            Color::RED
+            0
         );
         window.present()
     }
