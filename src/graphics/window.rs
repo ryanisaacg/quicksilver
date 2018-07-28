@@ -11,10 +11,9 @@ use {
 };
 use {
     Result, 
-    geom::{Rectangle, Transform, Vector},
-     graphics::{
-        Backend, BackendImpl, BlendMode, Color, GpuTriangle, ImageScaleStrategy, Mesh, RenderTarget, ResizeStrategy, Vertex, View
-    },
+    geom::{Rectangle, Scalar, Transform, Vector},
+     graphics::{Backend, BackendImpl, Background, BlendMode, Color, 
+        Drawable, ImageScaleStrategy, Mesh, ResizeStrategy, View},
     input::{ButtonState, Event, Gamepad, GamepadProvider, Keyboard, Mouse}
 };
 #[cfg(not(target_arch = "wasm32"))]
@@ -411,6 +410,9 @@ impl Window {
     /// the fewer times your application needs to flush the faster it will run.
     pub fn flush(&mut self) -> Result<()> {
         self.mesh.triangles.sort();
+        for vertex in self.mesh.vertices.iter_mut() {
+            vertex.pos = self.view.opengl * vertex.pos;
+        }
         unsafe {
             self.backend.draw(self.mesh.vertices.as_slice(), self.mesh.triangles.as_slice())?;
         }
@@ -445,14 +447,19 @@ impl Window {
     pub fn gamepads(&self) -> &Vec<Gamepad> {
         &self.gamepads
     }
-}
 
-impl RenderTarget for Window {
-    fn add_vertices(&mut self, vertices: impl IntoIterator<Item = Vertex>, triangles: impl IntoIterator<Item = GpuTriangle>) {
-        let opengl = self.view.opengl;
-        self.mesh.add_vertices(vertices.into_iter().map(|v| Vertex {
-            pos: opengl * v.pos,
-            ..v
-        }), triangles);
+    /// Draw a Drawable to the window, which will be finalized on the next flush
+    pub fn draw(&mut self, draw: &impl Drawable, bkg: Background) {
+        self.draw_ex(draw, bkg, Transform::IDENTITY, 0);
+    }
+
+    /// Draw a Drawable to the window with more options provided
+    pub fn draw_ex(&mut self, draw: &impl Drawable, bkg: Background, trans: Transform, z: impl Scalar) {
+        draw.draw(&mut self.mesh, bkg, trans, z);
+    }
+    
+    /// The mesh the window uses to draw
+    pub fn mesh(&mut self) -> &mut Mesh {
+        &mut self.mesh
     }
 }

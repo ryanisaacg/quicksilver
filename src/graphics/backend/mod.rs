@@ -1,4 +1,7 @@
-use { Result, geom::Vector, graphics::{ Color, GpuTriangle, Image, PixelFormat, Surface, Vertex } };
+use { 
+    Result,
+    graphics::{ Background::Col, Color, GpuTriangle, Image, PixelFormat, Surface, Vertex }
+};
 
 pub(crate) trait Backend {
     type Platform;
@@ -20,13 +23,13 @@ pub(crate) trait Backend {
     unsafe fn clear_color(&mut self, color: Color, letterbox: Color) -> Result<()> {
         self.clear(letterbox);
         self.draw(&[
-            Vertex::new_untextured(Vector::new(-1, -1), color),
-            Vertex::new_untextured(Vector::new(1, -1), color),
-            Vertex::new_untextured(Vector::new(1, 1), color),
-            Vertex::new_untextured(Vector::new(-1, 1), color),
+            Vertex::new((-1, -1), None, Col(color)),
+            Vertex::new((1, -1), None, Col(color)),
+            Vertex::new((1, 1), None, Col(color)),
+            Vertex::new((-1, 1), None, Col(color)),
         ], &[
-            GpuTriangle::new_untextured([0, 1, 2], 0.0),
-            GpuTriangle::new_untextured([2, 3, 0], 0.0)
+            GpuTriangle::new(0, [0, 1, 2], 0.0, Col(color)),
+            GpuTriangle::new(0, [2, 3, 0], 0.0, Col(color))
         ])?;
         self.flush();
         Ok(())

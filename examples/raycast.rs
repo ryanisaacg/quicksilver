@@ -9,10 +9,10 @@ use ncollide2d::query::{Ray, RayCast};
 use quicksilver::{
     run, Result, State,
     geom::{Rectangle, Vector},
-    graphics::{Color, GpuTriangle, RenderTarget, Vertex, Window, WindowBuilder},
+    graphics::{Color, GpuTriangle, Mesh, Vertex, Window, WindowBuilder},
     input::Event
 };
-use std::{cmp::Ordering, iter::repeat};
+use std::cmp::Ordering;
 
 struct Raycast {
     // the rectangles to raycast against
@@ -20,7 +20,7 @@ struct Raycast {
     // the points to send rays to
     targets: Vec<Vector>,
     // the vertices to draw to the screen
-    vertices: Vec<Vertex>,
+    mesh: Mesh
 }
 
 impl State for Raycast {
@@ -52,14 +52,14 @@ impl State for Raycast {
         Ok(Raycast {
             regions,
             targets,
-            vertices: Vec::new(),
+            mesh: Mesh::new(),
         })
     }
 
     fn event(&mut self, event: &Event, window: &mut Window) -> Result<()> {
         if let &Event::MouseMoved(_) = event {
             let mouse = window.mouse().pos();
-            self.vertices.clear();
+            self.mesh.clear();
             let distance_to = |point: &Vector| (*point - mouse).len();
             let angle_to = |point: &Vertex| (point.pos - mouse).angle();
             // Raycast towards all targets and find the vertices
@@ -84,7 +84,7 @@ impl State for Raycast {
                                 .unwrap_or(Ordering::Equal)
                         });
                     if let Some(pos) = cast {
-                        self.vertices.push(Vertex {
+                        self.mesh.vertices.push(Vertex {
                             pos,
                             tex_pos: None,
                             col: Color::WHITE,
@@ -97,13 +97,13 @@ impl State for Raycast {
                 cast_ray(angle + 0.001);
             }
             // Sort the vertices to form a visibility polygon
-            self.vertices.sort_by(|a, b| {
+            self.mesh.vertices.sort_by(|a, b| {
                 angle_to(a)
                     .partial_cmp(&angle_to(b))
                     .unwrap_or(Ordering::Equal)
             });
             // Insert the mouse as a vertex for the center of the polygon
-            self.vertices.insert(
+            self.mesh.vertices.insert(
                 0,
                 Vertex {
                     pos: mouse,
@@ -111,23 +111,11 @@ impl State for Raycast {
                     col: Color::WHITE,
                 },
             );
-        }
-        Ok(())
-    }
-
-    fn draw(&mut self, window: &mut Window) -> Result<()> {
-        window.clear(Color::BLACK)?;
-        if self.vertices.len() >= 3 {
-            // Calculate the number of triangles needed to draw the poly
-            let triangle_count = self.vertices.len() as u32 - 1;
-            let indices = repeat(0.0)
-                // Prepare an iterator with the correct amount of items
-                .take(triangle_count as usize)
-                // Index each item in the iterator
-                .enumerate()
-                // Convert the indices to drawable triangles
-                .map(|(index, z)| GpuTriangle {
-                    z,
+             // Calculate the number of triangles needed to draw the poly
+            let triangle_count = self.mesh.vertices.len() as u32 - 1;
+            for index in 0..triangle_count {
+                self.mesh.triangles.push(GpuTriangle {
+                    z: 0.0,
                     indices: [
                         0, 
                         index as u32 + 1,
@@ -135,9 +123,14 @@ impl State for Raycast {
                     ],
                     image: None
                 });
-            // Draw the light
-            window.add_vertices(self.vertices.iter().cloned(), indices);
+            }
         }
+        Ok(())
+    }
+
+    fn draw(&mut self, window: &mut Window) -> Result<()> {
+        window.clear(Color::BLACK)?;
+        window.mesh().apply(&self.mesh);
         window.present()
     }
 }
