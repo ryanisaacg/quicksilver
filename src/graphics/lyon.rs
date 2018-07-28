@@ -1,105 +1,105 @@
-use geom::Vector;
-use graphics::{Color, DrawAttributes, Drawable, GpuTriangle, Vertex, Window};
+use geom::{Transform, Vector};
+use graphics::{Background::Col, Color, GpuTriangle, Mesh, Vertex};
 use lyon::tessellation::{
     geometry_builder::{Count, GeometryBuilder, VertexId},
     FillVertex, VertexConstructor
 };
 
 /// A way to render complex shapes using the lyon API
-pub struct ShapeRenderer {
-    vertices: Vec<Vertex>,
-    indices: Vec<GpuTriangle>,
+///
+/// The ShapeRenderer has a color, transform, and z-ordering it applies to all
+/// incoming shapes. It outputs the shapes to a mutable Mesh reference, which
+/// can be a standalone mesh object or the one obtained by `window.mesh()`
+pub struct ShapeRenderer<'a> {
+    mesh: &'a mut Mesh,
     color: Color,
-    z: f32
+    z: f32,
+    trans: Transform,
+    dirty: Option<usize>
 }
 
-impl ShapeRenderer {
-    /// Create a shape renderer with an initial color
-    pub fn new(color: Color) -> ShapeRenderer {
+impl<'a> ShapeRenderer<'a> {
+    /// Create a shape renderer with a target mesh and an initial color
+    pub fn new(mesh: &'a mut Mesh, color: Color) -> ShapeRenderer<'a> {
         ShapeRenderer {
-            vertices: Vec::new(),
-            indices: Vec::new(),
+            mesh,
             color,
-            z: 0.0
+            z: 0.0,
+            trans: Transform::IDENTITY,
+            dirty: None
         }
     }
 
-    /// Get the current color of the renderer
+    /// Get the current color of the incoming shapes
     pub fn color(&self) -> Color {
         self.color
     }
 
-    /// Set the color of the renderer
+    /// Set the color of the incoming shapes
     pub fn set_color(&mut self, color: Color) {
         self.color = color;
     }
 
-    /// Get the Z position of the shapes
+    /// Get the Z position of the incoming shapes
     pub fn z(&self) -> f32 {
         self.z
     }
 
-    /// Set the Z position of the shapes
+    /// Set the Z position of the incoming shapes
     pub fn set_z(&mut self, z: f32) {
         self.z = z;
     }
+
+    /// Get the transformation that will be applied to all incoming shapes
+    pub fn transform(&self) -> Transform {
+        self.trans
+    }
+
+    /// Set the transformation that will be applied to all incoming shapes
+    pub fn set_transform(&mut self, trans: Transform) {
+        self.trans = trans;
+    }
 }
 
-impl<Input> GeometryBuilder<Input> for ShapeRenderer 
+impl<'a, Input> GeometryBuilder<Input> for ShapeRenderer<'a>
         where Color: VertexConstructor<Input, Vertex> {
     fn begin_geometry(&mut self) {
-        println!("pls");
-        //TODO: don't require a drawn between multiple begin
-        self.vertices.clear();
-        self.indices.clear();
+        assert!(self.dirty.is_none());
+        self.dirty = Some(self.mesh.triangles.len());
     }
 
     fn end_geometry(&mut self) -> Count {
-        println!("{:?}", self.vertices);
+        let dirty = self.dirty.expect("begin_geometry must be called before end_geometry");
+        self.dirty = None;
         Count {
-            vertices: self.vertices.len() as u32,
-            indices: self.indices.len() as u32 * 3
+            vertices: self.mesh.vertices[dirty..].len() as u32,
+            indices: self.mesh.triangles[dirty..].len() as u32 * 3
         }
     }
 
     fn add_vertex(&mut self, vertex: Input) -> VertexId {
-        self.vertices.push(self.color.new_vertex(vertex));
-        VertexId(self.vertices.len() as u32)
+        let mut vertex = self.color.new_vertex(vertex);
+        vertex.pos = self.trans * vertex.pos;
+        self.mesh.vertices.push(vertex);
+        VertexId(self.mesh.vertices.len() as u32 - 1)
     }
 
     fn add_triangle(&mut self, a: VertexId, b: VertexId, c: VertexId) {
-        self.indices.push(GpuTriangle::new_untextured([a.0, b.0, c.0], self.z));
+        let triangle = GpuTriangle::new(0, [a.0, b.0, c.0], self.z, Col(Color::WHITE));
+        self.mesh.triangles.push(triangle);
     }
 
     fn abort_geometry(&mut self) {
-        self.vertices.clear();
-        self.indices.clear();
+        let dirty = self.dirty.expect("begin_geometry must be called before abort_geometry");
+        self.dirty = None;
+        self.mesh.vertices.truncate(dirty);
+        self.mesh.triangles.truncate(dirty);
     }
 }
 
 impl VertexConstructor<FillVertex, Vertex> for Color {
     fn new_vertex(&mut self, vertex: FillVertex) -> Vertex {
         let position = Vector::new(vertex.position.x, vertex.position.y);
-        Vertex::new_untextured(position, *self)
-    }
-}
-
-// TODO: document the peculiarites of the draw attributes
-
-impl Drawable for ShapeRenderer {
-    fn draw(&self, window: &mut Window, params: DrawAttributes) {
-        let vertices = self.vertices
-            .iter()
-            .map(|vertex| Vertex::new_untextured(
-                params.transform * vertex.pos,
-                vertex.col.blend(params.color)
-            ));
-        let indices = self.indices
-            .iter()
-            .map(|triangle| GpuTriangle::new_untextured(
-                triangle.indices,
-                triangle.z + params.z
-            ));
-        window.add_vertices(vertices, indices);
+        Vertex::new(position, None, Col(*self))
     }
 }

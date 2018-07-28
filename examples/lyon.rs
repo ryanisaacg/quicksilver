@@ -3,8 +3,8 @@ extern crate quicksilver;
 
 use quicksilver::{
     run, Result, State,
-    geom::{Transform, Vector},
-    graphics::{Color, GpuTriangle, ShapeRenderer, Vertex, Window, WindowBuilder},
+    geom::Transform,
+    graphics::{Color, Mesh, ShapeRenderer, Window, WindowBuilder},
     lyon::{
         extra::rust_logo::build_logo_path,
         tessellation::{FillTessellator, FillOptions},
@@ -17,7 +17,7 @@ use quicksilver::{
 
 
 struct LyonExample {
-    logo: ShapeRenderer
+    logo: Mesh
 }
 
 impl State for LyonExample {
@@ -29,24 +29,25 @@ impl State for LyonExample {
 
         let mut tessellator = FillTessellator::new();
 
-        let mut logo = ShapeRenderer::new(Color::BLACK);
+        let mut logo = Mesh::new();
 
-        tessellator.tessellate_path(
-            path.path_iter(),
-            &FillOptions::tolerance(0.01),
-            &mut logo,
-        ).unwrap();
+        {
+            let mut logo = ShapeRenderer::new(&mut logo, Color::BLACK);
+            logo.set_transform(Transform::scale((3, 3)));
+            tessellator.tessellate_path(path.path_iter(),
+                &FillOptions::tolerance(0.01), &mut logo).unwrap();
+        }
 
         Ok(LyonExample { logo })
     }
 
     fn draw(&mut self, window: &mut Window) -> Result<()> {
         window.clear(Color::WHITE)?;
-        window.draw(&self.logo, Transform::scale(Vector::ONE * 1));
+        window.mesh().apply(&self.logo);
         window.present()
     }
 }
 
 fn main() {
-    run::<LyonExample>(WindowBuilder::new("Lyon Demo", 800, 600));
+    run::<LyonExample>(WindowBuilder::new("Lyon Demo", (800, 600)));
 }
