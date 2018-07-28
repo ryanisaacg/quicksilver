@@ -453,7 +453,7 @@ impl Window {
         self.draw_ex(draw, bkg, Transform::IDENTITY, 0);
     }
 
-    /// Draw a Drawable to the window with more options provided
+    /// Draw a Drawable to the window with more options provided (draw exhaustive)
     pub fn draw_ex(&mut self, draw: &impl Drawable, bkg: Background, trans: Transform, z: impl Scalar) {
         draw.draw(&mut self.mesh, bkg, trans, z);
     }
