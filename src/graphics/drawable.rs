@@ -1,4 +1,4 @@
-use geom::{Circle, Line, Positioned, Rectangle, Scalar, Shape, Transform, Triangle, Vector};
+use geom::{Circle, Line, Rectangle, Scalar, Shape, Transform, Triangle, Vector};
 use graphics::{Color, GpuTriangle, Image, Mesh};
 use std::iter;
 
@@ -96,17 +96,6 @@ impl Drawable for Line {
             * Transform::rotate((self.b - self.a).angle())
             * trans;
         rect.draw(mesh, bkg, trans, z);
-    }
-}
-
-
-impl Drawable for Shape {
-    fn draw<'a>(&self, mesh: &mut Mesh, bkg: Background<'a>, trans: Transform, z: impl Scalar) {
-        match self {
-            Shape::Circle(this) => this.draw(mesh, bkg, trans, z),
-            Shape::Rectangle(this) => this.draw(mesh, bkg, trans, z),
-            Shape::Vector(this) => this.draw(mesh, bkg, trans, z)
-        }
     }
 }
 

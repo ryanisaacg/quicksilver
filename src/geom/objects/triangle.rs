@@ -1,4 +1,4 @@
-use geom::{about_equal, Circle, Positioned, Vector, Rectangle, Line};
+use geom::Vector;
 use std::cmp::{Eq, PartialEq};
 
 #[derive(Clone, Copy, Default, Debug, Deserialize, Serialize)]
@@ -21,69 +21,6 @@ impl Triangle {
             c: c.into()
         }
     }
-
-    ///Check if a point is inside the triangle
-    pub fn contains(self, v: impl Into<Vector>) -> bool {
-        let v = v.into();
-        // form three triangles with this new vector
-        let t_1 = Triangle::new(v, self.a, self.b);
-        let t_2 = Triangle::new(v, self.b, self.c);
-        let t_3 = Triangle::new(v, self.c, self.a);
-
-        // calculate the area these smaller triangles make
-        // if they add up to be the area of this triangle, the point is inside it
-        about_equal(t_1.area() + t_2.area() + t_3.area(), self.area())
-    }
-
-    ///Check if this triangle overlaps a line
-    pub fn overlaps_line(self, line: Line) -> bool {
-        // check if start or end point is in the triangle
-        if self.contains(line.a) || self.contains(line.b) {
-            return true;
-        }
-
-        // check each edge if it overlaps the line
-        Line::new(self.a, self.b).overlaps_line(line)
-        || Line::new(self.b, self.c).overlaps_line(line)
-        || Line::new(self.c, self.a).overlaps_line(line)
-    }
-
-    ///Check if this triangle overlaps a rectangle
-    pub fn overlaps_rect(self, rect: Rectangle) -> bool {
-        Line::new(self.a, self.b).overlaps_rect(rect)
-        || Line::new(self.b, self.c).overlaps_rect(rect)
-        || Line::new(self.c, self.a).overlaps_rect(rect)
-    }
-
-    ///Check if this triangle overlaps a circle
-    pub fn overlaps_circ(self, circ: Circle) -> bool {
-        Line::new(self.a, self.b).overlaps_circ(circ)
-        || Line::new(self.b, self.c).overlaps_circ(circ)
-        || Line::new(self.c, self.a).overlaps_circ(circ)
-    }
-
-    ///Move the triangle so it is entirely contained within a rectangle
-    #[must_use]
-    pub fn constrain(self, outer: Rectangle) -> Triangle {
-        let mut line = self;
-        line = line.translate(line.a.constrain(outer) - line.a);
-        line = line.translate(line.b.constrain(outer) - line.b);
-        line.translate(line.c.constrain(outer) - line.c)
-    }
-
-    ///Translate the triangle by a given vector
-    #[must_use]
-    pub fn translate(self, v: impl Into<Vector>) -> Triangle {
-        let v = v.into();
-        Triangle::new(self.a + v, self.b + v, self.c + v)
-    }
-
-    ///Create a triangle with the same size at a given center
-    #[must_use]
-    pub fn with_center(self, v: impl Into<Vector>) -> Triangle {
-        self.translate(v.into() - self.center())
-    }
-
     ///Calculate the area of the triangle
     pub fn area(self) -> f32 {
         // Heron's Formula
@@ -101,53 +38,41 @@ impl PartialEq for Triangle {
 
 impl Eq for Triangle {}
 
-impl Positioned for Triangle {
-    fn center(&self) -> Vector {
-        (self.a + self.b + self.c) / 3
-    }
-
-    fn bounding_box(&self) -> Rectangle {
-        let min = self.a.min(self.b).min(self.c);
-        let max = self.a.max(self.b).max(self.c);
-        Rectangle::new(min, max - min)
-    }
-}
-
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use geom::*;
 
     #[test]
     fn overlap_rectangle() {
-        let rect = Rectangle::new_sized((1, 1));
+        let rect = &Rectangle::new_sized((1, 1));
         let t_inside = Triangle::new((0.25, 0.25), (0.75, 0.25), (0.25, 0.75));
         let t_over = Triangle::new((0.5, -0.5), (0.5, 1.5), (1.5, 0.5));
         let t_outside = Triangle::new((2, 3), (4, 5), (10, 12));
-        assert!(t_inside.overlaps_rect(rect));
-        assert!(t_over.overlaps_rect(rect));
-        assert!(!t_outside.overlaps_rect(rect));
+        assert!(t_inside.overlaps(rect));
+        assert!(t_over.overlaps(rect));
+        assert!(!t_outside.overlaps(rect));
     }
 
     #[test]
     fn overlap_circle() {
-        let circle = Circle::new((0, 0), 1);
+        let circle = &Circle::new((0, 0), 1);
         let t_inside = Triangle::new((-0.5, -0.5), (0.5, -0.5), (0.0, 0.5));
         let t_over = Triangle::new((0, -2), (0, 2), (2, 0));
         let t_outside = Triangle::new((2, 3), (4, 5), (10, 12));
-        assert!(t_inside.overlaps_circ(circle));
-        assert!(t_over.overlaps_circ(circle));
-        assert!(!t_outside.overlaps_circ(circle));
+        assert!(t_inside.overlaps(circle));
+        assert!(t_over.overlaps(circle));
+        assert!(!t_outside.overlaps(circle));
     }
 
     #[test]
     fn overlap_line() {
-        let line = Line::new(Vector::ZERO, Vector::X);
+        let line = &Line::new(Vector::ZERO, Vector::X);
         let t_on = Triangle::new((0, 0), (1, 1), (0, 1));
         let t_over = Triangle::new((0.25, -0.5), (0.75, -0.5), (0.5, 0.5));
         let t_outside = Triangle::new((2, 3), (4, 5), (10, 12));
-        assert!(t_on.overlaps_line(line));
-        assert!(t_over.overlaps_line(line));
-        assert!(!t_outside.overlaps_line(line));
+        assert!(t_on.overlaps(line));
+        assert!(t_over.overlaps(line));
+        assert!(!t_outside.overlaps(line));
     }
 
     #[test]
@@ -166,8 +91,8 @@ mod tests {
         let tri = Triangle::new((5, 5), (10, 7), (8, 8));
         let fits = Rectangle::new((0, 0), (15, 15));
         let not_fit = Rectangle::new((0, 0), (9, 6));
-        let fits_tri = tri.constrain(fits);
-        let not_fits_tri = tri.constrain(not_fit);
+        let fits_tri = tri.constrain(&fits);
+        let not_fits_tri = tri.constrain(&not_fit);
         assert_eq!(tri.a, fits_tri.a);
         assert_eq!(tri.b, fits_tri.b);
         assert_eq!(tri.c, fits_tri.c);

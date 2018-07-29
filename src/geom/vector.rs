@@ -3,7 +3,7 @@
     geometry::Point2
 };
 
-use geom::{about_equal, Positioned, Rectangle, Scalar};
+use geom::{about_equal, Scalar};
 use rand::{
     Rng,
     distributions::{Distribution, Standard}
@@ -81,12 +81,6 @@ impl Vector {
         )
     }
     
-    ///Constrain a vector within a Rectangle
-    #[must_use]
-    pub fn constrain(self, bounds: Rectangle) -> Vector {
-        self.clamp(bounds.top_left(), bounds.top_left() + bounds.size())
-    }
-
     ///Get the cross product of a vector
     pub fn cross(self, other: impl Into<Vector>) -> f32 {
         let other = other.into();
@@ -258,16 +252,6 @@ impl Distribution<Vector> for Standard {
     }
 }
 
-impl Positioned for Vector {
-    fn center(&self) -> Vector {
-        *self
-    }
-    
-    fn bounding_box(&self) -> Rectangle {
-        Rectangle::new(*self, Vector::ZERO)
-    }
-}
-
 #[cfg(feature="nalgebra")]
 impl From<Vector2<f32>> for Vector {
     fn from(other: Vector2<f32>) -> Vector {
@@ -346,7 +330,7 @@ impl<T: Scalar, U: Scalar> From<(T, U)> for Vector {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use geom::*;
 
     #[test]
     fn arithmetic() {
