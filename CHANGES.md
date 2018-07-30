@@ -31,6 +31,7 @@
 - Create a Mesh structure that caches drawing
 - Create a Background enum that can either be a color or an image
 - Add optional `lyon` integration for vector graphics
+- [Breaking] Replace the `Shape` enum and the `Positioned` trait with a `Shape` enum
 - Dependencies
     - Versions
         - alga: ``0.5 -> 0.6``
