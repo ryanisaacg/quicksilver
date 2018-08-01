@@ -41,7 +41,6 @@ impl State for SoundPlayer {
             window.draw(&BUTTON_AREA, Col(Color::BLUE));
             Ok(())
         })?;
-        window.present()
     }
 }
 

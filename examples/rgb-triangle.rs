@@ -25,7 +25,6 @@ impl State for RgbTriangle {
     fn draw(&mut self, window: &mut Window) -> Result<()> {
         window.clear(Color::BLACK)?;
         window.mesh().apply(&self.mesh);
-        window.present()
     }
 }
 

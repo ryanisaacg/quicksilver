@@ -23,7 +23,6 @@ impl State for ImageViewer {
             window.draw(&image.area().with_center((400, 300)), Img(&image));
             Ok(())
         })?;
-        window.present()
     }
 }
 

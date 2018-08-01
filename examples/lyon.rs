@@ -44,7 +44,6 @@ impl State for LyonExample {
     fn draw(&mut self, window: &mut Window) -> Result<()> {
         window.clear(Color::WHITE)?;
         window.mesh().apply(&self.logo);
-        window.present()
     }
 }
 
