@@ -2,9 +2,10 @@
 extern crate quicksilver;
 
 use quicksilver::{
-    run, Result, State,
+    Result,
     geom::{Circle, Rectangle, Transform, Line, Triangle},
-    graphics::{Background::Col, Color, Window, WindowBuilder}
+    graphics::{Background::Col, Color, Window, WindowBuilder},
+    lifecycle::{State, run},
 };
 
 struct DrawGeometry;

@@ -2,8 +2,9 @@
 extern crate quicksilver;
 
 use quicksilver::{
-    run, Asset, Result, State,
-    graphics::{Background::Img, Color, Image, Window, WindowBuilder}
+    Result,
+    graphics::{Background::Img, Color, Image, Window, WindowBuilder},
+    lifecycle::{Asset, State, run},
 };
 
 struct ImageViewer {
