@@ -32,6 +32,7 @@
 - Create a Background enum that can either be a color or an image
 - Add optional `lyon` integration for vector graphics
 - [Breaking] Replace the `Shape` enum and the `Positioned` trait with a `Shape` enum
+- [Breaking] Remove the `present` function and automatically switch the buffers after a draw call
 - Dependencies
     - Versions
         - alga: ``0.5 -> 0.6``

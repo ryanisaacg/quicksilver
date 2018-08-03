@@ -3,6 +3,8 @@ use {
     graphics::{Window, WindowBuilder},
     input::Event
 };
+#[cfg(not(target_arch = "wasm32"))]
+use glutin::GlContext;
 #[cfg(target_arch = "wasm32")]
 use {
     geom::Vector,
@@ -55,7 +57,6 @@ pub trait State: 'static {
     fn draw(&mut self, window: &mut Window) -> Result<()> {
         use graphics::Color;
         window.clear(Color::BLACK)?;
-        window.present()?;
         Ok(())
     }
     /// Log and report an error in some way
@@ -90,7 +91,11 @@ impl<T: State> Application<T> {
     }
 
     fn draw(&mut self) -> Result<()> {
-        self.state.draw(&mut self.window)
+        self.state.draw(&mut self.window)?;
+        self.window.flush()?;
+        #[cfg(not(target_arch = "wasm32"))]
+        self.window.gl_window.swap_buffers()?;
+        Ok(())
     }
 
     fn process_events(&mut self) -> Result<()> {
