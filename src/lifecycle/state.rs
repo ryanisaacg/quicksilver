@@ -31,7 +31,6 @@ pub trait State: 'static {
     fn draw(&mut self, window: &mut Window) -> Result<()> {
         use graphics::Color;
         window.clear(Color::BLACK)?;
-        window.present()?;
         Ok(())
     }
     /// Log and report an error in some way

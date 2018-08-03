@@ -418,21 +418,12 @@ impl Window {
         }
     }
 
-    /// Flush changes and also present the changes to the window
-    pub fn present(&mut self) -> Result<()> {
-        self.flush()?;
-        #[cfg(not(target_arch = "wasm32"))]
-        self.gl_window.swap_buffers()?;
-        Ok(())
-    }
-
     /// Flush the current buffered draw calls
     ///
-    /// Until Window::present is called they won't be visible,
-    /// but the items will be behind all future items drawn.
+    /// Attributes like z-ordering will be reset: all items drawn after a flush will *always* draw
+    /// over all items drawn before a flush. 
     ///
-    /// Generally it's a bad idea to call this manually; as a general rule,
-    /// the fewer times your application needs to flush the faster it will run.
+    /// Note that calling this can be an expensive operation
     pub fn flush(&mut self) -> Result<()> {
         self.mesh.triangles.sort();
         for vertex in self.mesh.vertices.iter_mut() {

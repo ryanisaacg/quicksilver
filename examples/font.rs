@@ -28,8 +28,7 @@ impl State for SampleText {
         self.asset.execute(|image| {
             window.draw(&image.area().with_center((400, 300)), Img(&image));
             Ok(())
-        })?;
-        window.present()
+        })
     }
 }
 
