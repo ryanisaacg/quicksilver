@@ -40,7 +40,7 @@ impl State for SoundPlayer {
         self.asset.execute(|_| {
             window.draw(&BUTTON_AREA, Col(Color::BLUE));
             Ok(())
-        })?;
+        })
     }
 }
 

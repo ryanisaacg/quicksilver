@@ -3,6 +3,8 @@ use {
     graphics::{Window, WindowBuilder},
     input::Event
 };
+#[cfg(not(target_arch = "wasm32"))]
+use glutin::GlContext;
 #[cfg(target_arch = "wasm32")]
 use {
     geom::Vector,
@@ -93,6 +95,7 @@ impl<T: State> Application<T> {
         self.window.flush()?;
         #[cfg(not(target_arch = "wasm32"))]
         self.window.gl_window.swap_buffers()?;
+        Ok(())
     }
 
     fn process_events(&mut self) -> Result<()> {
