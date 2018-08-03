@@ -3,7 +3,7 @@ extern crate quicksilver;
 
 use quicksilver::{
     Result,
-    geom::{Rectangle, Vector},
+    geom::{Rectangle, Shape, Vector},
     graphics::{Background::Col, Color, Window, WindowBuilder},
     input::{ButtonState, MouseButton},
     lifecycle::{Asset, State, run},

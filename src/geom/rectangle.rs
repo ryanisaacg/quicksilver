@@ -2,7 +2,7 @@
     bounding_volume::AABB,
     shape::Cuboid
 };
-use geom::{about_equal, Circle, Positioned, Vector};
+use geom::{about_equal, Vector};
 use std::cmp::{Eq, PartialEq};
 
 #[derive(Clone, Copy, Default, Debug, Deserialize, Serialize)]
@@ -83,47 +83,6 @@ impl Rectangle {
     pub fn width(&self) -> f32 {
         self.size.x
     }
-
-    ///Checks if a point falls within the rectangle
-    pub fn contains(self, point: impl Into<Vector>) -> bool {
-        let p = point.into();
-
-        return p.x >= self.x()
-            && p.y >= self.y()
-            && p.x < self.x() + self.width()
-            && p.y < self.y() + self.width()
-    }
-
-    ///Check if any of the area bounded by this rectangle is bounded by another
-    pub fn overlaps_rect(self, b: Rectangle) -> bool {
-        self.x() < b.pos.x + b.size.x && self.x() + self.width() > b.pos.x && self.y() < b.pos.y + b.size.y &&
-            self.y() + self.height() > b.pos.y
-    }
-
-    ///Check if any of the area bounded by this rectangle is bounded by a circle
-    pub fn overlaps_circ(self, c: Circle) -> bool {
-        (c.center().clamp(self.top_left(), self.top_left() + self.size()) - c.center()).len2() < c.radius.powi(2)
-    }
-
-    ///Move the rectangle so it is entirely contained with another
-    #[must_use]
-    pub fn constrain(self, outer: Rectangle) -> Rectangle {
-        Rectangle::new(self.top_left().clamp(
-            outer.top_left(), outer.top_left() + outer.size() - self.size()
-        ), self.size())
-    }
-
-    ///Translate the rectangle by a given vector
-    #[must_use]
-    pub fn translate(self, v: impl Into<Vector>) -> Rectangle {
-        Rectangle::new(self.pos + v.into(), self.size)
-    }
-
-    ///Create a rectangle with the same size at a given center
-    #[must_use]
-    pub fn with_center(self, v: impl Into<Vector>) -> Rectangle {
-        self.translate(v.into() - self.center())
-    }
 }
 
 impl PartialEq for Rectangle {
@@ -135,16 +94,6 @@ impl PartialEq for Rectangle {
 
 impl Eq for Rectangle {}
 
-impl Positioned for Rectangle {
-    fn center(&self) -> Vector {
-        self.top_left() + self.size() / 2
-    }
-
-    fn bounding_box(&self) -> Rectangle {
-        *self
-    }
-}
-
 #[cfg(feature="ncollide2d")]
 impl From<AABB<f32>> for Rectangle {
     fn from(other: AABB<f32>) -> Rectangle {
@@ -154,15 +103,15 @@ impl From<AABB<f32>> for Rectangle {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use geom::*;
 
     #[test]
     fn overlap() {
-        let a = Rectangle::new_sized((32, 32));
-        let b = Rectangle::new((16, 16), (32, 32));
-        let c = Rectangle::new((50, 50), (5, 5));
-        assert!(a.overlaps_rect(b));
-        assert!(!a.overlaps_rect(c));
+        let a = &Rectangle::new_sized((32, 32));
+        let b = &Rectangle::new((16, 16), (32, 32));
+        let c = &Rectangle::new((50, 50), (5, 5));
+        assert!(a.overlaps(b));
+        assert!(!a.overlaps(c));
     }
 
     #[test]
@@ -176,7 +125,7 @@ mod tests {
 
     #[test]
     fn constraint() {
-        let constraint = Rectangle::new_sized((10, 10));
+        let constraint = &Rectangle::new_sized((10, 10));
         let a = Rectangle::new((-1, 3), (5, 5));
         let b = Rectangle::new((4, 4), (8, 3));
         let a = a.constrain(constraint);

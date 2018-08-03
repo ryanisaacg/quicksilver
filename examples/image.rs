@@ -3,6 +3,7 @@ extern crate quicksilver;
 
 use quicksilver::{
     Result,
+    geom::Shape,
     graphics::{Background::Img, Color, Image, Window, WindowBuilder},
     lifecycle::{Asset, State, run},
 };

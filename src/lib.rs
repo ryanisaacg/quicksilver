@@ -12,9 +12,10 @@
 //! extern crate quicksilver;
 //! 
 //! use quicksilver::{
-//!     run, Result, State,
+//!     Result,
 //!     geom::{Circle, Rectangle, Transform, Line, Triangle},
-//!     graphics::{Background::Col, Color, Window, WindowBuilder}
+//!     graphics::{Background::Col, Color, Window, WindowBuilder},
+//!     lifecycle::{State, run},
 //! };
 //! 
 //! struct DrawGeometry;
@@ -48,7 +49,6 @@
 //! fn main() {
 //!     run::<DrawGeometry>(WindowBuilder::new("Draw Geometry", (800, 600)));
 //! }
-//! 
 //! ```
 //! Run this with `cargo run` or, if you have the wasm32 toolchain installed, you can build for the web
 //! (instructions in the [quicksilver README](https://github.com/ryanisaacg/quicksilver)

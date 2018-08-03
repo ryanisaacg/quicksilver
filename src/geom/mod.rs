@@ -12,7 +12,6 @@ mod rectangle;
 mod circle;
 mod objects;
 mod shape;
-mod positioned;
 mod tilemap;
 mod transform;
 mod util;
@@ -22,7 +21,6 @@ pub use self::{
     rectangle::Rectangle,
     circle::Circle,
     objects::{Line, Triangle},
-    positioned::Positioned,
     shape::Shape,
     tilemap::{Tile, Tilemap},
     transform::Transform,
