@@ -7,10 +7,10 @@ extern crate quicksilver;
 use nalgebra::{zero, Isometry2};
 use ncollide2d::query::{Ray, RayCast};
 use quicksilver::{
-    run, Result, State,
+    Result,
     geom::{Rectangle, Vector},
     graphics::{Color, GpuTriangle, Mesh, Vertex, Window, WindowBuilder},
-    input::Event
+    lifecycle::{Event, State, run},
 };
 use std::cmp::Ordering;
 

@@ -2,9 +2,10 @@
 extern crate quicksilver;
 
 use quicksilver::{
-    run, Result, State,
+    Result,
     geom::Transform,
     graphics::{Color, Mesh, ShapeRenderer, Window, WindowBuilder},
+    lifecycle::{State, run},
     lyon::{
         extra::rust_logo::build_logo_path,
         tessellation::{FillTessellator, FillOptions},

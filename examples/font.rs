@@ -2,10 +2,11 @@
 extern crate quicksilver;
 
 use quicksilver::{
-    run, Asset, Future, Result, State,
+    Future, Result,
     combinators::result,
     geom::Shape,
-    graphics::{Background::Img, Color, Font, FontStyle, Image, Window, WindowBuilder}
+    graphics::{Background::Img, Color, Font, FontStyle, Image, Window, WindowBuilder},
+    lifecycle::{Asset, State, run},
 };
 
 struct SampleText {

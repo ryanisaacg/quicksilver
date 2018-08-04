@@ -2,10 +2,11 @@
 extern crate quicksilver;
 
 use quicksilver::{
-    run, Asset, Result, State,
+    Result,
     geom::{Rectangle, Shape, Vector},
     graphics::{Background::Col, Color, Window, WindowBuilder},
-    input::{ButtonState, MouseButton}, 
+    input::{ButtonState, MouseButton},
+    lifecycle::{Asset, State, run},
     sound::Sound
 };
 

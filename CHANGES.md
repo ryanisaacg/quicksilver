@@ -33,6 +33,9 @@
 - Add optional `lyon` integration for vector graphics
 - [Breaking] Replace the `Shape` enum and the `Positioned` trait with a `Shape` enum
 - [Breaking] Remove the `present` function and automatically switch the buffers after a draw call
+- [Breaking] Move `State` and `run` into a new `lifecycle` module
+- Add functions to determine the current framerate
+- Add the ability to customize the tick rate
 - Dependencies
     - Versions
         - alga: ``0.5 -> 0.6``

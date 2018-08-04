@@ -2,8 +2,9 @@
 extern crate quicksilver;
 
 use quicksilver::{
-    run, Result, State,
-    graphics::{Background::Col, Color, GpuTriangle, Mesh, Vertex, Window, WindowBuilder}
+    Result,
+    graphics::{Background::Col, Color, GpuTriangle, Mesh, Vertex, Window, WindowBuilder},
+    lifecycle::{State, run},
 };
 
 struct RgbTriangle {

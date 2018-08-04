@@ -14,10 +14,14 @@ use {
     geom::{Rectangle, Scalar, Transform, Vector},
      graphics::{Backend, BackendImpl, Background, BlendMode, Color, 
         Drawable, ImageScaleStrategy, Mesh, ResizeStrategy, View},
-    input::{ButtonState, Event, Gamepad, GamepadProvider, Keyboard, Mouse}
+    input::{ButtonState, Gamepad, Keyboard, Mouse},
+    lifecycle::{Event, GamepadProvider},
 };
 #[cfg(not(target_arch = "wasm32"))]
-use {gl, glutin::{self, EventsLoop, GlContext}};
+use {
+    gl,
+    glutin::{self, EventsLoop, GlContext}
+};
 
 ///A builder that constructs a Window
 #[derive(Debug)]
@@ -33,6 +37,8 @@ pub struct WindowBuilder {
     resize: ResizeStrategy,
     scale: ImageScaleStrategy,
     fullscreen: bool,
+    tick_rate: f64,
+    max_ticks: u32
 }
 
 impl WindowBuilder {
@@ -51,6 +57,8 @@ impl WindowBuilder {
             resize: ResizeStrategy::Fit,
             scale: ImageScaleStrategy::Pixelate,
             fullscreen: false,
+            tick_rate: 1.0 / 60.0,
+            max_ticks: 0,
         }
     }
 
@@ -99,6 +107,24 @@ impl WindowBuilder {
     ///On desktop it's borderless fullscreen, and on the web it makes the canvas the size of the browser window
     pub fn with_fullscreen(self, fullscreen: bool) -> WindowBuilder {
         WindowBuilder { fullscreen, ..self }
+    }
+
+    /// Set the ideal delay between two calls to `update` in milliseconds
+    ///
+    /// By default it is 16
+    pub fn with_tick_rate(self, tick_rate: f64) -> WindowBuilder {
+        WindowBuilder { tick_rate, ..self }
+    }
+
+    /// Set the max number of ticks that can run in a given frame
+    ///
+    /// By default it is 0, which will run all the ticks to catch
+    /// up to the current time in a frame. Any other value will only
+    /// allow that many ticks in a frame, preventing a "death spiral"
+    /// where the update loop attempting to catch up pushes it further
+    /// behind.
+    pub fn with_max_ticks(self, max_ticks: u32) -> WindowBuilder {
+        WindowBuilder { max_ticks, ..self }
     }
 
     #[cfg(not(target_arch = "wasm32"))]
@@ -151,8 +177,13 @@ impl WindowBuilder {
                 wheel: Vector::ZERO,
             },
             view,
+            tick_rate: self.tick_rate,
             backend: unsafe { BackendImpl::new((), self.scale)? },
-            mesh: Mesh::new()
+            mesh: Mesh::new(),
+            frame_count: 0.0,
+            fps: 0.0,
+            last_framerate: 0.0,
+            max_ticks: self.max_ticks,
         };
         Ok((window, events))
     }
@@ -204,8 +235,13 @@ impl WindowBuilder {
                 wheel: Vector::ZERO,
             },
             view,
+            tick_rate: self.tick_rate,
             backend: unsafe { BackendImpl::new(canvas.clone(), self.scale)? },
-            mesh: Mesh::new()
+            mesh: Mesh::new(),
+            frame_count: 0.0,
+            fps: 0.0,
+            last_framerate: 0.0,
+            max_ticks: self.max_ticks,
         };
         Ok((window, canvas))
     }
@@ -223,8 +259,13 @@ pub struct Window {
     keyboard: Keyboard,
     mouse: Mouse,
     view: View,
+    tick_rate: f64,
     pub(crate) backend: BackendImpl,
-    mesh: Mesh
+    mesh: Mesh,
+    frame_count: f64,
+    fps: f64,
+    last_framerate: f64,
+    max_ticks: u32,
 }
 
 impl Window {
@@ -452,5 +493,49 @@ impl Window {
     /// The mesh the window uses to draw
     pub fn mesh(&mut self) -> &mut Mesh {
         &mut self.mesh
+    }
+
+    /// The ideal delay between two calls to update in milliseconds
+    pub fn tick_rate(&self) -> f64 {
+        self.tick_rate
+    }
+
+    /// Set the desired time between two calls to update in milliseconds
+    pub fn set_tick_rate(&mut self, tick_rate: f64) {
+        self.tick_rate = tick_rate;
+    }
+
+    pub(crate) fn log_framerate(&mut self, delay: f64) {
+        if delay > 0.0 {
+            let total = self.frame_count * self.fps;
+            self.frame_count += 1.0;
+            let framerate = 1000.0 / delay;
+            self.last_framerate = framerate;
+            self.fps = (total + framerate) / self.frame_count;
+        }
+    }
+
+    /// Get the delay between the last two draw frames
+    pub fn current_fps(&self) -> f64 {
+        self.last_framerate
+    }
+
+    /// Get the average framerate over the history of the app
+    pub fn average_fps(&self) -> f64 {
+        self.fps
+    }
+
+    /// Get the maximum number of ticks that are allowed to run in a frame
+    ///
+    /// 0 is arbitrarily many
+    pub fn max_ticks(&self) -> u32 {
+        self.max_ticks
+    }
+
+    /// Set the maximum number of ticks that are allowed to run in a frame
+    ///
+    /// 0 is arbitrarily many
+    pub fn set_max_ticks(&mut self, max_ticks: u32) {
+        self.max_ticks = max_ticks;
     }
 }

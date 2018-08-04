@@ -4,7 +4,6 @@
 //! standard three buttons, the mouse wheel, and the mouse position. 
 
 mod button_state;
-mod event;
 mod gamepad;
 mod key;
 mod keyboard;
@@ -14,14 +13,11 @@ pub(crate) const LINES_TO_PIXELS: f32 = 15.0;
 
 pub use self::{
     button_state::ButtonState,
-    event::Event,
     key::Key,
     gamepad::{Gamepad, GamepadAxis, GamepadButton},
     keyboard::Keyboard,
     mouse::{Mouse, MouseButton}
 };
-pub(crate) use self::{
-    gamepad::GamepadProvider,
-    key::KEY_LIST
-};
-#[cfg(not(target_arch="wasm32"))] pub(crate) use self::event::EventProvider;
+pub(crate) use self::key::KEY_LIST;
+#[cfg(all(not(any(target_arch="wasm32", target_os="macos")), feature = "gamepads"))]
+pub(crate) use self::gamepad::GAMEPAD_BUTTON_LIST;

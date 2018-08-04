@@ -12,9 +12,10 @@
 //! extern crate quicksilver;
 //! 
 //! use quicksilver::{
-//!     run, Result, State,
+//!     Result,
 //!     geom::{Circle, Rectangle, Transform, Line, Triangle},
-//!     graphics::{Background::Col, Color, Window, WindowBuilder}
+//!     graphics::{Background::Col, Color, Window, WindowBuilder},
+//!     lifecycle::{State, run},
 //! };
 //! 
 //! struct DrawGeometry;
@@ -48,7 +49,6 @@
 //! fn main() {
 //!     run::<DrawGeometry>(WindowBuilder::new("Draw Geometry", (800, 600)));
 //! }
-//! 
 //! ```
 //! Run this with `cargo run` or, if you have the wasm32 toolchain installed, you can build for the web
 //! (instructions in the [quicksilver README](https://github.com/ryanisaacg/quicksilver)
@@ -112,23 +112,18 @@ extern crate rusttype;
 #[cfg(feature = "serde_json")]
 extern crate serde_json;
 
-mod asset;
 mod error;
 mod file;
 pub mod geom;
 pub mod graphics;
 pub mod input;
+pub mod lifecycle;
 #[cfg(feature = "saving")]
 pub mod saving;
 #[cfg(feature = "sounds")]
 pub mod sound;
-mod state;
-mod timer;
-pub use asset::Asset;
 pub use error::QuicksilverError as Error;
 pub use file::load_file;
-pub use state::{run, State};
-pub use timer::Timer;
 
 /// A Result that returns either success or a Quicksilver Error
 pub type Result<T> = ::std::result::Result<T, Error>;
