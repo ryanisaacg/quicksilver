@@ -8,7 +8,10 @@ use {
     input::{ButtonState, GAMEPAD_BUTTON_LIST},
 };
 #[cfg(target_arch = "wasm32")]
-use stdweb::web::Gamepad as WebGamepad;
+use {
+    input::ButtonState,
+    stdweb::web::Gamepad as WebGamepad,
+};
 
 
 pub struct GamepadProvider {
