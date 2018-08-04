@@ -19,5 +19,5 @@ pub use self::{
     mouse::{Mouse, MouseButton}
 };
 pub(crate) use self::key::KEY_LIST;
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(all(not(any(target_arch="wasm32", target_os="macos")), feature = "gamepads"))]
 pub(crate) use self::gamepad::GAMEPAD_BUTTON_LIST;

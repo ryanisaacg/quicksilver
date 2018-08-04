@@ -1,11 +1,11 @@
 use {
     Result,
-    input::{ButtonState, Gamepad},
+    input::Gamepad,
 };
 #[cfg(all(not(any(target_arch="wasm32", target_os="macos")), feature = "gamepads"))]
 use {
     gilrs::{self, Button},
-    input::GAMEPAD_BUTTON_LIST
+    input::{ButtonState, GAMEPAD_BUTTON_LIST},
 };
 #[cfg(target_arch = "wasm32")]
 use stdweb::web::Gamepad as WebGamepad;
