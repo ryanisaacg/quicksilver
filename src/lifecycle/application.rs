@@ -43,10 +43,12 @@ impl<T: State> Application<T> {
         let current = current_time();
         self.accumulator += current - self.last_update;
         self.last_update = current;
-        while self.accumulator > 0.0 {
+        let mut ticks = 0;
+        while self.accumulator > 0.0 && (self.window.max_ticks() == 0 || ticks < self.window.max_ticks()) {
             self.state.update(&mut self.window)?;
             self.window.clear_temporary_states();
             self.accumulator -= self.window.tick_rate();
+            ticks += 1;
         }
         Ok(())
     }
