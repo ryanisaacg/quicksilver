@@ -55,6 +55,7 @@ impl<T: State> Application<T> {
 
     pub fn draw(&mut self) -> Result<()> {
         self.state.draw(&mut self.window)?;
+        self.window.flush()?;
         #[cfg(not(target_arch = "wasm32"))]
         self.window.gl_window.swap_buffers()?;
         let current = current_time();
