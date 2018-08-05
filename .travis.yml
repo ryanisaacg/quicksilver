@@ -34,7 +34,7 @@ matrix:
       script:
         - cargo +nightly check --target wasm32-unknown-unknown --examples --no-default-features
 after_success: |
-  if [[ "$TRAVIS_RUST_VERSION" == stable && "$TRAVIS_OS_NAME" == linux]]; then
+  if [[ "$TRAVIS_RUST_VERSION" == "stable" && "$TRAVIS_OS_NAME" == "linux"]]; then
     RUSTFLAGS="--cfg procmacro2_semver_exempt" cargo install cargo-tarpaulin 
     cargo tarpaulin --out Xml
     bash <(curl -s https://codecov.io/bash)
