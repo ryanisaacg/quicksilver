@@ -11,7 +11,7 @@ readme = "README.md"
 repository = "https://github.com/ryanisaacg/quicksilver"
 
 [features]
-default = ["collisions", "fonts", "gamepads", "complex_shapes", "immi_ui", "saving", "sounds"]
+default = ["collisions", "fonts", "gamepads", "saving", "sounds"]
 
 collisions = ["nalgebra", "ncollide2d"]
 complex_shapes = ["lyon"]
