@@ -99,7 +99,7 @@ impl GamepadProvider {
             }));
     }
 
-    #[cfg(any(target_os="macos", not(feature = "gamepads")))]
+    #[cfg(all(not(target_arch = "wasm32"), any(target_os="macos", not(feature = "gamepads"))))]
     fn provide_gamepads_impl(&self, _buffer: &mut Vec<Gamepad>) {
         //Inentionally a no-op
     }
