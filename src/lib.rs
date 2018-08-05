@@ -80,7 +80,6 @@
 extern crate futures;
 extern crate image;
 extern crate rand;
-extern crate serde;
 #[macro_use]
 extern crate serde_derive;
 
@@ -109,6 +108,8 @@ extern crate ncollide2d;
 extern crate rodio;
 #[cfg(feature = "rusttype")]
 extern crate rusttype;
+#[cfg(feature = "serde_json")]
+extern crate serde;
 #[cfg(feature = "serde_json")]
 extern crate serde_json;
 
