@@ -5,5 +5,4 @@ about: Ask a question about Quicksilver; anything that's not a bug or a feature 
 
 ---
 
-**What is your question?**
- Feel free to ask about design decisions, naming, future plans, or anything else about Quicksilver
+<!-- Feel free to ask questions here or on gitter at https://gitter.im/quicksilver-rs/Lobby -->
