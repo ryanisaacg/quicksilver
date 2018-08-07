@@ -36,6 +36,7 @@
 - [Breaking] Move `State` and `run` into a new `lifecycle` module
 - Add functions to determine the current framerate
 - Add the ability to customize the tick rate
+- [Breaking] Use `static` as the directory to place assets for cargo-web compatibility
 - Dependencies
     - Versions
         - alga: ``0.5 -> 0.6``

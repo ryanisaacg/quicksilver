@@ -21,7 +21,7 @@ const BUTTON_AREA: Rectangle = Rectangle {
 
 impl State for SoundPlayer {
     fn new() -> Result<SoundPlayer> {
-        let asset = Asset::new(Sound::load("examples/assets/boop.ogg"));
+        let asset = Asset::new(Sound::load("boop.ogg"));
         Ok(SoundPlayer { asset })
     }
 

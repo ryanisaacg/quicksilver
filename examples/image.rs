@@ -14,7 +14,7 @@ struct ImageViewer {
 
 impl State for ImageViewer {
     fn new() -> Result<ImageViewer> {
-        let asset = Asset::new(Image::load("examples/assets/image.png"));
+        let asset = Asset::new(Image::load("image.png"));
         Ok(ImageViewer { asset })
     }
 

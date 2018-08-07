@@ -64,8 +64,9 @@ Run this with `cargo run` or, if you have the wasm32 toolchain installed, you ca
 You should see a red square in the top-left, and a green circle with a blue rectangle inside it 
 on the bottom-right.
 
-## Deploying a Quicksilver application
+## Building and Deploying a Quicksilver application
 
+Make sure to put all your assets in a top-level folder of your crate called `static/`. *All* Quicksilver file loading-APIs will expect paths that originate in the static folder, so `static/image.png` should be referenced as `image.png`.
 
 ### Deploying for desktop
 

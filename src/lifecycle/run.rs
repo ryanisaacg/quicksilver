@@ -4,7 +4,10 @@ use {
     lifecycle::{Application, State},
 };
 #[cfg(not(target_arch = "wasm32"))]
-use lifecycle::EventProvider;
+use {
+    lifecycle::EventProvider,
+    std::env::set_current_dir,
+};
 #[cfg(target_arch = "wasm32")]
 use {
     geom::Vector,
@@ -48,6 +51,8 @@ fn run_impl<T: State>(window: WindowBuilder) -> Result<()> {
         use sound::Sound;
         Sound::initialize();
     }
+    // A workaround for https://github.com/koute/cargo-web/issues/112
+    set_current_dir("static")?;
     let mut app: Application<T> = Application::new(window)?;
     let mut running = true;
     while running {
