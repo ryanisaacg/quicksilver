@@ -17,8 +17,9 @@ use {
     std::io::{Error as IOError, ErrorKind},
     stdweb::{
         Reference,
+        InstanceOf,
         unstable::TryInto,
-        web::{XmlHttpRequest, TypedArray},
+        web::{XmlHttpRequest, ArrayBuffer, TypedArray},
     }
 };
 
@@ -39,11 +40,20 @@ pub fn load_file(path: impl AsRef<Path>) -> impl Future<Item = Vec<u8>, Error = 
                     0 => Ok(Async::NotReady),
                     2 => {
                         let response: Reference = xhr.raw_response().try_into().expect("The response will always be a JS object");
-                        let array: TypedArray<u8> = match response.downcast() {
-                            Some(array) => array,
-                            None => return Err(new_wasm_error("Failed to cast file into bytes"))
+
+                        let array = if TypedArray::<u8>::instance_of(&response) {
+                            response.downcast::<TypedArray<u8>>().map(|arr| arr.to_vec())
+                        } else if ArrayBuffer::instance_of(&response) {
+                            response.downcast::<ArrayBuffer>().map(|arr| TypedArray::<u8>::from(arr).to_vec())
+                        } else {
+                            return Err(new_wasm_error(&format!("Unknown file encoding type: {:?}", response)));
                         };
-                        Ok(Async::Ready(array.to_vec()))
+
+                        if let Some(array) = array {
+                            Ok(Async::Ready(array))
+                        } else {
+                            Err(new_wasm_error("Failed to cast file into bytes"))
+                        }
                     },
                     _ => Err(new_wasm_error("Non-200 status code returned"))
                 }
