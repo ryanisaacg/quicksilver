@@ -61,9 +61,6 @@ fn main() {
 Run this with `cargo run` or, if you have the wasm32 toolchain installed, you can build for the web 
 (instructions below).
 
-You should see a red square in the top-left, and a green circle with a blue rectangle inside it 
-on the bottom-right.
-
 ## Deploying a Quicksilver application
 
 
@@ -84,6 +81,9 @@ files produced (found at "target/wasm32-unknown-unknown/release") and any assets
 
 If you want to test your application locally, use `cargo +nightly web start --target wasm32-unknown-unknown` and open your favorite browser to the port it provides. 
 
+## Learning Quicksilver
+
+Currently there isn't a book-like tutorial for Quicksilver, but there 
 
 ## Optional Features
 
