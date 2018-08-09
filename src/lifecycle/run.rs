@@ -4,7 +4,10 @@ use {
     lifecycle::{Application, State},
 };
 #[cfg(not(target_arch = "wasm32"))]
-use lifecycle::EventProvider;
+use {
+    lifecycle::EventProvider,
+    std::env::set_current_dir,
+};
 #[cfg(target_arch = "wasm32")]
 use {
     geom::Vector,
@@ -47,6 +50,11 @@ fn run_impl<T: State>(window: WindowBuilder) -> Result<()> {
     {
         use sound::Sound;
         Sound::initialize();
+    }
+    // A workaround for https://github.com/koute/cargo-web/issues/112
+    if let Err(_) = set_current_dir("static") {
+        eprintln!("Warning: no asset directory found. Please place all your assets inside a directory called 'static' so they can be loaded");
+        eprintln!("Execution continuing, but any asset-not-found errors are likely due to the lack of a 'static' directory.")
     }
     let mut app: Application<T> = Application::new(window)?;
     let mut running = true;

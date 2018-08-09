@@ -15,7 +15,7 @@ struct SampleText {
 
 impl State for SampleText {
     fn new() -> Result<SampleText> {
-        let asset = Asset::new(Font::load("examples/assets/font.ttf")
+        let asset = Asset::new(Font::load("font.ttf")
             .and_then(|font| {
                 let style = FontStyle::new(72.0, Color::BLACK);
                 result(font.render("Sample Text", &style))
