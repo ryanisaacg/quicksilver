@@ -53,10 +53,6 @@ stdweb = "0.4.8"
 webgl_stdweb = "0.1"
 
 [[example]]
-name = "basic"
-required-features = []
-
-[[example]]
 name = "draw-geometry"
 required-features = []
 
