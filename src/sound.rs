@@ -73,20 +73,24 @@ impl Sound {
 
     #[cfg(target_arch="wasm32")]
     fn load_impl(path: &Path) -> impl Future<Item = Sound, Error = QuicksilverError> {
-        let sound = js! ( new Audio(@{path.to_str().expect("Path must be stringifiable")}); );
+        let sound = js! {
+            const audio = new Audio(@{path.to_str().expect("Path must be stringifiable")});
+            audio.hasError = false;
+            audio.onerror = (error) => audio.hasError = true;
+            return audio;
+        };
         future::poll_fn(move || {
-            match js! ( @{&sound}.networkState == 3 ).try_into() {
-                Ok(true) => (),
-                Ok(false) => return Err(wasm_sound_error("Sound object failed to load from network")),
-                Err(_) => return Err(wasm_sound_error("Sound object network state check failed"))
-            }
-            match js! ( @{&sound}.readyState == 4 ).try_into() {
-                Ok(true) => Ok(Async::Ready(Sound {
-                        sound: sound.clone(),
-                        volume: 1f32
-                    })),
-                Ok(false) => Ok(Async::NotReady),
-                Err(_) => return Err(wasm_sound_error("Sound object failed to parse"))
+            let error = js! ( return @{&sound}.hasError ).try_into();
+            let ready = js! ( return @{&sound}.readyState ).try_into();
+            match (error, ready) {
+                (Ok(false), Ok(4)) => Ok(Async::Ready(Sound {
+                    sound: sound.clone(),
+                    volume: 1f32
+                })),
+                (Ok(true), _) => Err(wasm_sound_error("Sound file not found or could not load")),
+                (Ok(false), Ok(_)) => Ok(Async::NotReady),
+                (Err(_), _) => Err(wasm_sound_error("Checking sound network state failed")),
+                (_, Err(_)) => Err(wasm_sound_error("Checking sound ready state failed")),
             }
         })
     }
@@ -129,7 +133,7 @@ impl Sound {
             rodio::play_raw(&device, self.get_source()?);
         }
         #[cfg(target_arch="wasm32")] js! {
-            @{&self.sound}.play();
+            @{&self.sound}.cloneNode().play();
         }
         Ok(())
     }
