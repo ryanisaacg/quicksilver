@@ -258,7 +258,7 @@ impl Backend for WebGLBackend {
                 let height = height as i32;
                 let format = format as u32;
                 let array: TypedArray<u8> = data.into();
-                gl_ctx.tex_image2_d(gl::TEXTURE_2D, 0, gl::RGBA as i32, width, height, 0, format, gl::UNSIGNED_BYTE, Some(&array.buffer()));
+                gl_ctx.tex_image2_d_3(gl::TEXTURE_2D, 0, gl::RGBA as i32, width, height, 0, format, gl::UNSIGNED_BYTE, array);
             };
             gl_ctx.generate_mipmap(gl::TEXTURE_2D);
             Ok(ImageData { id, data: texture, width, height })
