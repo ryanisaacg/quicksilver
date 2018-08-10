@@ -17,6 +17,7 @@ pub mod lifecycle;
 pub mod images;
 pub mod font;
 pub mod sound;
+pub mod asset_combinators;
 pub mod multi_screen;
 pub mod mesh;
 pub mod ncollide_integration;
