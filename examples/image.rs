@@ -5,7 +5,6 @@ use quicksilver::{
     Result,
     geom::{Shape, Vector},
     graphics::{Background::Img, Color, Image},
-    input::Key,
     lifecycle::{Asset, Settings, State, Window, run},
 };
 
