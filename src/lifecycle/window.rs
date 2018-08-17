@@ -383,13 +383,15 @@ impl Window {
 
     /// Set if the application is currently fullscreen
     /// 
-    /// This currently does nothing 
+    /// This currently does nothing on web
     pub fn set_fullscreen(&mut self, fullscreen: bool) {
         self.backend.set_fullscreen(fullscreen);
     }
 
     /// Resize the window to the given size
     pub fn set_size(&mut self, size: impl Into<Vector>) {
-        self.backend.resize(size.into());
+        let size = size.into();
+        self.backend.resize(size);
+        self.adjust_size(size);
     }
 }
