@@ -1,11 +1,9 @@
 use {
     Result,
+    backend::{Backend, ImageData, SurfaceData, VERTEX_SIZE},
     geom::{Rectangle, Vector},
     error::QuicksilverError,
-    graphics::{
-        backend::{Backend, BlendMode, ImageData, ImageScaleStrategy, SurfaceData, VERTEX_SIZE},
-        Color, GpuTriangle, Image, PixelFormat, Surface, Vertex
-    },
+    graphics::{BlendMode, Color, GpuTriangle, Image, ImageScaleStrategy, PixelFormat, Surface, Vertex},
     std::mem::size_of,
     stdweb::{
         web::{
@@ -343,8 +341,7 @@ impl Backend for WebGLBackend {
 
     fn present(&self) -> Result<()> { Ok(()) }
 
-    fn set_fullscreen(&mut self, fullscreen: bool) {
-        // TODO: web fullscreens?
+    fn set_fullscreen(&mut self, _fullscreen: bool) {
     }
 
     fn resize(&mut self, size: Vector) {
