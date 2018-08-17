@@ -1,6 +1,11 @@
-use {Result, geom::{Transform, Vector},
-graphics::{Backend, BackendImpl, Image, PixelFormat, SurfaceData, Window, View},
-std::rc::Rc};
+use {
+    Result,
+    backend::{Backend, BackendImpl, SurfaceData},
+    geom::{Transform, Vector},
+    graphics::{Image, PixelFormat, View},
+    lifecycle::Window,
+    std::rc::Rc
+};
 
 #[derive(Clone, Debug)]
 ///A possible render target that can be drawn to the screen

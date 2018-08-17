@@ -1,16 +1,18 @@
-use Result;
-use error::QuicksilverError;
-use file::load_file;
-use futures::{Future, future};
-use geom::{Rectangle, Transform};
-use graphics::{Backend, BackendImpl, ImageData};
-use image;
-use std::{
-    error::Error,
-    fmt,
-    io::Error as IOError,
-    path::Path,
-    rc::Rc
+use {
+    Result,
+    backend::{Backend, BackendImpl, ImageData},
+    error::QuicksilverError,
+    file::load_file,
+    futures::{Future, future},
+    geom::{Rectangle, Transform},
+    image,
+    std::{
+        error::Error,
+        fmt,
+        io::Error as IOError,
+        path::Path,
+        rc::Rc
+    }
 };
 
 ///Pixel formats for use with loading raw images

@@ -113,6 +113,7 @@ extern crate serde;
 #[cfg(feature = "serde_json")]
 extern crate serde_json;
 
+mod backend;
 mod error;
 mod file;
 pub mod geom;

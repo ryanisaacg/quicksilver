@@ -5,8 +5,8 @@ use input::{ButtonState, GamepadAxis, GamepadButton, Key, MouseButton};
 use geom::Vector;
 #[cfg(not(target_arch="wasm32"))]
 use {
-    graphics::Window,
     input::LINES_TO_PIXELS,
+    lifecycle::Window,
     glutin::{
         EventsLoop, 
         Event::WindowEvent

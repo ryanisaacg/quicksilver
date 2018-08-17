@@ -9,8 +9,8 @@ use ncollide2d::query::{Ray, RayCast};
 use quicksilver::{
     Result,
     geom::{Rectangle, Vector},
-    graphics::{Color, GpuTriangle, Mesh, Vertex, Window, WindowBuilder},
-    lifecycle::{Event, State, run},
+    graphics::{Color, GpuTriangle, Mesh, Vertex},
+    lifecycle::{Event, Settings, State, Window, run},
 };
 use std::cmp::Ordering;
 
@@ -136,5 +136,5 @@ impl State for Raycast {
 }
 
 fn main() {
-    run::<Raycast>(WindowBuilder::new("Raycast", (800, 600)));
+    run::<Raycast>("Raycast", Vector::new(800, 600), Settings::default());
 }

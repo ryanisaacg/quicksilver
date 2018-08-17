@@ -3,9 +3,10 @@ extern crate quicksilver;
 
 use quicksilver::{
     Result,
-    geom::Shape,
-    graphics::{Background::Img, Color, Image, Window, WindowBuilder},
-    lifecycle::{Asset, State, run},
+    geom::{Shape, Vector},
+    graphics::{Background::Img, Color, Image},
+    input::Key,
+    lifecycle::{Asset, Settings, State, Window, run},
 };
 
 struct ImageViewer {
@@ -28,5 +29,5 @@ impl State for ImageViewer {
 }
 
 fn main() {
-    run::<ImageViewer>(WindowBuilder::new("Image Example", (800, 600)));
+    run::<ImageViewer>("Image Example", Vector::new(800, 600), Settings::default());
 }

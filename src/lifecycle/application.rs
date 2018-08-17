@@ -1,13 +1,10 @@
 use {
     Result,
-    graphics::Window,
-    lifecycle::{Event, State},
+    backend::Backend,
+    lifecycle::{Event, State, Window},
 };
 #[cfg(not(target_arch = "wasm32"))]
-use {
-    glutin::GlContext,
-    std::time::{SystemTime, UNIX_EPOCH},
-};
+use std::time::{SystemTime, UNIX_EPOCH};
 #[cfg(target_arch = "wasm32")]
 use stdweb::web::Date;
 
@@ -56,8 +53,7 @@ impl<T: State> Application<T> {
     pub fn draw(&mut self) -> Result<()> {
         self.state.draw(&mut self.window)?;
         self.window.flush()?;
-        #[cfg(not(target_arch = "wasm32"))]
-        self.window.gl_window.swap_buffers()?;
+        self.window.backend.present()?;
         let current = current_time();
         self.window.log_framerate(current - self.last_draw);
         self.last_draw = current;

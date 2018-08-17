@@ -1,6 +1,7 @@
 use { 
     Result,
-    graphics::{ Background::Col, Color, GpuTriangle, Image, PixelFormat, Surface, Vertex }
+    geom::{Rectangle, Vector},
+    graphics::{Background::Col, BlendMode, Color, GpuTriangle, Image, ImageScaleStrategy, PixelFormat, Surface, Vertex},
 };
 
 pub(crate) trait Backend {
@@ -18,7 +19,12 @@ pub(crate) trait Backend {
     unsafe fn bind_surface(surface: &Surface) -> [i32; 4] where Self: Sized;
     unsafe fn unbind_surface(surface: &Surface, viewport: &[i32]) where Self: Sized;
     unsafe fn destroy_surface(surface: &SurfaceData) where Self: Sized;
-    unsafe fn viewport(x: i32, y: i32, width: i32, height: i32) where Self: Sized;
+    unsafe fn viewport(&mut self, area: Rectangle) where Self: Sized;
+    fn show_cursor(&mut self, show_cursor: bool);
+    fn set_title(&mut self, title: &str);
+    fn present(&self) -> Result<()>;
+    fn set_fullscreen(&mut self, fullscreen: bool);
+    fn resize(&mut self, size: Vector);
 
     unsafe fn clear_color(&mut self, color: Color, letterbox: Color) -> Result<()> {
         self.clear(letterbox);
@@ -38,11 +44,9 @@ pub(crate) trait Backend {
 
 const VERTEX_SIZE: usize = 9; // the number of floats in a vertex
 
-mod blend_mode;
 mod image_data;
 mod surface_data;
 
-pub use self::blend_mode::BlendMode;
 pub use self::image_data::ImageData;
 pub use self::surface_data::SurfaceData;
 
@@ -61,13 +65,3 @@ pub use self::webgl::WebGLBackend;
 pub(crate) type BackendImpl = GL3Backend;
 #[cfg(target_arch="wasm32")]
 pub(crate) type BackendImpl = WebGLBackend;
-
-/// The way the images should change when drawn at a scale
-#[repr(u32)]
-#[derive(Debug)]
-pub enum ImageScaleStrategy {
-    /// The image should attempt to preserve each pixel as accurately as possible
-    Pixelate,
-    /// The image should attempt to preserve the overall picture by blurring
-    Blur
-}

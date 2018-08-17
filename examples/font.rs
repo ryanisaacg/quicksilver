@@ -4,9 +4,9 @@ extern crate quicksilver;
 use quicksilver::{
     Future, Result,
     combinators::result,
-    geom::Shape,
-    graphics::{Background::Img, Color, Font, FontStyle, Image, Window, WindowBuilder},
-    lifecycle::{Asset, State, run},
+    geom::{Shape, Vector},
+    graphics::{Background::Img, Color, Font, FontStyle, Image},
+    lifecycle::{Asset, Settings, State, Window, run},
 };
 
 struct SampleText {
@@ -33,5 +33,5 @@ impl State for SampleText {
 }
 
 fn main() {
-    run::<SampleText>(WindowBuilder::new("Font Example", (800, 600)));
+    run::<SampleText>("Font Example", Vector::new(800, 600), Settings::default());
 }

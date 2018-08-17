@@ -1,5 +1,7 @@
 use {
-    Result, geom::Vector, error::QuicksilverError, 
+    Result,
+    geom::{Rectangle, Vector},
+    error::QuicksilverError,
     graphics::{
         backend::{Backend, BlendMode, ImageData, ImageScaleStrategy, SurfaceData, VERTEX_SIZE},
         Color, GpuTriangle, Image, PixelFormat, Surface, Vertex
@@ -20,9 +22,11 @@ use {
         WebGLUniformLocation
     }
 };
-
+#[cfg(target_arch = "wasm32")]
+use stdweb::web::document;
 
 pub struct WebGLBackend {
+    canvas: CanvasElement,
     texture: Image,
     vertices: Vec<f32>,
     indices: Vec<u32>, 
@@ -110,6 +114,7 @@ impl Backend for WebGLBackend {
         let null = Image::new_null(1, 1, PixelFormat::RGBA)?;
         let texture = null.clone();
         Ok(WebGLBackend {
+            canvas,
             texture,
             vertices: Vec::with_capacity(1024),
             indices: Vec::with_capacity(1024), 
@@ -317,10 +322,34 @@ impl Backend for WebGLBackend {
         }
     }
 
-    unsafe fn viewport(x: i32, y: i32, width: i32, height: i32) where Self: Sized {
+    unsafe fn viewport(&mut self, area: Rectangle) where Self: Sized {
         if let Some(ref gl_ctx) = GL_CONTEXT {
-            gl_ctx.viewport(x, y, width, height);
+            gl_ctx.viewport(
+                area.x() as i32,
+                area.y() as i32,
+                area.width() as i32,
+                area.height() as i32
+            );
         }
+    }
+
+    fn show_cursor(&mut self, show_cursor: bool) {
+        js! ( @{&self.canvas}.style.cursor = @{show_cursor} ? "auto" : "none"; );
+    }
+
+    fn set_title(&mut self, title: &str) {
+        document().set_title(title);
+    }
+
+    fn present(&self) -> Result<()> { Ok(()) }
+
+    fn set_fullscreen(&mut self, fullscreen: bool) {
+        // TODO: web fullscreens?
+    }
+
+    fn resize(&mut self, size: Vector) {
+        self.canvas.set_width(size.x as u32);
+        self.canvas.set_height(size.y as u32);
     }
 }
 
