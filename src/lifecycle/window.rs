@@ -11,7 +11,7 @@ use {
     error::QuicksilverError,
     stdweb::{
         web::{
-            INode, document,
+            IElement, INode, document,
             html_element::CanvasElement,
         },
         unstable::TryInto
@@ -20,7 +20,7 @@ use {
 #[cfg(not(target_arch = "wasm32"))]
 use {
     gl,
-    glutin::{self, EventsLoop, GlContext}
+    glutin::{self, EventsLoop, GlContext, Icon}
 };
 
 
@@ -86,6 +86,10 @@ impl Window {
             .with_fullscreen(monitor)
             .with_title(title)
             .with_dimensions(user_size.into());
+        let window = match settings.icon_path {
+            Some(path) => window.with_window_icon(Some(Icon::from_path(path)?)),
+            None => window,
+        };
         let window = match settings.min_size {
             Some(v) => window.with_min_dimensions(v.into()),
             None => window,
@@ -113,18 +117,22 @@ impl Window {
     #[cfg(target_arch = "wasm32")]
     pub(crate) fn build(title: &str, size: Vector, settings: Settings) -> Result<(Window, CanvasElement)> {
         let document = document();
-        let element = match document.create_element("canvas") {
-            Ok(elem) => elem,
-            Err(_) => return Err(QuicksilverError::ContextError("Failed to create canvas element".to_owned()))
-        };
-        let canvas: CanvasElement = match element.try_into() {
-            Ok(elem) => elem,
-            Err(_) => return Err(QuicksilverError::ContextError("Failed to create canvas element".to_owned()))
-        };
-        let body = match document.body() {
-            Some(body) => body,
-            None => return Err(QuicksilverError::ContextError("Failed to find body node".to_owned()))
-        };
+        if let Some(path) = settings.icon_path {
+            let head = document.head().ok_or(QuicksilverError::ContextError("Failed to find head node".to_owned()))?;
+            let element = document
+                .create_element("link")
+                .map_err(|_| QuicksilverError::ContextError("Failed to create link element".to_owned()))?;
+            element.set_attribute("rel", "shortcut icon");
+            element.set_attribute("type", "image/png");
+            element.set_attribute("href", path);
+            head.append_child(&element);
+        }
+        let element = document
+            .create_element("canvas")
+            .map_err(|_| QuicksilverError::ContextError("Failed to create canvas element".to_owned()))?;
+        let canvas: CanvasElement = element.try_into()
+            .map_err(|_| QuicksilverError::ContextError("Failed to create canvas element".to_owned()))?;
+        let body = document.body().ok_or(QuicksilverError::ContextError("Failed to find body node".to_owned()))?;
         body.append_child(&canvas);
         canvas.set_width(size.x as u32);
         canvas.set_height(size.y as u32);
