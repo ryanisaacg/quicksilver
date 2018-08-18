@@ -44,7 +44,7 @@ alga = "0.6"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 gl = "0.10"
-glutin = { version = "0.17", features = ["icon_loading"] }
+glutin = { version = "0.18", features = ["icon_loading"] }
 gilrs = { version = "0.6", optional = true }
 rodio = { version = "0.8", optional = true }
 
