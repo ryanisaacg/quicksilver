@@ -29,7 +29,9 @@ pub struct Settings {
     /// The maximum number of ticks to run in a single frame
     /// 
     /// See https://gafferongames.com/post/fix_your_timestep/ for an explanation of fixed timesteps
-    pub max_ticks: u32
+    pub max_ticks: u32,
+    /// The icon on the window or the favicon on the tab
+    pub icon_path: Option<&'static str>, // TODO: statiC?
 }
 
 impl Default for Settings {
@@ -43,6 +45,7 @@ impl Default for Settings {
             fullscreen: false,
             tick_rate: 1.0 / 60.0,
             max_ticks: 0,
+            icon_path: None,
         }
     }
 }
