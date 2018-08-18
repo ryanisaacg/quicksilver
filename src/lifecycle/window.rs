@@ -1,21 +1,21 @@
+use {
+    Result, 
+    backend::{Backend, BackendImpl},
+    geom::{Rectangle, Scalar, Transform, Vector},
+    graphics::{Background, BlendMode, Color, Drawable, Mesh, ResizeStrategy, View},
+    input::{ButtonState, Gamepad, Keyboard, Mouse},
+    lifecycle::{Event, GamepadProvider, Settings},
+};
 #[cfg(target_arch = "wasm32")]
 use {
     error::QuicksilverError,
     stdweb::{
         web::{
-            INode, document, window,
+            INode, document,
             html_element::CanvasElement,
         },
         unstable::TryInto
     }
-};
-use {
-    Result, 
-    geom::{Rectangle, Scalar, Transform, Vector},
-     graphics::{Backend, BackendImpl, Background, BlendMode, Color, 
-        Drawable, ImageScaleStrategy, Mesh, ResizeStrategy, View},
-    input::{ButtonState, Gamepad, Keyboard, Mouse},
-    lifecycle::{Event, GamepadProvider},
 };
 #[cfg(not(target_arch = "wasm32"))]
 use {
@@ -23,234 +23,9 @@ use {
     glutin::{self, EventsLoop, GlContext}
 };
 
-///A builder that constructs a Window
-#[derive(Debug)]
-pub struct WindowBuilder {
-    title: &'static str,
-    width: u32,
-    height: u32,
-    show_cursor: bool,
-    #[cfg(not(target_arch = "wasm32"))]
-    min_size: Option<Vector>,
-    #[cfg(not(target_arch = "wasm32"))]
-    max_size: Option<Vector>,
-    resize: ResizeStrategy,
-    scale: ImageScaleStrategy,
-    fullscreen: bool,
-    tick_rate: f64,
-    max_ticks: u32
-}
-
-impl WindowBuilder {
-    ///Create a default window builder
-    pub fn new(title: &'static str, size: impl Into<Vector>) -> WindowBuilder {
-        let size = size.into();
-        WindowBuilder {
-            title,
-            width: size.x as u32,
-            height: size.y as u32,
-            show_cursor: true,
-            #[cfg(not(target_arch = "wasm32"))]
-            min_size: None,
-            #[cfg(not(target_arch = "wasm32"))]
-            max_size: None,
-            resize: ResizeStrategy::Fit,
-            scale: ImageScaleStrategy::Pixelate,
-            fullscreen: false,
-            tick_rate: 1.0 / 60.0,
-            max_ticks: 0,
-        }
-    }
-
-    ///Set if the window should show its cursor (defaults to true)
-    pub fn with_show_cursor(self, show_cursor: bool) -> WindowBuilder {
-        WindowBuilder {
-            show_cursor,
-            ..self
-        }
-    }
-
-    ///Set how the window should handle resizing (defaults to `ResizeStrategy::Fit`)
-    pub fn with_resize_strategy(self, resize: ResizeStrategy) -> WindowBuilder {
-        WindowBuilder { resize, ..self }
-    }
-
-    ///Set the minimum size for the window (no value by default)
-    ///
-    ///On the web, this does nothing.
-    pub fn with_minimum_size(self, _min_size: impl Into<Vector>) -> WindowBuilder {
-        WindowBuilder {
-            #[cfg(not(target_arch = "wasm32"))]
-            min_size: Some(_min_size.into()),
-            ..self
-        }
-    }
-
-    ///Set the maximum size for the window (no value by default)
-    ///
-    ///On the web, this does nothing.
-    pub fn with_maximum_size(self, _max_size: impl Into<Vector>) -> WindowBuilder {
-        WindowBuilder {
-            #[cfg(not(target_arch = "wasm32"))]
-            max_size: Some(_max_size.into()),
-            ..self
-        }
-    }
-
-    ///Set the strategy for scaling images
-    pub fn with_scaling_strategy(self, scale: ImageScaleStrategy) -> WindowBuilder {
-        WindowBuilder { scale, ..self }
-    }
-
-    ///Set if the window should be in fullscreen mode
-    ///
-    ///On desktop it's borderless fullscreen, and on the web it makes the canvas the size of the browser window
-    pub fn with_fullscreen(self, fullscreen: bool) -> WindowBuilder {
-        WindowBuilder { fullscreen, ..self }
-    }
-
-    /// Set the ideal delay between two calls to `update` in milliseconds
-    ///
-    /// By default it is 16
-    pub fn with_tick_rate(self, tick_rate: f64) -> WindowBuilder {
-        WindowBuilder { tick_rate, ..self }
-    }
-
-    /// Set the max number of ticks that can run in a given frame
-    ///
-    /// By default it is 0, which will run all the ticks to catch
-    /// up to the current time in a frame. Any other value will only
-    /// allow that many ticks in a frame, preventing a "death spiral"
-    /// where the update loop attempting to catch up pushes it further
-    /// behind.
-    pub fn with_max_ticks(self, max_ticks: u32) -> WindowBuilder {
-        WindowBuilder { max_ticks, ..self }
-    }
-
-    #[cfg(not(target_arch = "wasm32"))]
-    pub(crate) fn build(self) -> Result<(Window, EventsLoop)> {
-        let events = glutin::EventsLoop::new();
-        let window = glutin::WindowBuilder::new()
-            .with_decorations(!self.fullscreen)
-            .with_title(self.title);
-        let window = match self.min_size {
-            Some(v) => window.with_min_dimensions(v.into()),
-            None => window,
-        };
-        let window = match self.max_size {
-            Some(v) => window.with_max_dimensions(v.into()),
-            None => window,
-        };
-        let size = if self.fullscreen {
-            events.get_primary_monitor().get_dimensions().into()
-        } else {
-            Vector::new(self.width, self.height)
-        };
-        let window = window.with_dimensions(size.into());
-        let context = glutin::ContextBuilder::new().with_vsync(true);
-        let gl_window = glutin::GlWindow::new(window, context, &events)?;
-        unsafe {
-            gl_window.make_current()?;
-            gl::load_with(|symbol| gl_window.get_proc_address(symbol) as *const _);
-        }
-        if !self.show_cursor {
-            gl_window.hide_cursor(true);
-        }
-        let screen_region = self.resize.resize(
-            Vector::new(self.width, self.height),
-            size,
-        );
-        let view = View::new(Rectangle::new_sized(screen_region.size()));
-        let window = Window {
-            gl_window,
-            gamepads: Vec::new(),
-            gamepad_buffer: Vec::new(),
-            provider: GamepadProvider::new()?,
-            resize: self.resize,
-            screen_region,
-            keyboard: Keyboard {
-                keys: [ButtonState::NotPressed; 256],
-            },
-            mouse: Mouse {
-                pos: Vector::ZERO,
-                buttons: [ButtonState::NotPressed; 3],
-                wheel: Vector::ZERO,
-            },
-            view,
-            tick_rate: self.tick_rate,
-            backend: unsafe { BackendImpl::new((), self.scale)? },
-            mesh: Mesh::new(),
-            frame_count: 0.0,
-            fps: 0.0,
-            last_framerate: 0.0,
-            max_ticks: self.max_ticks,
-        };
-        Ok((window, events))
-    }
-
-    #[cfg(target_arch = "wasm32")]
-    pub(crate) fn build(self) -> Result<(Window, CanvasElement)> {
-        let mut actual_width = self.width;
-        let mut actual_height = self.height;
-        let document = document();
-        let window = window();
-        let element = match document.create_element("canvas") {
-            Ok(elem) => elem,
-            Err(_) => return Err(QuicksilverError::ContextError("Failed to create canvas element".to_owned()))
-        };
-        let canvas: CanvasElement = match element.try_into() {
-            Ok(elem) => elem,
-            Err(_) => return Err(QuicksilverError::ContextError("Failed to create canvas element".to_owned()))
-        };
-        let body = match document.body() {
-            Some(body) => body,
-            None => return Err(QuicksilverError::ContextError("Failed to find body node".to_owned()))
-        };
-        body.append_child(&canvas);
-        document.set_title(self.title);
-        if self.fullscreen {
-            actual_width = window.inner_width() as u32;
-            actual_height = window.inner_height() as u32;
-        }
-        canvas.set_width(actual_width);
-        canvas.set_height(actual_height);
-        js! ( @{&canvas}.style.cursor = @{self.show_cursor} ? "auto" : "none"; );
-        let screen_region = self.resize.resize(
-            Vector::new(self.width, self.height),
-            Vector::new(actual_width, actual_height),
-        );
-        let view = View::new(Rectangle::new_sized(screen_region.size()));
-        let window = Window {
-            gamepads: Vec::new(),
-            gamepad_buffer: Vec::new(),
-            provider: GamepadProvider::new()?,
-            resize: self.resize,
-            screen_region,
-            keyboard: Keyboard {
-                keys: [ButtonState::NotPressed; 256],
-            },
-            mouse: Mouse {
-                pos: Vector::ZERO,
-                buttons: [ButtonState::NotPressed; 3],
-                wheel: Vector::ZERO,
-            },
-            view,
-            tick_rate: self.tick_rate,
-            backend: unsafe { BackendImpl::new(canvas.clone(), self.scale)? },
-            mesh: Mesh::new(),
-            frame_count: 0.0,
-            fps: 0.0,
-            last_framerate: 0.0,
-            max_ticks: self.max_ticks,
-        };
-        Ok((window, canvas))
-    }
-}
 
 ///The window currently in use
 pub struct Window {
-    #[cfg(not(target_arch = "wasm32"))]
-    pub(crate) gl_window: glutin::GlWindow,
     provider: GamepadProvider,
     gamepads: Vec<Gamepad>,
     gamepad_buffer: Vec<Gamepad>, //used as a temporary buffer for storing new gamepads
@@ -269,6 +44,96 @@ pub struct Window {
 }
 
 impl Window {
+    pub(crate) fn build_agnositc(user_size: Vector, actual_size: Vector, settings: Settings, backend: BackendImpl) -> Result<Window> {
+        let screen_region = settings.resize.resize(user_size, actual_size);
+        let view = View::new(Rectangle::new_sized(screen_region.size()));
+        let mut window = Window {
+            gamepads: Vec::new(),
+            gamepad_buffer: Vec::new(),
+            provider: GamepadProvider::new()?,
+            resize: settings.resize,
+            screen_region,
+            keyboard: Keyboard {
+                keys: [ButtonState::NotPressed; 256],
+            },
+            mouse: Mouse {
+                pos: Vector::ZERO,
+                buttons: [ButtonState::NotPressed; 3],
+                wheel: Vector::ZERO,
+            },
+            view,
+            tick_rate: settings.tick_rate,
+            backend,
+            mesh: Mesh::new(),
+            frame_count: 0.0,
+            fps: 0.0,
+            last_framerate: 0.0,
+            max_ticks: settings.max_ticks,
+        };
+        window.set_show_cursor(settings.show_cursor);
+        Ok(window)
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    pub(crate) fn build(title: &str, user_size: Vector, settings: Settings) -> Result<(Window, EventsLoop)> {
+        let events = glutin::EventsLoop::new();
+        let monitor = if settings.fullscreen {
+            Some(events.get_primary_monitor())
+        } else {
+            None
+        };
+        let window = glutin::WindowBuilder::new()
+            .with_fullscreen(monitor)
+            .with_title(title)
+            .with_dimensions(user_size.into());
+        let window = match settings.min_size {
+            Some(v) => window.with_min_dimensions(v.into()),
+            None => window,
+        };
+        let window = match settings.max_size {
+            Some(v) => window.with_max_dimensions(v.into()),
+            None => window,
+        };
+        let context = glutin::ContextBuilder::new().with_vsync(true);
+        let gl_window = glutin::GlWindow::new(window, context, &events)?;
+        unsafe {
+            gl_window.make_current()?;
+            gl::load_with(|symbol| gl_window.get_proc_address(symbol) as *const _);
+        }
+        let actual_size = if settings.fullscreen {
+            events.get_primary_monitor().get_dimensions().into()
+        } else {
+            user_size
+        };
+        let backend = unsafe { BackendImpl::new(gl_window, settings.scale)? };
+        let window = Window::build_agnositc(user_size, actual_size, settings, backend)?;
+        Ok((window, events))
+    }
+
+    #[cfg(target_arch = "wasm32")]
+    pub(crate) fn build(title: &str, size: Vector, settings: Settings) -> Result<(Window, CanvasElement)> {
+        let document = document();
+        let element = match document.create_element("canvas") {
+            Ok(elem) => elem,
+            Err(_) => return Err(QuicksilverError::ContextError("Failed to create canvas element".to_owned()))
+        };
+        let canvas: CanvasElement = match element.try_into() {
+            Ok(elem) => elem,
+            Err(_) => return Err(QuicksilverError::ContextError("Failed to create canvas element".to_owned()))
+        };
+        let body = match document.body() {
+            Some(body) => body,
+            None => return Err(QuicksilverError::ContextError("Failed to find body node".to_owned()))
+        };
+        body.append_child(&canvas);
+        canvas.set_width(size.x as u32);
+        canvas.set_height(size.y as u32);
+        let backend = unsafe { BackendImpl::new(canvas.clone(), settings.scale)? };
+        let mut window = Window::build_agnositc(size, size, settings, backend)?;
+        window.set_title(title);
+        Ok((window, canvas))
+    }
+
     pub(crate) fn process_event(&mut self, event: &Event) {
         match event {
             &Event::Key(key, state) => self.keyboard.process_event(key as usize, state),
@@ -321,25 +186,7 @@ impl Window {
     ///Handle the available size for the window changing
     pub(crate) fn adjust_size(&mut self, available: Vector) {
         self.screen_region = self.resize.resize(self.screen_region.size(), available);
-        let dpi;
-        #[cfg(not(target_arch = "wasm32"))] {
-            let size: glutin::dpi::LogicalSize = self.screen_region.size().into();
-            self.gl_window.resize(size.to_physical(self.gl_window.get_hidpi_factor()));
-            dpi = self.gl_window.get_hidpi_factor();
-        }
-        #[cfg(target_arch = "wasm32")] {
-            dpi = 1.0;
-        }
-        let position = self.screen_region.top_left() * dpi as f32;
-        let size = self.screen_region.size() * dpi as f32;
-        unsafe {
-            BackendImpl::viewport(
-                position.x as i32,
-                position.y as i32,
-                size.x as i32,
-                size.y as i32,
-            );
-        }
+        unsafe { self.backend.viewport(self.screen_region); }
     }
 
     ///Get the view from the window
@@ -397,21 +244,6 @@ impl Window {
             pos: self.project() * self.mouse.pos,
             ..self.mouse.clone()
         }
-    }
-
-    ///Set the title of the Window
-    pub fn set_title(&self, title: &str) {
-        self.set_title_impl(title);
-    }
-
-    #[cfg(not(target_arch = "wasm32"))]
-    fn set_title_impl(&self, title: &str) {
-        self.gl_window.set_title(title);
-    }
-
-    #[cfg(target_arch = "wasm32")]
-    fn set_title_impl(&self, title: &str) {
-        document().set_title(title);
     }
 
     /// Clear the screen to a given color
@@ -537,5 +369,29 @@ impl Window {
     /// 0 is arbitrarily many
     pub fn set_max_ticks(&mut self, max_ticks: u32) {
         self.max_ticks = max_ticks;
+    }
+
+    /// Set if the cursor should be visible when over the application
+    pub fn set_show_cursor(&mut self, show_cursor: bool) {
+        self.backend.show_cursor(show_cursor);
+    }
+
+    /// Set the title of the window (or tab on mobile)
+    pub fn set_title(&mut self, title: &str) {
+        self.backend.set_title(title);
+    }
+
+    /// Set if the application is currently fullscreen
+    /// 
+    /// This currently does nothing on web
+    pub fn set_fullscreen(&mut self, fullscreen: bool) {
+        self.backend.set_fullscreen(fullscreen);
+    }
+
+    /// Resize the window to the given size
+    pub fn set_size(&mut self, size: impl Into<Vector>) {
+        let size = size.into();
+        self.backend.resize(size);
+        self.adjust_size(size);
     }
 }

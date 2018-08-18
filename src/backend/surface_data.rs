@@ -1,4 +1,4 @@
-use graphics::backend::{Backend, BackendImpl};
+use backend::{Backend, BackendImpl};
 
 #[derive(Debug)]
 #[cfg(not(target_arch = "wasm32"))]

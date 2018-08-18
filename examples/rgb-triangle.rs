@@ -3,8 +3,9 @@ extern crate quicksilver;
 
 use quicksilver::{
     Result,
-    graphics::{Background::Col, Color, GpuTriangle, Mesh, Vertex, Window, WindowBuilder},
-    lifecycle::{State, run},
+    geom::Vector,
+    graphics::{Background::Col, Color, GpuTriangle, Mesh, Vertex},
+    lifecycle::{Settings, State, Window, run},
 };
 
 struct RgbTriangle {
@@ -31,5 +32,6 @@ impl State for RgbTriangle {
 }
 
 fn main() {
-    run::<RgbTriangle>(WindowBuilder::new("RGB Triangle", (800, 600)));
+    run::<RgbTriangle>("Image Example", Vector::new(800, 600), Settings::default());
 }
+

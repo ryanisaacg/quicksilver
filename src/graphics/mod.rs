@@ -3,36 +3,35 @@
 
 mod animation;
 mod atlas;
-mod backend;
+mod blend_mode;
 mod color;
 mod drawable;
 #[cfg(feature="fonts")] mod font;
 #[cfg(feature="lyon")] mod lyon;
 mod image;
+mod image_scale_strategy;
 #[cfg(feature="immi")] mod immi;
 mod mesh;
 mod resize;
 mod surface;
 mod vertex;
 mod view;
-mod window;
 
 pub use self::{
     animation::Animation,
     atlas::{Atlas, AtlasError, AtlasItem},
-    backend::{BlendMode, ImageScaleStrategy},
+    blend_mode::BlendMode,
     color::Color,
     drawable::{Background, Drawable},
     image::{Image, ImageError, PixelFormat},
+    image_scale_strategy::ImageScaleStrategy,
     mesh::Mesh,
     resize::ResizeStrategy,
     surface::Surface,
     vertex::{Vertex, GpuTriangle},
     view::View,
-    window::{Window, WindowBuilder}
 };
 #[cfg(feature="fonts")] pub use self::font::{Font, FontStyle};
 #[cfg(feature="lyon")] pub use self::lyon::ShapeRenderer;
 #[cfg(feature = "immi")] pub use self::immi::ImmiRender;
-pub(crate) use self::backend::{Backend, BackendImpl, ImageData, SurfaceData};
 

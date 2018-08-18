@@ -1,7 +1,6 @@
 use {
     Error, Result,
-    graphics::Window,
-    lifecycle::Event,
+    lifecycle::{Event, Window},
 };
 
 /// The structure responsible for managing the game loop state

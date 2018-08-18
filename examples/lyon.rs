@@ -4,8 +4,8 @@ extern crate quicksilver;
 use quicksilver::{
     Result,
     geom::Transform,
-    graphics::{Color, Mesh, ShapeRenderer, Window, WindowBuilder},
-    lifecycle::{State, run},
+    graphics::{Color, Mesh, ShapeRenderer},
+    lifecycle::{Settings, State, Window, run},
     lyon::{
         extra::rust_logo::build_logo_path,
         tessellation::{FillTessellator, FillOptions},
@@ -50,5 +50,5 @@ impl State for LyonExample {
 }
 
 fn main() {
-    run::<LyonExample>(WindowBuilder::new("Lyon Demo", (800, 600)));
+    run::<LyonExample>("Lyon Demo", Vector::new(800, 600), Settings::default());
 }

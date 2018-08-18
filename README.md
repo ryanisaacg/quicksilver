@@ -21,9 +21,10 @@ Then replace `src/main.rs` with the following (the contents of quicksilver's exa
 extern crate quicksilver;
 
 use quicksilver::{
-    run, Result, State,
-    geom::{Circle, Rectangle, Transform, Line, Triangle},
-    graphics::{Background::Col, Color, Window, WindowBuilder}
+    Result,
+    geom::{Circle, Line, Rectangle, Transform, Triangle, Vector},
+    graphics::{Background::Col, Color},
+    lifecycle::{Settings, State, Window, run},
 };
 
 struct DrawGeometry;
@@ -55,7 +56,7 @@ impl State for DrawGeometry {
 }
 
 fn main() {
-    run::<DrawGeometry>(WindowBuilder::new("Draw Geometry", (800, 600)));
+    run::<DrawGeometry>("Draw Geometry", Vector::new(800, 600), Settings::default());
 }
 ```
 
