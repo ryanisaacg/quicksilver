@@ -39,6 +39,7 @@
 - [Breaking] Use `static` as the directory to place assets for cargo-web compatibility
 - [Breaking] Remove `WindowBuilder` and create a new `Settings` struct to replace it
 - Add functions to the window to allow changing settings at run-time
+- Add the ability to set window icons and favicons
 - Dependencies
     - Versions
         - alga: ``0.5 -> 0.6``
