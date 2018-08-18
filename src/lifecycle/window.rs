@@ -122,9 +122,12 @@ impl Window {
             let element = document
                 .create_element("link")
                 .map_err(|_| QuicksilverError::ContextError("Failed to create link element".to_owned()))?;
-            element.set_attribute("rel", "shortcut icon");
-            element.set_attribute("type", "image/png");
-            element.set_attribute("href", path);
+            element.set_attribute("rel", "shortcut icon")
+                .map_err(|_| QuicksilverError::ContextError("Failed to create favicon element".to_owned()))?;
+            element.set_attribute("type", "image/png")
+                .map_err(|_| QuicksilverError::ContextError("Failed to create favicon element".to_owned()))?;
+            element.set_attribute("href", path)
+                .map_err(|_| QuicksilverError::ContextError("Failed to create favicon element".to_owned()))?;
             head.append_child(&element);
         }
         let element = document
