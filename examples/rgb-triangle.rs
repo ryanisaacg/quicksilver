@@ -2,31 +2,36 @@
 extern crate quicksilver;
 
 use quicksilver::{
-    run, Result, State,
+    Result,
     geom::Vector,
-    graphics::{Color, GpuTriangle, Vertex, Window, WindowBuilder}
+    graphics::{Background::Col, Color, GpuTriangle, Mesh, Vertex},
+    lifecycle::{Settings, State, Window, run},
 };
 
-struct RgbTriangle;
+struct RgbTriangle {
+    mesh: Mesh
+}
 
 impl State for RgbTriangle {
     fn new() -> Result<RgbTriangle> {
-        Ok(RgbTriangle)
+        let vertices = vec![
+            Vertex::new((400, 200), None, Col(Color::RED)),
+            Vertex::new((200, 400), None, Col(Color::BLUE)),
+            Vertex::new((600, 400), None, Col(Color::GREEN))
+        ];
+        let triangles = vec![ GpuTriangle::new(0, [0, 1, 2], 0.0, Col(Color::WHITE)) ];
+        let mesh = Mesh { vertices, triangles };
+        Ok(RgbTriangle { mesh })
     }
 
     fn draw(&mut self, window: &mut Window) -> Result<()> {
         window.clear(Color::BLACK)?;
-        let vertices = [
-            Vertex::new_untextured((400, 200), Color::RED),
-            Vertex::new_untextured((200, 400), Color::BLUE),
-            Vertex::new_untextured((600, 400), Color::GREEN),
-        ];
-        let indices = [ GpuTriangle::new_untextured([0, 1, 2], 0.0) ];
-        window.add_vertices(vertices.iter().cloned(), indices.iter().cloned());
-        window.present()
+        window.mesh().apply(&self.mesh);
+        Ok(())
     }
 }
 
 fn main() {
-    run::<RgbTriangle>(WindowBuilder::new("RGB Triangle", (800, 600)));
+    run::<RgbTriangle>("Image Example", Vector::new(800, 600), Settings::default());
 }
+

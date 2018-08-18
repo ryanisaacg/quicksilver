@@ -12,9 +12,10 @@
 //! extern crate quicksilver;
 //! 
 //! use quicksilver::{
-//!     run, Result, State,
-//!     geom::{Circle, Rectangle, Vector, Transform, Line, Triangle},
-//!     graphics::{Color, Window, WindowBuilder}
+//!     Result,
+//!     geom::{Circle, Line, Rectangle, Transform, Triangle, Vector},
+//!     graphics::{Background::Col, Color},
+//!     lifecycle::{Settings, State, Window, run},
 //! };
 //! 
 //! struct DrawGeometry;
@@ -25,29 +26,31 @@
 //!     }
 //! 
 //!     fn draw(&mut self, window: &mut Window) -> Result<()> {
-//!         window.clear(Color::BLACK)?;
-//!         window.draw_color(&Rectangle::new((100, 100), (32, 32)), Transform::IDENTITY, Color::BLUE);
-//!         window.draw_ex(&Rectangle::new((400, 300), (32, 32)), Transform::rotate(45), Color::BLUE, 10);
-//!         window.draw_color(&Circle::new((400, 300), 100), Transform::IDENTITY, Color::GREEN);
+//!         window.clear(Color::WHITE)?;
+//!         window.draw(&Rectangle::new((100, 100), (32, 32)), Col(Color::BLUE));
+//!         window.draw_ex(&Rectangle::new((400, 300), (32, 32)), Col(Color::BLUE), Transform::rotate(45), 10);
+//!         window.draw(&Circle::new((400, 300), 100), Col(Color::GREEN));
 //!         window.draw_ex(
-//!             &Line::new(Vector::new(50, 80),Vector::new(600, 450)).with_thickness(2.0),
+//!             &Line::new((50, 80),(600, 450)).with_thickness(2.0),
+//!             Col(Color::RED),
 //!             Transform::IDENTITY,
-//!             Color::RED,
 //!             5
 //!         );
-//!         window.draw_color(
+//!         window.draw_ex(
 //!             &Triangle::new((500, 50), (450, 100), (650, 150)),
+//!             Col(Color::RED),
 //!             Transform::rotate(45) * Transform::scale((0.5, 0.5)),
-//!             Color::RED
+//!             0
 //!         );
-//!         window.present()
+//!         Ok(())
 //!     }
 //! }
 //! 
 //! fn main() {
-//!     run::<DrawGeometry>(WindowBuilder::new("Draw Geometry", (800, 600)));
+//!     run::<DrawGeometry>("Draw Geometry", Vector::new(800, 600), Settings::default());
 //! }
 //! ```
+//!
 //! Run this with `cargo run` or, if you have the wasm32 toolchain installed, you can build for the web
 //! (instructions in the [quicksilver README](https://github.com/ryanisaacg/quicksilver)
 //!
@@ -68,7 +71,7 @@
 
 #![doc(html_root_url = "https://docs.rs/quicksilver/0.2.0")]
 #![deny(
-    bare_trait_object,
+    bare_trait_objects,
     missing_docs,
     unused_extern_crates,
     unused_import_braces,
@@ -78,7 +81,6 @@
 extern crate futures;
 extern crate image;
 extern crate rand;
-extern crate serde;
 #[macro_use]
 extern crate serde_derive;
 
@@ -95,6 +97,10 @@ extern crate webgl_stdweb;
 
 #[cfg(all(feature = "gilrs", not(target_arch = "wasm32")))]
 extern crate gilrs;
+#[cfg(feature = "lyon")]
+pub extern crate lyon;
+#[cfg(feature = "immi")]
+extern crate immi;
 #[cfg(feature = "nalgebra")]
 extern crate nalgebra;
 #[cfg(feature = "ncollide2d")]
@@ -104,25 +110,23 @@ extern crate rodio;
 #[cfg(feature = "rusttype")]
 extern crate rusttype;
 #[cfg(feature = "serde_json")]
+extern crate serde;
+#[cfg(feature = "serde_json")]
 extern crate serde_json;
 
-mod asset;
+mod backend;
 mod error;
 mod file;
 pub mod geom;
 pub mod graphics;
 pub mod input;
+pub mod lifecycle;
 #[cfg(feature = "saving")]
 pub mod saving;
 #[cfg(feature = "sounds")]
 pub mod sound;
-mod state;
-mod timer;
-pub use asset::Asset;
 pub use error::QuicksilverError as Error;
 pub use file::load_file;
-pub use state::{run, State};
-pub use timer::Timer;
 
 /// A Result that returns either success or a Quicksilver Error
 pub type Result<T> = ::std::result::Result<T, Error>;
@@ -133,20 +137,3 @@ pub use futures::{Async, Future};
 /// This allows one Asset object that contains all of the various resources
 /// an application needs to load.
 pub use futures::future as combinators;
-
-#[cfg(target_arch = "wasm32")]
-fn get_canvas() -> Result<stdweb::web::html_element::CanvasElement> {
-    use stdweb::{
-        unstable::TryInto,
-        web::{IParentNode, document, html_element::CanvasElement}
-    };
-    let element = match document().query_selector("#canvas") {
-        Ok(Some(element)) => element,
-        _ => return Err(Error::ContextError("Element with id 'canvas' not found".to_owned()))
-    };
-    let canvas: CanvasElement = match element.try_into() {
-        Ok(canvas) => canvas,
-        _ => return Err(Error::ContextError("Element with id 'canvas' not a CanvasElement".to_owned()))
-    };
-    Ok(canvas)
-}

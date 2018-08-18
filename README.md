@@ -4,6 +4,7 @@
 [![Crates.io](https://img.shields.io/crates/v/quicksilver.svg)](https://crates.io/crates/quicksilver)
 [![Docs Status](https://docs.rs/quicksilver/badge.svg)](https://docs.rs/quicksilver)
 [![dependency status](https://deps.rs/repo/github/ryanisaacg/quicksilver/status.svg)](https://deps.rs/repo/github/ryanisaacg/quicksilver)
+[![Gitter chat](https://badges.gitter.im/quicksilver-rs/Lobby.svg)](https://gitter.im/quicksilver-rs/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 A 2D game framework written in pure Rust
 
@@ -20,9 +21,10 @@ Then replace `src/main.rs` with the following (the contents of quicksilver's exa
 extern crate quicksilver;
 
 use quicksilver::{
-    run, Result, State,
-    geom::{Circle, Rectangle, Vector, Transform, Line, Triangle},
-    graphics::{Color, Window, WindowBuilder}
+    Result,
+    geom::{Circle, Line, Rectangle, Transform, Triangle, Vector},
+    graphics::{Background::Col, Color},
+    lifecycle::{Settings, State, Window, run},
 };
 
 struct DrawGeometry;
@@ -33,27 +35,28 @@ impl State for DrawGeometry {
     }
 
     fn draw(&mut self, window: &mut Window) -> Result<()> {
-        window.clear(Color::BLACK)?;
-        window.draw_color(&Rectangle::new((100, 100), (32, 32)), Transform::IDENTITY, Color::BLUE);
-        window.draw_ex(&Rectangle::new((400, 300), (32, 32)), Transform::rotate(45), Color::BLUE, 10);
-        window.draw_color(&Circle::new((400, 300), 100), Transform::IDENTITY, Color::GREEN);
+        window.clear(Color::WHITE)?;
+        window.draw(&Rectangle::new((100, 100), (32, 32)), Col(Color::BLUE));
+        window.draw_ex(&Rectangle::new((400, 300), (32, 32)), Col(Color::BLUE), Transform::rotate(45), 10);
+        window.draw(&Circle::new((400, 300), 100), Col(Color::GREEN));
         window.draw_ex(
             &Line::new((50, 80),(600, 450)).with_thickness(2.0),
+            Col(Color::RED),
             Transform::IDENTITY,
-            Color::RED,
             5
         );
-        window.draw_color(
+        window.draw_ex(
             &Triangle::new((500, 50), (450, 100), (650, 150)),
+            Col(Color::RED),
             Transform::rotate(45) * Transform::scale((0.5, 0.5)),
-            Color::RED
+            0
         );
-        window.present()
+        Ok(())
     }
 }
 
 fn main() {
-    run::<DrawGeometry>(WindowBuilder::new("Draw Geometry", (800, 600)));
+    run::<DrawGeometry>("Draw Geometry", Vector::new(800, 600), Settings::default());
 }
 ```
 
@@ -63,8 +66,9 @@ Run this with `cargo run` or, if you have the wasm32 toolchain installed, you ca
 You should see a red square in the top-left, and a green circle with a blue rectangle inside it 
 on the bottom-right.
 
-## Deploying a Quicksilver application
+## Building and Deploying a Quicksilver application
 
+Make sure to put all your assets in a top-level folder of your crate called `static/`. *All* Quicksilver file loading-APIs will expect paths that originate in the static folder, so `static/image.png` should be referenced as `image.png`.
 
 ### Deploying for desktop
 
@@ -79,7 +83,7 @@ If you're deploying for the web, first make sure you've
 [installed the wasm toolchain](https://www.hellorust.com/news/native-wasm-target.html) 
 and the [cargo web tool](https://github.com/koute/cargo-web). Build the 
 wasm file and its js bindings (`cargo +nightly web build --target wasm32-unknown-unknown`). Copy the .wasm and .js
-files produced (found at "target/wasm32-unknown-unknown/release") and any assets you may have used. Create an HTML file with a canvas (that has the ID "canvas") and attach the script with a `script` tag.
+files produced (found at "target/wasm32-unknown-unknown/release") and any assets you may have used. Create an HTML file and attach the script with a `script` tag.
 
 If you want to test your application locally, use `cargo +nightly web start --target wasm32-unknown-unknown` and open your favorite browser to the port it provides. 
 

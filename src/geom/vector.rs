@@ -3,8 +3,7 @@
     geometry::Point2
 };
 
-use geom::{about_equal, Positioned, Rectangle, Scalar};
-use graphics::{DrawAttributes, Drawable, Window};
+use geom::{about_equal, Scalar};
 use rand::{
     Rng,
     distributions::{Distribution, Standard}
@@ -82,12 +81,6 @@ impl Vector {
         )
     }
     
-    ///Constrain a vector within a Rectangle
-    #[must_use]
-    pub fn constrain(self, bounds: Rectangle) -> Vector {
-        self.clamp(bounds.top_left(), bounds.top_left() + bounds.size())
-    }
-
     ///Get the cross product of a vector
     pub fn cross(self, other: impl Into<Vector>) -> f32 {
         let other = other.into();
@@ -146,6 +139,24 @@ impl Vector {
     pub fn distance(self, other: impl Into<Vector>) -> f32 {
         let other = other.into();
         ((other.x - self.x).powi(2) + (other.y - self.y).powi(2)).sqrt()
+    }
+
+    ///Get a vector with the minimum of each component of this and another vector
+    pub fn min(self, other: impl Into<Vector>) -> Vector {
+        let other = other.into();
+        Vector::new(
+            self.x.min(other.x),
+            self.y.min(other.y)
+        )
+    }
+
+    ///Get a vector with the maximum of each component of this and another vector
+    pub fn max(self, other: impl Into<Vector>) -> Vector {
+        let other = other.into();
+        Vector::new(
+            self.x.max(other.x),
+            self.y.max(other.y)
+        )
     }
 }
 
@@ -241,16 +252,6 @@ impl Distribution<Vector> for Standard {
     }
 }
 
-impl Positioned for Vector {
-    fn center(&self) -> Vector {
-        *self
-    }
-    
-    fn bounding_box(&self) -> Rectangle {
-        Rectangle::new(*self, Vector::ZERO)
-    }
-}
-
 #[cfg(feature="nalgebra")]
 impl From<Vector2<f32>> for Vector {
     fn from(other: Vector2<f32>) -> Vector {
@@ -327,15 +328,9 @@ impl<T: Scalar, U: Scalar> From<(T, U)> for Vector {
     }
 }
 
-impl Drawable for Vector {
-    fn draw(&self, window: &mut Window, params: DrawAttributes) {
-        Rectangle::new(*self, Vector::ONE).draw(window, params);
-    }
-}
-
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use geom::*;
 
     #[test]
     fn arithmetic() {

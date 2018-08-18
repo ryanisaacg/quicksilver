@@ -1,4 +1,4 @@
-use geom::{Positioned, Rectangle, Vector, Shape};
+use geom::{Rectangle, Shape, Vector};
 use std::ops::Fn;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -94,7 +94,7 @@ impl<T: Clone> Tilemap<T> {
     }
 
     ///Checks if a shape is valid in its entirety
-    pub fn shape_valid(&self, shape: Shape) -> bool {
+    pub fn shape_valid(&self, shape: impl Shape) -> bool {
         let bbox = shape.bounding_box();
         self.valid(bbox.top_left()) && self.valid(bbox.top_left() + bbox.size())
     }
@@ -143,26 +143,21 @@ impl<T: Clone> Tilemap<T> {
     }
    
     ///Finds if the area taken by a shape is empty
-    pub fn shape_empty(&self, shape: Shape) -> bool {
+    pub fn shape_empty(&self, shape: &impl Shape) -> bool {
         let bounds = shape.bounding_box(); 
-        match shape {
-            Shape::Vector(_) => self.point_empty(shape.center()),
-            Shape::Rectangle(_) | Shape::Circle(_) => {
-                let x_start = (self.align_left(bounds.pos.x) / self.tile_width()) as i32;
-                let y_start = (self.align_top(bounds.pos.y) / self.tile_height()) as i32;
-                let x_end = (self.align_right(bounds.pos.x + bounds.width()) / self.tile_width()) as i32;
-                let y_end = (self.align_right(bounds.pos.y + bounds.height()) / self.tile_height()) as i32;
-                for x in x_start..x_end {
-                    for y in y_start..y_end {
-                        let point = Vector::new(x, y).times(self.tile_size());
-                        if !self.point_empty(point) && shape.overlaps_rect(Rectangle::new(point, self.tile_size())) {
-                            return false;
-                        }
-                    }
+        let x_start = (self.align_left(bounds.pos.x) / self.tile_width()) as i32;
+        let y_start = (self.align_top(bounds.pos.y) / self.tile_height()) as i32;
+        let x_end = (self.align_right(bounds.pos.x + bounds.width()) / self.tile_width()) as i32;
+        let y_end = (self.align_right(bounds.pos.y + bounds.height()) / self.tile_height()) as i32;
+        for x in x_start..x_end {
+            for y in y_start..y_end {
+                let point = Vector::new(x, y).times(self.tile_size());
+                if !self.point_empty(point) && shape.overlaps(&Rectangle::new(point, self.tile_size())) {
+                    return false;
                 }
-                true
             }
         }
+        true
     }
 
     ///Align a given X value to the leftmost edge of a tile
@@ -187,18 +182,18 @@ impl<T: Clone> Tilemap<T> {
 
     ///Find the furthest a shape can move along a vector, and what its future speed should be
     #[must_use]
-    pub fn move_until_contact(&self, bounds: Shape, speed: impl Into<Vector>) -> (Shape, Vector) {
+    pub fn move_until_contact<U: Shape>(&self, bounds: U, speed: impl Into<Vector>) -> (U, Vector) {
         let speed = speed.into();
-        let rectangle = Shape::Rectangle(bounds.bounding_box());
+        let rectangle = bounds.bounding_box();
         let attempt = Vector::ZERO;
         let slide_x = |diff: f32, mut attempt: Vector| {
-            while diff.abs() > 0.0 && (attempt.x + diff).abs() <= speed.x.abs() && self.shape_empty(rectangle.translate(attempt + Vector::X * diff)) {
+            while diff.abs() > 0.0 && (attempt.x + diff).abs() <= speed.x.abs() && self.shape_empty(&rectangle.translate(attempt + Vector::X * diff)) {
                 attempt.x += diff;
             }
             attempt
         };
         let slide_y = |diff: f32, mut attempt: Vector| {
-            while diff.abs() > 0.0 && (attempt.y + diff).abs() <= speed.y.abs() && self.shape_empty(rectangle.translate(attempt + Vector::Y * diff)) {
+            while diff.abs() > 0.0 && (attempt.y + diff).abs() <= speed.y.abs() && self.shape_empty(&rectangle.translate(attempt + Vector::Y * diff)) {
                 attempt.y += diff;
             }
             attempt
@@ -327,14 +322,9 @@ mod tests {
         ];
         for case in test_cases.iter() {
             let (region, speed, expected_tl, expected_speed) = *case;
-            let (region_new, speed_new) = map.move_until_contact(Shape::Rectangle(region), speed);
-            match region_new {
-                Shape::Rectangle(region_new) => {
-                    assert_eq!(region_new.top_left(), expected_tl);
-                    assert_eq!(speed_new, expected_speed);
-                },
-                _ => ()
-            }
+            let (region_new, speed_new) = map.move_until_contact(region, speed);
+            assert_eq!(region_new.top_left(), expected_tl);
+            assert_eq!(speed_new, expected_speed);
         }
     }
 }

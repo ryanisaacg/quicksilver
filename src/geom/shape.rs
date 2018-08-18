@@ -1,136 +1,234 @@
-use geom::{Circle, Positioned, Rectangle, Vector};
-use graphics::{DrawAttributes, Drawable, Window};
+use geom::{Circle, Line, Rectangle, Triangle, Vector, about_equal};
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize, Serialize)]
-///A universal shape union
-#[allow(missing_docs)]
-pub enum Shape {
-    Circle(Circle), Rectangle(Rectangle), Vector(Vector)
-}
-
-impl Shape {
-    ///Check if the shape overlaps with a circle
-    pub fn overlaps_circ(&self, circ: Circle) -> bool {
-        match *self {
-            Shape::Circle(this) => this.overlaps_circ(circ),
-            Shape::Rectangle(this) => this.overlaps_circ(circ),
-            Shape::Vector(this) => circ.contains(this)
-        }
-    }
-
-    ///Check if the shape overlaps with a rectangle
-    pub fn overlaps_rect(&self, rect: Rectangle) -> bool {
-        match *self {
-            Shape::Circle(this) => this.overlaps_rect(rect),
-            Shape::Rectangle(this) => this.overlaps_rect(rect),
-            Shape::Vector(this) => rect.contains(this)
-        }
-    }
-
-    ///Check if the shape contains a vector
-    pub fn contains(&self, vec: impl Into<Vector>) -> bool {
-        let vec = vec.into();
-        match *self {
-            Shape::Circle(this) => this.contains(vec),
-            Shape::Rectangle(this) => this.contains(vec),
-            Shape::Vector(this) => this == vec
-        }
-    }
-
-    ///Check if the shape overlaps with another shape
-    pub fn overlaps(&self, shape: Shape) -> bool {
-        match *self {
-            Shape::Circle(this) => shape.overlaps_circ(this),
-            Shape::Rectangle(this) => shape.overlaps_rect(this),
-            Shape::Vector(this) => shape.contains(this)
-        }
-    }
-
-    ///Create a shape moved by a given amount
+/// The collision and positional attributes of shapes
+pub trait Shape {
+    /// If the point lies on the shape's boundary or within it
     #[must_use]
-    pub fn translate(&self, vec: impl Into<Vector>) -> Shape {
-        let vec: Vector = vec.into();
-        match *self {
-            Shape::Circle(this) => Shape::Circle(this.translate(vec)),
-            Shape::Rectangle(this) => Shape::Rectangle(this.translate(vec)),
-            Shape::Vector(this) => Shape::Vector(this + vec)
-        }
-    }
-
-    ///Create a copy of the shape with a given center
+    fn contains(&self, impl Into<Vector>) -> bool;
+    /// If any area bounded by the shape falls on the line
     #[must_use]
-    pub fn with_center(&self, vec: impl Into<Vector>) -> Shape {
-        let vec = vec.into();
-        match *self {
-            Shape::Circle(this) => Shape::Circle(Circle::new((vec.x, vec.y), this.radius)),
-            Shape::Rectangle(this) => Shape::Rectangle(this.with_center(vec)),
-            Shape::Vector(_) => Shape::Vector(vec)
-        }
+    fn intersects(&self, line: &Line) -> bool { self.overlaps(line) }
+    /// If any area is bounded by both the shape and the circle
+    #[must_use]
+    fn overlaps_circle(&self, circle: &Circle) -> bool { self.overlaps(circle) }
+    /// If any area is bounded by both the shape and the rectangle
+    #[must_use]
+    fn overlaps_rectangle(&self, rectangle: &Rectangle) -> bool { self.overlaps(rectangle) }
+    /// If any area is bounded by both either shape
+    #[must_use]
+    fn overlaps(&self, &impl Shape) -> bool;
+
+    /// The point all other points are equidistant to in the shape
+    #[must_use]
+    fn center(&self) -> Vector;
+    /// A Rectangle that contains the entire shape
+    #[must_use]
+    fn bounding_box(&self) -> Rectangle;
+    /// Create a copy of the shape with an offset center
+    #[must_use]
+    fn translate(&self, impl Into<Vector>) -> Self where Self: Sized;
+    /// Create a copy of the shape that is contained within the bound
+    #[must_use]
+    fn constrain(&self, outer: &Rectangle) -> Self where Self: Sized {
+        let area = self.bounding_box();
+        let clamped = area.top_left().clamp(outer.top_left(), outer.top_left() + outer.size() - area.size());
+        self.translate(clamped - area.top_left())
     }
-
-    fn as_positioned(&self) -> &dyn Positioned {
-        match self {
-            &Shape::Circle(ref this) => this as &dyn Positioned,
-            &Shape::Rectangle(ref this) => this as &dyn Positioned,
-            &Shape::Vector(ref this) => this as &dyn Positioned,
-        }
-
+    /// Create a copy of the shape with an offset center
+    #[must_use]
+    fn with_center(&self, center: impl Into<Vector>) -> Self where Self: Sized {
+        self.translate(center.into() - self.center())
     }
 }
 
-impl Positioned for Shape {
-    fn center(&self) -> Vector {
-        self.as_positioned().center()
+impl Shape for Circle {
+    fn contains(&self, v: impl Into<Vector>) -> bool {
+        (v.into() - self.center()).len2() < self.radius.powi(2)
+    }
+    fn overlaps_circle(&self, c: &Circle) -> bool { 
+        (self.center() - c.center()).len2() < (self.radius + c.radius).powi(2)
+    }
+    fn overlaps(&self, shape: &impl Shape) -> bool {
+        shape.overlaps_circle(self)
     }
 
+    fn center(&self) -> Vector { self.pos }
     fn bounding_box(&self) -> Rectangle {
-        self.as_positioned().bounding_box()
+        Rectangle::new(self.pos - Vector::ONE * self.radius, Vector::ONE * 2 * self.radius)
+    }
+    fn translate(&self, v: impl Into<Vector>) -> Self {
+        Circle {
+            pos: self.pos + v.into(),
+            radius: self.radius
+        }
     }
 }
 
-impl Drawable for Shape {
-    fn draw(&self, window: &mut Window, params: DrawAttributes) {
-        match self {
-            Shape::Circle(this) => this as &dyn Drawable,
-            Shape::Rectangle(this) => this as &dyn Drawable,
-            Shape::Vector(this) => this as &dyn Drawable,
-        }.draw(window, params);
+impl Shape for Rectangle {
+    fn contains(&self, point: impl Into<Vector>) -> bool {
+        let p = point.into();
+
+        return p.x >= self.x()
+            && p.y >= self.y()
+            && p.x < self.x() + self.width()
+            && p.y < self.y() + self.width()
+    }
+    fn overlaps_circle(&self, c: &Circle) -> bool {
+        (c.center().clamp(self.top_left(), self.top_left() + self.size()) - c.center()).len2() < c.radius.powi(2)
+    }
+    fn overlaps_rectangle(&self, b: &Rectangle) -> bool {
+        self.x() < b.pos.x + b.size.x && self.x() + self.width() > b.pos.x && self.y() < b.pos.y + b.size.y &&
+            self.y() + self.height() > b.pos.y
+    }
+
+    fn intersects(&self, l: &Line) -> bool { l.overlaps_rectangle(self) }
+    fn overlaps(&self, shape: &impl Shape) -> bool { shape.overlaps_rectangle(self) }
+
+
+    fn center(&self) -> Vector { self.pos + self.size / 2 }
+    fn bounding_box(&self) -> Rectangle { *self }
+    fn translate(&self, v: impl Into<Vector>) -> Self {
+        Rectangle {
+            pos: self.pos + v.into(),
+            size: self.size
+        }
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+impl Shape for Triangle {
+    fn contains(&self, v: impl Into<Vector>) -> bool {
+        let v = v.into();
+        // form three triangles with this new vector
+        let t_1 = Triangle::new(v, self.a, self.b);
+        let t_2 = Triangle::new(v, self.b, self.c);
+        let t_3 = Triangle::new(v, self.c, self.a);
 
-    fn get_shapes() -> [Shape; 3] {
-        [
-            Shape::Circle(Circle::new((0, 0), 32)),
-            Shape::Rectangle(Rectangle::new((0, 0), (32, 32))),
-            Shape::Vector(Vector::new(0, 0))
-        ]
+        // calculate the area these smaller triangles make
+        // if they add up to be the area of this triangle, the point is inside it
+        about_equal(t_1.area() + t_2.area() + t_3.area(), self.area())
     }
-
-    #[test]
-    fn overlaps() {
-        for a in get_shapes().iter() {
-            for b in get_shapes().iter() {
-                println!("{:?}, {:?}", a, b);
-                assert!(a.overlaps(*b));
-            }
+    fn intersects(&self, line: &Line) -> bool {
+        // check each the vertices and each edge if it overlaps the line
+        self.contains(line.a)
+            || self.contains(line.b)
+            || Line::new(self.a, self.b).intersects(line)
+            || Line::new(self.b, self.c).intersects(line)
+            || Line::new(self.c, self.a).intersects(line)
+    }
+    fn overlaps_circle(&self, circ: &Circle) -> bool{
+        Line::new(self.a, self.b).overlaps_circle(circ)
+            || Line::new(self.b, self.c).overlaps_circle(circ)
+            || Line::new(self.c, self.a).overlaps_circle(circ)
+    }
+    fn overlaps_rectangle(&self, rect: &Rectangle) ->bool {
+        Line::new(self.a, self.b).overlaps_rectangle(rect)
+            || Line::new(self.b, self.c).overlaps_rectangle(rect)
+            || Line::new(self.c, self.a).overlaps_rectangle(rect)
+    }
+    fn overlaps(&self, other: &impl Shape) -> bool {
+        self.contains(other.center())
+            || other.intersects(&Line::new(self.a, self.b))
+            || other.intersects(&Line::new(self.b, self.c))
+            || other.intersects(&Line::new(self.a, self.c))
+    }
+    
+    fn center(&self) -> Vector {
+        (self.a + self.b + self.c) / 3
+    }
+    fn bounding_box(&self) -> Rectangle {
+        let min = self.a.min(self.b.min(self.c));
+        let max = self.a.max(self.b.max(self.c));
+        Rectangle::new(min, max - min)
+    }
+    fn translate(&self, v: impl Into<Vector>) -> Self {
+        let v = v.into();
+        Triangle {
+            a: self.a + v,
+            b: self.b + v,
+            c: self.c + v
         }
     }
+}
 
-    #[test]
-    fn with_center() {
-        for a in get_shapes().iter() {
-            assert_eq!(a.with_center(Vector::new(50, 40)).center(), Vector::new(50, 40));
+impl Shape for Line {
+    fn contains(&self, v: impl Into<Vector>) -> bool {
+        let v = v.into();
+        about_equal(v.distance(self.a) + v.distance(self.b), self.a.distance(self.b))
+    }
+    fn intersects(&self, l: &Line) -> bool {
+        // calculate the distance to intersection point
+        let d1 = ((l.b.x - l.a.x) * (self.a.y - l.a.y) - (l.b.y - l.a.y) * (self.a.x - l.a.x))
+            / ((l.b.y - l.a.y) * (self.b.x - self.a.x) - (l.b.x - l.a.x) * (self.b.y - self.a.y));
+        let d2 = ((self.b.x - self.a.x) * (self.a.y - l.a.y) - (self.b.y - self.a.y) * (self.a.x - l.a.x))
+            / ((l.b.y - l.a.y) * (self.b.x - self.a.x) - (l.b.x - l.a.x) * (self.b.y - self.a.y));
+
+        // if d1 and d2 are between 0-1, lines are colliding
+        if d1 >= 0.0 && d1 <= 1.0 && d2 >= 0.0 && d2 <= 1.0 {
+            return true;
+
+            // for anyone interested, here is the intersection point:
+            // let intersect_x = self.a.x + (d1 * (self.b.x-self.a.x));
+            // let intersect_y = self.a.y + (d1 * (self.b.y-self.a.y));
+        }
+        false
+    }
+    fn overlaps_circle(&self, c: &Circle) -> bool {
+        // check if start or end point is in the circle
+        if c.contains(self.a) || c.contains(self.b) {
+            true
+        } else {
+            let length = self.b - self.a;
+            // get dot product of the line and circle
+            let dot = length.dot(c.center() - self.a) / length.len2();
+            // find the closest point on the line
+            let closest = self.a + length * dot;
+            // make sure the point is on the line, and in the circle
+            self.contains(closest)
+                && (closest - c.center()).len2() <= c.radius.powi(2)
         }
     }
+    fn overlaps_rectangle(&self, b: &Rectangle) -> bool {
+        // check each edge (top, bottom, left, right) if it overlaps our line
+        let top_left = b.top_left();
+        let top_right = top_left + Vector::new(b.width(), 0.0);
+        let bottom_left = top_left + Vector::new(0.0, b.height());
+        let bottom_right = top_left + Vector::new(b.width(), b.height());
 
-    #[test]
-    fn translate() {
-        for a in get_shapes().iter() {
-            assert_eq!(a.translate(Vector::new(10, 5)).center(), a.center() + Vector::new(10, 5));
+        b.contains(self.a) || b.contains(self.b)
+            || self.intersects(&Line::new(top_left, top_right))
+            || self.intersects(&Line::new(top_left, bottom_left))
+            || self.intersects(&Line::new(top_right, bottom_right))
+            || self.intersects(&Line::new(bottom_left, bottom_right))
+    }
+    fn overlaps(&self, shape: &impl Shape) -> bool {
+        shape.intersects(self)
+    }
+    
+    fn center(&self) -> Vector { (self.a + self.b) / 2 }
+    fn bounding_box(&self) -> Rectangle {
+        let min = self.a.min(self.b);
+        let max = self.a.max(self.b);
+        Rectangle::new(min, max - min)
+    }
+    fn translate(&self, v: impl Into<Vector>) -> Self {
+        let v = v.into();
+        Line {
+            a: self.a + v,
+            b: self.b + v,
+            t: self.t
         }
     }
+}
+
+impl Shape for Vector {
+    fn contains(&self, v: impl Into<Vector>) -> bool {
+        *self == v.into()
+    }
+    fn overlaps(&self, shape: &impl Shape) -> bool {
+        shape.contains(*self)
+    }
+
+    fn center(&self) -> Vector { *self }
+    fn bounding_box(&self) -> Rectangle { Rectangle::new(*self, Vector::ONE) }
+    fn translate(&self, v: impl Into<Vector>) -> Vector { *self + v.into() }
 }

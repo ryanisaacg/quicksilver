@@ -14,8 +14,10 @@ repository = "https://github.com/ryanisaacg/quicksilver"
 default = ["collisions", "fonts", "gamepads", "saving", "sounds"]
 
 collisions = ["nalgebra", "ncollide2d"]
+complex_shapes = ["lyon"]
 fonts = ["rusttype"]
 gamepads = ["gilrs"]
+immi_ui = ["immi", "fonts"]
 saving = ["serde_json"]
 sounds = ["rodio"]
 
@@ -27,11 +29,13 @@ maintenance = { status = "actively-developed" }
 [dependencies]
 futures = "0.1"
 image = "0.19"
+lyon = { version = "0.11", features = ["extra"], optional = true }
 rand = { version = "0.5.0", features = ["stdweb"] }
 serde = "1.0"
 serde_derive = "1.0"
 nalgebra = { version = "0.15.1", optional = true }
 ncollide2d = { version = "0.16.0", optional = true }
+immi = { version = "1.0", optional = true }
 rusttype = { version = "0.6", optional = true }
 serde_json = { version = "1.0", optional = true }
 
@@ -42,10 +46,10 @@ alga = "0.6"
 gl = "0.10"
 glutin = { version = "0.17", features = ["icon_loading"] }
 gilrs = { version = "0.6", optional = true }
-rodio = { version = "0.6", optional = true }
+rodio = { version = "0.8", optional = true }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-stdweb = "0.4"
+stdweb = "0.4.8"
 webgl_stdweb = "0.1"
 
 [[example]]
@@ -54,10 +58,6 @@ required-features = []
 
 [[example]]
 name = "draw-geometry"
-required-features = []
-
-[[example]]
-name = "pulsing-circle"
 required-features = []
 
 [[example]]
@@ -78,3 +78,8 @@ required-features = ["collisions"]
 
 [[example]]
 name = "rgb-triangle"
+required-features = []
+
+[[example]]
+name = "lyon"
+required-features = ["complex_shapes"]

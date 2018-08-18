@@ -3,30 +3,21 @@
 ## In-development
 - Add new methods of initializing fonts `Font::from_slice` and `Font::from_bytes` using byte sequences
 - [Breaking] Add more fields to `Error`, and add a Result alias to make error bubbling more convenient
-- [Breaking] Rename type `Draw` to `Sprite` (and updated the readme accordingly)
 - [Breaking] Rename type `QuicksilverError` to `Error`
 - [Breaking] Add `SaveError`, a new error type
 - [Breaking] Made the letterbox a configurable color
+- [Breaking] Replace the `Draw` struct with a `Drawable` trait that draws to a mesh object
 - Added a Result type alias
 - [Breaking] Add a Result return to all of the State methods
 - [Breaking] Move the Font parameters into their own structure
-- [Breaking] Split the Sprite into Drawable and DrawAttributes objects, with convenient function overloads
 - [Breaking] Remove the Loader types in favor of a new Asset type
 - Implemented `Line` as drawable object
 - Implemented `Triangle` as drawable object
 - Added `distance` method to `Vector`
 - Fixed bug with Windows not scaling the viewport by DPI
 - Fixed bug with macOS not letterboxing correctly
+- Added an implementation of the immi renderer
 - Mark some functions #[must_use]
-- Dependencies
-    - Versions
-        - alga: ``0.5 -> 0.6``
-        - glutin: ``0.16 -> 0.17``
-        - nalgebra: ``0.14 -> 0.15.1``
-        - ncollide2d ``0.15 -> 0.16.0``
-    - Highlights
-        - Sebcrozet added official wasm32 support for nalgebra
-        - Added deps.rs badge to readme for a visual indicator
 - Implement `Line` as drawable object
 - Implement `Triangle` as drawable object
 - Add `distance` method to `Vector`
@@ -37,6 +28,26 @@
 - [Breaking] Take `Vector`s in any function-argument where sensible (positions and sizes)
 - [Breaking] Replace the `new` functions by the `newv` functions (`new` takes `Vector`s now)
 - Add a conversion from tuples with two `Scalar`s two `Vector`s
+- Create a Mesh structure that caches drawing
+- Create a Background enum that can either be a color or an image
+- Add optional `lyon` integration for vector graphics
+- [Breaking] Replace the `Shape` enum and the `Positioned` trait with a `Shape` enum
+- [Breaking] Remove the `present` function and automatically switch the buffers after a draw call
+- [Breaking] Move `State` and `run` into a new `lifecycle` module
+- Add functions to determine the current framerate
+- Add the ability to customize the tick rate
+- [Breaking] Use `static` as the directory to place assets for cargo-web compatibility
+- [Breaking] Remove `WindowBuilder` and create a new `Settings` struct to replace it
+- Add functions to the window to allow changing settings at run-time
+- Dependencies
+    - Versions
+        - alga: ``0.5 -> 0.6``
+        - glutin: ``0.16 -> 0.17``
+        - nalgebra: ``0.14 -> 0.15.1``
+        - ncollide2d ``0.15 -> 0.16.0``
+    - Highlights
+        - Sebcrozet added official wasm32 support for nalgebra
+        - Added deps.rs badge to readme for a visual indicator
 
 ## v0.2.1
 

@@ -1,7 +1,13 @@
-use { Result, geom::Vector, graphics::{ Color, GpuTriangle, Image, PixelFormat, Surface, Vertex } };
+use { 
+    Result,
+    geom::{Rectangle, Vector},
+    graphics::{Background::Col, BlendMode, Color, GpuTriangle, Image, ImageScaleStrategy, PixelFormat, Surface, Vertex},
+};
 
 pub(crate) trait Backend {
-    unsafe fn new(texture_mode: ImageScaleStrategy) -> Result<Self> where Self: Sized;
+    type Platform;
+
+    unsafe fn new(platform: Self::Platform, texture_mode: ImageScaleStrategy) -> Result<Self> where Self: Sized;
     unsafe fn clear(&mut self, color: Color);
     unsafe fn set_blend_mode(&mut self, blend: BlendMode);
     unsafe fn reset_blend_mode(&mut self);
@@ -13,18 +19,23 @@ pub(crate) trait Backend {
     unsafe fn bind_surface(surface: &Surface) -> [i32; 4] where Self: Sized;
     unsafe fn unbind_surface(surface: &Surface, viewport: &[i32]) where Self: Sized;
     unsafe fn destroy_surface(surface: &SurfaceData) where Self: Sized;
-    unsafe fn viewport(x: i32, y: i32, width: i32, height: i32) where Self: Sized;
+    unsafe fn viewport(&mut self, area: Rectangle) where Self: Sized;
+    fn show_cursor(&mut self, show_cursor: bool);
+    fn set_title(&mut self, title: &str);
+    fn present(&self) -> Result<()>;
+    fn set_fullscreen(&mut self, fullscreen: bool);
+    fn resize(&mut self, size: Vector);
 
     unsafe fn clear_color(&mut self, color: Color, letterbox: Color) -> Result<()> {
         self.clear(letterbox);
         self.draw(&[
-            Vertex::new_untextured(Vector::new(-1, -1), color),
-            Vertex::new_untextured(Vector::new(1, -1), color),
-            Vertex::new_untextured(Vector::new(1, 1), color),
-            Vertex::new_untextured(Vector::new(-1, 1), color),
+            Vertex::new((-1, -1), None, Col(color)),
+            Vertex::new((1, -1), None, Col(color)),
+            Vertex::new((1, 1), None, Col(color)),
+            Vertex::new((-1, 1), None, Col(color)),
         ], &[
-            GpuTriangle::new_untextured([0, 1, 2], 0.0),
-            GpuTriangle::new_untextured([2, 3, 0], 0.0)
+            GpuTriangle::new(0, [0, 1, 2], 0.0, Col(color)),
+            GpuTriangle::new(0, [2, 3, 0], 0.0, Col(color))
         ])?;
         self.flush();
         Ok(())
@@ -33,11 +44,9 @@ pub(crate) trait Backend {
 
 const VERTEX_SIZE: usize = 9; // the number of floats in a vertex
 
-mod blend_mode;
 mod image_data;
 mod surface_data;
 
-pub use self::blend_mode::BlendMode;
 pub use self::image_data::ImageData;
 pub use self::surface_data::SurfaceData;
 
@@ -56,13 +65,3 @@ pub use self::webgl::WebGLBackend;
 pub(crate) type BackendImpl = GL3Backend;
 #[cfg(target_arch="wasm32")]
 pub(crate) type BackendImpl = WebGLBackend;
-
-/// The way the images should change when drawn at a scale
-#[repr(u32)]
-#[derive(Debug)]
-pub enum ImageScaleStrategy {
-    /// The image should attempt to preserve each pixel as accurately as possible
-    Pixelate,
-    /// The image should attempt to preserve the overall picture by blurring
-    Blur
-}

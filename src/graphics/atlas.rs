@@ -1,7 +1,7 @@
 use {Result, load_file};
 use error::QuicksilverError;
 use futures::{Future, future};
-use geom::{Positioned, Rectangle, Vector};
+use geom::{Rectangle, Shape, Vector};
 use graphics::{Image, ImageError};
 use std::{
     cmp::Ordering,

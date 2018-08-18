@@ -2,9 +2,10 @@
 extern crate quicksilver;
 
 use quicksilver::{
-    run, Asset, Result, State,
-    geom::{Transform, Vector},
-    graphics::{Color, Image, Window, WindowBuilder}
+    Result,
+    geom::{Shape, Vector},
+    graphics::{Background::Img, Color, Image},
+    lifecycle::{Asset, Settings, State, Window, run},
 };
 
 struct ImageViewer {
@@ -13,20 +14,19 @@ struct ImageViewer {
 
 impl State for ImageViewer {
     fn new() -> Result<ImageViewer> {
-        let asset = Asset::new(Image::load("examples/assets/image.png"));
+        let asset = Asset::new(Image::load("image.png"));
         Ok(ImageViewer { asset })
     }
 
     fn draw(&mut self, window: &mut Window) -> Result<()> {
         window.clear(Color::WHITE)?;
         self.asset.execute(|image| {
-            window.draw(image, Transform::translate((400, 300)));
+            window.draw(&image.area().with_center((400, 300)), Img(&image));
             Ok(())
-        })?;
-        window.present()
+        })
     }
 }
 
 fn main() {
-    run::<ImageViewer>(WindowBuilder::new("Image Example", (800, 600)));
+    run::<ImageViewer>("Image Example", Vector::new(800, 600), Settings::default());
 }

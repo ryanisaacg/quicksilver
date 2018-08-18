@@ -16,9 +16,10 @@ use {
     futures::Async,
     std::io::{Error as IOError, ErrorKind},
     stdweb::{
+        Reference,
+        InstanceOf,
         unstable::TryInto,
-        web::TypedArray,
-        Value
+        web::{XmlHttpRequest, ArrayBuffer, TypedArray},
     }
 };
 
@@ -32,37 +33,49 @@ pub fn load_file(path: impl AsRef<Path>) -> impl Future<Item = Vec<u8>, Error = 
     
     #[cfg(target_arch="wasm32")]
     return {
-        let path = path.as_ref().to_str().expect("The path must be able to be stringified");
-        let xhr = js! {
-            let xhr = new XMLHttpRequest();
-            xhr.open("GET", @{path});
-            xhr.send();
-            xhr.responseType = "arraybuffer";
-            return xhr;
-        };
-        future::poll_fn(move || {
-            let status = js! ( @{&xhr}.status );
-            let status: i32 = match status.try_into() {
-                Ok(status) => status,
-                Err(_) => return Err(new_wasm_error("Failed to get status code of loading file"))
-            };
-            match status / 100 {
-                0 => Ok(Async::NotReady),
-                2 => {
-                    let response = js! { 
-                        return new Uint8Array(@{&xhr}.response);
-                    };
-                    let response = if let Value::Reference(reference) = response { reference } else { unreachable!() };
-                    let array: TypedArray<u8> = match response.downcast() {
-                        Some(array) => array,
-                        None => return Err(new_wasm_error("Failed to cast file into bytes"))
-                    };
-                    Ok(Async::Ready(array.to_vec()))
-                },
-                _ => return Err(new_wasm_error("Non-200 status code returned"))
-            }
-        })
+        future::result(create_request(path.as_ref().to_str().expect("The path must be able to be stringified")))
+            .and_then(|xhr| future::poll_fn(move || {
+                let status = xhr.status();
+                match status / 100 {
+                    0 => Ok(Async::NotReady),
+                    2 => {
+                        let response: Reference = xhr.raw_response().try_into().expect("The response will always be a JS object");
+
+                        let array = if TypedArray::<u8>::instance_of(&response) {
+                            response.downcast::<TypedArray<u8>>().map(|arr| arr.to_vec())
+                        } else if ArrayBuffer::instance_of(&response) {
+                            response.downcast::<ArrayBuffer>().map(|arr| TypedArray::<u8>::from(arr).to_vec())
+                        } else {
+                            return Err(new_wasm_error(&format!("Unknown file encoding type: {:?}", response)));
+                        };
+
+                        if let Some(array) = array {
+                            Ok(Async::Ready(array))
+                        } else {
+                            Err(new_wasm_error("Failed to cast file into bytes"))
+                        }
+                    },
+                    _ => Err(new_wasm_error("Non-200 status code returned"))
+                }
+            }))
     };
+}
+
+#[cfg(target_arch="wasm32")]
+fn create_request(path: &str) -> Result<XmlHttpRequest, QuicksilverError> {
+    let xhr = XmlHttpRequest::new();
+    web_try(xhr.open("GET", path), "Failed to create a GET request")?;
+    web_try(xhr.send(), "Failed to send a GET request")?;
+    js! { @{&xhr}.responseType = "arraybuffer"; }
+    Ok(xhr)
+}
+
+#[cfg(target_arch="wasm32")]
+fn web_try<T, E>(result: Result<T, E>, error: &str) -> Result<T, QuicksilverError> {
+    match result {
+        Ok(val) => Ok(val),
+        Err(_) => Err(new_wasm_error(error))
+    }
 }
 
 

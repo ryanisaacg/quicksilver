@@ -1,11 +1,10 @@
 use {
     Result,
-    geom::Vector,
+    backend::{Backend, ImageData, SurfaceData, VERTEX_SIZE},
+    geom::{Rectangle, Vector},
     gl,
-    graphics::{
-        backend::{Backend, BlendMode, ImageScaleStrategy, VERTEX_SIZE},
-        Color, GpuTriangle, Image, ImageData, PixelFormat, Surface, SurfaceData, Vertex
-    },
+    glutin::{GlContext, GlWindow, dpi::LogicalSize},
+    graphics::{BlendMode, Color, GpuTriangle, Image, ImageScaleStrategy, PixelFormat, Surface, Vertex},
     std::{
         ffi::CString,
         mem::size_of,
@@ -15,6 +14,7 @@ use {
 };
 
 pub struct GL3Backend {
+    context: GlWindow,
     texture: u32,
     vertices: Vec<f32>,
     indices: Vec<u32>, 
@@ -58,7 +58,9 @@ void main() {
 }"#;
 
 impl Backend for GL3Backend {
-    unsafe fn new(texture_mode: ImageScaleStrategy) -> Result<GL3Backend> {
+    type Platform = GlWindow;
+
+    unsafe fn new(context: GlWindow, texture_mode: ImageScaleStrategy) -> Result<GL3Backend> {
         let texture_mode = match texture_mode {
             ImageScaleStrategy::Pixelate => gl::NEAREST,
             ImageScaleStrategy::Blur => gl::LINEAR
@@ -97,6 +99,7 @@ impl Backend for GL3Backend {
         gl::LinkProgram(shader);
         gl::UseProgram(shader);
         Ok(GL3Backend {
+            context,
             texture,
             vertices: Vec::with_capacity(1024),
             indices: Vec::with_capacity(1024), 
@@ -275,8 +278,41 @@ impl Backend for GL3Backend {
         gl::DeleteFramebuffers(1, &surface.framebuffer as *const u32);
     }
 
-    unsafe fn viewport(x: i32, y: i32, width: i32, height: i32) where Self: Sized {
-        gl::Viewport(x, y, width, height); 
+    unsafe fn viewport(&mut self, area: Rectangle) where Self: Sized {
+        let size: LogicalSize = area.size().into();
+        let dpi = self.context.get_hidpi_factor();
+        self.context.resize(size.to_physical(dpi));
+        let dpi = dpi as f32;
+        gl::Viewport(
+            (area.x() * dpi) as i32, 
+            (area.y() * dpi) as i32, 
+            (area.width() * dpi) as i32, 
+            (area.height() * dpi) as i32
+        );
+    }
+
+    fn show_cursor(&mut self, show_cursor: bool) {
+        self.context.hide_cursor(!show_cursor);
+    }
+
+    fn set_title(&mut self, title: &str) {
+        self.context.set_title(title);
+    }
+
+    fn present(&self) -> Result<()> {
+        Ok(self.context.swap_buffers()?)
+    }
+
+    fn set_fullscreen(&mut self, fullscreen: bool) {
+        self.context.set_fullscreen(if fullscreen {
+            Some(self.context.get_primary_monitor())
+        } else {
+            None
+        });
+    }
+
+    fn resize(&mut self, size: Vector) {
+        self.context.set_inner_size(size.into());
     }
 }
 
