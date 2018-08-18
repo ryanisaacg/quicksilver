@@ -28,5 +28,8 @@ impl State for ImageViewer {
 }
 
 fn main() {
-    run::<ImageViewer>("Image Example", Vector::new(800, 600), Settings::default());
+    run::<ImageViewer>("Image Example", Vector::new(800, 600), Settings {
+        icon_path: Some("image.png"),
+        ..Settings::default()
+    });
 }

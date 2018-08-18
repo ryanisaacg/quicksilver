@@ -178,6 +178,7 @@ impl From<glutin::ContextError> for QuicksilverError {
     fn from(err: glutin::ContextError) -> QuicksilverError {
         match err {
             glutin::ContextError::IoError(err) => QuicksilverError::IOError(err),
+            glutin::ContextError::OsError(err) => QuicksilverError::ContextError(err),
             glutin::ContextError::ContextLost => {
                 QuicksilverError::ContextError("Context lost".to_owned())
             }

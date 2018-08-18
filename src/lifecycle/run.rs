@@ -43,17 +43,17 @@ pub fn run<T: State>(title: &str, size: Vector, settings: Settings) {
 
 #[cfg(not(target_arch = "wasm32"))]
 fn run_impl<T: State>(title: &str, size: Vector, settings: Settings) -> Result<()> {
+    // A workaround for https://github.com/koute/cargo-web/issues/112
+    if let Err(_) = set_current_dir("static") {
+        eprintln!("Warning: no asset directory found. Please place all your assets inside a directory called 'static' so they can be loaded");
+        eprintln!("Execution continuing, but any asset-not-found errors are likely due to the lack of a 'static' directory.")
+    }
     let (window, events_loop) = Window::build(title, size, settings)?;
     let mut events = EventProvider::new(events_loop);
     #[cfg(feature = "sounds")]
     {
         use sound::Sound;
         Sound::initialize();
-    }
-    // A workaround for https://github.com/koute/cargo-web/issues/112
-    if let Err(_) = set_current_dir("static") {
-        eprintln!("Warning: no asset directory found. Please place all your assets inside a directory called 'static' so they can be loaded");
-        eprintln!("Execution continuing, but any asset-not-found errors are likely due to the lack of a 'static' directory.")
     }
     let mut app: Application<T> = Application::new(window)?;
     let mut running = true;
