@@ -6,12 +6,16 @@ mod event;
 mod gamepad_provider;
 mod run;
 mod state;
+mod settings;
+mod window;
 
 pub use self::{
     asset::Asset,
     event::Event,
     run::run,
-    state::State
+    state::State,
+    settings::Settings,
+    window::Window,
 };
 pub(crate) use self::{
     application::Application,

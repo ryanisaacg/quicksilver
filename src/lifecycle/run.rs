@@ -1,13 +1,15 @@
 use {
     Result,
-    graphics::WindowBuilder,
-    lifecycle::{Application, State},
+    geom::Vector,
+    lifecycle::{Application, State, Settings, Window},
 };
 #[cfg(not(target_arch = "wasm32"))]
-use lifecycle::EventProvider;
+use {
+    lifecycle::EventProvider,
+    std::env::set_current_dir,
+};
 #[cfg(target_arch = "wasm32")]
 use {
-    geom::Vector,
     input::{ButtonState, MouseButton, KEY_LIST, LINES_TO_PIXELS},
     lifecycle::Event,
     std::{
@@ -33,15 +35,20 @@ use {
 ///
 /// On desktop platforms, this yields control to a simple game loop controlled by a Timer. On wasm,
 /// this yields control to the browser functions setInterval and requestAnimationFrame
-pub fn run<T: State>(window: WindowBuilder) {
-    if let Err(error) = run_impl::<T>(window) {
+pub fn run<T: State>(title: &str, size: Vector, settings: Settings) {
+    if let Err(error) = run_impl::<T>(title, size.into(), settings) {
         T::handle_error(error);
     }
 }
 
 #[cfg(not(target_arch = "wasm32"))]
-fn run_impl<T: State>(window: WindowBuilder) -> Result<()> {
-    let (window, events_loop) = window.build()?;
+fn run_impl<T: State>(title: &str, size: Vector, settings: Settings) -> Result<()> {
+    // A workaround for https://github.com/koute/cargo-web/issues/112
+    if let Err(_) = set_current_dir("static") {
+        eprintln!("Warning: no asset directory found. Please place all your assets inside a directory called 'static' so they can be loaded");
+        eprintln!("Execution continuing, but any asset-not-found errors are likely due to the lack of a 'static' directory.")
+    }
+    let (window, events_loop) = Window::build(title, size, settings)?;
     let mut events = EventProvider::new(events_loop);
     #[cfg(feature = "sounds")]
     {
@@ -59,8 +66,8 @@ fn run_impl<T: State>(window: WindowBuilder) -> Result<()> {
 }
 
 #[cfg(target_arch = "wasm32")]
-fn run_impl<T: State>(builder: WindowBuilder) -> Result<()> {
-    let (win, canvas) = builder.build()?; 
+fn run_impl<T: State>(title: &str, size: Vector, settings: Settings) -> Result<()> {
+    let (win, canvas) = Window::build(title, size, settings)?; 
 
     let app: Rc<RefCell<Application<T>>> = Rc::new(RefCell::new(Application::new(win)?));
 

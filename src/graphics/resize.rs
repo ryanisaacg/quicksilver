@@ -37,6 +37,12 @@ impl ResizeStrategy {
     }
 }
 
+impl Default for ResizeStrategy {
+    fn default() -> ResizeStrategy {
+        ResizeStrategy::Fit
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

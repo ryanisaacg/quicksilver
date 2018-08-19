@@ -4,9 +4,9 @@ extern crate quicksilver;
 
 use quicksilver::{
     Result,
-    geom::{Circle, Rectangle, Transform, Line, Triangle},
-    graphics::{Background::Col, Color, Window, WindowBuilder},
-    lifecycle::{State, run},
+    geom::{Circle, Line, Rectangle, Transform, Triangle, Vector},
+    graphics::{Background::Col, Color},
+    lifecycle::{Settings, State, Window, run},
 };
 
 // A unit struct that we're going to use to run the Quicksilver functions
@@ -56,5 +56,6 @@ impl State for DrawGeometry {
 fn main() {
     // Run with DrawGeometry as the event handler, with a window title of 'Draw Geometry' and a
     // size of (800, 600)
-    run::<DrawGeometry>(WindowBuilder::new("Draw Geometry", (800, 600)));
+    run::<DrawGeometry>("Draw Geometry", Vector::new(800, 600), Settings::default());
 }
+

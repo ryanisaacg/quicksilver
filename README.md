@@ -4,6 +4,7 @@
 [![Crates.io](https://img.shields.io/crates/v/quicksilver.svg)](https://crates.io/crates/quicksilver)
 [![Docs Status](https://docs.rs/quicksilver/badge.svg)](https://docs.rs/quicksilver)
 [![dependency status](https://deps.rs/repo/github/ryanisaacg/quicksilver/status.svg)](https://deps.rs/repo/github/ryanisaacg/quicksilver)
+[![Gitter chat](https://badges.gitter.im/quicksilver-rs/Lobby.svg)](https://gitter.im/quicksilver-rs/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 A 2D game framework written in pure Rust
 
@@ -20,9 +21,10 @@ Then replace `src/main.rs` with the following (the contents of quicksilver's exa
 extern crate quicksilver;
 
 use quicksilver::{
-    run, Result, State,
-    geom::{Circle, Rectangle, Transform, Line, Triangle},
-    graphics::{Background::Col, Color, Window, WindowBuilder}
+    Result,
+    geom::{Circle, Line, Rectangle, Transform, Triangle, Vector},
+    graphics::{Background::Col, Color},
+    lifecycle::{Settings, State, Window, run},
 };
 
 struct DrawGeometry;
@@ -54,15 +56,17 @@ impl State for DrawGeometry {
 }
 
 fn main() {
-    run::<DrawGeometry>(WindowBuilder::new("Draw Geometry", (800, 600)));
+    run::<DrawGeometry>("Draw Geometry", Vector::new(800, 600), Settings::default());
 }
 ```
 
 Run this with `cargo run` or, if you have the wasm32 toolchain installed, you can build for the web 
 (instructions below).
 
-## Deploying a Quicksilver application
 
+## Building and Deploying a Quicksilver application
+
+Make sure to put all your assets in a top-level folder of your crate called `static/`. *All* Quicksilver file loading-APIs will expect paths that originate in the static folder, so `static/image.png` should be referenced as `image.png`.
 
 ### Deploying for desktop
 

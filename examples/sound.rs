@@ -4,9 +4,9 @@ extern crate quicksilver;
 use quicksilver::{
     Result,
     geom::{Rectangle, Shape, Vector},
-    graphics::{Background::Col, Color, Window, WindowBuilder},
+    graphics::{Background::Col, Color},
     input::{ButtonState, MouseButton},
-    lifecycle::{Asset, State, run},
+    lifecycle::{Asset, Settings, State, Window, run},
     sound::Sound
 };
 
@@ -21,7 +21,7 @@ const BUTTON_AREA: Rectangle = Rectangle {
 
 impl State for SoundPlayer {
     fn new() -> Result<SoundPlayer> {
-        let asset = Asset::new(Sound::load("examples/assets/boop.ogg"));
+        let asset = Asset::new(Sound::load("boop.ogg"));
         Ok(SoundPlayer { asset })
     }
 
@@ -46,5 +46,6 @@ impl State for SoundPlayer {
 }
 
 fn main() {
-    run::<SoundPlayer>(WindowBuilder::new("Sound Example", (800, 600)));
+    run::<SoundPlayer>("Sound example", Vector::new(800, 600), Settings::default());
 }
+

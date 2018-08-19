@@ -13,9 +13,9 @@
 //! 
 //! use quicksilver::{
 //!     Result,
-//!     geom::{Circle, Rectangle, Transform, Line, Triangle},
-//!     graphics::{Background::Col, Color, Window, WindowBuilder},
-//!     lifecycle::{State, run},
+//!     geom::{Circle, Line, Rectangle, Transform, Triangle, Vector},
+//!     graphics::{Background::Col, Color},
+//!     lifecycle::{Settings, State, Window, run},
 //! };
 //! 
 //! struct DrawGeometry;
@@ -47,9 +47,10 @@
 //! }
 //! 
 //! fn main() {
-//!     run::<DrawGeometry>(WindowBuilder::new("Draw Geometry", (800, 600)));
+//!     run::<DrawGeometry>("Draw Geometry", Vector::new(800, 600), Settings::default());
 //! }
 //! ```
+//!
 //! Run this with `cargo run` or, if you have the wasm32 toolchain installed, you can build for the web
 //! (instructions in the [quicksilver README](https://github.com/ryanisaacg/quicksilver)
 //!
@@ -113,6 +114,7 @@ extern crate serde;
 #[cfg(feature = "serde_json")]
 extern crate serde_json;
 
+mod backend;
 mod error;
 mod file;
 pub mod geom;
