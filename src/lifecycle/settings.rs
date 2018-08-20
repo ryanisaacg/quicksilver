@@ -24,12 +24,10 @@ pub struct Settings {
     /// 
     /// Does nothing on web currently
     pub fullscreen: bool,
-    /// How many milliseconds should elapse between 2 ticks
-    pub tick_rate: f64,
-    /// The maximum number of ticks to run in a single frame
-    /// 
-    /// See https://gafferongames.com/post/fix_your_timestep/ for an explanation of fixed timesteps
-    pub max_ticks: u32,
+    /// How many milliseconds should elapse between update calls
+    pub update_rate: f64,
+    /// How many milliseconds should elapse between draw calls
+    pub draw_rate: f64,
     /// The icon on the window or the favicon on the tab
     pub icon_path: Option<&'static str>, // TODO: statiC?
 }
@@ -43,8 +41,8 @@ impl Default for Settings {
             resize: ResizeStrategy::default(),
             scale: ImageScaleStrategy::default(),
             fullscreen: false,
-            tick_rate: 1.0 / 60.0,
-            max_ticks: 0,
+            update_rate: 1000. / 60.,
+            draw_rate: 1000. / 60.,
             icon_path: None,
         }
     }

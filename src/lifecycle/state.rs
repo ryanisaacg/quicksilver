@@ -13,13 +13,13 @@ pub trait State: 'static {
     /// the game loop will do its best to still call the update at about 60 TPS.
     ///
     /// By default it does nothing
-    fn update(&mut self, &mut Window) -> Result<()> {
+    fn update(&mut self, window: &mut Window, delta_time: f64) -> Result<()> {
         Ok(())
     }
     /// Process an incoming event
     ///
     /// By default it does nothing
-    fn event(&mut self, &Event, &mut Window) -> Result<()> {
+    fn event(&mut self, event: &Event, window: &mut Window) -> Result<()> {
         Ok(())
     }
     /// Draw the state to the screen
@@ -27,7 +27,7 @@ pub trait State: 'static {
     /// Will happen as often as possible, only limited by vysnc
     ///
     /// By default it draws a black screen
-    fn draw(&mut self, window: &mut Window) -> Result<()> {
+    fn draw(&mut self, window: &mut Window, delta_time: f64) -> Result<()> {
         use graphics::Color;
         window.clear(Color::BLACK)?;
         Ok(())

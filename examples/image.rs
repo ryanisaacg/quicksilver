@@ -18,7 +18,7 @@ impl State for ImageViewer {
         Ok(ImageViewer { asset })
     }
 
-    fn draw(&mut self, window: &mut Window) -> Result<()> {
+    fn draw(&mut self, window: &mut Window, _delta_time: f64) -> Result<()> {
         window.clear(Color::WHITE)?;
         self.asset.execute(|image| {
             window.draw(&image.area().with_center((400, 300)), Img(&image));

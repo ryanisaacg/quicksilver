@@ -12,7 +12,6 @@ pub struct Application<T: State> {
     pub state: T,
     pub window: Window,
     pub event_buffer: Vec<Event>,
-    accumulator: f64,
     last_draw: f64,
     last_update: f64,
 }
@@ -24,7 +23,6 @@ impl<T: State> Application<T> {
             state: T::new()?,
             window,
             event_buffer: Vec::new(),
-            accumulator: 0.0,
             last_draw: time,
             last_update: time,
         })
@@ -37,26 +35,27 @@ impl<T: State> Application<T> {
             self.state.event(&self.event_buffer[i], &mut self.window)?;
         }
         self.event_buffer.clear();
+
         let current = current_time();
-        self.accumulator += current - self.last_update;
-        self.last_update = current;
-        let mut ticks = 0;
-        while self.accumulator > 0.0 && (self.window.max_ticks() == 0 || ticks < self.window.max_ticks()) {
-            self.state.update(&mut self.window)?;
+        let delta_update = current - self.last_update;
+        if delta_update >= self.window.update_rate() {
+            self.state.update(&mut self.window, delta_update)?;
             self.window.clear_temporary_states();
-            self.accumulator -= self.window.tick_rate();
-            ticks += 1;
+            self.last_update = current;
         }
         Ok(())
     }
 
     pub fn draw(&mut self) -> Result<()> {
-        self.state.draw(&mut self.window)?;
-        self.window.flush()?;
-        self.window.backend.present()?;
         let current = current_time();
-        self.window.log_framerate(current - self.last_draw);
-        self.last_draw = current;
+        let delta_draw = current - self.last_draw;
+        if delta_draw >= self.window.draw_rate() {
+            self.state.draw(&mut self.window, delta_draw)?;
+            self.window.flush()?;
+            self.window.backend.present()?;
+            self.window.log_framerate(delta_draw);
+            self.last_draw = current;
+        }
         Ok(())
     }
 }
@@ -66,7 +65,7 @@ fn current_time() -> f64 {
     let start = SystemTime::now();
     let since_the_epoch = start.duration_since(UNIX_EPOCH)
         .expect("Time went backwards");
-    since_the_epoch.as_secs() as f64 * 1000.0 + since_the_epoch.subsec_millis() as f64
+    since_the_epoch.as_secs() as f64 * 1000.0 + since_the_epoch.subsec_nanos() as f64 / 1e6
 }
 
 #[cfg(target_arch = "wasm32")]
