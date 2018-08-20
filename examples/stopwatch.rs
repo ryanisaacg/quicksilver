@@ -89,6 +89,6 @@ fn main() {
     settings.draw_rate = 1000. / 60.; // 60 fps
     settings.update_rate = 1.;
 
-    run::<Stopwatch>("Rates", Vector::new(800, 600), settings);
+    run::<Stopwatch>("Stopwatch", Vector::new(800, 600), settings);
 }
 
