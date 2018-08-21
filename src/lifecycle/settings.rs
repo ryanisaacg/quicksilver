@@ -43,7 +43,7 @@ impl Default for Settings {
             resize: ResizeStrategy::default(),
             scale: ImageScaleStrategy::default(),
             fullscreen: false,
-            tick_rate: 1.0 / 60.0,
+            tick_rate: 1000.0 / 60.0,
             max_ticks: 0,
             icon_path: None,
         }
