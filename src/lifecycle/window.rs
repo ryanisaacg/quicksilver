@@ -100,7 +100,7 @@ impl Window {
             Some(v) => window.with_max_dimensions(v.into()),
             None => window,
         };
-        let context = glutin::ContextBuilder::new().with_vsync(true);
+        let context = glutin::ContextBuilder::new().with_vsync(settings.vsync);
         let gl_window = glutin::GlWindow::new(window, context, &events)?;
         unsafe {
             gl_window.make_current()?;

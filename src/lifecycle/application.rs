@@ -4,7 +4,7 @@ use {
     lifecycle::{Event, State, Window},
 };
 #[cfg(not(target_arch = "wasm32"))]
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::{thread, time::{SystemTime, UNIX_EPOCH, Duration}};
 #[cfg(target_arch = "wasm32")]
 use stdweb::web::Date;
 
@@ -52,6 +52,28 @@ impl<T: State> Application<T> {
         Ok(())
     }
 
+    #[cfg(not(target_arch = "wasm32"))]
+    pub fn draw(&mut self) -> Result<()> {
+        let current = current_time();
+        let delta_draw = current - self.last_draw;
+        if delta_draw >= self.window.draw_rate() {
+            self.state.draw(&mut self.window, delta_draw)?;
+            self.window.flush()?;
+            self.window.backend.present()?;
+            self.window.log_framerate(delta_draw);
+            self.last_draw = current;
+        } else {
+            // Only sleep up to 1/10th of minimum of draw and update rate to make sure that we're definitely not sleeping longer than needed
+            let max_sleep = self.window.draw_rate().min(self.window.update_rate()) * 0.1;
+            let remaining_time = self.window.draw_rate() - delta_draw;
+            if remaining_time >= max_sleep {
+                thread::sleep(Duration::from_millis(max_sleep as u64));
+            }
+        }
+        Ok(())
+    }
+
+    #[cfg(target_arch = "wasm32")]
     pub fn draw(&mut self) -> Result<()> {
         let current = current_time();
         let delta_draw = current - self.last_draw;

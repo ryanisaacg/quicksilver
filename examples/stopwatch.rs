@@ -72,8 +72,9 @@ impl State for Stopwatch {
 
 fn main() {
     run::<Stopwatch>("Stopwatch", Vector::new(800, 600), Settings {
-        draw_rate: 1000. / 60., // 60 fps
-        update_rate: 1., // every ms to make it appear "smooth"
+        draw_rate: 1000. / 10., // 10 FPS are enough
+        update_rate: 1000., // every second to make it appear like a clock
+        vsync: false, // don't use VSync, we're limiting to 10 FPS on our own
         ..Settings::default()
     });
 }
