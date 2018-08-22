@@ -34,6 +34,10 @@ pub struct Settings {
     pub draw_rate: f64,
     /// The icon on the window or the favicon on the tab
     pub icon_path: Option<&'static str>, // TODO: statiC?
+    /// If VSync should be enabled
+    ///
+    /// Does nothing on web currently
+    pub vsync: bool,
 }
 
 impl Default for Settings {
@@ -49,6 +53,7 @@ impl Default for Settings {
             max_updates: 0,
             draw_rate: 0.,
             icon_path: None,
+            vsync: true,
         }
     }
 }
