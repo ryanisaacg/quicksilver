@@ -1,5 +1,5 @@
 use {
-    Result, 
+    Result,
     backend::{Backend, BackendImpl},
     geom::{Rectangle, Scalar, Transform, Vector},
     graphics::{Background, BlendMode, Color, Drawable, Mesh, ResizeStrategy, View},
@@ -35,6 +35,7 @@ pub struct Window {
     mouse: Mouse,
     view: View,
     update_rate: f64,
+    max_updates: u32,
     draw_rate: f64,
     pub(crate) backend: BackendImpl,
     mesh: Mesh,
@@ -63,6 +64,7 @@ impl Window {
             },
             view,
             update_rate: settings.update_rate,
+            max_updates: settings.max_updates,
             draw_rate: settings.draw_rate,
             backend,
             mesh: Mesh::new(),
@@ -280,7 +282,7 @@ impl Window {
     /// Flush the current buffered draw calls
     ///
     /// Attributes like z-ordering will be reset: all items drawn after a flush will *always* draw
-    /// over all items drawn before a flush. 
+    /// over all items drawn before a flush.
     ///
     /// Note that calling this can be an expensive operation
     pub fn flush(&mut self) -> Result<()> {
@@ -332,7 +334,7 @@ impl Window {
     pub fn draw_ex(&mut self, draw: &impl Drawable, bkg: Background, trans: Transform, z: impl Scalar) {
         draw.draw(&mut self.mesh, bkg, trans, z);
     }
-    
+
     /// The mesh the window uses to draw
     pub fn mesh(&mut self) -> &mut Mesh {
         &mut self.mesh
@@ -378,6 +380,20 @@ impl Window {
         self.fps
     }
 
+    /// Get the maximum number of updates that are allowed to run in a frame
+    ///
+    /// 0 means no limitation
+    pub fn max_updates(&self) -> u32 {
+        self.max_updates
+    }
+
+    /// Set the maximum number of updates that are allowed to run in a frame
+    ///
+    /// 0 means no limitation
+    pub fn set_max_updates(&mut self, max_updates: u32) {
+        self.max_updates = max_updates;
+    }
+
     /// Set if the cursor should be visible when over the application
     pub fn set_show_cursor(&mut self, show_cursor: bool) {
         self.backend.show_cursor(show_cursor);
@@ -389,7 +405,7 @@ impl Window {
     }
 
     /// Set if the application is currently fullscreen
-    /// 
+    ///
     /// This currently does nothing on web
     pub fn set_fullscreen(&mut self, fullscreen: bool) {
         self.backend.set_fullscreen(fullscreen);
