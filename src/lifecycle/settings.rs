@@ -42,7 +42,7 @@ impl Default for Settings {
             scale: ImageScaleStrategy::default(),
             fullscreen: false,
             update_rate: 1000. / 60.,
-            draw_rate: 1000. / 60.,
+            draw_rate: 0.,
             icon_path: None,
         }
     }
