@@ -12,6 +12,7 @@ pub struct Application<T: State> {
     pub state: T,
     pub window: Window,
     pub event_buffer: Vec<Event>,
+    accumulator: f64,
     last_draw: f64,
     last_update: f64,
 }
@@ -23,6 +24,7 @@ impl<T: State> Application<T> {
             state: T::new()?,
             window,
             event_buffer: Vec::new(),
+            accumulator: 0.0,
             last_draw: time,
             last_update: time,
         })
@@ -37,11 +39,15 @@ impl<T: State> Application<T> {
         self.event_buffer.clear();
 
         let current = current_time();
-        let delta_update = current - self.last_update;
-        if delta_update >= self.window.update_rate() {
-            self.state.update(&mut self.window, delta_update)?;
+        self.accumulator += current - self.last_update;
+        self.last_update = current;
+        let mut ticks = 0;
+        let update_rate = self.window.update_rate();
+        while self.accumulator > 0.0 && (self.window.max_updates() == 0 || ticks < self.window.max_updates()) {
+            self.state.update(&mut self.window, update_rate)?;
             self.window.clear_temporary_states();
-            self.last_update = current;
+            self.accumulator -= update_rate;
+            ticks += 1;
         }
         Ok(())
     }
