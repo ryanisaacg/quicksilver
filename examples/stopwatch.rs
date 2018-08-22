@@ -8,8 +8,6 @@ use quicksilver::{
     lifecycle::{Settings, State, Window, run},
 };
 
-use std::f64::consts::PI;
-
 struct Stopwatch {
     elapsed: f64,
     hours: f64,
@@ -43,10 +41,9 @@ impl State for Stopwatch {
 
         // draw the hour markers
         for i in 1..=12 {
-            let angle = 2. * PI * ((i as f64 + 9.) * 2. / 24.);
-            let pos_x = 400. + 200. * angle.cos() as f32;
-            let pos_y = 300. + 200. * angle.sin() as f32;
-            let line = Line::new((400, 300), (pos_x, pos_y)).with_thickness(5);
+            let angle = 360. * ((i as f64 + 9.) * 2. / 24.);
+            let pos = Vector::from_angle(angle as f32) * 200. + Vector::new(400, 300);
+            let line = Line::new((400, 300), pos).with_thickness(5);
             window.draw(&line, Col(Color::BLACK));
         }
 
