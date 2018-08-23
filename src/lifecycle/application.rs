@@ -78,7 +78,7 @@ impl<T: State> Application<T> {
         let current = current_time();
         let delta_draw = current - self.last_draw;
         if delta_draw >= self.window.draw_rate() {
-            self.state.draw(&mut self.window, delta_draw)?;
+            self.state.draw(&mut self.window)?;
             self.window.flush()?;
             self.window.backend.present()?;
             self.window.log_framerate(delta_draw);
