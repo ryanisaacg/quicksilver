@@ -42,7 +42,7 @@ impl State for LyonExample {
         Ok(LyonExample { logo })
     }
 
-    fn draw(&mut self, window: &mut Window, _delta_time: f64) -> Result<()> {
+    fn draw(&mut self, window: &mut Window) -> Result<()> {
         window.clear(Color::WHITE)?;
         window.mesh().apply(&self.logo);
         Ok(())

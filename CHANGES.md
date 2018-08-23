@@ -35,7 +35,7 @@
 - [Breaking] Remove the `present` function and automatically switch the buffers after a draw call
 - [Breaking] Move `State` and `run` into a new `lifecycle` module
 - Add functions to determine the current framerate
-- Add the ability to customize the update and tick rate independently
+- Add the ability to customize the update and draw rate independently
 - [Breaking] Use `static` as the directory to place assets for cargo-web compatibility
 - [Breaking] Remove `WindowBuilder` and create a new `Settings` struct to replace it
 - Add functions to the window to allow changing settings at run-time

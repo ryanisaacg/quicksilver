@@ -44,7 +44,7 @@ impl<T: State> Application<T> {
         let mut ticks = 0;
         let update_rate = self.window.update_rate();
         while self.accumulator > 0.0 && (self.window.max_updates() == 0 || ticks < self.window.max_updates()) {
-            self.state.update(&mut self.window, update_rate)?;
+            self.state.update(&mut self.window)?;
             self.window.clear_temporary_states();
             self.accumulator -= update_rate;
             ticks += 1;
@@ -57,7 +57,7 @@ impl<T: State> Application<T> {
         let current = current_time();
         let delta_draw = current - self.last_draw;
         if delta_draw >= self.window.draw_rate() {
-            self.state.draw(&mut self.window, delta_draw)?;
+            self.state.draw(&mut self.window)?;
             self.window.flush()?;
             self.window.backend.present()?;
             self.window.log_framerate(delta_draw);

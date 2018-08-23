@@ -25,7 +25,7 @@ impl State for SoundPlayer {
         Ok(SoundPlayer { asset })
     }
 
-    fn update(&mut self, window: &mut Window, _delta_time: f64) -> Result<()> {
+    fn update(&mut self, window: &mut Window) -> Result<()> {
         self.asset.execute(|sound| {
             if window.mouse()[MouseButton::Left] == ButtonState::Pressed
                 && BUTTON_AREA.contains(window.mouse().pos()) {
@@ -35,7 +35,7 @@ impl State for SoundPlayer {
         })
     }
 
-    fn draw(&mut self, window: &mut Window, _delta_time: f64) -> Result<()> {
+    fn draw(&mut self, window: &mut Window) -> Result<()> {
         window.clear(Color::WHITE)?;
         // If the sound is loaded, draw the button
         self.asset.execute(|_| {

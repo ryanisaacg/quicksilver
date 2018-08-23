@@ -20,16 +20,16 @@ impl State for Stopwatch {
         Ok(Stopwatch {elapsed: 0., hours: 0., minutes: 0., seconds: 0.})
     }
 
-    fn update(&mut self, _window: &mut Window, delta_time: f64) -> Result<()> {
+    fn update(&mut self, window: &mut Window) -> Result<()> {
         //println!("Last Update: {:.10?} ms ago", delta_time);
-        self.elapsed += delta_time;
+        self.elapsed += window.update_rate();
         self.seconds = (self.elapsed / 1000.) % 60.;
         self.minutes = ((self.elapsed / 1000.) / 60.) % 60.;
         self.hours = ((self.elapsed / 1000.) / 60. / 24.) % 24.;
         Ok(())
     }
 
-    fn draw(&mut self, window: &mut Window, _delta_time: f64) -> Result<()> {
+    fn draw(&mut self, window: &mut Window) -> Result<()> {
         //println!("Last Draw: {:.10?} ms ago", delta_time);
 
         // clear everything

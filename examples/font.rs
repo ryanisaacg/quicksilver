@@ -23,7 +23,7 @@ impl State for SampleText {
         Ok(SampleText { asset })
     }
 
-    fn draw(&mut self, window: &mut Window, _delta_time: f64) -> Result<()> {
+    fn draw(&mut self, window: &mut Window) -> Result<()> {
         window.clear(Color::WHITE)?;
         self.asset.execute(|image| {
             window.draw(&image.area().with_center((400, 300)), Img(&image));

@@ -128,7 +128,7 @@ impl State for Raycast {
         Ok(())
     }
 
-    fn draw(&mut self, window: &mut Window, _delta_time: f64) -> Result<()> {
+    fn draw(&mut self, window: &mut Window) -> Result<()> {
         window.clear(Color::BLACK)?;
         window.mesh().apply(&self.mesh);
         Ok(())

@@ -25,7 +25,7 @@
 //!         Ok(DrawGeometry)
 //!     }
 //! 
-//!     fn draw(&mut self, window: &mut Window, _delta_time: f64) -> Result<()> {
+//!     fn draw(&mut self, window: &mut Window) -> Result<()> {
 //!         window.clear(Color::WHITE)?;
 //!         window.draw(&Rectangle::new((100, 100), (32, 32)), Col(Color::BLUE));
 //!         window.draw_ex(&Rectangle::new((400, 300), (32, 32)), Col(Color::BLUE), Transform::rotate(45), 10);
