@@ -1,7 +1,7 @@
 //! Creating a blank window is all well and good, but drawing something to it is even better.
 //! Rendering in Quicksilver usually takes the form:
 //! ```no_run
-//! # use {graphics::{Background, Drawable}, lifecycle::Window};
+//! # use quicksilver::{graphics::{Background, Drawable}, lifecycle::Window};
 //! # fn func(window: &mut Window, some_drawable: impl Drawable, some_background: Background) {
 //! window.draw(&some_drawable, some_background);
 //! # }
@@ -11,21 +11,21 @@
 //! color or an image. For example, drawing a red rectangle with a top-left coordinate of (50, 50),
 //! a width of 100, and a height of 200 would look like:
 //! ```no_run
-//! # use {geom::{Rectangle}, graphics::{Background, Color, Drawable}, lifecycle::Window};
+//! # use quicksilver::{geom::{Rectangle}, graphics::{Background, Color, Drawable}, lifecycle::Window};
 //! # fn func(window: &mut Window) {
 //! let area = Rectangle::new((50, 50), (100, 200));
 //! let background = Background::Col(Color::RED);
-//! window.draw(&area, background;)
+//! window.draw(&area, background);
 //! # }
 //! ```
 //! If we wanted to switch out our rectangle for a Circle with a center at (100, 100) and a radius
 //! of 50, we could do:
 //! ```no_run
-//! # use {geom::{Circle, Rectangle}, graphics::{Background, Color, Drawable}, lifecycle::Window};
+//! # use quicksilver::{geom::{Circle, Rectangle}, graphics::{Background, Color, Drawable}, lifecycle::Window};
 //! # fn func(window: &mut Window) {
 //! let area = Circle::new((100, 100), 50);
 //! let background = Background::Col(Color::RED);
-//! window.draw(&area, background;)
+//! window.draw(&area, background);
 //! # }
 //! ```
 //! The next step is actually integrating some drawing code into our blank window:
@@ -36,7 +36,7 @@
 //!     Result,
 //!     geom::{Rectangle, Vector}, // We'll need to import Rectangle now
 //!     graphics::{Background, Color}, // Also Background and Color
-//!     lifecycle::{State, run}
+//!     lifecycle::{State, Window, run}
 //! };
 //!
 //! struct Screen;
@@ -51,6 +51,7 @@
 //!         window.clear(Color::WHITE)?;
 //!         // Draw a red rectangle
 //!         window.draw(&Rectangle::new((50, 50), (100, 200)), Background::Col(Color::RED));
+//!         Ok(())
 //!     }
 //! }
 //!
@@ -80,7 +81,8 @@
 //! We combine Transform objects using the `*` operator, with the last transform in a chain being
 //! applied first. This means that
 //! ```no_run
-//! Transform::rotate(30) * Transform::translate(Vector::new(0, -6))
+//! # use quicksilver::geom::Transform;
+//! Transform::rotate(30) * Transform::translate((0, -6));
 //! ```
 //! first translates an object up six pixels and then rotates it by 30 degrees.
 //!
@@ -91,10 +93,10 @@
 //! If you want to use a transform or z-ordering, you need to use the more advanced draw function,
 //! which takes the form:
 //! ```no_run
-//! # use {geom::{Transform}, graphics::{Background, Drawable}, lifecycle::Window};
+//! # use quicksilver::{geom::{Transform}, graphics::{Background, Drawable}, lifecycle::Window};
 //! # fn func(window: &mut Window, some_drawable: impl Drawable, some_background: Background,
 //! # some_transform_value: Transform, some_z_value: f32) {
-//! window.draw(&some_drawable, some_background, some_transform_value, some_z_value);
+//! window.draw_ex(&some_drawable, some_background, some_transform_value, some_z_value);
 //! # }
 //! ```
 //! Armed with Transform values, we can turn our little red rectangle into a little red diamond:
@@ -105,7 +107,7 @@
 //!     Result,
 //!     geom::{Rectangle, Transform, Vector}, // Now we need Transform
 //!     graphics::{Background, Color},
-//!     lifecycle::{State, run}
+//!     lifecycle::{State, Window, run}
 //! };
 //!
 //! struct Screen;
@@ -124,6 +126,7 @@
 //!             Transform::rotate(45), // Rotate by 45 degrees
 //!             0 // we don't really care about the Z value
 //!         );
+//!         Ok(())
 //!     }
 //! }
 //!
