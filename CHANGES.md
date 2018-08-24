@@ -41,6 +41,7 @@
 - Add functions to the window to allow changing settings at run-time
 - Add the ability to set window icons and favicons
 - Added new `Stopwatch` example
+- Added configurable `vsync` option to `Settings`
 - Dependencies
     - Versions
         - alga: ``0.5 -> 0.6``

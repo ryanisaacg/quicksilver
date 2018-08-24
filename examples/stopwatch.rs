@@ -1,4 +1,4 @@
-// Draw some multi-colored geometry to the screen
+// Draw a stopwatch with changed draw and update rates and disabled vsync
 extern crate quicksilver;
 
 use quicksilver::{
@@ -21,7 +21,6 @@ impl State for Stopwatch {
     }
 
     fn update(&mut self, window: &mut Window) -> Result<()> {
-        //println!("Last Update: {:.10?} ms ago", delta_time);
         self.elapsed += window.update_rate();
         self.seconds = (self.elapsed / 1000.) % 60.;
         self.minutes = ((self.elapsed / 1000.) / 60.) % 60.;
@@ -30,8 +29,6 @@ impl State for Stopwatch {
     }
 
     fn draw(&mut self, window: &mut Window) -> Result<()> {
-        //println!("Last Draw: {:.10?} ms ago", delta_time);
-
         // clear everything
         window.clear(Color::WHITE)?;
 
@@ -48,7 +45,6 @@ impl State for Stopwatch {
         }
 
         window.draw(&Circle::new((400, 300), 180), Col(Color::WHITE));
-
 
         let hour_angle = 360. * ((self.hours+9.) * 2. / 24.);
         let minute_angle = 360. * ((self.minutes+45.) / 60.);
