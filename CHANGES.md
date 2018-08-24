@@ -35,11 +35,13 @@
 - [Breaking] Remove the `present` function and automatically switch the buffers after a draw call
 - [Breaking] Move `State` and `run` into a new `lifecycle` module
 - Add functions to determine the current framerate
-- Add the ability to customize the tick rate
+- Add the ability to customize the update and draw rate independently
 - [Breaking] Use `static` as the directory to place assets for cargo-web compatibility
 - [Breaking] Remove `WindowBuilder` and create a new `Settings` struct to replace it
 - Add functions to the window to allow changing settings at run-time
 - Add the ability to set window icons and favicons
+- Added new `Stopwatch` example
+- Added configurable `vsync` option to `Settings`
 - Dependencies
     - Versions
         - alga: ``0.5 -> 0.6``

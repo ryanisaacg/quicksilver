@@ -83,3 +83,7 @@ required-features = []
 [[example]]
 name = "lyon"
 required-features = ["complex_shapes"]
+
+[[example]]
+name = "stopwatch"
+required-features = []

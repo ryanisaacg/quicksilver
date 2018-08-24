@@ -1,4 +1,4 @@
-use geom::Vector;
+use geom::{Vector, Scalar};
 use std::cmp::{Eq, PartialEq};
 
 #[derive(Clone, Copy, Default, Debug, Deserialize, Serialize)]
@@ -24,9 +24,9 @@ impl Line {
 
     ///Create a line with a changed thickness
     #[must_use]
-    pub fn with_thickness(self, thickness: f32) -> Line {
+    pub fn with_thickness(self, thickness: impl Scalar) -> Line {
         Line {
-            t: thickness,
+            t: thickness.float(),
             ..self
         }
     }

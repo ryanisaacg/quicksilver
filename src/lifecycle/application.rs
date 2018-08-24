@@ -4,7 +4,7 @@ use {
     lifecycle::{Event, State, Window},
 };
 #[cfg(not(target_arch = "wasm32"))]
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::{thread, time::{SystemTime, UNIX_EPOCH, Duration}};
 #[cfg(target_arch = "wasm32")]
 use stdweb::web::Date;
 
@@ -37,26 +37,53 @@ impl<T: State> Application<T> {
             self.state.event(&self.event_buffer[i], &mut self.window)?;
         }
         self.event_buffer.clear();
+
         let current = current_time();
         self.accumulator += current - self.last_update;
         self.last_update = current;
         let mut ticks = 0;
-        while self.accumulator > 0.0 && (self.window.max_ticks() == 0 || ticks < self.window.max_ticks()) {
+        let update_rate = self.window.update_rate();
+        while self.accumulator > 0.0 && (self.window.max_updates() == 0 || ticks < self.window.max_updates()) {
             self.state.update(&mut self.window)?;
             self.window.clear_temporary_states();
-            self.accumulator -= self.window.tick_rate();
+            self.accumulator -= update_rate;
             ticks += 1;
         }
         Ok(())
     }
 
+    #[cfg(not(target_arch = "wasm32"))]
     pub fn draw(&mut self) -> Result<()> {
-        self.state.draw(&mut self.window)?;
-        self.window.flush()?;
-        self.window.backend.present()?;
         let current = current_time();
-        self.window.log_framerate(current - self.last_draw);
-        self.last_draw = current;
+        let delta_draw = current - self.last_draw;
+        if delta_draw >= self.window.draw_rate() {
+            self.state.draw(&mut self.window)?;
+            self.window.flush()?;
+            self.window.backend.present()?;
+            self.window.log_framerate(delta_draw);
+            self.last_draw = current;
+        } else {
+            // Only sleep up to 1/10th of minimum of draw and update rate to make sure that we're definitely not sleeping longer than needed
+            let max_sleep = self.window.draw_rate().min(self.window.update_rate()) * 0.1;
+            let remaining_time = self.window.draw_rate() - delta_draw;
+            if remaining_time >= max_sleep {
+                thread::sleep(Duration::from_millis(max_sleep as u64));
+            }
+        }
+        Ok(())
+    }
+
+    #[cfg(target_arch = "wasm32")]
+    pub fn draw(&mut self) -> Result<()> {
+        let current = current_time();
+        let delta_draw = current - self.last_draw;
+        if delta_draw >= self.window.draw_rate() {
+            self.state.draw(&mut self.window)?;
+            self.window.flush()?;
+            self.window.backend.present()?;
+            self.window.log_framerate(delta_draw);
+            self.last_draw = current;
+        }
         Ok(())
     }
 }
@@ -66,7 +93,7 @@ fn current_time() -> f64 {
     let start = SystemTime::now();
     let since_the_epoch = start.duration_since(UNIX_EPOCH)
         .expect("Time went backwards");
-    since_the_epoch.as_secs() as f64 * 1000.0 + since_the_epoch.subsec_millis() as f64
+    since_the_epoch.as_secs() as f64 * 1000.0 + since_the_epoch.subsec_nanos() as f64 / 1e6
 }
 
 #[cfg(target_arch = "wasm32")]
