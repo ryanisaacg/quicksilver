@@ -81,7 +81,7 @@ fn try_opt<T>(opt: Option<T>, operation: &str) -> Result<T> {
 impl Backend for WebGLBackend {
     type Platform = CanvasElement;
 
-    unsafe fn new(canvas: CanvasElement, texture_mode: ImageScaleStrategy) -> Result<WebGLBackend> {
+    unsafe fn new(canvas: CanvasElement, texture_mode: ImageScaleStrategy, multisample: bool) -> Result<WebGLBackend> {
         let ctx: gl = match canvas.get_context() {
             Ok(ctx) => ctx,
             _ => return Err(QuicksilverError::ContextError("Could not create WebGL2 context".to_owned()))
@@ -96,6 +96,9 @@ impl Backend for WebGLBackend {
         ctx.bind_buffer(gl::ELEMENT_ARRAY_BUFFER, Some(&ebo));
         ctx.blend_func(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
         ctx.enable(gl::BLEND);
+        if multisample {
+            ctx.enable(gl::MULTISAMPLE);
+        }
         let vertex = try_opt(ctx.create_shader(gl::VERTEX_SHADER), "Create vertex shader")?;
         ctx.shader_source(&vertex, DEFAULT_VERTEX_SHADER);
         ctx.compile_shader(&vertex);

@@ -7,7 +7,7 @@ use {
 pub(crate) trait Backend {
     type Platform;
 
-    unsafe fn new(platform: Self::Platform, texture_mode: ImageScaleStrategy) -> Result<Self> where Self: Sized;
+    unsafe fn new(platform: Self::Platform, texture_mode: ImageScaleStrategy, multisample: bool) -> Result<Self> where Self: Sized;
     unsafe fn clear(&mut self, color: Color);
     unsafe fn set_blend_mode(&mut self, blend: BlendMode);
     unsafe fn reset_blend_mode(&mut self);

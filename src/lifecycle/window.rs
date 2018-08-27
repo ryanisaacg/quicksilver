@@ -84,23 +84,22 @@ impl Window {
         } else {
             None
         };
-        let window = glutin::WindowBuilder::new()
+        let mut window = glutin::WindowBuilder::new()
             .with_fullscreen(monitor)
             .with_title(title)
             .with_dimensions(user_size.into());
-        let window = match settings.icon_path {
-            Some(path) => window.with_window_icon(Some(Icon::from_path(path)?)),
-            None => window,
+        if let Some(path) = settings.icon_path {
+            window = window.with_window_icon(Some(Icon::from_path(path)?));
+        }
+        if let Some(v) = settings.min_size {
+            window = window.with_min_dimensions(v.into());
+        }
+        if let Some(v) = settings.max_size {
+            window = window.with_max_dimensions(v.into());
         };
-        let window = match settings.min_size {
-            Some(v) => window.with_min_dimensions(v.into()),
-            None => window,
-        };
-        let window = match settings.max_size {
-            Some(v) => window.with_max_dimensions(v.into()),
-            None => window,
-        };
-        let context = glutin::ContextBuilder::new().with_vsync(settings.vsync);
+        let context = glutin::ContextBuilder::new()
+            .with_vsync(settings.vsync)
+            .with_multisampling(settings.multisampling.unwrap_or(0));
         let gl_window = glutin::GlWindow::new(window, context, &events)?;
         unsafe {
             gl_window.make_current()?;
@@ -111,7 +110,7 @@ impl Window {
         } else {
             user_size
         };
-        let backend = unsafe { BackendImpl::new(gl_window, settings.scale)? };
+        let backend = unsafe { BackendImpl::new(gl_window, settings.scale, settings.multisampling != None)? };
         let window = Window::build_agnositc(user_size, actual_size, settings, backend)?;
         Ok((window, events))
     }
@@ -141,7 +140,7 @@ impl Window {
         body.append_child(&canvas);
         canvas.set_width(size.x as u32);
         canvas.set_height(size.y as u32);
-        let backend = unsafe { BackendImpl::new(canvas.clone(), settings.scale)? };
+        let backend = unsafe { BackendImpl::new(canvas.clone(), settings.scale, settings.multisample != None)? };
         let mut window = Window::build_agnositc(size, size, settings, backend)?;
         window.set_title(title);
         Ok((window, canvas))
