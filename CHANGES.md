@@ -42,6 +42,7 @@
 - Add the ability to set window icons and favicons
 - Added new `Stopwatch` example
 - Added configurable `vsync` option to `Settings`
+- Add multisampling anti-aliasing as an option
 - Dependencies
     - Versions
         - alga: ``0.5 -> 0.6``

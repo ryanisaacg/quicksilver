@@ -60,7 +60,7 @@ void main() {
 impl Backend for GL3Backend {
     type Platform = GlWindow;
 
-    unsafe fn new(context: GlWindow, texture_mode: ImageScaleStrategy) -> Result<GL3Backend> {
+    unsafe fn new(context: GlWindow, texture_mode: ImageScaleStrategy, multisample: bool) -> Result<GL3Backend> {
         let texture_mode = match texture_mode {
             ImageScaleStrategy::Pixelate => gl::NEAREST,
             ImageScaleStrategy::Blur => gl::LINEAR
@@ -77,7 +77,10 @@ impl Backend for GL3Backend {
         gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
         gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, ebo);
         gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
-        gl::Enable( gl::BLEND );
+        gl::Enable(gl::BLEND);
+        if multisample {
+            gl::Enable(gl::MULTISAMPLE);
+        }
         let null = Image::new_null(1, 1, PixelFormat::RGBA)?;
         let texture = null.get_id();
         let vertex = gl::CreateShader(gl::VERTEX_SHADER);

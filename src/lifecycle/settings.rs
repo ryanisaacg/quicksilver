@@ -38,6 +38,12 @@ pub struct Settings {
     ///
     /// Does nothing on web currently
     pub vsync: bool,
+    /// How many samples to do for MSAA
+    ///
+    /// By default it is None; if it is Some, it should be a non-zero power of two
+    ///
+    /// Does nothing on web currently
+    pub multisampling: Option<u16>,
 }
 
 impl Default for Settings {
@@ -54,6 +60,7 @@ impl Default for Settings {
             draw_rate: 0.,
             icon_path: None,
             vsync: true,
+            multisampling: None,
         }
     }
 }
