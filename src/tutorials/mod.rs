@@ -13,8 +13,8 @@
 pub mod basic;
 pub mod drawing;
 pub mod input;
-/*pub mod lifecycle;
-pub mod images;
+pub mod lifecycle;
+/*pub mod images;
 pub mod font;
 pub mod sound;
 pub mod animations;
