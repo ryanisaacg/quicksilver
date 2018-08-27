@@ -140,7 +140,7 @@ impl Window {
         body.append_child(&canvas);
         canvas.set_width(size.x as u32);
         canvas.set_height(size.y as u32);
-        let backend = unsafe { BackendImpl::new(canvas.clone(), settings.scale, settings.multisample != None)? };
+        let backend = unsafe { BackendImpl::new(canvas.clone(), settings.scale, settings.multisampling != None)? };
         let mut window = Window::build_agnositc(size, size, settings, backend)?;
         window.set_title(title);
         Ok((window, canvas))

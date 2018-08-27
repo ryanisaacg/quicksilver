@@ -41,6 +41,8 @@ pub struct Settings {
     /// How many samples to do for MSAA
     ///
     /// By default it is None; if it is Some, it should be a non-zero power of two
+    ///
+    /// Does nothing on web currently
     pub multisampling: Option<u16>,
 }
 
