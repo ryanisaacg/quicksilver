@@ -131,7 +131,7 @@ pub use file::load_file;
 /// A Result that returns either success or a Quicksilver Error
 pub type Result<T> = ::std::result::Result<T, Error>;
 /// Types that represents a "future" computation, used to load assets
-pub use futures::{Async, Future};
+pub use futures::Future;
 /// Helpers that allow chaining computations together in a single Future
 ///
 /// This allows one Asset object that contains all of the various resources
