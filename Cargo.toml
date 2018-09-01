@@ -49,8 +49,8 @@ gilrs = { version = "0.6", optional = true }
 rodio = { version = "0.8", optional = true }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-stdweb = "0.4.8"
-webgl_stdweb = "0.1"
+stdweb = "0.4.9"
+webgl_stdweb = "0.2"
 
 [[example]]
 name = "draw-geometry"
@@ -79,3 +79,7 @@ required-features = []
 [[example]]
 name = "lyon"
 required-features = ["complex_shapes"]
+
+[[example]]
+name = "stopwatch"
+required-features = []

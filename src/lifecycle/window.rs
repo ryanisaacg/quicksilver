@@ -1,5 +1,5 @@
 use {
-    Result, 
+    Result,
     backend::{Backend, BackendImpl},
     geom::{Rectangle, Scalar, Transform, Vector},
     graphics::{Background, BlendMode, Color, Drawable, Mesh, ResizeStrategy, View},
@@ -34,13 +34,14 @@ pub struct Window {
     keyboard: Keyboard,
     mouse: Mouse,
     view: View,
-    tick_rate: f64,
+    update_rate: f64,
+    max_updates: u32,
+    draw_rate: f64,
     pub(crate) backend: BackendImpl,
     mesh: Mesh,
     frame_count: f64,
     fps: f64,
     last_framerate: f64,
-    max_ticks: u32,
 }
 
 impl Window {
@@ -62,13 +63,14 @@ impl Window {
                 wheel: Vector::ZERO,
             },
             view,
-            tick_rate: settings.tick_rate,
+            update_rate: settings.update_rate,
+            max_updates: settings.max_updates,
+            draw_rate: settings.draw_rate,
             backend,
             mesh: Mesh::new(),
             frame_count: 0.0,
             fps: 0.0,
             last_framerate: 0.0,
-            max_ticks: settings.max_ticks,
         };
         window.set_show_cursor(settings.show_cursor);
         Ok(window)
@@ -82,23 +84,22 @@ impl Window {
         } else {
             None
         };
-        let window = glutin::WindowBuilder::new()
+        let mut window = glutin::WindowBuilder::new()
             .with_fullscreen(monitor)
             .with_title(title)
             .with_dimensions(user_size.into());
-        let window = match settings.icon_path {
-            Some(path) => window.with_window_icon(Some(Icon::from_path(path)?)),
-            None => window,
+        if let Some(path) = settings.icon_path {
+            window = window.with_window_icon(Some(Icon::from_path(path)?));
+        }
+        if let Some(v) = settings.min_size {
+            window = window.with_min_dimensions(v.into());
+        }
+        if let Some(v) = settings.max_size {
+            window = window.with_max_dimensions(v.into());
         };
-        let window = match settings.min_size {
-            Some(v) => window.with_min_dimensions(v.into()),
-            None => window,
-        };
-        let window = match settings.max_size {
-            Some(v) => window.with_max_dimensions(v.into()),
-            None => window,
-        };
-        let context = glutin::ContextBuilder::new().with_vsync(true);
+        let context = glutin::ContextBuilder::new()
+            .with_vsync(settings.vsync)
+            .with_multisampling(settings.multisampling.unwrap_or(0));
         let gl_window = glutin::GlWindow::new(window, context, &events)?;
         unsafe {
             gl_window.make_current()?;
@@ -109,7 +110,7 @@ impl Window {
         } else {
             user_size
         };
-        let backend = unsafe { BackendImpl::new(gl_window, settings.scale)? };
+        let backend = unsafe { BackendImpl::new(gl_window, settings.scale, settings.multisampling != None)? };
         let window = Window::build_agnositc(user_size, actual_size, settings, backend)?;
         Ok((window, events))
     }
@@ -139,7 +140,7 @@ impl Window {
         body.append_child(&canvas);
         canvas.set_width(size.x as u32);
         canvas.set_height(size.y as u32);
-        let backend = unsafe { BackendImpl::new(canvas.clone(), settings.scale)? };
+        let backend = unsafe { BackendImpl::new(canvas.clone(), settings.scale, settings.multisampling != None)? };
         let mut window = Window::build_agnositc(size, size, settings, backend)?;
         window.set_title(title);
         Ok((window, canvas))
@@ -280,7 +281,7 @@ impl Window {
     /// Flush the current buffered draw calls
     ///
     /// Attributes like z-ordering will be reset: all items drawn after a flush will *always* draw
-    /// over all items drawn before a flush. 
+    /// over all items drawn before a flush.
     ///
     /// Note that calling this can be an expensive operation
     pub fn flush(&mut self) -> Result<()> {
@@ -332,20 +333,30 @@ impl Window {
     pub fn draw_ex(&mut self, draw: &impl Drawable, bkg: Background, trans: Transform, z: impl Scalar) {
         draw.draw(&mut self.mesh, bkg, trans, z);
     }
-    
+
     /// The mesh the window uses to draw
     pub fn mesh(&mut self) -> &mut Mesh {
         &mut self.mesh
     }
 
     /// The ideal delay between two calls to update in milliseconds
-    pub fn tick_rate(&self) -> f64 {
-        self.tick_rate
+    pub fn update_rate(&self) -> f64 {
+        self.update_rate
     }
 
     /// Set the desired time between two calls to update in milliseconds
-    pub fn set_tick_rate(&mut self, tick_rate: f64) {
-        self.tick_rate = tick_rate;
+    pub fn set_update_rate(&mut self, update_rate: f64) {
+        self.update_rate = update_rate;
+    }
+
+    /// The ideal delay between two calls to draw in milliseconds
+    pub fn draw_rate(&self) -> f64 {
+        self.draw_rate
+    }
+
+    /// Set the desired time between two calls to draw in milliseconds
+    pub fn set_draw_rate(&mut self, draw_rate: f64) {
+        self.draw_rate = draw_rate;
     }
 
     pub(crate) fn log_framerate(&mut self, delay: f64) {
@@ -368,18 +379,18 @@ impl Window {
         self.fps
     }
 
-    /// Get the maximum number of ticks that are allowed to run in a frame
+    /// Get the maximum number of updates that are allowed to run in a frame
     ///
-    /// 0 is arbitrarily many
-    pub fn max_ticks(&self) -> u32 {
-        self.max_ticks
+    /// 0 means no limitation
+    pub fn max_updates(&self) -> u32 {
+        self.max_updates
     }
 
-    /// Set the maximum number of ticks that are allowed to run in a frame
+    /// Set the maximum number of updates that are allowed to run in a frame
     ///
-    /// 0 is arbitrarily many
-    pub fn set_max_ticks(&mut self, max_ticks: u32) {
-        self.max_ticks = max_ticks;
+    /// 0 means no limitation
+    pub fn set_max_updates(&mut self, max_updates: u32) {
+        self.max_updates = max_updates;
     }
 
     /// Set if the cursor should be visible when over the application
@@ -393,7 +404,7 @@ impl Window {
     }
 
     /// Set if the application is currently fullscreen
-    /// 
+    ///
     /// This currently does nothing on web
     pub fn set_fullscreen(&mut self, fullscreen: bool) {
         self.backend.set_fullscreen(fullscreen);
