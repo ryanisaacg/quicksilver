@@ -4,7 +4,7 @@ use {
     error::QuicksilverError,
     file::load_file,
     futures::{Future, future},
-    geom::{Rectangle, Transform},
+    geom::{Rectangle, Transform, Vector},
     image,
     std::{
         error::Error,
@@ -104,7 +104,8 @@ impl Image {
     
     /// Create a projection matrix for a given region onto the Image
     pub fn projection(&self, region: Rectangle) -> Transform {
-        let recip_size = self.region.size().recip();
+        let source_size: Vector = (self.source_width(), self.source_height()).into();
+        let recip_size = source_size.recip();
         let normalized_pos = self.region.top_left().times(recip_size);
         let normalized_size = self.region.size().times(recip_size);
         Transform::translate(normalized_pos)
