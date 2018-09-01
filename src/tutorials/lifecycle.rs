@@ -19,7 +19,7 @@
 //! Settings. For example, to only draw once every 35 milliseconds (approximately 30 FPS), you
 //! could use the following `Settings` declaration:
 //! ```no_run
-//! # use quicksilver::{lifecycle::{State, Settings, run}};
+//! # use quicksilver::{geom::Vector, lifecycle::{State, Settings, run}};
 //! # fn func<SomeStateType: State>(some_title: &'static str, some_dimensions: Vector) {
 //! run::<SomeStateType>(some_title, some_dimensions, Settings {
 //!     draw_rate: 35.0,
@@ -30,7 +30,7 @@
 //! If you want to run the draw function as often as possible, you may want to disable vsync. You
 //! can again do it with `Settings`: 
 //! ```no_run
-//! # use quicksilver::{lifecycle::{State, Settings, run}};
+//! # use quicksilver::{geom::Vector, lifecycle::{State, Settings, run}};
 //! # fn func<SomeStateType: State>(some_title: &'static str, some_dimensions: Vector) {
 //! run::<SomeStateType>(some_title, some_dimensions, Settings {
 //!     vsync: false,
