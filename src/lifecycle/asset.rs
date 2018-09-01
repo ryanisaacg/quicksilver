@@ -1,4 +1,8 @@
-use {Async, Future, error::QuicksilverError, Result};
+use {
+    Future, Result,
+    error::QuicksilverError,
+    futures::Async,
+};
 
 /// A structure to manage the loading and use of a future
 pub struct Asset<T>(AssetData<T>);
