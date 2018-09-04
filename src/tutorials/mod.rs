@@ -10,19 +10,19 @@
 //! nightly`.) Once that's done, install cargo-web (`cargo +nightly install -f cargo-web`) and you
 //! should be good.
 
-pub mod basic;
-pub mod drawing;
-pub mod input;
-pub mod lifecycle;
-pub mod images;
-/*pub mod font;
-pub mod sound;
-pub mod animations;
-pub mod asset_combinators;
-pub mod view;
-pub mod multi_screen;
-pub mod mesh;
-pub mod ncollide_integration;
-pub mod lyon_integration;
-pub mod futures_integration;
+pub mod _01_basic;
+pub mod _02_drawing;
+pub mod _03_input;
+pub mod _04_lifecycle;
+pub mod _05_images;
+/*pub mod _06_font;
+pub mod _07_sound;
+pub mod _08_animations;
+pub mod _09_asset_combinators;
+pub mod _10_view;
+pub mod _11_multi_screen;
+pub mod _12_mesh;
+pub mod _13_ncollide_integration;
+pub mod _14_lyon_integration;
+pub mod _15_futures_integration;
 */
