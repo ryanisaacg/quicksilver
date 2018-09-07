@@ -17,7 +17,7 @@
 //!         .and_then(|contents| result(from_utf8(contents)))
 //!         .and_then(|image_path| Image::load(image_path)))
 //! }
-//! ```text
+//! ```
 //! This example uses 2 combinators: `result` and `and_then`. `result` takes a Result type and
 //! converts it into a Future that immediately resolves. `and_then` chains a Future onto the
 //! previous one, if the previous one completes. If we were to re-write the Futures code here as a
