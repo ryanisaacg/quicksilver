@@ -6,15 +6,14 @@
 //! ```no_run
 //! use quicksilver::{
 //!     Future, Result,
-//!     combinators::result,
+//!     combinators::ok,
 //!     graphics::Image,
 //!     lifecycle::Asset,
 //!     load_file,
 //! };
-//! use std::str::from_utf8;
-//! fn load_image_from_file(filename: &str) -> Asset<Image> {
+//! fn load_image_from_file(filename: &'static str) -> Asset<Image> {
 //!     Asset::new(load_file(filename)
-//!         .and_then(|contents| result(from_utf8(contents)))
+//!         .and_then(|contents| ok(String::from_utf8(contents).expect("The file must be UTF-8")))
 //!         .and_then(|image_path| Image::load(image_path)))
 //! }
 //! ```
