@@ -97,7 +97,9 @@ impl Eq for Rectangle {}
 #[cfg(feature="ncollide2d")]
 impl From<AABB<f32>> for Rectangle {
     fn from(other: AABB<f32>) -> Rectangle {
-        Rectangle::new(other.mins().clone(), other.maxs().clone())
+        let min: Vector = other.mins().clone().into();
+        let max: Vector = other.maxs().clone().into();
+        Rectangle::new(min, max - min)
     }
 }
 
