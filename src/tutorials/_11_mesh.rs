@@ -27,7 +27,7 @@
 //! To draw it you can then do:
 //!
 //! ```no_run
-//! # use quicksilver::graphics::{Background::Col, Color, GpuTriangle, Mesh, Vertex, Window };
+//! # use quicksilver::{graphics::{Background::Col, Color, GpuTriangle, Mesh, Vertex}, lifecycle::Window };
 //! # fn func(window: &mut Window) {
 //! # let vertices = vec![
 //! #     Vertex::new((400, 200), None, Col(Color::RED)),
@@ -36,7 +36,8 @@
 //! # ];
 //! # let triangles = vec![ GpuTriangle::new(0, [0, 1, 2], 0.0, Col(Color::WHITE)) ];
 //! # let mesh = Mesh { vertices, triangles };
-//! window.mesh().apply(mesh);
+//! window.mesh().apply(&mesh);
+//! # }
 //! ```
 //!
 //! You have to do this every frame, because the window's mesh is cleared after it's drawn.
