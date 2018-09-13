@@ -1,4 +1,5 @@
 //! Interactability might be important, but just sticking to regular shapes can get a bit boring.
+//!
 //! It's time for the wonderful world of images! Drawing images is almost the same as drawing
 //! colors, but instead of using `Background::Col` we use `Background::Img`. The big change to
 //! learn with images is asset loading.

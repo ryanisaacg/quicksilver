@@ -1,8 +1,10 @@
-//! In the last tutorial, we briefly touched on asset combinators. Asset combinators are a concept
-//! ripped directly from Futures in Rust. While sometimes you want to wait for a simple future to
-//! elapse (like loading a single image) sometimes you want something more, like loading 2 images,
-//! loading an image then taking several subimages for it, or loading a text file then using its
-//! contents to load an image. The last example could be written:
+//! Asset combinators (or in the general case, Future combinators) allow us to chain async
+//! computations together.
+//!
+//! In the last tutorial, we briefly touched on asset combinators. While sometimes you want to wait
+//! for a simple future to elapse (like loading a single image) sometimes you want something more,
+//! like loading 2 images, loading an image then taking several subimages from it, or loading a 
+//! text file then using its contents to load an image. The last example could be written:
 //! ```no_run
 //! use quicksilver::{
 //!     Future, Result,

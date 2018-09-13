@@ -1,5 +1,6 @@
-//! Quicksilver uses the `View` structure as an abstraction for both
-//! graphical and input projection. This means that a view can be thought of like a camera: it
+//! Quicksilver uses the `View` structure as an abstraction for both graphical and input projection.
+//!
+//! This means that a view can be thought of like a camera: it
 //! determines what coordinates in draw calls appear where on screen, as well as the relationship
 //! between the mouse location on the screen and the reported coordinates.
 //!

@@ -1,5 +1,7 @@
 //! A `Mesh` is a low-level graphics concept in Quicksilver consisting of a series of polygon
-//! vertices and a list of triangles. This concept can be used to draw any shape: to make a
+//! vertices and a list of triangles.
+//!
+//! This concept can be used to draw any shape: to make a
 //! rectangle, put the four vertices in the vertex list, and then create two triangles that
 //! together make up the rectangle.
 //!

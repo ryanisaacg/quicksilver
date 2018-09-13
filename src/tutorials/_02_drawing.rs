@@ -1,4 +1,5 @@
 //! Creating a blank window is all well and good, but drawing something to it is even better.
+//!
 //! Rendering in Quicksilver usually takes the form:
 //! ```no_run
 //! # use quicksilver::{graphics::{Background, Drawable}, lifecycle::Window};

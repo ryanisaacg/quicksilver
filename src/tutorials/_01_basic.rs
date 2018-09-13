@@ -1,4 +1,6 @@
-//! Our first tutorial is simple: Just create a blank window. Here's the full source:
+//! Our first tutorial is simple: Just create a blank window.
+//!
+//! Here's the full source:
 //! 
 //! ```no_run
 //! extern crate quicksilver;

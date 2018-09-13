@@ -1,5 +1,6 @@
-//! Now we can draw all manner of colorful geometry, but that's not enough for an interesting 
+//! Now we can draw all manner of colorful geometry, but that's not enough for an interesting
 //! application.
+//!
 //! If we wanted to add keyboard support to our previous example, so that the user can use the left
 //! and right arrow keys to move the square back ond forth, it would look like this:
 //! ```no_run

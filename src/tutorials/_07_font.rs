@@ -1,5 +1,7 @@
 //! Armed with asset combinators and the ability to draw textures, we can now do some text
-//! rendering. Fonts are loaded just like images: with a `load` function. A simple font example
+//! rendering.
+//!
+//! Fonts are loaded just like images: with a `load` function. A simple font example
 //! could be:
 //! ```no_run
 //! // Draw some sample text to the screen
