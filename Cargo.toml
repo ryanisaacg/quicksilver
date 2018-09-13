@@ -53,10 +53,6 @@ stdweb = "0.4.9"
 webgl_stdweb = "0.2"
 
 [[example]]
-name = "basic"
-required-features = []
-
-[[example]]
 name = "draw-geometry"
 required-features = []
 
@@ -86,4 +82,8 @@ required-features = ["complex_shapes"]
 
 [[example]]
 name = "stopwatch"
+required-features = []
+
+[[example]]
+name = "camera"
 required-features = []

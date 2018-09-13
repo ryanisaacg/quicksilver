@@ -128,6 +128,8 @@ pub mod sound;
 pub use error::QuicksilverError as Error;
 pub use file::load_file;
 
+pub mod tutorials;
+
 /// A Result that returns either success or a Quicksilver Error
 pub type Result<T> = ::std::result::Result<T, Error>;
 /// Types that represents a "future" computation, used to load assets
