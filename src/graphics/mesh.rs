@@ -36,7 +36,7 @@ impl Mesh {
     }
 
     /// Add all the data from the other mesh into this mesh
-    pub fn apply(&mut self, other: &Mesh) {
+    pub fn extend(&mut self, other: &Mesh) {
         self.vertices.extend(other.vertices.iter().cloned());
         self.triangles.extend(other.triangles.iter().cloned());
     }

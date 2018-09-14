@@ -10,7 +10,7 @@
 //! regular user of the library cannot access with a Mesh.
 //!
 //! There are two ways to use `Mesh`: instantiate your own with `Mesh::new` or use `Window::mesh` to
-//! access the internal mesh of a window. To concatenate two meshes, use the `Mesh::apply` function.
+//! access the internal mesh of a window. To concatenate two meshes, use the `Mesh::extend` function.
 //!
 //! To create a mesh that contains a triangle with a red vertex, a blue vertex, and a green vertex,
 //! you could write:
@@ -38,7 +38,7 @@
 //! # ];
 //! # let triangles = vec![ GpuTriangle::new(0, [0, 1, 2], 0.0, Col(Color::WHITE)) ];
 //! # let mesh = Mesh { vertices, triangles };
-//! window.mesh().apply(&mesh);
+//! window.mesh().extend(&mesh);
 //! # }
 //! ```
 //!
