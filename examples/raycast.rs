@@ -130,7 +130,7 @@ impl State for Raycast {
 
     fn draw(&mut self, window: &mut Window) -> Result<()> {
         window.clear(Color::BLACK)?;
-        window.mesh().apply(&self.mesh);
+        window.mesh().extend(&self.mesh);
         Ok(())
     }
 }
