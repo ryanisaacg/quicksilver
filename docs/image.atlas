@@ -1,0 +1,53 @@
+atlas.png
+size: 128, 32
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+blackandwhite
+  rotate: false
+  xy: 0, 0
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: -1
+green
+  rotate: false
+  xy: 32, 0
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: -1
+purple
+  rotate: false
+  xy: 64, 0
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: -1
+yellow
+  rotate: false
+  xy: 96, 0
+  size: 32, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: -1
+
+image.png
+size: 64, 64
+format: RGBA8888
+filter: Linear,Linear
+repeat:none
+chunk1
+    rotate: false
+    xy: 0, 0
+    size: 32, 64
+    orig: 32, 64
+    offset: 0, 0
+    index: -1
+chunk2
+    rotate: false
+    xy: 32, 0
+    size: 32, 64
+    orig: 32, 64
+    offset: 0, 0
+    index: -1
