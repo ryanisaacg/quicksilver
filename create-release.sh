@@ -1,6 +1,11 @@
 #!/bin/sh
 set -e
 cargo test
+echo '--- Remove the old build artifacts ---'
+for file in $(ls -I docs/index.html -I docs/example.html -I docs/prism.css -I docs/prism.js -I docs/style.js docs/)
+do
+    rm docs/$file
+done
 for example in examples/*
 do
     example=$(basename $example .rs)
