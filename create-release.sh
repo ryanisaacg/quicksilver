@@ -7,8 +7,8 @@ do
     echo "---- Building example: $example ----"
     cargo +nightly web build --target wasm32-unknown-unknown --release --example $example
     echo "--- Copying build artifacts: $example ----"
-    cp target/wasm32-unknown-unknown/release/examples/$example.wasm docs/wasm/$example.wasm
-    cp target/wasm32-unknown-unknown/release/examples/$example.js docs/wasm/$example.js
+    cp target/wasm32-unknown-unknown/release/examples/$example.wasm docs/$example.wasm
+    cp target/wasm32-unknown-unknown/release/examples/$example.js docs/$example.js
 done
 
 echo "--- Copying assets to the web directory ---"
