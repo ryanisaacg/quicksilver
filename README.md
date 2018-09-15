@@ -101,6 +101,8 @@ collision support (via [ncollide2d](https://github.com/sebcrozet/ncollide)),
 font support (via [rusttype](https://github.com/redox-os/rusttype)), 
 gamepad support (via [gilrs](https://gitlab.com/gilrs-project/gilrs)), 
 saving (via [serde_json](https://github.com/serde-rs/json)),
+complex shape / svg rendering (via [lyon](https://github.com/nical/lyon)),
+immediate-mode GUIs (via [immi](https://github.com/tomaka/immi)),
 and sounds (via [rodio](https://github.com/tomaka/rodio)). 
 
 Each are enabled by default, but you can [specify which features](https://doc.rust-lang.org/cargo/reference/specifying-dependencies.html#choosing-features) you actually want to use. 
@@ -118,22 +120,6 @@ It has not been tested extensively on desktop platforms other than x86, but ther
 There are no plans to support mobile / touch-primary platforms, as the paradigms are completely different. UI elements must be created differently, input is one or two points of contact rather than primarily through a keyboard, etc. 
 
 There is one exception: macOS does not currently support gamepads, see [gilrs-core issue #1](https://gitlab.com/gilrs-project/gilrs-core/issues/1)
-
-## What's included?
-
-- 2D geometry: Vectors, Transformation matrices, Rectangles, Circles, and a generic Shape abstraction
-- Keyboard and 3-button mouse support
-- Viewport projection of the mouse to the world space automatically
-- OpenGL hardware-accelerated graphics
-- A variety of image formats
-- Multi-play sound clips
-- A looping music player
-- Asynchronous asset loading
-- Unified codebase across desktop and the web
-- Collision support (via [ncollide2d](https://github.com/sebcrozet/ncollide)), 
-- TTF font support (via [rusttype](https://github.com/redox-os/rusttype)), 
-- Gamepad support (via [gilrs](https://gitlab.com/gilrs-project/gilrs)), 
-- Saving on web and desktop (via [serde_json](https://github.com/serde-rs/json)),
 
 ## Comparison with [ggez](https://github.com/ggez/ggez)
 
