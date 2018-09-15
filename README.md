@@ -68,6 +68,10 @@ Run this with `cargo run` or, if you have the wasm32 toolchain installed, you ca
 
 Make sure to put all your assets in a top-level folder of your crate called `static/`. *All* Quicksilver file loading-APIs will expect paths that originate in the static folder, so `static/image.png` should be referenced as `image.png`.
 
+### Linux dependencies
+
+On Windows and Mac, all you'll need to build Quicksilver is the right version of `rustc` and `cargo`. A few of Quicksilver's dependencies require Linux packages to build, namely `libudev`, `zlib`, and `alsa`. To install these on Ubuntu or Debian, run the command `sudo apt install libudev-dev zlib1g-dev alsa`.
+
 ### Deploying for desktop
 
 If you're deploying for desktop platforms, build in release mode (`cargo build --release`) 
@@ -87,7 +91,7 @@ If you want to test your application locally, use `cargo +nightly web start --ta
 
 ## Learning Quicksilver
 
-Currently there isn't a book-like tutorial for Quicksilver, but there 
+A good way to get started with Quicksilver is to [read and run the examples](https://github.com/ryanisaacg/quicksilver/tree/master/examples) and go through the tutorial module [on docs.rs](https://docs.rs/quicksilver). If you have any question, feel free to hop onto Gitter or open an issue.
 
 ## Optional Features
 
