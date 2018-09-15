@@ -16,8 +16,8 @@ cp static/* docs/
 read -p "New version string: " version
 
 echo "--- Bumping version of the html_url_root ---"
-sed -e "s/html_root_url = \".*\"/html_root_url = \"https://docs.rs\/quicksilver\/$version\/quicksilver\"/g" -i src/lib.rs
+sed -e "s/html_root_url = \".*\"/html_root_url = \"https:\/\/docs.rs\/quicksilver\/$version\/quicksilver\"/g" -i src/lib.rs
 
 echo "--- Bumping version in Cargo.toml ---"
-sed -e "s/^version = \".*\"/version=\"$version\"/" -i Cargo.toml
+sed -e "s/^version = \".*\"/version=\"$version\"/g" -i Cargo.toml
 
