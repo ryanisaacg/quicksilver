@@ -3,7 +3,7 @@ extern crate quicksilver;
 
 use quicksilver::{
     Result,
-    geom::Transform,
+    geom::{Transform, Vector},
     graphics::{Color, Mesh, ShapeRenderer},
     lifecycle::{Settings, State, Window, run},
     lyon::{
@@ -44,7 +44,7 @@ impl State for LyonExample {
 
     fn draw(&mut self, window: &mut Window) -> Result<()> {
         window.clear(Color::WHITE)?;
-        window.mesh().apply(&self.logo);
+        window.mesh().extend(&self.logo);
         Ok(())
     }
 }
