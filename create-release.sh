@@ -26,3 +26,5 @@ sed -e "s/html_root_url = \".*\"/html_root_url = \"https:\/\/docs.rs\/quicksilve
 echo "--- Bumping version in Cargo.toml ---"
 sed -e "s/^version = \".*\"/version=\"$version\"/g" -i Cargo.toml
 
+echo "--- Bumping version in the changelog ---"
+sed -e "s/## In-development/## In-development\n\n## $version/" -i CHANGES.md
