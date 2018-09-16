@@ -57,11 +57,11 @@ struct DrawGeometry;
 
 impl State for DrawGeometry {
     // Initialize the struct
-    fn new() -> Result<DrawGeometry> {
+    fn new() -> Result&lt;DrawGeometry&gt; {
         Ok(DrawGeometry)
     }
 
-    fn draw(&mut self, window: &mut Window) -> Result<()> {
+    fn draw(&mut self, window: &mut Window) -> Result&lt;()&gt; {
         // Remove any lingering artifacts from the previous frame
         window.clear(Color::WHITE)?;
         // Draw a rectangle with a top-left corner at (100, 100) and a width and height of 32 with
@@ -98,7 +98,7 @@ impl State for DrawGeometry {
 fn main() {
     // Run with DrawGeometry as the event handler, with a window title of 'Draw Geometry' and a
     // size of (800, 600)
-    run::<DrawGeometry>("Draw Geometry", Vector::new(800, 600), Settings::default());
+    run::&lt;DrawGeometry&gt;("Draw Geometry", Vector::new(800, 600), Settings::default());
 }
 
             </code>
