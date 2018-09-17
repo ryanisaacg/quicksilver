@@ -39,9 +39,7 @@ matrix:
       env: WASM=0
   fast_finish: true
 after_success: |
-  echo "$TRAVIS_RUST_VERSION"
-  echo "$TRAVIS_OS_NAME"
-  if [[ "$TRAVIS_RUST_VERSION" == "stable" && "$TRAVIS_OS_NAME" == "linux"]]; then
+  if [[ "$TRAVIS_RUST_VERSION" == "stable" && "$TRAVIS_OS_NAME" == "linux" ]] ; then
     RUSTFLAGS="--cfg procmacro2_semver_exempt" cargo install cargo-tarpaulin
     cargo tarpaulin --out Xml
     bash <(curl -s https://codecov.io/bash)
