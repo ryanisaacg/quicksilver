@@ -1,3 +1,5 @@
+![Logo](./logo.svg)
+
 # quicksilver
 
 [![Build Status](https://travis-ci.org/ryanisaacg/quicksilver.svg)](https://travis-ci.org/ryanisaacg/quicksilver)
