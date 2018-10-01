@@ -2,6 +2,8 @@
 
 ## In-development
 
+- Add implementing custom drawables to the mesh tutorial
+
 ## 0.3.0
 - Add new methods of initializing fonts `Font::from_slice` and `Font::from_bytes` using byte sequences
 - [Breaking] Add more fields to `Error`, and add a Result alias to make error bubbling more convenient
