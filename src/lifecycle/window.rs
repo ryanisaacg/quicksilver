@@ -100,6 +100,15 @@ impl Window {
             gl_window.make_current()?;
             gl::load_with(|symbol| gl_window.get_proc_address(symbol) as *const _);
         }
+        // A mitigation for https://github.com/tomaka/glutin/issues/1069
+        // When it is resolved, this can be removed
+        #[cfg(target_os = "macos")]
+        let events = {
+            let mut events = events;
+            events.poll_events(|_| {});
+            gl_window.resize(user_size.into());
+            events
+        };
         let backend = unsafe { BackendImpl::new(gl_window, settings.scale, settings.multisampling != None)? };
         let window = Window::build_agnostic(user_size, user_size, settings, backend)?;
         Ok((window, events))
