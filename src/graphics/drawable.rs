@@ -5,7 +5,7 @@ use std::iter;
 /// Some object that can be drawn to the screen
 pub trait Drawable {
     /// Draw the object to the Mesh
-    fn draw<'a>(&self, &mut Mesh, Background<'a>, Transform, impl Scalar);
+    fn draw<'a>(&self, mesh: &mut Mesh, background: Background<'a>, transform: Transform, z: impl Scalar);
 }
 
 /// The background to use for a given drawable

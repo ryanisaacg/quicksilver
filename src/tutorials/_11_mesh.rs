@@ -43,3 +43,36 @@
 //! ```
 //!
 //! You have to do this every frame, because the window's mesh is cleared after it's drawn.
+//!
+//! Drawing to a Mesh is important to defining your own Drawable objects. Drawable requires a
+//! single function definition, `draw`, with the signature
+//!
+//! ```no_run
+//! extern crate quicksilver;
+//! # use quicksilver::{geom::{Scalar, Transform}, graphics::{Background, Mesh}};
+//! # struct Test; impl Test {
+//! fn draw<'a>(&self, mesh: &mut Mesh, background: Background<'a>, transform: Transform, z: impl Scalar)
+//! # {}}
+//! ```
+//!
+//! We could create a `Diamond` struct that implements `Drawable` like so:
+//!
+//! ```no_run
+//! use quicksilver::{
+//!     geom::{Rectangle, Shape, Scalar, Transform, Vector},
+//!     graphics::{Background, Drawable, Mesh}
+//! };
+//!
+//! struct Diamond {
+//!     center: Vector,
+//!     radius: f32
+//! }
+//!
+//! impl Drawable for Diamond {
+//!     fn draw<'a>(&self, mesh: &mut Mesh, background: Background<'a>, transform: Transform, z: impl Scalar) {
+//!         let square = Rectangle::new_sized((self.radius, self.radius)).with_center(self.center);
+//!         let rotation = Transform::rotate(45);
+//!         square.draw(mesh, background, transform * rotation, z);
+//!     }
+//! }
+//! ```

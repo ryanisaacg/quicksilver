@@ -2,6 +2,7 @@
 
 ## In-development
 
+- Add implementing custom drawables to the mesh tutorial
 - Mitigate a glutin bug on macOS Mojave that causes content to not be rendered to the window
 
 ## 0.3.0
