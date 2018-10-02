@@ -180,7 +180,7 @@ fn run_impl<T: State>(title: &str, size: Vector, settings: Settings) -> Result<(
 fn update<T: State>(app: Rc<RefCell<Application<T>>>) -> Result<()> {
     app.borrow_mut().update()?;
     let duration = app.borrow_mut().window.update_rate();
-    if app.window.is_running() {
+    if app.borrow().window.is_running() {
         window().set_timeout(move || if let Err(error) = update(app) {
             T::handle_error(error)
         }, duration as u32);
@@ -191,7 +191,7 @@ fn update<T: State>(app: Rc<RefCell<Application<T>>>) -> Result<()> {
 #[cfg(target_arch = "wasm32")]
 fn draw<T: State>(app: Rc<RefCell<Application<T>>>) -> Result<()> {
     app.borrow_mut().draw()?;
-    if app.window.is_running() {
+    if app.borrow().window.is_running() {
         window().request_animation_frame(move |_| if let Err(error) = draw(app) {
             T::handle_error(error)
         });
