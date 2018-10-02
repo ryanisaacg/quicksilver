@@ -2,6 +2,9 @@
 
 ## In-development
 
+- Add implementing custom drawables to the mesh tutorial
+- Mitigate a glutin bug on macOS Mojave that causes content to not be rendered to the window
+
 ## 0.3.0
 - Add new methods of initializing fonts `Font::from_slice` and `Font::from_bytes` using byte sequences
 - [Breaking] Add more fields to `Error`, and add a Result alias to make error bubbling more convenient
