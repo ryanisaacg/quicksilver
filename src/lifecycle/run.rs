@@ -56,9 +56,11 @@ fn run_impl<T: State>(title: &str, size: Vector, settings: Settings) -> Result<(
         Sound::initialize();
     }
     let mut app: Application<T> = Application::new(window)?;
-    let mut running = true;
-    while running {
-        running = events.generate_events(&mut app.window, &mut app.event_buffer);
+    while app.window.is_running() {
+        let stay_open = events.generate_events(&mut app.window, &mut app.event_buffer);
+        if !stay_open {
+            app.window.close();
+        }
         app.update()?;
         app.draw()?;
     }
@@ -178,18 +180,22 @@ fn run_impl<T: State>(title: &str, size: Vector, settings: Settings) -> Result<(
 fn update<T: State>(app: Rc<RefCell<Application<T>>>) -> Result<()> {
     app.borrow_mut().update()?;
     let duration = app.borrow_mut().window.update_rate();
-    window().set_timeout(move || if let Err(error) = update(app) {
-        T::handle_error(error)
-    }, duration as u32);
+    if app.borrow().window.is_running() {
+        window().set_timeout(move || if let Err(error) = update(app) {
+            T::handle_error(error)
+        }, duration as u32);
+    }
     Ok(())
 }
 
 #[cfg(target_arch = "wasm32")]
 fn draw<T: State>(app: Rc<RefCell<Application<T>>>) -> Result<()> {
     app.borrow_mut().draw()?;
-    window().request_animation_frame(move |_| if let Err(error) = draw(app) {
-        T::handle_error(error)
-    });
+    if app.borrow().window.is_running() {
+        window().request_animation_frame(move |_| if let Err(error) = draw(app) {
+            T::handle_error(error)
+        });
+    }
     Ok(())
 }
 

@@ -42,6 +42,7 @@ pub struct Window {
     frame_count: f64,
     fps: f64,
     last_framerate: f64,
+    running: bool,
 }
 
 impl Window {
@@ -71,6 +72,7 @@ impl Window {
             frame_count: 0.0,
             fps: 0.0,
             last_framerate: 0.0,
+            running: true,
         };
         window.set_show_cursor(settings.show_cursor);
         window.set_fullscreen(settings.fullscreen);
@@ -414,5 +416,16 @@ impl Window {
         let size = size.into();
         self.backend.resize(size);
         self.adjust_size(size);
+    }
+
+    /// Close the application without triggering the onclose handler
+    ///
+    /// On desktop, this closes the window, and on the web it removes the canvas from the page
+    pub fn close(&mut self) {
+        self.running = false;
+    }
+
+    pub(crate) fn is_running(&self) -> bool {
+        self.running
     }
 }
