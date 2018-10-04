@@ -5,7 +5,6 @@
 //! should store data. This module allows any type that implements Serde serialize and deserialize
 //! to be saved and loaded.
 
-use dirs;
 use serde::{Deserialize, Serialize};
 use serde_json::{self, Error as SerdeError};
 use std::{
@@ -43,7 +42,7 @@ use std::fs::File;
 
 #[cfg(not(target_arch="wasm32"))]
 fn get_save_folder(appname: &str) -> Result<PathBuf, SaveError> {
-    let mut path = dirs::data_dir().ok_or(SaveError::SaveLocationNotFound)?;
+    let mut path = ::dirs::data_dir().ok_or(SaveError::SaveLocationNotFound)?;
     path.push(appname);
     Ok(path)
 }
