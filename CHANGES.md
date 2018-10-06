@@ -2,6 +2,8 @@
 
 ## In-development
 
+## 0.3.1
+
 - Add implementing custom drawables to the mesh tutorial
 - Mitigate a glutin bug on macOS Mojave that causes content to not be rendered to the window
 - Add the ability to close the window programmatically through `Window::close`
