@@ -1,6 +1,7 @@
 # Changelog
 
 ## In-development
+- The `MouseWheel` event now works correctly on non-wasm platforms.
 
 ## 0.3.0
 - Add new methods of initializing fonts `Font::from_slice` and `Font::from_bytes` using byte sequences
