@@ -1,6 +1,7 @@
 # Changelog
 
 ## In-development
+- The `MouseWheel` event now works correctly on non-wasm platforms.
 
 - Add implementing custom drawables to the mesh tutorial
 - Mitigate a glutin bug on macOS Mojave that causes content to not be rendered to the window
