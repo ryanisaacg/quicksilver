@@ -1,13 +1,14 @@
 # Changelog
 
 ## In-development
-- The `MouseWheel` event now works correctly on non-wasm platforms.
 
 ## 0.3.1
 
 - Add implementing custom drawables to the mesh tutorial
 - Mitigate a glutin bug on macOS Mojave that causes content to not be rendered to the window
 - Add the ability to close the window programmatically through `Window::close`
+- Fix `MouseWheel` event being reported as `MouseMove` on non-wasm platforms.
+
 
 ## 0.3.0
 - Add new methods of initializing fonts `Font::from_slice` and `Font::from_bytes` using byte sequences
