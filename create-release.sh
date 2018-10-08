@@ -18,10 +18,13 @@ cp static/* docs/
 read -p "New version string: " version
 
 echo "--- Bumping version of the html_url_root ---"
-sed -e "s/html_root_url = \".*\"/html_root_url = \"https:\/\/docs.rs\/quicksilver\/$version\/quicksilver\"/g" -i "" src/lib.rs
+sed -e "s/html_root_url = \".*\"/html_root_url = \"https:\/\/docs.rs\/quicksilver\/$version\/quicksilver\"/g" -i.bak src/lib.rs
 
 echo "--- Bumping version in Cargo.toml ---"
-sed -e "s/^version = \".*\"/version = \"$version\"/g" -i "" Cargo.toml
+sed -e "s/^version = \".*\"/version = \"$version\"/g" -i.bak Cargo.toml
 
 echo "--- Bumping version in the changelog ---"
-sed -e "s/## In-development/## In-development\n\n## $version/" -i "" CHANGES.md
+sed -e "s/## In-development/## In-development\n\n## $version/" -i.bak CHANGES.md
+
+echo "--- Cleaning up the backups ---"
+rm -f *.bak src/lib.rs.bak
