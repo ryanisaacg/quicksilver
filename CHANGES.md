@@ -1,6 +1,7 @@
 # Changelog
 
 ## In-development
+- Check xhr readyState at file.rs on wasm platforms to fix The 'Asset' bug on chromium.
 - The `MouseWheel` event now works correctly on non-wasm platforms.
 
 - Add implementing custom drawables to the mesh tutorial
