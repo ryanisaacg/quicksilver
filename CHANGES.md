@@ -7,6 +7,7 @@
 - Add implementing custom drawables to the mesh tutorial
 - Mitigate a glutin bug on macOS Mojave that causes content to not be rendered to the window
 - Add the ability to close the window programmatically through `Window::close`
+- Fix Asset loading bugs on Chromium
 - Fix `MouseWheel` event being reported as `MouseMove` on non-wasm platforms.
 
 
