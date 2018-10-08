@@ -3,6 +3,7 @@
 ## In-development
 - Check xhr readyState at file.rs on wasm platforms to fix The 'Asset' bug on chromium.
 - The `MouseWheel` event now works correctly on non-wasm platforms.
+- Alpha Blending now works correctly.
 
 - Add implementing custom drawables to the mesh tutorial
 - Mitigate a glutin bug on macOS Mojave that causes content to not be rendered to the window
