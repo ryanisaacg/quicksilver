@@ -9,7 +9,7 @@
 - Add the ability to close the window programmatically through `Window::close`
 - Fix Asset loading bugs on Chromium
 - Fix `MouseWheel` event being reported as `MouseMove` on non-wasm platforms.
-- Fix alpha blending now works correctly.
+- Fix alpha blending working incorrectly
 
 
 ## 0.3.0
