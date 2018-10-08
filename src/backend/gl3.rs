@@ -76,7 +76,12 @@ impl Backend for GL3Backend {
         let [vbo, ebo] = buffers;
         gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
         gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, ebo);
-        gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
+        gl::BlendFuncSeparate(
+            gl::SRC_ALPHA,
+            gl::ONE_MINUS_SRC_ALPHA,
+            gl::ONE,
+            gl::ONE_MINUS_SRC_ALPHA,
+        );
         gl::Enable(gl::BLEND);
         if multisample {
             gl::Enable(gl::MULTISAMPLE);
@@ -127,7 +132,12 @@ impl Backend for GL3Backend {
     }
 
     unsafe fn reset_blend_mode(&mut self) {
-        gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
+        gl::BlendFuncSeparate(
+            gl::SRC_ALPHA,
+            gl::ONE_MINUS_SRC_ALPHA,
+            gl::ONE,
+            gl::ONE_MINUS_SRC_ALPHA,
+        );
         gl::BlendEquationSeparate(gl::FUNC_ADD, gl::FUNC_ADD);
     }
 
