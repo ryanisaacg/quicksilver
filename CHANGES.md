@@ -1,6 +1,7 @@
 # Changelog
 
 ## In-development
+- The `MouseWheel` event now works correctly on non-wasm platforms.
 
 ## 0.3.1
 
