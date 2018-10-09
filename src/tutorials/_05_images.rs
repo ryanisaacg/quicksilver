@@ -8,24 +8,24 @@
 //! ```no_run
 //! // Draw an image to the screen
 //! extern crate quicksilver;
-//! 
+//!
 //! use quicksilver::{
 //!     Result,
 //!     geom::{Shape, Vector},
 //!     graphics::{Background::Img, Color, Image}, // We need Image and image backgrounds
 //!     lifecycle::{Asset, Settings, State, Window, run}, // To load anything, we need Asset
 //! };
-//! 
+//!
 //! struct ImageViewer {
 //!     asset: Asset<Image>, // an image asset isn't state, but it does need to persist
 //! }
-//! 
+//!
 //! impl State for ImageViewer {
 //!     fn new() -> Result<ImageViewer> {
 //!         let asset = Asset::new(Image::load("image.png")); // Start loading the asset
 //!         Ok(ImageViewer { asset })
 //!     }
-//! 
+//!
 //!     fn draw(&mut self, window: &mut Window) -> Result<()> {
 //!         window.clear(Color::WHITE)?;
 //!         self.asset.execute(|image| {
@@ -35,7 +35,7 @@
 //!         })
 //!     }
 //! }
-//! 
+//!
 //! fn main() {
 //!     run::<ImageViewer>("Image Example", Vector::new(800, 600), Settings {
 //!         icon_path: Some("image.png"), // Set the window icon
@@ -48,6 +48,13 @@
 //! and may be changed in the future, but for now all assets must be stored in `static.` You can
 //! use the [Quicksilver test
 //! image](https://github.com/ryanisaacg/quicksilver/blob/development/static/image.png).
+//!
+//! On the other hand, if you want to pack the Image data directly into the Rust binary, you can
+//! use `include_bytes!` and `Image::from_bytes`, which would look like
+//! `Image::from_bytes(include_bytes("path/to/my/image.png"))`. This has the advantage of allowing
+//! you to pack all your assets into one file, but also several disadvantages (such as needing to
+//! recompile the binary to edit the assets). Generally it is recommended to use the Asset system,
+//! but including the bytes is also an option.
 //!
 //! The asset system uses Futures, which are an asychronous programming concept. Basically, a
 //! Future is a computation that will complete at some point in, well, the future. For example,
@@ -68,18 +75,18 @@
 //! ```no_run
 //! // Draw an image to the screen
 //! extern crate quicksilver;
-//! 
+//!
 //! use quicksilver::{
 //!     Future, Result, // We need the Future trait to operate on a future
 //!     geom::{Rectangle, Shape, Vector},
 //!     graphics::{Background::Img, Color, Image},
 //!     lifecycle::{Asset, Settings, State, Window, run},
 //! };
-//! 
+//!
 //! struct ImageViewer {
 //!     asset: Asset<Image>,
 //! }
-//! 
+//!
 //! impl State for ImageViewer {
 //!     fn new() -> Result<ImageViewer> {
 //!         let asset = Asset::new(
@@ -89,7 +96,7 @@
 //!         );
 //!         Ok(ImageViewer { asset })
 //!     }
-//! 
+//!
 //!     fn draw(&mut self, window: &mut Window) -> Result<()> {
 //!         window.clear(Color::WHITE)?;
 //!         self.asset.execute(|image| {
@@ -99,7 +106,7 @@
 //!         })
 //!     }
 //! }
-//! 
+//!
 //! fn main() {
 //!     run::<ImageViewer>("Image Example", Vector::new(800, 600), Settings {
 //!         icon_path: Some("image.png"), // Set the window icon
