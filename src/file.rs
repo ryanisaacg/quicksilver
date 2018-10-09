@@ -19,7 +19,7 @@ use {
         Reference,
         InstanceOf,
         unstable::TryInto,
-        web::{XmlHttpRequest, ArrayBuffer, TypedArray},
+        web::{XmlHttpRequest, ArrayBuffer, TypedArray, XhrReadyState},
     }
 };
 
@@ -36,9 +36,9 @@ pub fn load_file(path: impl AsRef<Path>) -> impl Future<Item = Vec<u8>, Error = 
         future::result(create_request(path.as_ref().to_str().expect("The path must be able to be stringified")))
             .and_then(|xhr| future::poll_fn(move || {
                 let status = xhr.status();
-                match status / 100 {
-                    0 => Ok(Async::NotReady),
-                    2 => {
+                let ready_state = xhr.ready_state();
+                match (status / 100, ready_state) {
+                    (2, XhrReadyState::Done) => {
                         let response: Reference = xhr.raw_response().try_into().expect("The response will always be a JS object");
 
                         let array = if TypedArray::<u8>::instance_of(&response) {
@@ -55,6 +55,8 @@ pub fn load_file(path: impl AsRef<Path>) -> impl Future<Item = Vec<u8>, Error = 
                             Err(new_wasm_error("Failed to cast file into bytes"))
                         }
                     },
+                    (2, _) => Ok(Async::NotReady),
+                    (0, _) => Ok(Async::NotReady),
                     _ => Err(new_wasm_error("Non-200 status code returned"))
                 }
             }))

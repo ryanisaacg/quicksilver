@@ -99,7 +99,7 @@ impl EventProvider {
                         glutin::MouseScrollDelta::LineDelta(x, y) => Vector::new(x, -y) * LINES_TO_PIXELS,
                         glutin::MouseScrollDelta::PixelDelta(delta) => delta.into()
                     };
-                    events.push(Event::MouseMoved(vector));
+                    events.push(Event::MouseWheel(vector));
                 }
                 glutin::WindowEvent::Resized(size) => {
                     let size: Vector = size.into();

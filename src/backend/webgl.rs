@@ -94,7 +94,12 @@ impl Backend for WebGLBackend {
         let ebo = try_opt(ctx.create_buffer(), "Create index buffer")?;
         ctx.bind_buffer(gl::ARRAY_BUFFER, Some(&vbo));
         ctx.bind_buffer(gl::ELEMENT_ARRAY_BUFFER, Some(&ebo));
-        ctx.blend_func(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
+        ctx.blend_func_separate(
+            gl::SRC_ALPHA,
+            gl::ONE_MINUS_SRC_ALPHA,
+            gl::ONE,
+            gl::ONE_MINUS_SRC_ALPHA,
+        );
         ctx.enable(gl::BLEND);
         let vertex = try_opt(ctx.create_shader(gl::VERTEX_SHADER), "Create vertex shader")?;
         ctx.shader_source(&vertex, DEFAULT_VERTEX_SHADER);
@@ -141,7 +146,12 @@ impl Backend for WebGLBackend {
 
     unsafe fn reset_blend_mode(&mut self) {
         if let Some(ref gl_ctx) = GL_CONTEXT {
-            gl_ctx.blend_func(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
+            gl_ctx.blend_func_separate(
+                gl::SRC_ALPHA,
+                gl::ONE_MINUS_SRC_ALPHA,
+                gl::ONE,
+                gl::ONE_MINUS_SRC_ALPHA,
+            );
             gl_ctx.blend_equation_separate(gl::FUNC_ADD, gl::FUNC_ADD);
         }
     }
