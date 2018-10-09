@@ -36,7 +36,7 @@
             document.getElementById('subtitle').innerHTML = headers[example][1]
             document.getElementById('source').href = `https://github.com/ryanisaacg/quicksilver/blob/master/examples/${example}.rs`
             const script = document.createElement('script')
-            script.src = `${example}.js`
+            script.src = `${example}.example.js`
             document.head.appendChild(script)
         </script>
     </body>

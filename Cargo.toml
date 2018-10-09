@@ -1,7 +1,7 @@
 [package]
 name = "quicksilver"
 description = "A simple game framework for 2D games in pure Rust"
-version="0.3.0"
+version = "0.3.1"
 authors = ["Ryan Goldstein <ryanisaacg@gmail.com>"]
 categories = ["game-engines"]
 homepage = "https://ryanisaacg.github.io/quicksilver"
@@ -9,6 +9,7 @@ keywords = ["game", "audio", "graphics", "gamedev"]
 license = "MIT/Apache-2.0"
 readme = "README.md"
 repository = "https://github.com/ryanisaacg/quicksilver"
+exclude = ["docs/*"]
 
 [features]
 default = ["collisions", "complex_shapes", "fonts", "gamepads", "saving", "sounds"]
