@@ -40,9 +40,7 @@ matrix:
   fast_finish: true
 before_cache: |
   if [[ "$TRAVIS_RUST_VERSION" == "nightly" && "$TRAVIS_OS_NAME" == "linux" ]]; then
-    git clone https://github.com/xd009642/tarpaulin
-    cd tarpaulin
-    cargo install
+    RUSTFLAGS="--cfg procmacro2_semver_exempt" cargo install cargo-tarpaulin
   fi
 after_success: |
   if [[ "$TRAVIS_RUST_VERSION" == "nightly" && "$TRAVIS_OS_NAME" == "linux" ]] ; then
