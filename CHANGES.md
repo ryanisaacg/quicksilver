@@ -2,6 +2,8 @@
 
 ## In-development
 
+- Add `Image::from_bytes` to load an Image from an encoded byte array
+
 ## 0.3.1
 
 - Add implementing custom drawables to the mesh tutorial
