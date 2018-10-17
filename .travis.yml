@@ -2,6 +2,7 @@ language: rust
 os:
   - linux
   - osx
+  - windows
 addons:
   apt:
     packages:
