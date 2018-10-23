@@ -3,6 +3,7 @@
 ## In-development
 
 - Add `Image::from_bytes` to load an Image from an encoded byte array
+- Fix Transform's impl of PartialEq always returning the wrong result
 
 ## 0.3.1
 
