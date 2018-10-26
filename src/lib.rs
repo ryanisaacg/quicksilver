@@ -110,7 +110,7 @@
 //! 
 //! Each are enabled by default, but you can [specify which features](https://doc.rust-lang.org/cargo/reference/specifying-dependencies.html#choosing-features) you actually want to use. 
 
-#![doc(html_root_url = "https://docs.rs/quicksilver/0.3.1/quicksilver")]
+#![doc(html_root_url = "https://docs.rs/quicksilver/0.3.2/quicksilver")]
 #![deny(
     bare_trait_objects,
     missing_docs,
