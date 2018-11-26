@@ -2,7 +2,7 @@
 
 ## In-development
 
-- Fix transform of lines not working properly
+- Fix transformed lines not displaying properly
 
 ## 0.3.2
 
