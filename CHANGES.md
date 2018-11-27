@@ -2,6 +2,8 @@
 
 ## In-development
 
+- Fix transformed lines not displaying properly
+
 ## 0.3.2
 
 - Add `Image::from_bytes` to load an Image from an encoded byte array
