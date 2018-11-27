@@ -71,7 +71,7 @@ impl Shape for Rectangle {
         return p.x >= self.x()
             && p.y >= self.y()
             && p.x < self.x() + self.width()
-            && p.y < self.y() + self.width()
+            && p.y < self.y() + self.height()
     }
     fn overlaps_circle(&self, c: &Circle) -> bool {
         (c.center().clamp(self.top_left(), self.top_left() + self.size()) - c.center()).len2() < c.radius.powi(2)
