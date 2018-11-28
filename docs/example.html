@@ -1,26 +1,43 @@
-<head>
-    <link rel="stylesheet" href="style.css"></link>
-</head>
-<h1 id = "head"> example </h1>
-<a href="index.html#examples">
-    Return to the homepage
-</a>
-<br/>
-<br/>
-<br/>
-<a id="source" target="_blank">
-    View the source on GitHub
-</a>
-<br/>
-<br/>
-<br/>
-<script>
-    const url = window.location.href
-    const example = url.split('?')[1]
-    WASM_FILE_LOCATION = `wasm/${example}.wasm`
-    document.getElementById('head').innerHTML = `${example} example`
-    document.getElementById('source').href = `https://github.com/ryanisaacg/quicksilver/blob/master/examples/${example}.rs`
-    const script = document.createElement('script')
-    script.src = `${example}.js`
-    document.head.appendChild(script)
-</script>
+<html>
+    <head>
+        <link rel="stylesheet" href="style.css"></link>
+    </head>
+    <body>
+        <h1 style = "margin-top: 1.5em" id = "head"> </h1>
+        <h3 id = "subtitle"></h3>
+        <a href="index.html#examples">
+            Return to the homepage
+        </a>
+        <br>
+        <br>
+        <br>
+        <a id="source" target="_blank">
+            View the source on GitHub
+        </a>
+        <br>
+        <br>
+        <br>
+        <script>
+            const headers = {
+                'camera': ['Camera Example', 'Use the arrow keys to move around!'],
+                'draw-geometry': ['Draw Geometry Example', 'Draw some shapes to the screen'],
+                'font': ['Font Example', 'Write some true-type font text to the screen'],
+                'image': ['Image Example', 'Draw a PNG image to the screen'],
+                'lyon': ['Lyon Example', 'Use SVG to draw the Rust logo'],
+                'raycast': ['Raycast Example', 'A basic lighting example with the mouse as the light source'],
+                'rgb-triangle': ['RGB Triangle Example', 'Draw the classic graphics programming triangle'],
+                'sound': ['Sound Example', 'Play a sound when the square is clicked'],
+                'stopwatch': ['Stopwatch Example', 'Draw a stopwatch with a second, minute, and hour hand'],
+            }
+            const url = window.location.href
+            const example = url.split('?')[1]
+            WASM_FILE_LOCATION = `wasm/${example}.wasm`
+            document.getElementById('head').innerHTML = headers[example][0]
+            document.getElementById('subtitle').innerHTML = headers[example][1]
+            document.getElementById('source').href = `https://github.com/ryanisaacg/quicksilver/blob/master/examples/${example}.rs`
+            const script = document.createElement('script')
+            script.src = `${example}.example.js`
+            document.head.appendChild(script)
+        </script>
+    </body>
+</html>

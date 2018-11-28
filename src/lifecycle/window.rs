@@ -42,6 +42,7 @@ pub struct Window {
     frame_count: f64,
     fps: f64,
     last_framerate: f64,
+    running: bool,
 }
 
 impl Window {
@@ -71,6 +72,7 @@ impl Window {
             frame_count: 0.0,
             fps: 0.0,
             last_framerate: 0.0,
+            running: true,
         };
         window.set_show_cursor(settings.show_cursor);
         window.set_fullscreen(settings.fullscreen);
@@ -100,6 +102,15 @@ impl Window {
             gl_window.make_current()?;
             gl::load_with(|symbol| gl_window.get_proc_address(symbol) as *const _);
         }
+        // A mitigation for https://github.com/tomaka/glutin/issues/1069
+        // When it is resolved, this can be removed
+        #[cfg(target_os = "macos")]
+        let events = {
+            let mut events = events;
+            events.poll_events(|_| {});
+            gl_window.resize(user_size.into());
+            events
+        };
         let backend = unsafe { BackendImpl::new(gl_window, settings.scale, settings.multisampling != None)? };
         let window = Window::build_agnostic(user_size, user_size, settings, backend)?;
         Ok((window, events))
@@ -405,5 +416,16 @@ impl Window {
         let size = size.into();
         self.backend.resize(size);
         self.adjust_size(size);
+    }
+
+    /// Close the application without triggering the onclose handler
+    ///
+    /// On desktop, this closes the window, and on the web it removes the canvas from the page
+    pub fn close(&mut self) {
+        self.running = false;
+    }
+
+    pub(crate) fn is_running(&self) -> bool {
+        self.running
     }
 }

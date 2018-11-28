@@ -1,7 +1,7 @@
 [package]
 name = "quicksilver"
 description = "A simple game framework for 2D games in pure Rust"
-version="0.3.0"
+version = "0.3.2"
 authors = ["Ryan Goldstein <ryanisaacg@gmail.com>"]
 categories = ["game-engines"]
 homepage = "https://ryanisaacg.github.io/quicksilver"
@@ -9,6 +9,7 @@ keywords = ["game", "audio", "graphics", "gamedev"]
 license = "MIT/Apache-2.0"
 readme = "README.md"
 repository = "https://github.com/ryanisaacg/quicksilver"
+exclude = ["docs/*"]
 
 [features]
 default = ["collisions", "complex_shapes", "fonts", "gamepads", "saving", "sounds"]
@@ -18,7 +19,7 @@ complex_shapes = ["lyon"]
 fonts = ["rusttype"]
 gamepads = ["gilrs"]
 immi_ui = ["immi", "fonts"]
-saving = ["serde_json"]
+saving = ["dirs", "serde_json"]
 sounds = ["rodio"]
 
 [badges]
@@ -43,13 +44,14 @@ serde_json = { version = "1.0", optional = true }
 alga = "0.7"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+dirs = { version = "1.0", optional = true }
 gl = "0.10"
 glutin = { version = "0.18", features = ["icon_loading"] }
 gilrs = { version = "0.6", optional = true }
 rodio = { version = "0.8", optional = true }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-stdweb = "0.4.9"
+stdweb = "0.4.10"
 webgl_stdweb = "0.2"
 
 [[example]]

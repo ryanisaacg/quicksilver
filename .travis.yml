@@ -1,12 +1,15 @@
 language: rust
+cache: cargo
 os:
   - linux
   - osx
+  - windows
 addons:
   apt:
     packages:
       - libasound2-dev
       - libudev-dev
+      - libssl-dev
 env:
   global:
     - RUST_BACKTRACE=1
@@ -36,3 +39,12 @@ matrix:
     - rust: nightly
       env: WASM=0
   fast_finish: true
+before_cache: |
+  if [[ "$TRAVIS_RUST_VERSION" == "nightly" && "$TRAVIS_OS_NAME" == "linux" ]]; then
+    RUSTFLAGS="--cfg procmacro2_semver_exempt" cargo install cargo-tarpaulin
+  fi
+after_success: |
+  if [[ "$TRAVIS_RUST_VERSION" == "nightly" && "$TRAVIS_OS_NAME" == "linux" ]] ; then
+    cargo tarpaulin --out Xml
+    bash <(curl -s https://codecov.io/bash)
+  fi

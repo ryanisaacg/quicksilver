@@ -9,7 +9,6 @@ use std::{
     cmp::{Eq, PartialEq}
 };
 
-#[derive(Clone, Copy, Debug, Deserialize, Serialize)]
 /// A 2D transformation represented by a matrix
 ///
 /// Transforms can be composed together through matrix multiplication, and are applied to Vectors
@@ -33,6 +32,7 @@ use std::{
 /// transform * Vector::new(5, 5)
 /// # ;
 /// ```
+#[derive(Clone, Copy, Debug, Deserialize, Serialize)]
 pub struct Transform([[f32; 3]; 3]);
 
 impl Transform {
@@ -40,7 +40,7 @@ impl Transform {
     pub const IDENTITY: Transform = Transform([[1f32, 0f32, 0f32],
                   [0f32, 1f32, 0f32],
                   [0f32, 0f32, 1f32]]);
-    
+
     ///Create a Transform from an arbitrary matrix in a column-major matrix
     pub fn from_array(array: [[f32; 3]; 3]) -> Transform {
         Transform(array)
@@ -189,7 +189,7 @@ impl PartialEq for Transform {
     fn eq(&self, other: &Transform) -> bool {
         for i in 0..3 {
             for j in 0..3 {
-                if about_equal(self.0[i][j], other.0[i][j]) {
+                if !about_equal(self.0[i][j], other.0[i][j]) {
                     return false;
                 }
             }
@@ -214,6 +214,12 @@ impl From<Matrix3<f32>> for Transform {
 mod tests {
     extern crate alga;
     use super::*;
+
+    #[test]
+    fn equality() {
+        assert_eq!(Transform::IDENTITY, Transform::IDENTITY);
+        assert_eq!(Transform::rotate(5), Transform::rotate(5));
+    }
 
     #[test]
     fn inverse() {

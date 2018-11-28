@@ -5,7 +5,7 @@ use std::iter;
 /// Some object that can be drawn to the screen
 pub trait Drawable {
     /// Draw the object to the Mesh
-    fn draw<'a>(&self, &mut Mesh, Background<'a>, Transform, impl Scalar);
+    fn draw<'a>(&self, mesh: &mut Mesh, background: Background<'a>, transform: Transform, z: impl Scalar);
 }
 
 /// The background to use for a given drawable
@@ -93,8 +93,8 @@ impl Drawable for Line {
         let rect = Rectangle::new((self.a.x, self.a.y + self.t / 2.0), (self.a.distance(self.b), self.t));
 
         let trans = Transform::translate((self.a + self.b) / 2 - rect.center())
-            * Transform::rotate((self.b - self.a).angle())
-            * trans;
+            * trans
+            * Transform::rotate((self.b - self.a).angle());
         rect.draw(mesh, bkg, trans, z);
     }
 }

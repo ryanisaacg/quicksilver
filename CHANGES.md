@@ -3,6 +3,22 @@
 ## In-development
 
 - Add a new ResizeStrategy: IntegerScale
+- Fix bug in `Rectangle::contains`
+- Fix transformed lines not displaying properly
+
+## 0.3.2
+
+- Add `Image::from_bytes` to load an Image from an encoded byte array
+- Fix Transform's impl of PartialEq always returning the wrong result
+
+## 0.3.1
+
+- Add implementing custom drawables to the mesh tutorial
+- Mitigate a glutin bug on macOS Mojave that causes content to not be rendered to the window
+- Add the ability to close the window programmatically through `Window::close`
+- Fix Asset loading bugs on Chromium
+- Fix `MouseWheel` event being reported as `MouseMove` on non-wasm platforms.
+- Fix alpha blending working incorrectly
 
 ## 0.3.0
 - Add new methods of initializing fonts `Font::from_slice` and `Font::from_bytes` using byte sequences

@@ -110,7 +110,7 @@
 //! 
 //! Each are enabled by default, but you can [specify which features](https://doc.rust-lang.org/cargo/reference/specifying-dependencies.html#choosing-features) you actually want to use. 
 
-#![doc(html_root_url = "https://docs.rs/quicksilver/0.3.0/quicksilver")]
+#![doc(html_root_url = "https://docs.rs/quicksilver/0.3.2/quicksilver")]
 #![deny(
     bare_trait_objects,
     missing_docs,
@@ -136,6 +136,8 @@ extern crate stdweb;
 #[cfg(target_arch = "wasm32")]
 extern crate webgl_stdweb;
 
+#[cfg(all(feature = "dirs", not(target_arch = "wasm32")))]
+extern crate dirs;
 #[cfg(all(feature = "gilrs", not(target_arch = "wasm32")))]
 extern crate gilrs;
 #[cfg(feature = "lyon")]
