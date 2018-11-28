@@ -2,6 +2,7 @@
 
 ## In-development
 
+- Add a new ResizeStrategy: IntegerScale
 - Fix bug in `Rectangle::contains`
 - Fix transformed lines not displaying properly
 
@@ -18,7 +19,6 @@
 - Fix Asset loading bugs on Chromium
 - Fix `MouseWheel` event being reported as `MouseMove` on non-wasm platforms.
 - Fix alpha blending working incorrectly
-
 
 ## 0.3.0
 - Add new methods of initializing fonts `Font::from_slice` and `Font::from_bytes` using byte sequences
