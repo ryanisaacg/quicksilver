@@ -2,6 +2,7 @@
 
 ## In-development
 
+- Fix bug in `Rectangle::contains`
 - Fix transformed lines not displaying properly
 
 ## 0.3.2
