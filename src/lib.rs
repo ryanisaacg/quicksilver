@@ -85,10 +85,10 @@
 //! If you're deploying for the web, first make sure you've 
 //! [installed the wasm toolchain](https://www.hellorust.com/news/native-wasm-target.html) 
 //! and the [cargo web tool](https://github.com/koute/cargo-web). Build the 
-//! wasm file and its js bindings (`cargo +nightly web build --target wasm32-unknown-unknown`). Copy the .wasm and .js
+//! wasm file and its js bindings (`cargo web build --target wasm32-unknown-unknown`). Copy the .wasm and .js
 //! files produced (found at "target/wasm32-unknown-unknown/release") and any assets you may have used. Create an HTML file and //! attach the script with a `script` tag.
 //! 
-//! If you want to test your application locally, use `cargo +nightly web start --target wasm32-unknown-unknown` and open your favorite browser to the port it provides. 
+//! If you want to test your application locally, use `cargo web start --target wasm32-unknown-unknown` and open your favorite browser to the port it provides. 
 //! 
 //! ## Learning Quicksilver
 //! 
