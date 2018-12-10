@@ -5,6 +5,7 @@
 - Add a new ResizeStrategy: IntegerScale
 - Fix bug in `Rectangle::contains`
 - Fix transformed lines not displaying properly
+- Updated stdweb to allow stable Rust for web builds
 
 ## 0.3.2
 
