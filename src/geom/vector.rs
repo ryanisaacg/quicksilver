@@ -3,7 +3,7 @@
     geometry::Point2
 };
 
-use geom::{about_equal, Scalar};
+use crate::geom::{about_equal, Scalar};
 use rand::{
     Rng,
     distributions::{Distribution, Standard}

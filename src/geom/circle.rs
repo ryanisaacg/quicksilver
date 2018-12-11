@@ -1,5 +1,5 @@
 #[cfg(feature="ncollide2d")] use ncollide2d::shape::Ball;
-use geom::{about_equal, Scalar, Vector};
+use crate::geom::{about_equal, Scalar, Vector};
 use std::{
     cmp::{Eq, PartialEq},
 };

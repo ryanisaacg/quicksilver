@@ -1,4 +1,4 @@
-use geom::Vector;
+use crate::geom::Vector;
 use std::cmp::{Eq, PartialEq};
 
 #[derive(Clone, Copy, Default, Debug, Deserialize, Serialize)]

@@ -1,16 +1,15 @@
-use {
+use crate::{
     Result,
     backend::{Backend, ImageData, SurfaceData, VERTEX_SIZE},
     geom::{Rectangle, Vector},
-    gl,
-    glutin::{GlContext, GlWindow, dpi::LogicalSize},
-    graphics::{BlendMode, Color, GpuTriangle, Image, ImageScaleStrategy, PixelFormat, Surface, Vertex},
-    std::{
-        ffi::CString,
-        mem::size_of,
-        os::raw::c_void,
-        ptr::null as nullptr
-    }
+    graphics::{BlendMode, Color, GpuTriangle, Image, ImageScaleStrategy, PixelFormat, Surface, Vertex}
+};
+use glutin::{GlContext, GlWindow, dpi::LogicalSize};
+use std::{
+    ffi::CString,
+    mem::size_of,
+    os::raw::c_void,
+    ptr::null as nullptr
 };
 
 pub struct GL3Backend {

@@ -2,7 +2,7 @@
     bounding_volume::AABB,
     shape::Cuboid
 };
-use geom::{about_equal, Vector};
+use crate::geom::{about_equal, Vector};
 use std::cmp::{Eq, PartialEq};
 
 #[derive(Clone, Copy, Default, Debug, Deserialize, Serialize)]
@@ -97,8 +97,8 @@ impl Eq for Rectangle {}
 #[cfg(feature="ncollide2d")]
 impl From<AABB<f32>> for Rectangle {
     fn from(other: AABB<f32>) -> Rectangle {
-        let min: Vector = other.mins().clone().into();
-        let max: Vector = other.maxs().clone().into();
+        let min: Vector = Clone::clone(other.mins()).into();
+        let max: Vector = Clone::clone(other.maxs()).into();
         Rectangle::new(min, max - min)
     }
 }

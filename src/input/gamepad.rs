@@ -1,8 +1,8 @@
-use {
+use crate::{
     input::ButtonState,
     lifecycle::Event,
-    std::ops::Index
 };
+use std::ops::Index;
 
 /// A queryable traditional 2-stick gamepad
 #[derive(Copy, Clone, Debug)]

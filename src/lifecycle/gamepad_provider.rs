@@ -1,4 +1,4 @@
-use {
+use crate::{
     Result,
     input::Gamepad,
 };
@@ -9,7 +9,7 @@ use {
 };
 #[cfg(target_arch = "wasm32")]
 use {
-    input::ButtonState,
+    crate::input::ButtonState,
     stdweb::web::Gamepad as WebGamepad,
 };
 

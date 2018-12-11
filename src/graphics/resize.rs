@@ -1,4 +1,4 @@
-use geom::{Rectangle, Vector};
+use crate::geom::{Rectangle, Vector};
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Deserialize, Serialize)]
 /// The way to adjust the content when the size of the window changes

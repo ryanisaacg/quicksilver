@@ -1,12 +1,13 @@
-#[cfg(not(target_arch="wasm32"))]
-extern crate glutin;
-
-use input::{ButtonState, GamepadAxis, GamepadButton, Key, MouseButton};
-use geom::Vector;
+use crate::{
+    input::{ButtonState, GamepadAxis, GamepadButton, Key, MouseButton},
+    geom::Vector
+};
 #[cfg(not(target_arch="wasm32"))]
 use {
-    input::LINES_TO_PIXELS,
-    lifecycle::Window,
+    crate::{
+        input::{KEY_LIST, LINES_TO_PIXELS},
+        lifecycle::Window,
+    },
     glutin::{
         EventsLoop, 
         Event::WindowEvent
@@ -71,7 +72,7 @@ impl EventProvider {
                             glutin::ElementState::Pressed => ButtonState::Pressed,
                             glutin::ElementState::Released => ButtonState::Released
                         };
-                        let key = ::input::KEY_LIST[keycode as usize];
+                        let key = KEY_LIST[keycode as usize];
                         events.push(Event::Key(key, state));
                     }
                 }

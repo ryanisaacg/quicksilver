@@ -1,6 +1,6 @@
 #[cfg(feature="nalgebra")] use nalgebra::core::Matrix3;
 
-use geom::{about_equal, Scalar, Vector};
+use crate::geom::{about_equal, Scalar, Vector};
 use std::{
     ops::Mul,
     f32::consts::PI,
