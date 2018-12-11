@@ -139,6 +139,8 @@ pub mod sound;
 pub use crate::error::QuicksilverError as Error;
 pub use crate::file::load_file;
 
+pub use lyon;
+
 pub mod tutorials;
 
 /// A Result that returns either success or a Quicksilver Error
