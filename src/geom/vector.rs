@@ -330,7 +330,7 @@ impl<T: Scalar, U: Scalar> From<(T, U)> for Vector {
 
 #[cfg(test)]
 mod tests {
-    use geom::*;
+    use crate::geom::*;
 
     #[test]
     fn arithmetic() {

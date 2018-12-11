@@ -212,7 +212,6 @@ impl From<Matrix3<f32>> for Transform {
 
 #[cfg(test)]
 mod tests {
-    extern crate alga;
     use super::*;
 
     #[test]
@@ -271,7 +270,7 @@ mod tests {
     #[test]
     #[cfg(feature="nalgebra")]
     fn conversion() {
-        use self::alga::linear::Transformation;
+        use alga::linear::Transformation;
         let transform = Transform::rotate(5);
         let vector = Vector::new(1, 2);
         let na_matrix = transform.into_matrix();

@@ -43,7 +43,7 @@ impl Eq for Line {}
 
 #[cfg(test)]
 mod tests {
-    use geom::*;
+    use crate::geom::*;
 
     #[test]
     fn overlap_rectangle() {

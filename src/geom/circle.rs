@@ -47,7 +47,7 @@ impl Eq for Circle {}
 
 #[cfg(test)]
 mod tests {
-    use geom::*;
+    use crate::geom::*;
 
     #[test]
     fn construction() {

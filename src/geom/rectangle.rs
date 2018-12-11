@@ -105,7 +105,7 @@ impl From<AABB<f32>> for Rectangle {
 
 #[cfg(test)]
 mod tests {
-    use geom::*;
+    use crate::geom::*;
 
     #[test]
     fn overlap() {
