@@ -13,7 +13,7 @@ exclude = ["docs/*"]
 edition = "2018"
 
 [features]
-default = ["collisions", "complex_shapes", "fonts", "gamepads", "saving", "sounds"]
+default = ["collisions", "complex_shapes", "immi_ui", "fonts", "gamepads", "saving", "sounds"]
 
 collisions = ["nalgebra", "ncollide2d"]
 complex_shapes = ["lyon"]
