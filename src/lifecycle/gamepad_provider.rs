@@ -5,7 +5,7 @@ use crate::{
 #[cfg(all(not(any(target_arch="wasm32", target_os="macos")), feature = "gamepads"))]
 use {
     gilrs::{self, Button},
-    input::{ButtonState, GAMEPAD_BUTTON_LIST},
+    crate::input::{ButtonState, GAMEPAD_BUTTON_LIST},
 };
 #[cfg(target_arch = "wasm32")]
 use {
