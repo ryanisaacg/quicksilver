@@ -6,6 +6,9 @@
 - Fix bug in `Rectangle::contains`
 - Fix transformed lines not displaying properly
 - Update to Rust 2018
+- Fix immi draws and mouse pointer location being scaled incorrectly
+- Added `ImmiRender::new_with_view`, `ImmiRender::new_with_window`, and `create_immi_ctx`
+- Deprecated `ImmiRender::new` in favor of the above
 
 ## 0.3.2
 
