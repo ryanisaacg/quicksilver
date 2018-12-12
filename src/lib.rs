@@ -139,6 +139,7 @@ pub mod sound;
 pub use crate::error::QuicksilverError as Error;
 pub use crate::file::load_file;
 
+#[cfg(feature = "lyon")]
 pub use lyon;
 
 pub mod tutorials;
