@@ -47,8 +47,8 @@ pub struct ImmiRender<'a> {
     font: &'a Font
 }
 
-// TODO: remove old 'new' function and only allow creation of ImmiRender through the
-// create_immi_ctx
+// TODO: in the next breaking change, remove old 'new' function and only allow creation of ImmiRender through the
+// create_immi_ctx or new_with_view/window
 impl<'a> ImmiRender<'a> {
     /// Create an instance of the renderer, which should be done every frame
     ///
@@ -89,7 +89,7 @@ impl<'a> Draw for ImmiRender<'a> {
     type TextStyle = FontStyle;
 
     fn draw_triangle(&mut self, texture: &Image, matrix: &Matrix, uv_coords: [[f32; 2]; 3]) {
-        let transform = self.view.opengl.inverse() * matrix_to_trans(matrix);
+        let transform =  self.view.opengl.inverse() * Transform::scale((1, -1)) * matrix_to_trans(matrix);
         let offset = self.window.vertices.len() as u32;
         self.window.vertices.extend([(-1, 1), (-1, -1), (1, 1)]
             .iter()
