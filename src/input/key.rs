@@ -30,7 +30,6 @@ pub(crate) const KEY_LIST: &[Key] = &[Key::Key1, Key::Key2, Key::Key3, Key::Key4
 #[cfg(test)]
 mod tests {
     use super::*;
-    extern crate glutin;
     
     #[test]
     fn check_key_list() {

@@ -1,5 +1,7 @@
-use geom::{Vector, Transform};
-use graphics::{Background, Font, FontStyle, GpuTriangle, Image, Mesh, Vertex};
+use crate::{
+    geom::{Vector, Transform},
+    graphics::{Background, Font, FontStyle, GpuTriangle, Image, Mesh, Vertex}
+};
 use immi::{Draw, GlyphInfos, Matrix};
 use rusttype::{Point, Scale};
 

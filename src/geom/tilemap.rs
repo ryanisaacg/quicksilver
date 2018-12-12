@@ -1,4 +1,4 @@
-use geom::{Rectangle, Shape, Vector};
+use crate::geom::{Rectangle, Shape, Vector};
 use std::ops::Fn;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]

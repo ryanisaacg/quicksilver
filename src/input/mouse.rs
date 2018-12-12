@@ -1,5 +1,7 @@
-use geom::Vector;
-use input::ButtonState;
+use crate::{
+    geom::Vector,
+    input::ButtonState
+};
 use std::ops::Index;
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
