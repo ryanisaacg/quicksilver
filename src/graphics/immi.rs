@@ -1,3 +1,4 @@
+// TODO: in the next breaking change, this should possibly become its own module
 use crate::{
     geom::{Rectangle, Vector, Transform},
     input::{ButtonState, MouseButton},
@@ -8,6 +9,8 @@ use immi::{Draw, DrawContext, GlyphInfos, Matrix};
 use rusttype::{Point, Scale};
 
 /// Combine the ImmiStatus and the Render into a DrawContext
+///
+/// This is the main way to use Immi from within Quicksilver
 pub fn create_immi_ctx<'a>(state: ImmiStatus, render: &'a mut ImmiRender<'a>) -> DrawContext<'a, ImmiRender<'a>> {
     immi::draw().draw(state.window_size.x, state.window_size.y, render, state.mouse_pos, state.left, state.right)
 }
@@ -40,7 +43,9 @@ impl ImmiStatus {
     }
 }
 
-/// A Quicksilver implementation of immi, which allows immediate GUI functionality
+/// The implementation of the Immi rendering code for Quicksilver
+///
+/// This allows Immi to draw the UI to an arbitrary mesh. Used with `create_immi_ctx`
 pub struct ImmiRender<'a> {
     window: &'a mut Mesh,
     view: View,
