@@ -90,3 +90,7 @@ required-features = []
 [[example]]
 name = "camera"
 required-features = []
+
+[[example]]
+name = "immi"
+required-features = ["immi_ui"]
