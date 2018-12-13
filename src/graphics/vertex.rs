@@ -1,5 +1,7 @@
-use geom::{Scalar, Vector};
-use graphics::{Background, Color, Image};
+use crate::{
+    geom::{Scalar, Vector},
+    graphics::{Background, Color, Image}
+};
 use std::cmp::Ordering;
 
 #[derive(Clone, Copy, Debug)]

@@ -3,7 +3,7 @@
     geometry::Point2
 };
 
-use geom::{about_equal, Scalar};
+use crate::geom::{about_equal, Scalar};
 use rand::{
     Rng,
     distributions::{Distribution, Standard}
@@ -330,7 +330,7 @@ impl<T: Scalar, U: Scalar> From<(T, U)> for Vector {
 
 #[cfg(test)]
 mod tests {
-    use geom::*;
+    use crate::geom::*;
 
     #[test]
     fn arithmetic() {

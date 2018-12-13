@@ -1,5 +1,7 @@
-use geom::{Transform, Vector};
-use graphics::{Background, GpuTriangle, Vertex};
+use crate::{
+    geom::{Transform, Vector},
+    graphics::{Background, GpuTriangle, Vertex}
+};
 
 /// A way to store rendered objects without having to re-process them
 pub struct Mesh {

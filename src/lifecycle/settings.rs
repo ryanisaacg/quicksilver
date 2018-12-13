@@ -1,4 +1,4 @@
-use {
+use crate::{
     geom::Vector,
     graphics::{ImageScaleStrategy, ResizeStrategy},
 };

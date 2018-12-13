@@ -1,5 +1,7 @@
-use geom::Rectangle;
-use graphics::Image;
+use crate::{
+    geom::Rectangle,
+    graphics::Image
+};
 use std::rc::Rc;
 
 #[derive(Debug)]

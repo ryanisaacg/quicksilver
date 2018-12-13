@@ -1,4 +1,4 @@
-use backend::{Backend, BackendImpl};
+use crate::backend::{Backend, BackendImpl};
 
 #[derive(Debug)]
 #[cfg(not(target_arch = "wasm32"))]

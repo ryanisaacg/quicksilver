@@ -1,17 +1,19 @@
-use {
+use crate::{
     Result,
     geom::Vector,
     lifecycle::{Application, State, Settings, Window},
 };
 #[cfg(not(target_arch = "wasm32"))]
 use {
-    lifecycle::EventProvider,
+    crate::lifecycle::EventProvider,
     std::env::set_current_dir,
 };
 #[cfg(target_arch = "wasm32")]
 use {
-    input::{ButtonState, MouseButton, KEY_LIST, LINES_TO_PIXELS},
-    lifecycle::Event,
+    crate::{
+        input::{ButtonState, MouseButton, KEY_LIST, LINES_TO_PIXELS},
+        lifecycle::Event,
+    },
     std::{
         cell::{RefCell, RefMut},
         collections::HashMap,
@@ -51,10 +53,7 @@ fn run_impl<T: State>(title: &str, size: Vector, settings: Settings) -> Result<(
     let (window, events_loop) = Window::build(title, size, settings)?;
     let mut events = EventProvider::new(events_loop);
     #[cfg(feature = "sounds")]
-    {
-        use sound::Sound;
-        Sound::initialize();
-    }
+    crate::sound::Sound::initialize();
     let mut app: Application<T> = Application::new(window)?;
     while app.window.is_running() {
         let stay_open = events.generate_events(&mut app.window, &mut app.event_buffer);

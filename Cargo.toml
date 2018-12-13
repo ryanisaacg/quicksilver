@@ -10,9 +10,10 @@ license = "MIT/Apache-2.0"
 readme = "README.md"
 repository = "https://github.com/ryanisaacg/quicksilver"
 exclude = ["docs/*"]
+edition = "2018"
 
 [features]
-default = ["collisions", "complex_shapes", "fonts", "gamepads", "saving", "sounds"]
+default = ["collisions", "complex_shapes", "immi_ui", "fonts", "gamepads", "saving", "sounds"]
 
 collisions = ["nalgebra", "ncollide2d"]
 complex_shapes = ["lyon"]
@@ -89,3 +90,7 @@ required-features = []
 [[example]]
 name = "camera"
 required-features = []
+
+[[example]]
+name = "immi"
+required-features = ["immi_ui"]

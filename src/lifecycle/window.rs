@@ -1,4 +1,4 @@
-use {
+use crate::{
     Result,
     backend::{Backend, BackendImpl},
     geom::{Rectangle, Scalar, Transform, Vector},
@@ -8,7 +8,7 @@ use {
 };
 #[cfg(target_arch = "wasm32")]
 use {
-    error::QuicksilverError,
+    crate::error::QuicksilverError,
     stdweb::{
         web::{
             IElement, INode, document,
