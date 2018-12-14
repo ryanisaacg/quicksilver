@@ -162,10 +162,9 @@ fn run_impl<T: State>(title: &str, size: Vector, settings: Settings) -> Result<(
     });
     handle_event(&window, &app, move |mut app, _: ResizeEvent| {
         if app.window.get_fullscreen() {
-            let page_size = Vector::new(window.inner_width(), window.inner_height());
-            app.window.adjust_size(page_size);
+            app.window.set_fullscreen(true);
         }
-    })
+    });
 
     update(app.clone())?;
     draw(app.clone())
