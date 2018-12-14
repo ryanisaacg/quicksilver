@@ -413,9 +413,11 @@ impl Window {
 
     /// Set if the application is currently fullscreen
     pub fn set_fullscreen(&mut self, fullscreen: bool) {
-        // TODO: move screen size to backend to allow for size adjust here?
         self.fullscreen = fullscreen;
-        self.backend.set_fullscreen(fullscreen);
+        let size = self.backend.set_fullscreen(fullscreen);
+        if let Some(size) = size {
+            self.adjust_size(size);
+        }
     }
 
     /// Resize the window to the given size
