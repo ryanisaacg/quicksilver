@@ -1,11 +1,11 @@
-use {
+use crate::{
     Result,
     backend::{Backend, BackendImpl, SurfaceData},
     geom::{Transform, Vector},
     graphics::{Image, PixelFormat, View},
     lifecycle::Window,
-    std::rc::Rc
 };
+use std::rc::Rc;
 
 #[derive(Clone, Debug)]
 ///A possible render target that can be drawn to the screen

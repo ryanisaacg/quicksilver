@@ -5,13 +5,13 @@ use glutin;
 use image;
 #[cfg(all(not(target_arch = "wasm32"), feature = "rodio"))]
 use rodio;
-use graphics::{AtlasError, ImageError};
+use crate::graphics::{AtlasError, ImageError};
 #[cfg(feature = "rusttype")]
 use rusttype::Error as FontError;
 #[cfg(feature = "saving")]
-use saving::SaveError;
+use crate::saving::SaveError;
 #[cfg(feature = "sounds")]
-use sound::SoundError;
+use crate::sound::SoundError;
 use std::{fmt, error::Error, io::Error as IOError};
 
 #[derive(Debug)]

@@ -1,12 +1,12 @@
-use {
+use crate::{
     load_file,
     Result,
     error::QuicksilverError,
-    futures::{Future, future},
     graphics::{Color, Image, PixelFormat},
-    rusttype::{Font as RTFont, FontCollection, PositionedGlyph, Scale, point},
-    std::path::Path
 };
+use futures::{Future, future};
+use rusttype::{Font as RTFont, FontCollection, PositionedGlyph, Scale, point};
+use std::path::Path;
 
 /// An in-memory TTF font that can render text on demand
 pub struct Font {

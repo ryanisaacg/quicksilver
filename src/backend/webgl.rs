@@ -1,24 +1,24 @@
-use {
+use crate::{
     Result,
     backend::{Backend, ImageData, SurfaceData, VERTEX_SIZE},
     geom::{Rectangle, Vector},
     error::QuicksilverError,
     graphics::{BlendMode, Color, GpuTriangle, Image, ImageScaleStrategy, PixelFormat, Surface, Vertex},
-    std::mem::size_of,
-    stdweb::{
-        web::{
-            html_element::CanvasElement,
-            TypedArray
-        },
-        unstable::TryInto
+};
+use std::mem::size_of;
+use stdweb::{
+    web::{
+        html_element::CanvasElement,
+        TypedArray
     },
-    webgl_stdweb::{
-        WebGLBuffer,
-        WebGLProgram,
-        WebGL2RenderingContext as gl,
-        WebGLShader,
-        WebGLUniformLocation
-    }
+    unstable::TryInto
+};
+use webgl_stdweb::{
+    WebGLBuffer,
+    WebGLProgram,
+    WebGL2RenderingContext as gl,
+    WebGLShader,
+    WebGLUniformLocation
 };
 #[cfg(target_arch = "wasm32")]
 use stdweb::web::document;

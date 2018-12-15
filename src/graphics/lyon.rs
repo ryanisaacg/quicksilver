@@ -1,5 +1,7 @@
-use geom::{Transform, Vector};
-use graphics::{Background::Col, Color, GpuTriangle, Mesh, Vertex};
+use crate::{
+    geom::{Transform, Vector},
+    graphics::{Background::Col, Color, GpuTriangle, Mesh, Vertex}
+};
 use lyon::tessellation::{
     geometry_builder::{Count, GeometryBuilder, VertexId},
     FillVertex, VertexConstructor

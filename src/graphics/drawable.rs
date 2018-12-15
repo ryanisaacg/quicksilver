@@ -1,5 +1,7 @@
-use geom::{Circle, Line, Rectangle, Scalar, Shape, Transform, Triangle, Vector};
-use graphics::{Color, GpuTriangle, Image, Mesh};
+use crate::{
+    geom::{Circle, Line, Rectangle, Scalar, Shape, Transform, Triangle, Vector},
+    graphics::{Color, GpuTriangle, Image, Mesh}
+};
 use std::iter;
 
 /// Some object that can be drawn to the screen

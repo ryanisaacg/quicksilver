@@ -1,9 +1,11 @@
-use geom::{Rectangle, Vector};
+use crate::geom::{Rectangle, Vector};
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Deserialize, Serialize)]
 /// The way to adjust the content when the size of the window changes
 pub enum ResizeStrategy {
     /// Use black bars to keep the size exactly the same
+    ///
+    /// If necessary, content will be cut off
     Maintain,
     /// Fill the screen while maintaing aspect ratio, possiby cutting off content in the process
     Fill,
@@ -41,7 +43,7 @@ impl ResizeStrategy {
             ResizeStrategy::IntegerScale { width, height } => {
                 // Find the integer scale that fills the most amount of screen with no cut off
                 // content
-                Vector::new(width, height) * (new_size.x / width as f32).floor().min((new_size.y / height as f32).floor())
+                Vector::new(width, height) * int_scale(new_size.x / width as f32).min(int_scale(new_size.y / height as f32))
             }
         };
         Rectangle::new((new_size - content_area) / 2, content_area)
@@ -52,12 +54,23 @@ impl ResizeStrategy {
     }
 }
 
+// Find either the n or 1 / n where n is an integer
+fn int_scale(value: f32) -> f32 {
+    if value >= 1.0 {
+        value.floor()
+    } else {
+        value.recip().floor().recip()
+    }
+}
+
 impl Default for ResizeStrategy {
     fn default() -> ResizeStrategy {
         ResizeStrategy::Fit
     }
 }
 
+// TODO: Upgrade to Rust 2018 and use const fn for Replace::new so that the arrays can be const and
+// outside the method
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -72,30 +85,35 @@ mod tests {
     #[test]
     fn resize() {
         let new = [
+            BASE / 2,
             BASE,
             BASE * 2,
             BASE.x_comp() * 2 + BASE.y_comp(),
             BASE.x_comp() + BASE.y_comp() * 2
         ];
         let maintain = [
+            Rectangle::new(-BASE / 4, BASE),
             Rectangle::new_sized(BASE),
             Rectangle::new(BASE / 2, BASE),
             Rectangle::new(BASE.x_comp() / 2, BASE),
             Rectangle::new(BASE.y_comp() / 2, BASE),
         ];
         let fill = [
+            Rectangle::new_sized(BASE / 2),
             Rectangle::new_sized(BASE),
             Rectangle::new_sized(BASE * 2),
             Rectangle::new(-BASE.y_comp() / 2, BASE * 2),
             Rectangle::new(-BASE.x_comp() / 2, BASE * 2)
         ];
         let fit = [
+            Rectangle::new_sized(BASE / 2),
             Rectangle::new_sized(BASE),
             Rectangle::new_sized(BASE * 2),
             Rectangle::new(BASE.x_comp() / 2, BASE),
             Rectangle::new(BASE.y_comp() / 2, BASE)
         ];
         let scale = [
+            Rectangle::new_sized(BASE / 2),
             Rectangle::new_sized(BASE),
             Rectangle::new_sized(BASE * 2),
             Rectangle::new(BASE.x_comp() / 2, BASE),

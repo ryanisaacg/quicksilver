@@ -1,8 +1,10 @@
-use {Result, load_file};
-use error::QuicksilverError;
+use crate::{
+    Result, load_file,
+    error::QuicksilverError,
+    geom::{Rectangle, Shape, Vector},
+    graphics::{Image, ImageError}
+};
 use futures::{Future, future};
-use geom::{Rectangle, Shape, Vector};
-use graphics::{Image, ImageError};
 use std::{
     cmp::Ordering,
     collections::HashMap,
