@@ -270,7 +270,6 @@ mod tests {
     #[test]
     #[cfg(feature="nalgebra")]
     fn conversion() {
-        use alga::linear::Transformation;
         let transform = Transform::rotate(5);
         let vector = Vector::new(1, 2);
         let na_matrix = transform.into_matrix();
