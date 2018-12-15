@@ -2,6 +2,17 @@
 
 ## In-development
 
+## 0.3.3
+
+- Add a new ResizeStrategy: IntegerScale
+- Fix bug in `Rectangle::contains`
+- Fix transformed lines not displaying properly
+- Update to Rust 2018
+- Fix immi draws and mouse pointer location being scaled incorrectly
+- Added `ImmiRender::new_with_view`, `ImmiRender::new_with_window`, and `create_immi_ctx`
+- Deprecated `ImmiRender::new` in favor of the above
+- Added dynamic full screen to the web backend
+
 ## 0.3.2
 
 - Add `Image::from_bytes` to load an Image from an encoded byte array
@@ -15,7 +26,6 @@
 - Fix Asset loading bugs on Chromium
 - Fix `MouseWheel` event being reported as `MouseMove` on non-wasm platforms.
 - Fix alpha blending working incorrectly
-
 
 ## 0.3.0
 - Add new methods of initializing fonts `Font::from_slice` and `Font::from_bytes` using byte sequences

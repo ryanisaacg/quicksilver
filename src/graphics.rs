@@ -33,5 +33,5 @@ pub use self::{
 };
 #[cfg(feature="fonts")] pub use self::font::{Font, FontStyle};
 #[cfg(feature="lyon")] pub use self::lyon::ShapeRenderer;
-#[cfg(feature = "immi")] pub use self::immi::ImmiRender;
+#[cfg(feature = "immi")] pub use self::immi::{create_immi_ctx, ImmiStatus, ImmiRender};
 

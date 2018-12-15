@@ -1,23 +1,81 @@
-use geom::{Vector, Transform};
-use graphics::{Background, Font, FontStyle, GpuTriangle, Image, Mesh, Vertex};
-use immi::{Draw, GlyphInfos, Matrix};
+// TODO: in the next breaking change, this should possibly become its own module
+use crate::{
+    geom::{Rectangle, Vector, Transform},
+    input::{ButtonState, MouseButton},
+    graphics::{Background, Font, FontStyle, GpuTriangle, Image, Mesh, Vertex, View},
+    lifecycle::Window,
+};
+use immi::{Draw, DrawContext, GlyphInfos, Matrix};
 use rusttype::{Point, Scale};
 
-/// A Quicksilver implementation of immi, which allows immediate GUI functionality
+/// Combine the ImmiStatus and the Render into a DrawContext
+///
+/// This is the main way to use Immi from within Quicksilver
+pub fn create_immi_ctx<'a>(state: ImmiStatus, render: &'a mut ImmiRender<'a>) -> DrawContext<'a, ImmiRender<'a>> {
+    immi::draw().draw(state.window_size.x, state.window_size.y, render, state.mouse_pos, state.left, state.right)
+}
+
+/// The current state of the world to pass to Immi
+///
+/// Contains information about mouse position, cursor, etc. Used with `create_immi_ctx`
+pub struct ImmiStatus {
+    window_size: Vector,
+    mouse_pos: Option<[f32; 2]>,
+    left: bool,
+    right: bool,
+}
+
+impl ImmiStatus {
+    /// Get the state from the window
+    pub fn new(window: &Window) -> ImmiStatus {
+        let window_size = window.screen_size();
+        let mouse_pos = window.mouse().pos();
+        // Scaled from -1 to 1. (-1 being the left of the window, 1 being the right of the window)
+        let mouse_x_normalized = (mouse_pos.x / window_size.x) * 2f32 - 1f32;
+        // Scaled from -1 to 1. (-1 being the bottom of the window, 1 being the top of the window)
+        let mouse_y_normalized = (mouse_pos.y / window_size.y) * -2f32 + 1f32;
+        ImmiStatus {
+            window_size,
+            mouse_pos: Some([mouse_x_normalized, mouse_y_normalized]),
+            left: window.mouse()[MouseButton::Left] == ButtonState::Pressed,
+            right: window.mouse()[MouseButton::Left] == ButtonState::Released
+        }
+    }
+}
+
+/// The implementation of the Immi rendering code for Quicksilver
+///
+/// This allows Immi to draw the UI to an arbitrary mesh. Used with `create_immi_ctx`
 pub struct ImmiRender<'a> {
     window: &'a mut Mesh,
+    view: View,
     font: &'a Font
 }
 
+// TODO: in the next breaking change, remove old 'new' function and only allow creation of ImmiRender through the
+// create_immi_ctx or new_with_view/window
 impl<'a> ImmiRender<'a> {
     /// Create an instance of the renderer, which should be done every frame
     ///
     /// The renderer is a short-lived object that should not be stored
+    #[deprecated(since = "0.3.3", note = "please use new_with_view instead")]
     pub fn new(target: &'a mut Mesh, font: &'a Font) -> ImmiRender<'a> {
+        ImmiRender::new_with_view(target, View::new(Rectangle::new((-1, -1), (2, 2))), font)
+    }
+
+    /// Create a new instance of the renderer with the given view
+    pub fn new_with_view(target: &'a mut Mesh, view: View, font: &'a Font) -> ImmiRender<'a> {
         ImmiRender {
             window: target,
+            view,
             font
         }
+    }
+
+    /// Create a renderer from a Window
+    pub fn new_with_window(window: &'a mut Window, font: &'a Font) -> ImmiRender<'a> {
+        let view = window.view();
+        ImmiRender::new_with_view(window.mesh(), view, font)
     }
 }
 
@@ -36,7 +94,7 @@ impl<'a> Draw for ImmiRender<'a> {
     type TextStyle = FontStyle;
 
     fn draw_triangle(&mut self, texture: &Image, matrix: &Matrix, uv_coords: [[f32; 2]; 3]) {
-        let transform = matrix_to_trans(matrix);
+        let transform =  self.view.opengl.inverse() * Transform::scale((1, -1)) * matrix_to_trans(matrix);
         let offset = self.window.vertices.len() as u32;
         self.window.vertices.extend([(-1, 1), (-1, -1), (1, 1)]
             .iter()

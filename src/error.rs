@@ -5,13 +5,13 @@ use glutin;
 use image;
 #[cfg(all(not(target_arch = "wasm32"), feature = "rodio"))]
 use rodio;
-use graphics::{AtlasError, ImageError};
+use crate::graphics::{AtlasError, ImageError};
 #[cfg(feature = "rusttype")]
 use rusttype::Error as FontError;
 #[cfg(feature = "saving")]
-use saving::SaveError;
+use crate::saving::SaveError;
 #[cfg(feature = "sounds")]
-use sound::SoundError;
+use crate::sound::SoundError;
 use std::{fmt, error::Error, io::Error as IOError};
 
 #[derive(Debug)]
@@ -148,27 +148,33 @@ Please file a bug report at https://github.com/ryanisaacg/quicksilver that inclu
 - The error message above
 "#;
 
+#[cfg(not(target_arch = "wasm32"))]
+fn creation_to_str(err: &glutin::CreationError) -> String {
+    match err {
+        glutin::CreationError::OsError(string) => string.to_owned(),
+        glutin::CreationError::NotSupported(err) => (*err).to_owned(),
+        glutin::CreationError::NoBackendAvailable(error) => error.to_string(),
+        glutin::CreationError::RobustnessNotSupported => ROBUST_ERROR.to_owned(),
+        glutin::CreationError::OpenGlVersionNotSupported => {
+            "OpenGL version not supported".to_owned()
+        }
+        glutin::CreationError::NoAvailablePixelFormat => "No available pixel format".to_owned(),
+        glutin::CreationError::PlatformSpecific(string) => string.to_owned(),
+        glutin::CreationError::Window(error) => match error {
+            glutin::WindowCreationError::OsError(string) => string.to_owned(),
+            glutin::WindowCreationError::NotSupported => {
+                "Window creation failed: not supported".to_owned()
+            }
+        },
+        glutin::CreationError::CreationErrorPair(a, b) => format!("({}, {})", creation_to_str(a), creation_to_str(b)),
+    }
+}
+
 #[doc(hidden)]
 #[cfg(not(target_arch = "wasm32"))]
 impl From<glutin::CreationError> for QuicksilverError {
     fn from(err: glutin::CreationError) -> QuicksilverError {
-        QuicksilverError::ContextError(match err {
-            glutin::CreationError::OsError(string) => string,
-            glutin::CreationError::NotSupported(err) => err.to_owned(),
-            glutin::CreationError::NoBackendAvailable(error) => error.to_string(),
-            glutin::CreationError::RobustnessNotSupported => ROBUST_ERROR.to_owned(),
-            glutin::CreationError::OpenGlVersionNotSupported => {
-                "OpenGL version not supported".to_owned()
-            }
-            glutin::CreationError::NoAvailablePixelFormat => "No available pixel format".to_owned(),
-            glutin::CreationError::PlatformSpecific(string) => string,
-            glutin::CreationError::Window(error) => match error {
-                glutin::WindowCreationError::OsError(string) => string,
-                glutin::WindowCreationError::NotSupported => {
-                    "Window creation failed: not supported".to_owned()
-                }
-            },
-        })
+        QuicksilverError::ContextError(creation_to_str(&err))
     }
 }
 

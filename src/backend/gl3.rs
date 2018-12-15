@@ -1,16 +1,15 @@
-use {
+use crate::{
     Result,
     backend::{Backend, ImageData, SurfaceData, VERTEX_SIZE},
     geom::{Rectangle, Vector},
-    gl,
-    glutin::{GlContext, GlWindow, dpi::LogicalSize},
-    graphics::{BlendMode, Color, GpuTriangle, Image, ImageScaleStrategy, PixelFormat, Surface, Vertex},
-    std::{
-        ffi::CString,
-        mem::size_of,
-        os::raw::c_void,
-        ptr::null as nullptr
-    }
+    graphics::{BlendMode, Color, GpuTriangle, Image, ImageScaleStrategy, PixelFormat, Surface, Vertex}
+};
+use glutin::{GlWindow, dpi::LogicalSize};
+use std::{
+    ffi::CString,
+    mem::size_of,
+    os::raw::c_void,
+    ptr::null as nullptr
 };
 
 pub struct GL3Backend {
@@ -316,12 +315,13 @@ impl Backend for GL3Backend {
         Ok(self.context.swap_buffers()?)
     }
 
-    fn set_fullscreen(&mut self, fullscreen: bool) {
+    fn set_fullscreen(&mut self, fullscreen: bool) -> Option<Vector> {
         self.context.set_fullscreen(if fullscreen {
             Some(self.context.get_primary_monitor())
         } else {
             None
         });
+        None
     }
 
     fn resize(&mut self, size: Vector) {

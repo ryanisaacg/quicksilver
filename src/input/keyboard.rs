@@ -1,4 +1,4 @@
-use input::{ButtonState, Key};
+use crate::input::{ButtonState, Key};
 use std::ops::Index;
 use std::fmt::{Debug, Error, Formatter};
 

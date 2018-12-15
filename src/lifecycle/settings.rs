@@ -1,4 +1,4 @@
-use {
+use crate::{
     geom::Vector,
     graphics::{ImageScaleStrategy, ResizeStrategy},
 };
@@ -21,8 +21,6 @@ pub struct Settings {
     /// How images should be scaled
     pub scale: ImageScaleStrategy,
     /// If the application should be fullscreen
-    ///
-    /// Does nothing on web currently
     pub fullscreen: bool,
     /// How many milliseconds should elapse between update calls
     pub update_rate: f64,

@@ -1,5 +1,7 @@
-use geom::{Circle, Line, Rectangle, Scalar, Shape, Transform, Triangle, Vector};
-use graphics::{Color, GpuTriangle, Image, Mesh};
+use crate::{
+    geom::{Circle, Line, Rectangle, Scalar, Shape, Transform, Triangle, Vector},
+    graphics::{Color, GpuTriangle, Image, Mesh}
+};
 use std::iter;
 
 /// Some object that can be drawn to the screen
@@ -93,8 +95,8 @@ impl Drawable for Line {
         let rect = Rectangle::new((self.a.x, self.a.y + self.t / 2.0), (self.a.distance(self.b), self.t));
 
         let trans = Transform::translate((self.a + self.b) / 2 - rect.center())
-            * Transform::rotate((self.b - self.a).angle())
-            * trans;
+            * trans
+            * Transform::rotate((self.b - self.a).angle());
         rect.draw(mesh, bkg, trans, z);
     }
 }

@@ -110,7 +110,7 @@
 //! 
 //! Each are enabled by default, but you can [specify which features](https://doc.rust-lang.org/cargo/reference/specifying-dependencies.html#choosing-features) you actually want to use. 
 
-#![doc(html_root_url = "https://docs.rs/quicksilver/0.3.2/quicksilver")]
+#![doc(html_root_url = "https://docs.rs/quicksilver/0.3.3/quicksilver")]
 #![deny(
     bare_trait_objects,
     missing_docs,
@@ -119,43 +119,11 @@
     unused_qualifications
 )]
 
-extern crate futures;
-extern crate image;
-extern crate rand;
 #[macro_use]
 extern crate serde_derive;
-
-#[cfg(not(target_arch = "wasm32"))]
-extern crate gl;
-#[cfg(not(target_arch = "wasm32"))]
-extern crate glutin;
-
 #[cfg(target_arch = "wasm32")]
 #[macro_use]
 extern crate stdweb;
-#[cfg(target_arch = "wasm32")]
-extern crate webgl_stdweb;
-
-#[cfg(all(feature = "dirs", not(target_arch = "wasm32")))]
-extern crate dirs;
-#[cfg(all(feature = "gilrs", not(target_arch = "wasm32")))]
-extern crate gilrs;
-#[cfg(feature = "lyon")]
-pub extern crate lyon;
-#[cfg(feature = "immi")]
-extern crate immi;
-#[cfg(feature = "nalgebra")]
-extern crate nalgebra;
-#[cfg(feature = "ncollide2d")]
-extern crate ncollide2d;
-#[cfg(all(feature = "rodio", not(target_arch = "wasm32")))]
-extern crate rodio;
-#[cfg(feature = "rusttype")]
-extern crate rusttype;
-#[cfg(feature = "serde_json")]
-extern crate serde;
-#[cfg(feature = "serde_json")]
-extern crate serde_json;
 
 mod backend;
 mod error;
@@ -168,8 +136,11 @@ pub mod lifecycle;
 pub mod saving;
 #[cfg(feature = "sounds")]
 pub mod sound;
-pub use error::QuicksilverError as Error;
-pub use file::load_file;
+pub use crate::error::QuicksilverError as Error;
+pub use crate::file::load_file;
+
+#[cfg(feature = "lyon")]
+pub use lyon;
 
 pub mod tutorials;
 

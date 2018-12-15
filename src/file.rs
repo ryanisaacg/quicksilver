@@ -1,11 +1,11 @@
 //! A collection of general utilities
 
-use error::QuicksilverError;
+use crate::error::QuicksilverError;
 use futures::{Future, future};
 use std::path::Path;
 #[cfg(not(target_arch="wasm32"))]
 use {
-    Result,
+    crate::Result,
     std::{
         fs::File,
         io::Read,

@@ -1,4 +1,4 @@
-use {
+use crate::{
     Result,
     backend::{Backend, BackendImpl},
     geom::{Rectangle, Scalar, Transform, Vector},
@@ -8,7 +8,7 @@ use {
 };
 #[cfg(target_arch = "wasm32")]
 use {
-    error::QuicksilverError,
+    crate::error::QuicksilverError,
     stdweb::{
         web::{
             IElement, INode, document,
@@ -43,6 +43,7 @@ pub struct Window {
     fps: f64,
     last_framerate: f64,
     running: bool,
+    fullscreen: bool,
 }
 
 impl Window {
@@ -73,6 +74,7 @@ impl Window {
             fps: 0.0,
             last_framerate: 0.0,
             running: true,
+            fullscreen: false
         };
         window.set_show_cursor(settings.show_cursor);
         window.set_fullscreen(settings.fullscreen);
@@ -404,11 +406,18 @@ impl Window {
         self.backend.set_title(title);
     }
 
+    /// Get if the application is currently fullscreen
+    pub fn get_fullscreen(&self) -> bool {
+        self.fullscreen
+    }
+
     /// Set if the application is currently fullscreen
-    ///
-    /// This currently does nothing on web
     pub fn set_fullscreen(&mut self, fullscreen: bool) {
-        self.backend.set_fullscreen(fullscreen);
+        self.fullscreen = fullscreen;
+        let size = self.backend.set_fullscreen(fullscreen);
+        if let Some(size) = size {
+            self.adjust_size(size);
+        }
     }
 
     /// Resize the window to the given size

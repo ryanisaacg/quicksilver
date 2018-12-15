@@ -1,18 +1,17 @@
-use {
+use crate::{
     Result,
     backend::{Backend, BackendImpl, ImageData},
     error::QuicksilverError,
     file::load_file,
-    futures::{Future, future},
     geom::{Rectangle, Transform, Vector},
-    image,
-    std::{
-        error::Error,
-        fmt,
-        io::Error as IOError,
-        path::Path,
-        rc::Rc
-    }
+};
+use futures::{Future, future};
+use std::{
+    error::Error,
+    fmt,
+    io::Error as IOError,
+    path::Path,
+    rc::Rc
 };
 
 ///Pixel formats for use with loading raw images

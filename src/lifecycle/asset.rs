@@ -1,8 +1,8 @@
-use {
+use crate::{
     Future, Result,
     error::QuicksilverError,
-    futures::Async,
 };
+use futures::Async;
 
 /// A structure to manage the loading and use of a future
 pub struct Asset<T>(AssetData<T>);

@@ -1,4 +1,4 @@
-use geom::Vector;
+use crate::geom::Vector;
 use std::cmp::{Eq, PartialEq};
 
 #[derive(Clone, Copy, Default, Debug, Deserialize, Serialize)]
@@ -40,7 +40,7 @@ impl Eq for Triangle {}
 
 #[cfg(test)]
 mod tests {
-    use geom::*;
+    use crate::geom::*;
 
     #[test]
     fn overlap_rectangle() {

@@ -1,10 +1,10 @@
-use geom::{Circle, Line, Rectangle, Triangle, Vector, about_equal};
+use crate::geom::{Circle, Line, Rectangle, Triangle, Vector, about_equal};
 
 /// The collision and positional attributes of shapes
 pub trait Shape {
     /// If the point lies on the shape's boundary or within it
     #[must_use]
-    fn contains(&self, impl Into<Vector>) -> bool;
+    fn contains(&self, point: impl Into<Vector>) -> bool;
     /// If any area bounded by the shape falls on the line
     #[must_use]
     fn intersects(&self, line: &Line) -> bool { self.overlaps(line) }
@@ -16,7 +16,7 @@ pub trait Shape {
     fn overlaps_rectangle(&self, rectangle: &Rectangle) -> bool { self.overlaps(rectangle) }
     /// If any area is bounded by both either shape
     #[must_use]
-    fn overlaps(&self, &impl Shape) -> bool;
+    fn overlaps(&self, other: &impl Shape) -> bool;
 
     /// The point all other points are equidistant to in the shape
     #[must_use]
@@ -26,7 +26,7 @@ pub trait Shape {
     fn bounding_box(&self) -> Rectangle;
     /// Create a copy of the shape with an offset center
     #[must_use]
-    fn translate(&self, impl Into<Vector>) -> Self where Self: Sized;
+    fn translate(&self, amount: impl Into<Vector>) -> Self where Self: Sized;
     /// Create a copy of the shape that is contained within the bound
     #[must_use]
     fn constrain(&self, outer: &Rectangle) -> Self where Self: Sized {
@@ -71,7 +71,7 @@ impl Shape for Rectangle {
         return p.x >= self.x()
             && p.y >= self.y()
             && p.x < self.x() + self.width()
-            && p.y < self.y() + self.width()
+            && p.y < self.y() + self.height()
     }
     fn overlaps_circle(&self, c: &Circle) -> bool {
         (c.center().clamp(self.top_left(), self.top_left() + self.size()) - c.center()).len2() < c.radius.powi(2)

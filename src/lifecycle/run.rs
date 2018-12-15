@@ -1,17 +1,19 @@
-use {
+use crate::{
     Result,
     geom::Vector,
     lifecycle::{Application, State, Settings, Window},
 };
 #[cfg(not(target_arch = "wasm32"))]
 use {
-    lifecycle::EventProvider,
+    crate::lifecycle::EventProvider,
     std::env::set_current_dir,
 };
 #[cfg(target_arch = "wasm32")]
 use {
-    input::{ButtonState, MouseButton, KEY_LIST, LINES_TO_PIXELS},
-    lifecycle::Event,
+    crate::{
+        input::{ButtonState, MouseButton, KEY_LIST, LINES_TO_PIXELS},
+        lifecycle::Event,
+    },
     std::{
         cell::{RefCell, RefMut},
         collections::HashMap,
@@ -25,7 +27,7 @@ use {
                 BlurEvent, ConcreteEvent, FocusEvent, GamepadConnectedEvent, GamepadDisconnectedEvent,
                 IGamepadEvent, IKeyboardEvent, IMouseEvent, KeyDownEvent, KeyUpEvent, 
                 MouseButton as WebMouseButton, MouseDownEvent, MouseMoveEvent, MouseOutEvent, 
-                MouseOverEvent, MouseUpEvent
+                MouseOverEvent, MouseUpEvent, ResizeEvent
             }
         }
     }
@@ -51,10 +53,7 @@ fn run_impl<T: State>(title: &str, size: Vector, settings: Settings) -> Result<(
     let (window, events_loop) = Window::build(title, size, settings)?;
     let mut events = EventProvider::new(events_loop);
     #[cfg(feature = "sounds")]
-    {
-        use sound::Sound;
-        Sound::initialize();
-    }
+    crate::sound::Sound::initialize();
     let mut app: Application<T> = Application::new(window)?;
     while app.window.is_running() {
         let stay_open = events.generate_events(&mut app.window, &mut app.event_buffer);
@@ -69,7 +68,7 @@ fn run_impl<T: State>(title: &str, size: Vector, settings: Settings) -> Result<(
 
 #[cfg(target_arch = "wasm32")]
 fn run_impl<T: State>(title: &str, size: Vector, settings: Settings) -> Result<()> {
-    let (win, canvas) = Window::build(title, size, settings)?; 
+    let (win, canvas) = Window::build(title, size, settings)?;
 
     let app: Rc<RefCell<Application<T>>> = Rc::new(RefCell::new(Application::new(win)?));
 
@@ -155,22 +154,17 @@ fn run_impl<T: State>(title: &str, size: Vector, settings: Settings) -> Result<(
         }
     });
 
-    handle_event(
-        &window,
-        &app,
-        move |mut app, event: GamepadConnectedEvent| {
-            app.event_buffer
-                .push(Event::GamepadConnected(event.gamepad().index() as i32));
-        },
-    );
-    handle_event(
-        &window,
-        &app,
-        move |mut app, event: GamepadDisconnectedEvent| {
-            app.event_buffer
-                .push(Event::GamepadDisconnected(event.gamepad().index() as i32));
-        },
-    );
+    handle_event(&window, &app, move |mut app, event: GamepadConnectedEvent| {
+        app.event_buffer.push(Event::GamepadConnected(event.gamepad().index() as i32));
+    });
+    handle_event(&window, &app, move |mut app, event: GamepadDisconnectedEvent| {
+        app.event_buffer.push(Event::GamepadDisconnected(event.gamepad().index() as i32));
+    });
+    handle_event(&window, &app, move |mut app, _: ResizeEvent| {
+        if app.window.get_fullscreen() {
+            app.window.set_fullscreen(true);
+        }
+    });
 
     update(app.clone())?;
     draw(app.clone())

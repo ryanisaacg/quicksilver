@@ -1,24 +1,24 @@
-use {
+use crate::{
     Result,
     backend::{Backend, ImageData, SurfaceData, VERTEX_SIZE},
     geom::{Rectangle, Vector},
     error::QuicksilverError,
     graphics::{BlendMode, Color, GpuTriangle, Image, ImageScaleStrategy, PixelFormat, Surface, Vertex},
-    std::mem::size_of,
-    stdweb::{
-        web::{
-            html_element::CanvasElement,
-            TypedArray
-        },
-        unstable::TryInto
+};
+use std::mem::size_of;
+use stdweb::{
+    web::{
+        html_element::CanvasElement,
+        TypedArray
     },
-    webgl_stdweb::{
-        WebGLBuffer,
-        WebGLProgram,
-        WebGL2RenderingContext as gl,
-        WebGLShader,
-        WebGLUniformLocation
-    }
+    unstable::TryInto
+};
+use webgl_stdweb::{
+    WebGLBuffer,
+    WebGLProgram,
+    WebGL2RenderingContext as gl,
+    WebGLShader,
+    WebGLUniformLocation
 };
 #[cfg(target_arch = "wasm32")]
 use stdweb::web::document;
@@ -38,6 +38,8 @@ pub struct WebGLBackend {
     ebo: WebGLBuffer, 
     texture_location: Option<WebGLUniformLocation>,
     texture_mode: u32,
+    initial_width: u32,
+    initial_height: u32
 }
 
 const DEFAULT_VERTEX_SHADER: &str = r#"attribute vec2 position;
@@ -116,6 +118,8 @@ impl Backend for WebGLBackend {
         // GL CALLS ARE ONLY SAFE AFTER THIS POINT
         let null = Image::new_null(1, 1, PixelFormat::RGBA)?;
         let texture = null.clone();
+        let initial_width = canvas.width();
+        let initial_height = canvas.height();
         Ok(WebGLBackend {
             canvas,
             texture,
@@ -126,10 +130,12 @@ impl Backend for WebGLBackend {
             index_length: 0, 
             shader, fragment, vertex, vbo, ebo, 
             texture_location: None,
-            texture_mode
+            texture_mode,
+            initial_width,
+            initial_height,
         })
     }
-    
+
     unsafe fn clear(&mut self, col: Color) {
         if let Some(ref gl_ctx) = GL_CONTEXT {
             gl_ctx.clear_color(col.r, col.g, col.b, col.a);
@@ -351,7 +357,16 @@ impl Backend for WebGLBackend {
 
     fn present(&self) -> Result<()> { Ok(()) }
 
-    fn set_fullscreen(&mut self, _fullscreen: bool) {
+    fn set_fullscreen(&mut self, fullscreen: bool) -> Option<Vector> {
+        let (width, height) = if fullscreen {
+            let window = stdweb::web::window();
+            (window.inner_width() as u32, window.inner_height() as u32)
+        } else {
+            (self.initial_width, self.initial_height)
+        };
+        self.canvas.set_width(width);
+        self.canvas.set_height(height);
+        Some(Vector::new(width, height))
     }
 
     fn resize(&mut self, size: Vector) {
