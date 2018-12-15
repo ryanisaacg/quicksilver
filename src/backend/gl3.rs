@@ -4,7 +4,7 @@ use crate::{
     geom::{Rectangle, Vector},
     graphics::{BlendMode, Color, GpuTriangle, Image, ImageScaleStrategy, PixelFormat, Surface, Vertex}
 };
-use glutin::{GlContext, GlWindow, dpi::LogicalSize};
+use glutin::{GlWindow, dpi::LogicalSize};
 use std::{
     ffi::CString,
     mem::size_of,
