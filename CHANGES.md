@@ -2,12 +2,14 @@
 
 ## In-development
 
+- Updated stdweb to allow use of stable Rust for web builds
+    - This requires cargo web of >= 0.6.23, use `cargo install -f cargo-web` to update
+
 ## 0.3.3
 
 - Add a new ResizeStrategy: IntegerScale
 - Fix bug in `Rectangle::contains`
 - Fix transformed lines not displaying properly
-- Updated stdweb to allow use of stable Rust for web builds
 - Update to Rust 2018
 - Fix immi draws and mouse pointer location being scaled incorrectly
 - Added `ImmiRender::new_with_view`, `ImmiRender::new_with_window`, and `create_immi_ctx`
