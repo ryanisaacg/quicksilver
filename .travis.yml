@@ -31,7 +31,7 @@ matrix:
         - rustup target add wasm32-unknown-unknown
         - cargo install -f cargo-web
       script:
-        - cargo check --target wasm32-unknown-unknown --examples && cargo check --target wasm32-unknown-unknown --examples --no-default-features
+        - cargo web check --target wasm32-unknown-unknown --examples && cargo web check --target wasm32-unknown-unknown --examples --no-default-features
   allow_failures:
     - rust: nightly
   fast_finish: true
