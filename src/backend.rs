@@ -8,22 +8,29 @@ pub(crate) trait Backend {
     type Platform;
 
     unsafe fn new(platform: Self::Platform, texture_mode: ImageScaleStrategy, multisample: bool) -> Result<Self> where Self: Sized;
-    unsafe fn clear(&mut self, color: Color);
+
     unsafe fn set_blend_mode(&mut self, blend: BlendMode);
     unsafe fn reset_blend_mode(&mut self);
+
+    unsafe fn clear(&mut self, color: Color);
     unsafe fn draw(&mut self, vertices: &[Vertex], triangles: &[GpuTriangle]) -> Result<()>;
     unsafe fn flush(&mut self);
+    fn present(&self) -> Result<()>;
+
     unsafe fn create_texture(data: &[u8], width: u32, height: u32, format: PixelFormat) -> Result<ImageData> where Self: Sized;
     unsafe fn destroy_texture(data: &mut ImageData) where Self: Sized;
+
     unsafe fn create_surface(image: &Image) -> Result<SurfaceData> where Self: Sized;
     unsafe fn bind_surface(surface: &Surface) -> [i32; 4] where Self: Sized;
     unsafe fn unbind_surface(surface: &Surface, viewport: &[i32]) where Self: Sized;
     unsafe fn destroy_surface(surface: &SurfaceData) where Self: Sized;
+
     unsafe fn viewport(&mut self, area: Rectangle) where Self: Sized;
+
     fn show_cursor(&mut self, show_cursor: bool);
     fn set_title(&mut self, title: &str);
-    fn present(&self) -> Result<()>;
-    fn set_fullscreen(&mut self, fullscreen: bool);
+
+    fn set_fullscreen(&mut self, fullscreen: bool) -> Option<Vector>;
     fn resize(&mut self, size: Vector);
 
     unsafe fn clear_color(&mut self, color: Color, letterbox: Color) -> Result<()> {

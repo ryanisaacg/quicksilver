@@ -10,6 +10,7 @@
 - Fix immi draws and mouse pointer location being scaled incorrectly
 - Added `ImmiRender::new_with_view`, `ImmiRender::new_with_window`, and `create_immi_ctx`
 - Deprecated `ImmiRender::new` in favor of the above
+- Added dynamic full screen to the web backend
 
 ## 0.3.2
 
