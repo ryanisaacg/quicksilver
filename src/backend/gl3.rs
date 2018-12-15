@@ -315,12 +315,13 @@ impl Backend for GL3Backend {
         Ok(self.context.swap_buffers()?)
     }
 
-    fn set_fullscreen(&mut self, fullscreen: bool) {
+    fn set_fullscreen(&mut self, fullscreen: bool) -> Option<Vector> {
         self.context.set_fullscreen(if fullscreen {
             Some(self.context.get_primary_monitor())
         } else {
             None
         });
+        None
     }
 
     fn resize(&mut self, size: Vector) {

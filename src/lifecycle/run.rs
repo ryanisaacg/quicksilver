@@ -27,7 +27,7 @@ use {
                 BlurEvent, ConcreteEvent, FocusEvent, GamepadConnectedEvent, GamepadDisconnectedEvent,
                 IGamepadEvent, IKeyboardEvent, IMouseEvent, KeyDownEvent, KeyUpEvent, 
                 MouseButton as WebMouseButton, MouseDownEvent, MouseMoveEvent, MouseOutEvent, 
-                MouseOverEvent, MouseUpEvent
+                MouseOverEvent, MouseUpEvent, ResizeEvent
             }
         }
     }
@@ -68,7 +68,7 @@ fn run_impl<T: State>(title: &str, size: Vector, settings: Settings) -> Result<(
 
 #[cfg(target_arch = "wasm32")]
 fn run_impl<T: State>(title: &str, size: Vector, settings: Settings) -> Result<()> {
-    let (win, canvas) = Window::build(title, size, settings)?; 
+    let (win, canvas) = Window::build(title, size, settings)?;
 
     let app: Rc<RefCell<Application<T>>> = Rc::new(RefCell::new(Application::new(win)?));
 
@@ -154,22 +154,17 @@ fn run_impl<T: State>(title: &str, size: Vector, settings: Settings) -> Result<(
         }
     });
 
-    handle_event(
-        &window,
-        &app,
-        move |mut app, event: GamepadConnectedEvent| {
-            app.event_buffer
-                .push(Event::GamepadConnected(event.gamepad().index() as i32));
-        },
-    );
-    handle_event(
-        &window,
-        &app,
-        move |mut app, event: GamepadDisconnectedEvent| {
-            app.event_buffer
-                .push(Event::GamepadDisconnected(event.gamepad().index() as i32));
-        },
-    );
+    handle_event(&window, &app, move |mut app, event: GamepadConnectedEvent| {
+        app.event_buffer.push(Event::GamepadConnected(event.gamepad().index() as i32));
+    });
+    handle_event(&window, &app, move |mut app, event: GamepadDisconnectedEvent| {
+        app.event_buffer.push(Event::GamepadDisconnected(event.gamepad().index() as i32));
+    });
+    handle_event(&window, &app, move |mut app, _: ResizeEvent| {
+        if app.window.get_fullscreen() {
+            app.window.set_fullscreen(true);
+        }
+    });
 
     update(app.clone())?;
     draw(app.clone())
