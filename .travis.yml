@@ -36,7 +36,6 @@ matrix:
           do
             name=$(echo $example | cut -f 1 -d '.');
             cargo web check --example $name;
-            cargo web check --example $name --no-default-features;
           done | exit
   allow_failures:
     - rust: nightly
