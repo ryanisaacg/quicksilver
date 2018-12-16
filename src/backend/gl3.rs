@@ -9,7 +9,8 @@ use std::{
     ffi::CString,
     mem::size_of,
     os::raw::c_void,
-    ptr::null as nullptr
+    ptr::null as nullptr,
+    rc::Rc
 };
 
 pub struct GL3Backend {
@@ -55,6 +56,13 @@ void main() {
     vec4 tex_color = (Uses_texture != 0) ? texture(tex, Tex_coord) : vec4(1, 1, 1, 1);
     outColor = Color * tex_color;
 }"#;
+
+fn format_gl(format: PixelFormat) -> isize {
+    match format {
+        PixelFormat::RGB => gl::RGB as isize,
+        PixelFormat::RGBA => gl::RGBA as isize
+    }
+}
 
 impl Backend for GL3Backend {
     type Platform = GlWindow;
@@ -235,10 +243,7 @@ impl Backend for GL3Backend {
 
     unsafe fn create_texture(data: &[u8], width: u32, height: u32, format: PixelFormat) -> Result<ImageData> where Self: Sized {
         let data = if data.len() == 0 { nullptr() } else { data.as_ptr() as *const c_void };
-        let format = match format {
-            PixelFormat::RGB => gl::RGB as isize,
-            PixelFormat::RGBA => gl::RGBA as isize
-        };
+        let format = format_gl(format);
         let id = {
             let mut texture = 0;
             gl::GenTextures(1, &mut texture as *mut u32);
@@ -257,6 +262,20 @@ impl Backend for GL3Backend {
 
     unsafe fn destroy_texture(data: &mut ImageData) where Self: Sized {
         gl::DeleteTextures(1, &data.id as *const u32);
+    }
+
+    unsafe fn get_texture_data(data: Rc<ImageData>, format: PixelFormat) -> Vec<u8> where Self: Sized {
+        let bytes_per_pixel = match format {
+            PixelFormat::RGBA => 4,
+            PixelFormat::RGB => 3
+        };
+        let format = format_gl(format);
+        let length = (data.width * data.height * bytes_per_pixel) as usize;
+        let mut buffer = Vec::with_capacity(length);
+        let pointer = buffer.as_mut_ptr() as *mut c_void;
+        gl::GetTexImage(gl::TEXTURE_2D, 0, format as u32, gl::UNSIGNED_BYTE, pointer);
+        buffer.set_len(length);
+        buffer
     }
 
     unsafe fn create_surface(image: &Image) -> Result<SurfaceData> where Self: Sized {
