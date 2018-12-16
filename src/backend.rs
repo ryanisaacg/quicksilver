@@ -3,6 +3,7 @@ use crate::{
     geom::{Rectangle, Vector},
     graphics::{Background::Col, BlendMode, Color, GpuTriangle, Image, ImageScaleStrategy, PixelFormat, Surface, Vertex},
 };
+use std::rc::Rc;
 
 pub(crate) trait Backend {
     type Platform;
@@ -19,6 +20,7 @@ pub(crate) trait Backend {
 
     unsafe fn create_texture(data: &[u8], width: u32, height: u32, format: PixelFormat) -> Result<ImageData> where Self: Sized;
     unsafe fn destroy_texture(data: &mut ImageData) where Self: Sized;
+    unsafe fn get_texture_data(data: Rc<ImageData>, format: PixelFormat) -> Vec<u8> where Self: Sized;
 
     unsafe fn create_surface(image: &Image) -> Result<SurfaceData> where Self: Sized;
     unsafe fn bind_surface(surface: &Surface) -> [i32; 4] where Self: Sized;
