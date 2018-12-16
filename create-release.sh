@@ -7,7 +7,7 @@ for example in examples/*
 do
     example=$(basename $example .rs)
     echo "---- Building example: $example ----"
-    cargo web build --target wasm32-unknown-unknown --release --example $example
+    cargo web build --release --example $example
     echo "--- Copying build artifacts: $example ----"
     cp target/wasm32-unknown-unknown/release/examples/$example.wasm docs/$example.wasm
     cp target/wasm32-unknown-unknown/release/examples/$example.js docs/$example.example.js

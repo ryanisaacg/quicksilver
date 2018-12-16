@@ -53,7 +53,7 @@ are merged into `development`, and then all merged into `master` when it is time
 ### Testing your changes
 
 - Make sure to run `cargo test` which will both verify the tests pass and also make sure the crate and all examples compile
-- Make sure to run `cargo web check --target wasm32-unknown-unknown --examples` which will verify that the crate and all examples compile for web
+- Make sure to run `cargo web check` which will verify that the crate compiles for web
 - If you changed core code (rendering, sound playback, file loading) make sure to actually run any examples you affected,
 on any platforms you have changed.
 
