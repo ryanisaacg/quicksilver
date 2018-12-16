@@ -31,7 +31,7 @@ matrix:
         - rustup target add wasm32-unknown-unknown
         - cargo install -f cargo-web
       script:
-        - for example in $(ls examples)
+        - for example in $(ls examples);
           do
             local name=$(echo $example | cut -f 1 -d '.')
             cargo web check --example $name
