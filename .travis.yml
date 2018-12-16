@@ -33,7 +33,7 @@ matrix:
       script:
         - for example in $(ls examples);
           do
-            local name=$(echo $example | cut -f 1 -d '.')
+            name=$(echo $example | cut -f 1 -d '.')
             cargo web check --example $name
             cargo web check --example $name --no-default-features
           done
