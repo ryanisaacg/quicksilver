@@ -32,11 +32,7 @@ matrix:
         - cargo install -f cargo-web
       script:
         - cargo web check --no-default-features
-        - for example in $(ls examples);
-          do
-            name=$(echo $example | cut -f 1 -d '.');
-            cargo web check --example $name;
-          done | exit
+        - bash check-web-examples.sh
   allow_failures:
     - rust: nightly
   fast_finish: true
