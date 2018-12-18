@@ -27,6 +27,8 @@ pub(crate) trait Backend {
 
     unsafe fn viewport(&mut self, area: Rectangle) where Self: Sized;
 
+    unsafe fn get_region(&self, region: Rectangle, format: PixelFormat) -> Vec<u8>;
+
     fn show_cursor(&mut self, show_cursor: bool);
     fn set_title(&mut self, title: &str);
 

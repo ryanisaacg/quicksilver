@@ -68,6 +68,13 @@ void main() {
 static mut GL_CONTEXT: Option<gl> = None;
 static mut TEXTURE_COUNT: u32 = 0;
 
+fn format_gl(format: PixelFormat) -> u32 {
+    match format {
+        PixelFormat::RGB => gl::RGB,
+        PixelFormat::RGBA => gl::RGBA
+    }
+}
+
 fn try_opt<T>(opt: Option<T>, operation: &str) -> Result<T> {
     match opt {
         Some(val) => Ok(val),
@@ -267,18 +274,9 @@ impl Backend for WebGLBackend {
             gl_ctx.tex_parameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_T, gl::CLAMP_TO_EDGE as i32);
             gl_ctx.tex_parameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::NEAREST as i32);
             gl_ctx.tex_parameteri(gl::TEXTURE_2D,
-             gl::TEXTURE_MAG_FILTER, gl::NEAREST as i32);
-
-            if data.len() == 0 {
-                gl_ctx.tex_image2_d(gl::TEXTURE_2D, 0, gl::RGBA as i32, width as i32, 
-                            height as i32, 0, format as u32, gl::UNSIGNED_BYTE, None);
-            } else {
-                let width = width as i32;
-                let height = height as i32;
-                let format = format as u32;
-                let array: TypedArray<u8> = data.into();
-                gl_ctx.tex_image2_d_3(gl::TEXTURE_2D, 0, gl::RGBA as i32, width, height, 0, format, gl::UNSIGNED_BYTE, array);
-            };
+            gl::TEXTURE_MAG_FILTER, gl::NEAREST as i32);
+            let format = format as u32;
+            gl_ctx.tex_image2_d(gl::TEXTURE_2D, 0, gl::RGBA as i32, width as i32, height as i32, 0, format, gl::UNSIGNED_BYTE, Some(data));
             gl_ctx.generate_mipmap(gl::TEXTURE_2D);
             Ok(ImageData { id, data: texture, width, height })
         } else {
@@ -344,6 +342,27 @@ impl Backend for WebGLBackend {
                 area.width() as i32,
                 area.height() as i32
             );
+        }
+    }
+    unsafe fn get_region(&self, region: Rectangle, format: PixelFormat) -> Vec<u8> where Self: Sized {
+        if let Some(ref gl_ctx) = GL_CONTEXT {
+            let bytes_per_pixel = match format {
+                PixelFormat::RGBA => 4,
+                PixelFormat::RGB => 3
+            };
+            let format = format_gl(format);
+            let x = region.x() as i32;
+            let y = region.y() as i32;
+            let width = region.width() as i32;
+            let height = region.height() as i32;
+            let length = (width * height * bytes_per_pixel) as usize;
+            let mut buffer: Vec<u8> = Vec::with_capacity(length);
+            let pointer = buffer.as_slice();
+            gl_ctx.read_pixels(x, y, width, height, format, gl::UNSIGNED_BYTE, Some(pointer));
+            buffer.set_len(length);
+            buffer
+        } else {
+            unreachable!();
         }
     }
 

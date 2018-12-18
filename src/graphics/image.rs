@@ -92,18 +92,12 @@ impl Image {
         Image {
             source: self.source.clone(),
             region: Rectangle::new(
-                (
-                    self.region.pos.x + rect.pos.x,
-                    self.region.pos.y + rect.pos.y
-                ),
-                (
-                    rect.width(),
-                    rect.height()
-                )
+                (self.region.pos.x + rect.pos.x, self.region.pos.y + rect.pos.y),
+                (rect.width(), rect.height())
             )
         }
     }
-    
+
     /// Create a projection matrix for a given region onto the Image
     pub fn projection(&self, region: Rectangle) -> Transform {
         let source_size: Vector = (self.source_width(), self.source_height()).into();
