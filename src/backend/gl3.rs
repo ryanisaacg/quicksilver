@@ -10,7 +10,6 @@ use std::{
     mem::size_of,
     os::raw::c_void,
     ptr::null as nullptr,
-    rc::Rc
 };
 
 pub struct GL3Backend {
@@ -57,10 +56,10 @@ void main() {
     outColor = Color * tex_color;
 }"#;
 
-fn format_gl(format: PixelFormat) -> isize {
+fn format_gl(format: PixelFormat) -> u32 {
     match format {
-        PixelFormat::RGB => gl::RGB as isize,
-        PixelFormat::RGBA => gl::RGBA as isize
+        PixelFormat::RGB => gl::RGB,
+        PixelFormat::RGBA => gl::RGBA
     }
 }
 
@@ -255,27 +254,13 @@ impl Backend for GL3Backend {
         gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::NEAREST as i32);
         gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::NEAREST as i32);
         gl::TexImage2D(gl::TEXTURE_2D, 0, gl::RGBA as i32, width as i32, 
-                        height as i32, 0, format as u32, gl::UNSIGNED_BYTE, data);
+                        height as i32, 0, format, gl::UNSIGNED_BYTE, data);
         gl::GenerateMipmap(gl::TEXTURE_2D);
         Ok(ImageData { id, width, height })
     }
 
     unsafe fn destroy_texture(data: &mut ImageData) where Self: Sized {
         gl::DeleteTextures(1, &data.id as *const u32);
-    }
-
-    unsafe fn get_texture_data(data: Rc<ImageData>, format: PixelFormat) -> Vec<u8> where Self: Sized {
-        let bytes_per_pixel = match format {
-            PixelFormat::RGBA => 4,
-            PixelFormat::RGB => 3
-        };
-        let format = format_gl(format);
-        let length = (data.width * data.height * bytes_per_pixel) as usize;
-        let mut buffer = Vec::with_capacity(length);
-        let pointer = buffer.as_mut_ptr() as *mut c_void;
-        gl::GetTexImage(gl::TEXTURE_2D, 0, format as u32, gl::UNSIGNED_BYTE, pointer);
-        buffer.set_len(length);
-        buffer
     }
 
     unsafe fn create_surface(image: &Image) -> Result<SurfaceData> where Self: Sized {
@@ -320,6 +305,24 @@ impl Backend for GL3Backend {
             (area.width() * dpi) as i32, 
             (area.height() * dpi) as i32
         );
+    }
+
+    unsafe fn get_region(&self, region: Rectangle, format: PixelFormat) -> Vec<u8> where Self: Sized {
+        let bytes_per_pixel = match format {
+            PixelFormat::RGBA => 4,
+            PixelFormat::RGB => 3
+        };
+        let format = format_gl(format);
+        let x = region.x() as i32;
+        let y = region.y() as i32;
+        let width = region.width() as i32;
+        let height = region.height() as i32;
+        let length = (width * height * bytes_per_pixel) as usize;
+        let mut buffer = Vec::with_capacity(length);
+        let pointer = buffer.as_mut_ptr() as *mut c_void;
+        gl::ReadPixels(x, y, width, height, format, gl::UNSIGNED_BYTE, pointer);
+        buffer.set_len(length);
+        buffer
     }
 
     fn show_cursor(&mut self, show_cursor: bool) {

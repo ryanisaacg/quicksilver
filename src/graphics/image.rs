@@ -109,15 +109,6 @@ impl Image {
             * Transform::scale(region.size().recip())
             * Transform::translate(-region.top_left())
     }
-
-    /// Get the bytes from the source image in a specified pixel format
-    ///
-    /// This will not respect subimages
-    pub fn as_bytes(&self, format: PixelFormat) -> Vec<u8> {
-        unsafe {
-            BackendImpl::get_texture_data(self.source.clone(), format)
-        }
-    }
 }
 
 #[derive(Debug)]

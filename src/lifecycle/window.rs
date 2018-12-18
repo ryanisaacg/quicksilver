@@ -2,7 +2,7 @@ use crate::{
     Result,
     backend::{Backend, BackendImpl},
     geom::{Rectangle, Scalar, Transform, Vector},
-    graphics::{Background, BlendMode, Color, Drawable, Mesh, ResizeStrategy, View},
+    graphics::{Background, BlendMode, Color, Drawable, Mesh, PixelFormat, ResizeStrategy, View},
     input::{ButtonState, Gamepad, Keyboard, Mouse},
     lifecycle::{Event, GamepadProvider, Settings},
 };
@@ -432,6 +432,15 @@ impl Window {
     /// On desktop, this closes the window, and on the web it removes the canvas from the page
     pub fn close(&mut self) {
         self.running = false;
+    }
+
+    /// Get the image data from a region of the current graphics context
+    ///
+    /// If no surface is active, then it uses the most recently rendered frame
+    pub fn get_region(&self, region: Rectangle, format: PixelFormat) -> Vec<u8> {
+        unsafe {
+            self.backend.get_region(region, format)
+        }
     }
 
     pub(crate) fn is_running(&self) -> bool {
