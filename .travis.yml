@@ -21,23 +21,20 @@ rust:
   - nightly
 matrix:
   include:
-    - rust: nightly
+    - rust: stable
       env: WASM=0
       script:
         - cargo check --examples --no-default-features
-    - rust: nightly
+    - rust: stable
       env: WASM=1
-      install: rustup target add wasm32-unknown-unknown
+      install:
+        - rustup target add wasm32-unknown-unknown
+        - cargo install -f cargo-web
       script:
-        - cargo +nightly check --target wasm32-unknown-unknown --examples
-    - rust: nightly
-      env: WASM=1
-      install: rustup target add wasm32-unknown-unknown
-      script:
-        - cargo +nightly check --target wasm32-unknown-unknown --examples --no-default-features
+        - cargo web check --no-default-features
+        - bash check-web-examples.sh
   allow_failures:
     - rust: nightly
-      env: WASM=0
   fast_finish: true
 before_cache: |
   if [[ "$TRAVIS_RUST_VERSION" == "nightly" && "$TRAVIS_OS_NAME" == "linux" ]]; then
