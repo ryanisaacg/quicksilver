@@ -5,10 +5,7 @@
 //!
 //! Before you jump into the tutorials below, make sure your development environment is ready. If
 //! you're just targeting desktop, all you need is the latest stable Rust. If you're targeting the
-//! web, first make sure you have a nightly toolchain installed (`rustup update nightly`), and the
-//! wasm target installed on nightly (`rustup target add wasm32-unknown-unknown --toolchain
-//! nightly`.) Once that's done, install cargo-web (`cargo +nightly install -f cargo-web`) and you
-//! should be good.
+//! web, make sure you install cargo-web first (cargo install -f cargo-web).
 
 pub mod _01_basic;
 pub mod _02_drawing;

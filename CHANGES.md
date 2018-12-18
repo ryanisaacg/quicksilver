@@ -2,6 +2,9 @@
 
 ## In-development
 
+- Updated stdweb to allow use of stable Rust for web builds
+    - This requires cargo web of >= 0.6.23, use `cargo install -f cargo-web` to update
+
 ## 0.3.3
 
 - Add a new ResizeStrategy: IntegerScale
