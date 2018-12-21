@@ -16,7 +16,6 @@ use {
     },
     std::{
         cell::{RefCell, RefMut},
-        collections::HashMap,
         rc::Rc
     },
     stdweb::{
@@ -212,7 +211,7 @@ fn handle_event<T, E, F>(
     });
 }
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(any(test, target_arch = "wasm32"))]
 static KEY_NAMES: &[&str] = &[
     "Digit1",
     "Digit2",
@@ -266,6 +265,15 @@ static KEY_NAMES: &[&str] = &[
     "F13",
     "F14",
     "F15",
+    "F16",
+    "F17",
+    "F18",
+    "F19",
+    "F20",
+    "F21",
+    "F22",
+    "F23",
+    "F24",
     "PrintScreen",
     "ScrollLock",
     "Pause",
@@ -365,11 +373,183 @@ static KEY_NAMES: &[&str] = &[
     "Yen",
 ];
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(any(test, target_arch = "wasm32"))]
+use std::collections::HashMap;
+
+#[cfg(any(test, target_arch = "wasm32"))]
 fn generate_key_names() -> HashMap<String, usize> {
     KEY_NAMES
         .iter()
         .enumerate()
         .map(|(index, name)| (String::from(*name), index))
         .collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::input::Key;
+
+    #[test]
+    fn web_key_constants_match() {
+        let mapping = generate_key_names();
+        assert_eq!(Key::Key1 as usize, mapping["Digit1"]);
+        assert_eq!(Key::Key2 as usize, mapping["Digit2"]);
+        assert_eq!(Key::Key3 as usize, mapping["Digit3"]);
+        assert_eq!(Key::Key4 as usize, mapping["Digit4"]);
+        assert_eq!(Key::Key5 as usize, mapping["Digit5"]);
+        assert_eq!(Key::Key6 as usize, mapping["Digit6"]);
+        assert_eq!(Key::Key7 as usize, mapping["Digit7"]);
+        assert_eq!(Key::Key8 as usize, mapping["Digit8"]);
+        assert_eq!(Key::Key9 as usize, mapping["Digit9"]);
+        assert_eq!(Key::Key0 as usize, mapping["Digit0"]);
+        assert_eq!(Key::A as usize, mapping["KeyA"]);
+        assert_eq!(Key::B as usize, mapping["KeyB"]);
+        assert_eq!(Key::C as usize, mapping["KeyC"]);
+        assert_eq!(Key::D as usize, mapping["KeyD"]);
+        assert_eq!(Key::E as usize, mapping["KeyE"]);
+        assert_eq!(Key::F as usize, mapping["KeyF"]);
+        assert_eq!(Key::G as usize, mapping["KeyG"]);
+        assert_eq!(Key::H as usize, mapping["KeyH"]);
+        assert_eq!(Key::I as usize, mapping["KeyI"]);
+        assert_eq!(Key::J as usize, mapping["KeyJ"]);
+        assert_eq!(Key::K as usize, mapping["KeyK"]);
+        assert_eq!(Key::L as usize, mapping["KeyL"]);
+        assert_eq!(Key::M as usize, mapping["KeyM"]);
+        assert_eq!(Key::N as usize, mapping["KeyN"]);
+        assert_eq!(Key::O as usize, mapping["KeyO"]);
+        assert_eq!(Key::P as usize, mapping["KeyP"]);
+        assert_eq!(Key::Q as usize, mapping["KeyQ"]);
+        assert_eq!(Key::R as usize, mapping["KeyR"]);
+        assert_eq!(Key::S as usize, mapping["KeyS"]);
+        assert_eq!(Key::T as usize, mapping["KeyT"]);
+        assert_eq!(Key::U as usize, mapping["KeyU"]);
+        assert_eq!(Key::V as usize, mapping["KeyV"]);
+        assert_eq!(Key::W as usize, mapping["KeyW"]);
+        assert_eq!(Key::X as usize, mapping["KeyX"]);
+        assert_eq!(Key::Y as usize, mapping["KeyY"]);
+        assert_eq!(Key::Z as usize, mapping["KeyZ"]);
+        assert_eq!(Key::Escape as usize, mapping["Escape"]);
+        assert_eq!(Key::F1 as usize, mapping["F1"]);
+        assert_eq!(Key::F2 as usize, mapping["F2"]);
+        assert_eq!(Key::F3 as usize, mapping["F3"]);
+        assert_eq!(Key::F4 as usize, mapping["F4"]);
+        assert_eq!(Key::F5 as usize, mapping["F5"]);
+        assert_eq!(Key::F6 as usize, mapping["F6"]);
+        assert_eq!(Key::F7 as usize, mapping["F7"]);
+        assert_eq!(Key::F8 as usize, mapping["F8"]);
+        assert_eq!(Key::F9 as usize, mapping["F9"]);
+        assert_eq!(Key::F10 as usize, mapping["F10"]);
+        assert_eq!(Key::F11 as usize, mapping["F11"]);
+        assert_eq!(Key::F12 as usize, mapping["F12"]);
+        assert_eq!(Key::F13 as usize, mapping["F13"]);
+        assert_eq!(Key::F14 as usize, mapping["F14"]);
+        assert_eq!(Key::F15 as usize, mapping["F15"]);
+        assert_eq!(Key::F16 as usize, mapping["F16"]);
+        assert_eq!(Key::F17 as usize, mapping["F17"]);
+        assert_eq!(Key::F18 as usize, mapping["F18"]);
+        assert_eq!(Key::F19 as usize, mapping["F19"]);
+        assert_eq!(Key::F20 as usize, mapping["F20"]);
+        assert_eq!(Key::F21 as usize, mapping["F21"]);
+        assert_eq!(Key::F22 as usize, mapping["F22"]);
+        assert_eq!(Key::F23 as usize, mapping["F23"]);
+        assert_eq!(Key::F24 as usize, mapping["F24"]);
+        assert_eq!(Key::Snapshot as usize, mapping["PrintScreen"]);
+        assert_eq!(Key::Scroll as usize, mapping["ScrollLock"]);
+        assert_eq!(Key::Pause as usize, mapping["Pause"]);
+        assert_eq!(Key::Insert as usize, mapping["Insert"]);
+        assert_eq!(Key::Home as usize, mapping["Home"]);
+        assert_eq!(Key::Delete as usize, mapping["Delete"]);
+        assert_eq!(Key::End as usize, mapping["End"]);
+        assert_eq!(Key::PageDown as usize, mapping["PageDown"]);
+        assert_eq!(Key::PageUp as usize, mapping["PageUp"]);
+        assert_eq!(Key::Left as usize, mapping["ArrowLeft"]);
+        assert_eq!(Key::Up as usize, mapping["ArrowUp"]);
+        assert_eq!(Key::Right as usize, mapping["ArrowRight"]);
+        assert_eq!(Key::Down as usize, mapping["ArrowDown"]);
+        assert_eq!(Key::Back as usize, mapping["Backspace"]);
+        assert_eq!(Key::Return as usize, mapping["Enter"]);
+        assert_eq!(Key::Space as usize, mapping["Space"]);
+        assert_eq!(Key::Compose as usize, mapping["Compose"]);
+        assert_eq!(Key::Caret as usize, mapping["Caret"]);
+        assert_eq!(Key::Numlock as usize, mapping["NumLock"]);
+        assert_eq!(Key::Numpad0 as usize, mapping["Numpad0"]);
+        assert_eq!(Key::Numpad1 as usize, mapping["Numpad1"]);
+        assert_eq!(Key::Numpad2 as usize, mapping["Numpad2"]);
+        assert_eq!(Key::Numpad3 as usize, mapping["Numpad3"]);
+        assert_eq!(Key::Numpad4 as usize, mapping["Numpad4"]);
+        assert_eq!(Key::Numpad5 as usize, mapping["Numpad5"]);
+        assert_eq!(Key::Numpad6 as usize, mapping["Numpad6"]);
+        assert_eq!(Key::Numpad7 as usize, mapping["Numpad7"]);
+        assert_eq!(Key::Numpad8 as usize, mapping["Numpad8"]);
+        assert_eq!(Key::Numpad9 as usize, mapping["Numpad9"]);
+        assert_eq!(Key::AbntC1 as usize, mapping["AbntC1"]);
+        assert_eq!(Key::AbntC2 as usize, mapping["AbntC2"]);
+        assert_eq!(Key::Add as usize, mapping["Add"]);
+        assert_eq!(Key::Apostrophe as usize, mapping["Quote"]);
+        assert_eq!(Key::Apps as usize, mapping["Apps"]);
+        assert_eq!(Key::At as usize, mapping["At"]);
+        assert_eq!(Key::Ax as usize, mapping["Ax"]);
+        assert_eq!(Key::Backslash as usize, mapping["Backslash"]);
+        assert_eq!(Key::Calculator as usize, mapping["Calculator"]);
+        assert_eq!(Key::Capital as usize, mapping["Capital"]);
+        assert_eq!(Key::Colon as usize, mapping["Colon"]);
+        assert_eq!(Key::Comma as usize, mapping["Comma"]);
+        assert_eq!(Key::Convert as usize, mapping["Convert"]);
+        assert_eq!(Key::Decimal as usize, mapping["Decimal"]);
+        assert_eq!(Key::Divide as usize, mapping["Divide"]);
+        assert_eq!(Key::Equals as usize, mapping["Equal"]);
+        assert_eq!(Key::Grave as usize, mapping["Backquote"]);
+        assert_eq!(Key::Kana as usize, mapping["Kana"]);
+        assert_eq!(Key::Kanji as usize, mapping["Kanji"]);
+        assert_eq!(Key::LAlt as usize, mapping["AltLeft"]);
+        assert_eq!(Key::LBracket as usize, mapping["BracketLeft"]);
+        assert_eq!(Key::LControl as usize, mapping["ControlLeft"]);
+        assert_eq!(Key::LShift as usize, mapping["ShiftLeft"]);
+        assert_eq!(Key::LWin as usize, mapping["MetaLeft"]);
+        assert_eq!(Key::Mail as usize, mapping["Mail"]);
+        assert_eq!(Key::MediaSelect as usize, mapping["MediaSelect"]);
+        assert_eq!(Key::MediaStop as usize, mapping["MediaStop"]);
+        assert_eq!(Key::Minus as usize, mapping["Minus"]);
+        assert_eq!(Key::Multiply as usize, mapping["Multiply"]);
+        assert_eq!(Key::Mute as usize, mapping["Mute"]);
+        assert_eq!(Key::MyComputer as usize, mapping["LaunchMyComputer"]);
+        assert_eq!(Key::NavigateForward as usize, mapping["NavigateForward"]);
+        assert_eq!(Key::NavigateBackward as usize, mapping["NavigateBackward"]);
+        assert_eq!(Key::NextTrack as usize, mapping["NextTrack"]);
+        assert_eq!(Key::NoConvert as usize, mapping["NoConvert"]);
+        assert_eq!(Key::NumpadComma as usize, mapping["NumpadComma"]);
+        assert_eq!(Key::NumpadEnter as usize, mapping["NumpadEnter"]);
+        assert_eq!(Key::NumpadEquals as usize, mapping["NumpadEquals"]);
+        assert_eq!(Key::OEM102 as usize, mapping["OEM102"]);
+        assert_eq!(Key::Period as usize, mapping["Period"]);
+        assert_eq!(Key::PlayPause as usize, mapping["PlayPause"]);
+        assert_eq!(Key::Power as usize, mapping["Power"]);
+        assert_eq!(Key::PrevTrack as usize, mapping["PrevTrack"]);
+        assert_eq!(Key::RAlt as usize, mapping["AltRight"]);
+        assert_eq!(Key::RBracket as usize, mapping["BracketRight"]);
+        assert_eq!(Key::RControl as usize, mapping["ControlRight"]);
+        assert_eq!(Key::RShift as usize, mapping["ShiftRight"]);
+        assert_eq!(Key::RWin as usize, mapping["MetaRight"]);
+        assert_eq!(Key::Semicolon as usize, mapping["Semicolon"]);
+        assert_eq!(Key::Slash as usize, mapping["Slash"]);
+        assert_eq!(Key::Sleep as usize, mapping["Sleep"]);
+        assert_eq!(Key::Stop as usize, mapping["Stop"]);
+        assert_eq!(Key::Subtract as usize, mapping["Subtract"]);
+        assert_eq!(Key::Sysrq as usize, mapping["Sysrq"]);
+        assert_eq!(Key::Tab as usize, mapping["Tab"]);
+        assert_eq!(Key::Underline as usize, mapping["Underline"]);
+        assert_eq!(Key::Unlabeled as usize, mapping["Unlabeled"]);
+        assert_eq!(Key::VolumeDown as usize, mapping["AudioVolumeDown"]);
+        assert_eq!(Key::VolumeUp as usize, mapping["AudioVolumeUp"]);
+        assert_eq!(Key::Wake as usize, mapping["Wake"]);
+        assert_eq!(Key::WebBack as usize, mapping["WebBack"]);
+        assert_eq!(Key::WebFavorites as usize, mapping["WebFavorites"]);
+        assert_eq!(Key::WebForward as usize, mapping["WebForward"]);
+        assert_eq!(Key::WebHome as usize, mapping["WebHome"]);
+        assert_eq!(Key::WebRefresh as usize, mapping["WebRefresh"]);
+        assert_eq!(Key::WebSearch as usize, mapping["WebSearch"]);
+        assert_eq!(Key::WebStop as usize, mapping["WebStop"]);
+        assert_eq!(Key::Yen as usize, mapping["Yen"]);
+    }
 }
