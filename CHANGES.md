@@ -5,6 +5,7 @@
 - Updated stdweb to allow use of stable Rust for web builds
     - This requires cargo web of >= 0.6.23, use `cargo install -f cargo-web` to update
 - Add the ability to take screenshots of the window or surface with `Window::get_region`
+- Fix a bug in web key input where any key past F15 would not map correctly
 
 ## 0.3.3
 
