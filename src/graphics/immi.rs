@@ -34,11 +34,12 @@ impl ImmiStatus {
         let mouse_x_normalized = (mouse_pos.x / window_size.x) * 2f32 - 1f32;
         // Scaled from -1 to 1. (-1 being the bottom of the window, 1 being the top of the window)
         let mouse_y_normalized = (mouse_pos.y / window_size.y) * -2f32 + 1f32;
+        let left_down = window.mouse()[MouseButton::Left].is_down();
         ImmiStatus {
             window_size,
             mouse_pos: Some([mouse_x_normalized, mouse_y_normalized]),
-            left: window.mouse()[MouseButton::Left] == ButtonState::Pressed,
-            right: window.mouse()[MouseButton::Left] == ButtonState::Released
+            left: left_down,
+            right: !left_down,
         }
     }
 }
