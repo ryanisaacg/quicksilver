@@ -59,7 +59,7 @@ impl<T: State> Application<T> {
         if delta_draw >= self.window.draw_rate() {
             self.state.draw(&mut self.window)?;
             self.window.flush()?;
-            self.window.backend.present()?;
+            self.window.backend().present()?;
             self.window.log_framerate(delta_draw);
             self.last_draw = current;
         } else {
@@ -80,7 +80,7 @@ impl<T: State> Application<T> {
         if delta_draw >= self.window.draw_rate() {
             self.state.draw(&mut self.window)?;
             self.window.flush()?;
-            self.window.backend.present()?;
+            self.window.backend().present()?;
             self.window.log_framerate(delta_draw);
             self.last_draw = current;
         }
