@@ -6,6 +6,9 @@ use crate::{
     input::{ButtonState, Gamepad, Keyboard, Mouse},
     lifecycle::{Event, GamepadProvider, Settings},
 };
+use image::{
+    DynamicImage, RgbImage, RgbaImage,
+};
 #[cfg(target_arch = "wasm32")]
 use {
     crate::error::QuicksilverError,
@@ -199,7 +202,7 @@ impl Window {
     ///Handle the available size for the window changing
     pub(crate) fn adjust_size(&mut self, available: Vector) {
         self.screen_region = self.resize.resize(self.screen_region.size(), available);
-        unsafe { self.backend().viewport(self.screen_region); }
+        unsafe { self.backend().set_viewport(self.screen_region); }
     }
 
     ///Get the view from the window
@@ -432,13 +435,20 @@ impl Window {
         self.running = false;
     }
 
-    /// Get the image data from a region of the current graphics context
+    /// Create a screenshot as an image
     ///
-    /// If no surface is active, then it uses the most recently rendered frame
-    pub fn get_region(&mut self, region: Rectangle, format: PixelFormat) -> Vec<u8> {
-        unsafe {
-            self.backend().get_region(region, format)
-        }
+    /// If a surface is active, an image of that surface is generated. If no surface is activated,
+    /// an image of what has been drawn to the window is generated. Taking a screenshot in the
+    /// midst of a `draw` call may have unexpected results.
+    pub fn screenshot(&mut self, format: PixelFormat) -> DynamicImage {
+        let (size, buffer) = unsafe { self.backend().screenshot(format) };
+        let width = size.x as u32;
+        let height = size.y as u32;
+        let img = match format {
+            PixelFormat::RGB => DynamicImage::ImageRgb8(RgbImage::from_raw(width, height, buffer).expect("TODO")),
+            PixelFormat::RGBA => DynamicImage::ImageRgba8(RgbaImage::from_raw(width, height, buffer).expect("TODO")),
+        };
+        img.flipv()
     }
 
     pub(crate) fn is_running(&self) -> bool {

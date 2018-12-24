@@ -21,13 +21,14 @@ pub(crate) trait Backend {
     unsafe fn destroy_texture(&mut self, data: &mut ImageData);
 
     unsafe fn create_surface(&mut self, image: &Image) -> Result<SurfaceData>;
-    unsafe fn bind_surface(&mut self, surface: &Surface) -> [i32; 4];
+    unsafe fn bind_surface(&mut self, surface: &Surface);
     unsafe fn unbind_surface(&mut self, surface: &Surface, viewport: &[i32]);
     unsafe fn destroy_surface(&mut self, surface: &SurfaceData);
 
-    unsafe fn viewport(&mut self, area: Rectangle);
+    unsafe fn viewport(&self) -> [i32; 4];
+    unsafe fn set_viewport(&mut self, area: Rectangle) where Self: Sized;
 
-    unsafe fn get_region(&self, region: Rectangle, format: PixelFormat) -> Vec<u8>;
+    unsafe fn screenshot(&self, format: PixelFormat) -> (Vector, Vec<u8>);
 
     fn show_cursor(&mut self, show_cursor: bool);
     fn set_title(&mut self, title: &str);
