@@ -4,7 +4,7 @@ extern crate image;
 
 use quicksilver::{
     Result,
-    geom::{Rectangle, Shape, Vector},
+    geom::{Shape, Vector},
     graphics::{Background::Img, Color, Image, PixelFormat},
     lifecycle::{Asset, Settings, State, Window, run},
 };
