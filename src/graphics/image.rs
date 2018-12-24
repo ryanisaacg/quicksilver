@@ -15,7 +15,7 @@ use std::{
 };
 
 ///Pixel formats for use with loading raw images
-#[derive(Debug, Eq, PartialEq, Hash)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub enum PixelFormat {
     /// Red, Green, and Blue
     RGB,

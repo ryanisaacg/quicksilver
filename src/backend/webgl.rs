@@ -279,17 +279,9 @@ impl Backend for WebGLBackend {
         Ok(surface)
     }
     
-    unsafe fn bind_surface(&mut self, surface: &Surface) -> [i32; 4] {
-        let viewport_data = self.gl_ctx.get_parameter(gl::VIEWPORT);
-        let viewport = [
-            js! { @{&viewport_data}[0] }.try_into().expect("Malformed GL viewport attribute"),
-            js! { @{&viewport_data}[1] }.try_into().expect("Malformed GL viewport attribute"),
-            js! { @{&viewport_data}[2] }.try_into().expect("Malformed GL viewport attribute"),
-            js! { @{&viewport_data}[3] }.try_into().expect("Malformed GL viewport attribute"),
-        ];
+    unsafe fn bind_surface(&mut self, surface: &Surface) {
         self.gl_ctx.bind_framebuffer(gl::FRAMEBUFFER, Some(&surface.data.framebuffer));
         self.gl_ctx.viewport(0, 0, surface.image.source_width() as i32, surface.image.source_height() as i32);
-        viewport
     }
 
     unsafe fn unbind_surface(&mut self, _surface: &Surface, viewport: &[i32]) {
@@ -301,7 +293,17 @@ impl Backend for WebGLBackend {
         self.gl_ctx.delete_framebuffer(Some(&surface.framebuffer));
     }
 
-    unsafe fn viewport(&mut self, area: Rectangle) where Self: Sized {
+    unsafe fn viewport(&self) -> [i32; 4] {
+        let viewport_data = self.gl_ctx.get_parameter(gl::VIEWPORT);
+        [
+            js! { @{&viewport_data}[0] }.try_into().expect("Malformed GL viewport attribute"),
+            js! { @{&viewport_data}[1] }.try_into().expect("Malformed GL viewport attribute"),
+            js! { @{&viewport_data}[2] }.try_into().expect("Malformed GL viewport attribute"),
+            js! { @{&viewport_data}[3] }.try_into().expect("Malformed GL viewport attribute"),
+        ]
+    }
+
+    unsafe fn set_viewport(&mut self, area: Rectangle) {
         self.gl_ctx.viewport(
             area.x() as i32,
             area.y() as i32,
@@ -309,22 +311,20 @@ impl Backend for WebGLBackend {
             area.height() as i32
         );
     }
-    unsafe fn get_region(&self, region: Rectangle, format: PixelFormat) -> Vec<u8> {
+
+    unsafe fn screenshot(&self, format: PixelFormat) -> (Vector, Vec<u8>) {
         let bytes_per_pixel = match format {
             PixelFormat::RGBA => 4,
             PixelFormat::RGB => 3
         };
         let format = format_gl(format);
-        let x = region.x() as i32;
-        let y = region.y() as i32;
-        let width = region.width() as i32;
-        let height = region.height() as i32;
+        let [x, y, width, height] = self.viewport();
         let length = (width * height * bytes_per_pixel) as usize;
         let mut buffer: Vec<u8> = Vec::with_capacity(length);
         let pointer = buffer.as_slice();
         self.gl_ctx.read_pixels(x, y, width, height, format, gl::UNSIGNED_BYTE, Some(pointer));
         buffer.set_len(length);
-        buffer
+        (Vector::new(width, height), buffer)
     }
 
     fn show_cursor(&mut self, show_cursor: bool) {

@@ -31,9 +31,12 @@ impl Surface {
     ///
     ///Do not attempt to use the surface or its image within the function, because it is undefined behavior
     pub fn render_to(&self, window: &mut Window, func: impl FnOnce(&mut Window) -> Result<()>) -> Result<()> {
+        let backend = unsafe { instance() };
         let view = window.view();
         let viewport = unsafe {
-            instance().bind_surface(self)
+            let view = backend.viewport();
+            backend.bind_surface(self);
+            view
         };
         window.flush()?;
         window.set_view(View::new_transformed(self.image.area(), Transform::scale(Vector::new(1, -1))));
@@ -41,7 +44,7 @@ impl Surface {
         window.set_view(view);
         window.flush()?;
         unsafe {
-            instance().unbind_surface(self, &viewport);
+            backend.unbind_surface(self, &viewport);
         }
         Ok(())
     }

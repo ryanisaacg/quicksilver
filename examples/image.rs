@@ -1,10 +1,11 @@
 // Draw an image to the screen
 extern crate quicksilver;
+extern crate image;
 
 use quicksilver::{
     Result,
-    geom::{Shape, Vector},
-    graphics::{Background::Img, Color, Image},
+    geom::{Rectangle, Shape, Vector},
+    graphics::{Background::Img, Color, Image, PixelFormat},
     lifecycle::{Asset, Settings, State, Window, run},
 };
 

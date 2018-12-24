@@ -275,12 +275,9 @@ impl Backend for GL3Backend {
         Ok(surface)
     }
 
-    unsafe fn bind_surface(&mut self, surface: &Surface) -> [i32; 4] {
-        let mut viewport = [0, 0, 0, 0];
-        gl::GetIntegerv(gl::VIEWPORT, (&mut viewport).as_mut_ptr());
+    unsafe fn bind_surface(&mut self, surface: &Surface) {
         gl::BindFramebuffer(gl::FRAMEBUFFER, surface.data.framebuffer);
         gl::Viewport(0, 0, surface.image.source_width() as i32, surface.image.source_height() as i32);
-        viewport
     }
 
     unsafe fn unbind_surface(&mut self, _surface: &Surface, viewport: &[i32]) {
@@ -292,7 +289,13 @@ impl Backend for GL3Backend {
         gl::DeleteFramebuffers(1, &surface.framebuffer as *const u32);
     }
 
-    unsafe fn viewport(&mut self, area: Rectangle) {
+    unsafe fn viewport(&self) -> [i32; 4] {
+        let mut viewport = [0, 0, 0, 0];
+        gl::GetIntegerv(gl::VIEWPORT, (&mut viewport).as_mut_ptr());
+        viewport
+    }
+
+    unsafe fn set_viewport(&mut self, area: Rectangle) where Self: Sized {
         let size: LogicalSize = area.size().into();
         let dpi = self.context.get_hidpi_factor();
         self.context.resize(size.to_physical(dpi));
@@ -305,22 +308,19 @@ impl Backend for GL3Backend {
         );
     }
 
-    unsafe fn get_region(&self, region: Rectangle, format: PixelFormat) -> Vec<u8> {
+    unsafe fn screenshot(&self, format: PixelFormat) -> (Vector, Vec<u8>) where Self: Sized {
         let bytes_per_pixel = match format {
             PixelFormat::RGBA => 4,
             PixelFormat::RGB => 3
         };
         let format = format_gl(format);
-        let x = region.x() as i32;
-        let y = region.y() as i32;
-        let width = region.width() as i32;
-        let height = region.height() as i32;
+        let [x, y, width, height] = self.viewport();
         let length = (width * height * bytes_per_pixel) as usize;
         let mut buffer = Vec::with_capacity(length);
         let pointer = buffer.as_mut_ptr() as *mut c_void;
         gl::ReadPixels(x, y, width, height, format, gl::UNSIGNED_BYTE, pointer);
         buffer.set_len(length);
-        buffer
+        (Vector::new(width, height), buffer)
     }
 
     fn show_cursor(&mut self, show_cursor: bool) {
