@@ -17,7 +17,6 @@ pub struct GL3Backend {
     texture: u32,
     vertices: Vec<f32>,
     indices: Vec<u32>, 
-    null: Image,
     vertex_length: usize, 
     index_length: usize, 
     shader: u32, 
@@ -56,6 +55,8 @@ void main() {
     outColor = Color * tex_color;
 }"#;
 
+const NULL_TEXTURE_ID: u32 = 0;
+
 fn format_gl(format: PixelFormat) -> u32 {
     match format {
         PixelFormat::RGB => gl::RGB,
@@ -92,8 +93,6 @@ impl Backend for GL3Backend {
         if multisample {
             gl::Enable(gl::MULTISAMPLE);
         }
-        let null = Image::new_null(1, 1, PixelFormat::RGBA)?;
-        let texture = null.get_id();
         let vertex = gl::CreateShader(gl::VERTEX_SHADER);
         let vertex_text: *mut i8 = CString::new(DEFAULT_VERTEX_SHADER).expect("No interior null bytes in shader").into_raw();
         gl::ShaderSource(vertex, 1, &(vertex_text as *const i8) as *const *const i8, nullptr());
@@ -114,10 +113,9 @@ impl Backend for GL3Backend {
         gl::UseProgram(shader);
         Ok(GL3Backend {
             context,
-            texture,
+            texture: NULL_TEXTURE_ID,
             vertices: Vec::with_capacity(1024),
             indices: Vec::with_capacity(1024), 
-            null,
             vertex_length: 0, 
             index_length: 0, 
             shader, fragment, vertex, 
@@ -202,7 +200,7 @@ impl Backend for GL3Backend {
         // texture switches, flush and switch the bound texture)
         for triangle in triangles.iter() {
             if let Some(ref img) = triangle.image {
-                if self.texture != self.null.get_id() && self.texture != img.get_id() {
+                if self.texture != NULL_TEXTURE_ID && self.texture != img.get_id() {
                     self.flush();
                 }
                 self.texture = img.get_id();
@@ -236,11 +234,11 @@ impl Backend for GL3Backend {
             // Draw the triangles
             gl::DrawElements(gl::TRIANGLES, self.indices.len() as i32, gl::UNSIGNED_INT, nullptr());
             self.indices.clear();
-            self.texture = self.null.get_id();
+            self.texture = NULL_TEXTURE_ID;
         }
     }
 
-    unsafe fn create_texture(data: &[u8], width: u32, height: u32, format: PixelFormat) -> Result<ImageData> where Self: Sized {
+    unsafe fn create_texture(&mut self, data: &[u8], width: u32, height: u32, format: PixelFormat) -> Result<ImageData> {
         let data = if data.len() == 0 { nullptr() } else { data.as_ptr() as *const c_void };
         let format = format_gl(format);
         let id = {
@@ -259,11 +257,11 @@ impl Backend for GL3Backend {
         Ok(ImageData { id, width, height })
     }
 
-    unsafe fn destroy_texture(data: &mut ImageData) where Self: Sized {
+    unsafe fn destroy_texture(&mut self, data: &mut ImageData) {
         gl::DeleteTextures(1, &data.id as *const u32);
     }
 
-    unsafe fn create_surface(image: &Image) -> Result<SurfaceData> where Self: Sized {
+    unsafe fn create_surface(&mut self, image: &Image) -> Result<SurfaceData> {
         let surface = SurfaceData {
             framebuffer: {
                 let mut buffer = 0;
@@ -277,7 +275,7 @@ impl Backend for GL3Backend {
         Ok(surface)
     }
 
-    unsafe fn bind_surface(surface: &Surface) -> [i32; 4] where Self: Sized {
+    unsafe fn bind_surface(&mut self, surface: &Surface) -> [i32; 4] {
         let mut viewport = [0, 0, 0, 0];
         gl::GetIntegerv(gl::VIEWPORT, (&mut viewport).as_mut_ptr());
         gl::BindFramebuffer(gl::FRAMEBUFFER, surface.data.framebuffer);
@@ -285,16 +283,16 @@ impl Backend for GL3Backend {
         viewport
     }
 
-    unsafe fn unbind_surface(_surface: &Surface, viewport: &[i32]) where Self: Sized {
+    unsafe fn unbind_surface(&mut self, _surface: &Surface, viewport: &[i32]) {
         gl::BindFramebuffer(gl::FRAMEBUFFER, 0); 
         gl::Viewport(viewport[0], viewport[1], viewport[2], viewport[3]);
     }
 
-    unsafe fn destroy_surface(surface: &SurfaceData) where Self: Sized {
+    unsafe fn destroy_surface(&mut self, surface: &SurfaceData) {
         gl::DeleteFramebuffers(1, &surface.framebuffer as *const u32);
     }
 
-    unsafe fn viewport(&mut self, area: Rectangle) where Self: Sized {
+    unsafe fn viewport(&mut self, area: Rectangle) {
         let size: LogicalSize = area.size().into();
         let dpi = self.context.get_hidpi_factor();
         self.context.resize(size.to_physical(dpi));
@@ -307,7 +305,7 @@ impl Backend for GL3Backend {
         );
     }
 
-    unsafe fn get_region(&self, region: Rectangle, format: PixelFormat) -> Vec<u8> where Self: Sized {
+    unsafe fn get_region(&self, region: Rectangle, format: PixelFormat) -> Vec<u8> {
         let bytes_per_pixel = match format {
             PixelFormat::RGBA => 4,
             PixelFormat::RGB => 3

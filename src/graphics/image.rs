@@ -1,6 +1,6 @@
 use crate::{
     Result,
-    backend::{Backend, BackendImpl, ImageData},
+    backend::{Backend, ImageData, instance},
     error::QuicksilverError,
     file::load_file,
     geom::{Rectangle, Transform, Vector},
@@ -53,7 +53,7 @@ impl Image {
     /// Load an image from pixel values in a byte array
     pub fn from_raw(data: &[u8], width: u32, height: u32, format: PixelFormat) -> Result<Image> {
         Ok(unsafe {
-            Image::new(BackendImpl::create_texture(data, width, height, format)?)
+            Image::new(instance().create_texture(data, width, height, format)?)
         })
     }
 
@@ -63,11 +63,6 @@ impl Image {
         let width = img.width();
         let height = img.height();
         Image::from_raw(img.into_raw().as_slice(), width, height, PixelFormat::RGBA)
-    }
-
-    #[cfg(target_arch="wasm32")]
-    pub(crate) fn data(&self) -> &ImageData {
-        &self.source
     }
 
     pub(crate) fn get_id(&self) -> u32 {

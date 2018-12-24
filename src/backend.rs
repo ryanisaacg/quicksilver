@@ -17,15 +17,15 @@ pub(crate) trait Backend {
     unsafe fn flush(&mut self);
     fn present(&self) -> Result<()>;
 
-    unsafe fn create_texture(data: &[u8], width: u32, height: u32, format: PixelFormat) -> Result<ImageData> where Self: Sized;
-    unsafe fn destroy_texture(data: &mut ImageData) where Self: Sized;
+    unsafe fn create_texture(&mut self, data: &[u8], width: u32, height: u32, format: PixelFormat) -> Result<ImageData>;
+    unsafe fn destroy_texture(&mut self, data: &mut ImageData);
 
-    unsafe fn create_surface(image: &Image) -> Result<SurfaceData> where Self: Sized;
-    unsafe fn bind_surface(surface: &Surface) -> [i32; 4] where Self: Sized;
-    unsafe fn unbind_surface(surface: &Surface, viewport: &[i32]) where Self: Sized;
-    unsafe fn destroy_surface(surface: &SurfaceData) where Self: Sized;
+    unsafe fn create_surface(&mut self, image: &Image) -> Result<SurfaceData>;
+    unsafe fn bind_surface(&mut self, surface: &Surface) -> [i32; 4];
+    unsafe fn unbind_surface(&mut self, surface: &Surface, viewport: &[i32]);
+    unsafe fn destroy_surface(&mut self, surface: &SurfaceData);
 
-    unsafe fn viewport(&mut self, area: Rectangle) where Self: Sized;
+    unsafe fn viewport(&mut self, area: Rectangle);
 
     unsafe fn get_region(&self, region: Rectangle, format: PixelFormat) -> Vec<u8>;
 
@@ -71,6 +71,16 @@ pub use self::gl3::GL3Backend;
 pub use self::webgl::WebGLBackend;
 
 #[cfg(not(target_arch="wasm32"))]
-pub(crate) type BackendImpl = GL3Backend;
+pub type BackendImpl = GL3Backend;
 #[cfg(target_arch="wasm32")]
-pub(crate) type BackendImpl = WebGLBackend;
+pub type BackendImpl = WebGLBackend;
+
+static mut BACKEND_INSTANCE: Option<BackendImpl> = None;
+
+pub unsafe fn instance() -> &'static mut BackendImpl {
+    BACKEND_INSTANCE.as_mut().unwrap()
+}
+
+pub unsafe fn set_instance(instance: BackendImpl) {
+    BACKEND_INSTANCE = Some(instance);
+}

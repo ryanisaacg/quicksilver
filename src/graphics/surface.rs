@@ -1,6 +1,6 @@
 use crate::{
     Result,
-    backend::{Backend, BackendImpl, SurfaceData},
+    backend::{Backend, SurfaceData, instance},
     geom::{Transform, Vector},
     graphics::{Image, PixelFormat, View},
     lifecycle::Window,
@@ -19,7 +19,7 @@ impl Surface {
     pub fn new(width: u32, height: u32) -> Result<Surface> {
         let image = Image::new_null(width, height, PixelFormat::RGBA)?;
         let data = unsafe {
-            Rc::new(BackendImpl::create_surface(&image)?)
+            Rc::new(instance().create_surface(&image)?)
         };
         Ok(Surface {
             image,
@@ -33,7 +33,7 @@ impl Surface {
     pub fn render_to(&self, window: &mut Window, func: impl FnOnce(&mut Window) -> Result<()>) -> Result<()> {
         let view = window.view();
         let viewport = unsafe {
-            BackendImpl::bind_surface(self)
+            instance().bind_surface(self)
         };
         window.flush()?;
         window.set_view(View::new_transformed(self.image.area(), Transform::scale(Vector::new(1, -1))));
@@ -41,7 +41,7 @@ impl Surface {
         window.set_view(view);
         window.flush()?;
         unsafe {
-            BackendImpl::unbind_surface(self, &viewport);
+            instance().unbind_surface(self, &viewport);
         }
         Ok(())
     }

@@ -1,4 +1,4 @@
-use crate::backend::{Backend, BackendImpl};
+use crate::backend::{Backend, instance};
 
 #[derive(Debug)]
 #[cfg(not(target_arch = "wasm32"))]
@@ -18,8 +18,6 @@ pub struct SurfaceData {
 
 impl Drop for SurfaceData {
     fn drop(&mut self) {
-        unsafe {
-            BackendImpl::destroy_surface(self);
-        }
+        unsafe { instance().destroy_surface(self) };
     }
 }

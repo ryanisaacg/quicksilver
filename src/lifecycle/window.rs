@@ -1,6 +1,6 @@
 use crate::{
     Result,
-    backend::{Backend, BackendImpl},
+    backend::{Backend, BackendImpl, instance, set_instance},
     geom::{Rectangle, Scalar, Transform, Vector},
     graphics::{Background, BlendMode, Color, Drawable, Mesh, PixelFormat, ResizeStrategy, View},
     input::{ButtonState, Gamepad, Keyboard, Mouse},
@@ -37,7 +37,6 @@ pub struct Window {
     update_rate: f64,
     max_updates: u32,
     draw_rate: f64,
-    pub(crate) backend: BackendImpl,
     mesh: Mesh,
     frame_count: f64,
     fps: f64,
@@ -47,7 +46,7 @@ pub struct Window {
 }
 
 impl Window {
-    pub(crate) fn build_agnostic(user_size: Vector, actual_size: Vector, settings: Settings, backend: BackendImpl) -> Result<Window> {
+    pub(crate) fn build_agnostic(user_size: Vector, actual_size: Vector, settings: Settings) -> Result<Window> {
         let screen_region = settings.resize.resize(user_size, actual_size);
         let view = View::new(Rectangle::new_sized(screen_region.size()));
         let mut window = Window {
@@ -68,7 +67,6 @@ impl Window {
             update_rate: settings.update_rate,
             max_updates: settings.max_updates,
             draw_rate: settings.draw_rate,
-            backend,
             mesh: Mesh::new(),
             frame_count: 0.0,
             fps: 0.0,
@@ -113,8 +111,8 @@ impl Window {
             gl_window.resize(user_size.into());
             events
         };
-        let backend = unsafe { BackendImpl::new(gl_window, settings.scale, settings.multisampling != None)? };
-        let window = Window::build_agnostic(user_size, user_size, settings, backend)?;
+        unsafe { set_instance(BackendImpl::new(gl_window, settings.scale, settings.multisampling != None)?) };
+        let window = Window::build_agnostic(user_size, user_size, settings)?;
         Ok((window, events))
     }
 
@@ -143,8 +141,8 @@ impl Window {
         body.append_child(&canvas);
         canvas.set_width(size.x as u32);
         canvas.set_height(size.y as u32);
-        let backend = unsafe { BackendImpl::new(canvas.clone(), settings.scale, settings.multisampling != None)? };
-        let mut window = Window::build_agnostic(size, size, settings, backend)?;
+        unsafe { set_instance(BackendImpl::new(canvas.clone(), settings.scale, settings.multisampling != None)?) };
+        let mut window = Window::build_agnostic(size, size, settings)?;
         window.set_title(title);
         Ok((window, canvas))
     }
@@ -201,7 +199,7 @@ impl Window {
     ///Handle the available size for the window changing
     pub(crate) fn adjust_size(&mut self, available: Vector) {
         self.screen_region = self.resize.resize(self.screen_region.size(), available);
-        unsafe { self.backend.viewport(self.screen_region); }
+        unsafe { self.backend().viewport(self.screen_region); }
     }
 
     ///Get the view from the window
@@ -276,8 +274,8 @@ impl Window {
     pub fn clear_letterbox_color(&mut self, color: Color, letterbox: Color) -> Result<()> {
         self.mesh.clear();
         unsafe {
-            self.backend.reset_blend_mode();
-            self.backend.clear_color(color, letterbox)
+            self.backend().reset_blend_mode();
+            self.backend().clear_color(color, letterbox)
         }
     }
 
@@ -293,7 +291,7 @@ impl Window {
             vertex.pos = self.view.opengl * vertex.pos;
         }
         unsafe {
-            self.backend.draw(self.mesh.vertices.as_slice(), self.mesh.triangles.as_slice())?;
+            self.backend().draw(self.mesh.vertices.as_slice(), self.mesh.triangles.as_slice())?;
         }
         self.mesh.clear();
         Ok(())
@@ -306,7 +304,7 @@ impl Window {
     pub fn set_blend_mode(&mut self, blend: BlendMode) -> Result<()> {
         self.flush()?;
         unsafe {
-            self.backend.set_blend_mode(blend);
+            self.backend().set_blend_mode(blend);
         }
         Ok(())
     }
@@ -317,7 +315,7 @@ impl Window {
     pub fn reset_blend_mode(&mut self) -> Result<()> {
         self.flush()?;
         unsafe {
-            self.backend.reset_blend_mode();
+            self.backend().reset_blend_mode();
         }
         Ok(())
     }
@@ -398,12 +396,12 @@ impl Window {
 
     /// Set if the cursor should be visible when over the application
     pub fn set_show_cursor(&mut self, show_cursor: bool) {
-        self.backend.show_cursor(show_cursor);
+        self.backend().show_cursor(show_cursor);
     }
 
     /// Set the title of the window (or tab on mobile)
     pub fn set_title(&mut self, title: &str) {
-        self.backend.set_title(title);
+        self.backend().set_title(title);
     }
 
     /// Get if the application is currently fullscreen
@@ -414,7 +412,7 @@ impl Window {
     /// Set if the application is currently fullscreen
     pub fn set_fullscreen(&mut self, fullscreen: bool) {
         self.fullscreen = fullscreen;
-        let size = self.backend.set_fullscreen(fullscreen);
+        let size = self.backend().set_fullscreen(fullscreen);
         if let Some(size) = size {
             self.adjust_size(size);
         }
@@ -423,7 +421,7 @@ impl Window {
     /// Resize the window to the given size
     pub fn set_size(&mut self, size: impl Into<Vector>) {
         let size = size.into();
-        self.backend.resize(size);
+        self.backend().resize(size);
         self.adjust_size(size);
     }
 
@@ -437,13 +435,17 @@ impl Window {
     /// Get the image data from a region of the current graphics context
     ///
     /// If no surface is active, then it uses the most recently rendered frame
-    pub fn get_region(&self, region: Rectangle, format: PixelFormat) -> Vec<u8> {
+    pub fn get_region(&mut self, region: Rectangle, format: PixelFormat) -> Vec<u8> {
         unsafe {
-            self.backend.get_region(region, format)
+            self.backend().get_region(region, format)
         }
     }
 
     pub(crate) fn is_running(&self) -> bool {
         self.running
+    }
+
+    pub(crate) fn backend(&mut self) -> &'static mut BackendImpl {
+        unsafe { instance() }
     }
 }
