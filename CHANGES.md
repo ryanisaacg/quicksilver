@@ -1,6 +1,6 @@
 # Changelog
 
-## In-development
+## In-developmentnn## 0.3.4
 
 - Updated stdweb to allow use of stable Rust for web builds
     - This requires cargo web of >= 0.6.23, use `cargo install -f cargo-web` to update
