@@ -24,9 +24,9 @@ use {
             document, window, IEventTarget,  IWindowOrWorker,
             event::{
                 BlurEvent, ConcreteEvent, FocusEvent, GamepadConnectedEvent, GamepadDisconnectedEvent,
-                IGamepadEvent, IKeyboardEvent, IMouseEvent, KeyDownEvent, KeyUpEvent, 
-                MouseButton as WebMouseButton, MouseDownEvent, MouseMoveEvent, MouseOutEvent, 
-                MouseOverEvent, MouseUpEvent, ResizeEvent
+                IGamepadEvent, IKeyboardEvent, IMouseEvent, KeyDownEvent, KeyUpEvent,
+                MouseButton as WebMouseButton, PointerDownEvent, PointerMoveEvent, PointerOutEvent,
+                PointerOverEvent, PointerUpEvent, ResizeEvent
             }
         }
     }
@@ -106,18 +106,18 @@ fn run_impl<T: State>(title: &str, size: Vector, settings: Settings) -> Result<(
         app.event_buffer.push(Event::Focused)
     });
 
-    handle_event(&canvas, &app, |mut app, _: MouseOutEvent| {
+    handle_event(&canvas, &app, |mut app, _: PointerOutEvent| {
         app.event_buffer.push(Event::MouseExited)
     });
-    handle_event(&canvas, &app, |mut app, _: MouseOverEvent| {
+    handle_event(&canvas, &app, |mut app, _: PointerOverEvent| {
         app.event_buffer.push(Event::MouseEntered)
     });
 
-    handle_event(&canvas, &app, |mut app, event: MouseMoveEvent| {
+    handle_event(&canvas, &app, |mut app, event: PointerMoveEvent| {
         let pointer = Vector::new(event.offset_x() as f32, event.offset_y() as f32);
         app.event_buffer.push(Event::MouseMoved(pointer));
     });
-    handle_event(&canvas, &app, |mut app, event: MouseUpEvent| {
+    handle_event(&canvas, &app, |mut app, event: PointerUpEvent| {
         let state = ButtonState::Released;
         let button = match event.button() {
             WebMouseButton::Left => MouseButton::Left,
@@ -127,7 +127,7 @@ fn run_impl<T: State>(title: &str, size: Vector, settings: Settings) -> Result<(
         };
         app.event_buffer.push(Event::MouseButton(button, state));
     });
-    handle_event(&canvas, &app, |mut app, event: MouseDownEvent| {
+    handle_event(&canvas, &app, |mut app, event: PointerDownEvent| {
         let state = ButtonState::Pressed;
         let button = match event.button() {
             WebMouseButton::Left => MouseButton::Left,
