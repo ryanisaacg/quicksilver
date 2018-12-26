@@ -202,7 +202,7 @@ impl Backend for WebGLBackend {
         for triangle in triangles.iter() {
             if let Some(ref img) = triangle.image {
                 let should_flush = match self.texture {
-                    Some(val) => img.get_id() == val,
+                    Some(val) => img.get_id() != val,
                     None => true
                 };
                 if should_flush {

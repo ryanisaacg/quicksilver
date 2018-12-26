@@ -3,6 +3,7 @@
 ## In-development
 
 - Add support for touch events on web
+- Fix a bug with swapping textures in the WebGL backend
 
 ## 0.3.4
 
