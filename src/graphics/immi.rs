@@ -83,9 +83,9 @@ impl<'a> ImmiRender<'a> {
 fn matrix_to_trans(matrix: &Matrix) -> Transform {
     let array = matrix.0;
     Transform::from_array([
-        [array[0][0], array[0][1], 0.0],
-        [array[1][0], array[1][1], 0.0],
-        [array[2][0], array[2][1], 1.0],
+        [array[0][0], array[1][0], array[2][0]],
+        [array[0][1], array[1][1], array[2][1]],
+        [0.0, 0.0, 1.0],
     ])
 }
 
@@ -95,12 +95,12 @@ impl<'a> Draw for ImmiRender<'a> {
     type TextStyle = FontStyle;
 
     fn draw_triangle(&mut self, texture: &Image, matrix: &Matrix, uv_coords: [[f32; 2]; 3]) {
-        let transform =  self.view.opengl.inverse() * Transform::scale((1, -1)) * matrix_to_trans(matrix);
+        let transform = self.view.opengl.inverse() * matrix_to_trans(matrix);
         let offset = self.window.vertices.len() as u32;
         self.window.vertices.extend([(-1, 1), (-1, -1), (1, 1)]
             .iter()
             .map(|(x, y)| transform * Vector::new(*x, *y))
-            .zip(uv_coords.iter().map(|[x, y]| Vector::new(*x, *y)))
+            .zip(uv_coords.iter().map(|[x, y]| Vector::new(*x, 1.0 - *y)))
             .map(|(pos, tex_coord)| Vertex::new(pos, Some(tex_coord), Background::Img(texture))));
         self.window.triangles.push(GpuTriangle::new(offset, [0, 1, 2], 0.0, Background::Img(texture)));
     }
