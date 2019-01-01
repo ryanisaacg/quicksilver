@@ -46,7 +46,7 @@ impl Animation {
             data: Rc::new(AnimationData { frames, len }),
             duration,
             current_time: 0.,
-            stopped: false,
+            stopped: true,
             paused: false,
         }
     }
