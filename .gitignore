@@ -5,3 +5,4 @@ Cargo.lock
 msvc/
 gnu-mingw/
 *.wasm
+.idea
