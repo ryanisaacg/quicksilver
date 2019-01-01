@@ -96,7 +96,7 @@ impl MouseCursor {
             MouseCursor::NotAllowed => "not-allowed",
             MouseCursor::ContextMenu => "context-menu",
             MouseCursor::Cell => "cell",
-            MouseCursor::VerticalText => "auto",
+            MouseCursor::VerticalText => "vertical-text",
             MouseCursor::Alias => "alias",
             MouseCursor::Copy => "copy",
             MouseCursor::NoDrop => "no-drop",
