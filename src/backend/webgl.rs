@@ -26,7 +26,7 @@ use stdweb::web::document;
 
 pub struct WebGLBackend {
     canvas: CanvasElement,
-    prev_cursor: MouseCursor,
+    prev_cursor_style: MouseCursor,
     gl_ctx: gl,
     texture: Option<u32>,
     vertices: Vec<f32>,
@@ -125,7 +125,7 @@ impl Backend for WebGLBackend {
         let initial_height = canvas.height();
         Ok(WebGLBackend {
             canvas,
-            prev_cursor: MouseCursor::default(),
+            prev_cursor_style: MouseCursor::default(),
             gl_ctx,
             texture: None,
             vertices: Vec::with_capacity(1024),
@@ -331,11 +331,11 @@ impl Backend for WebGLBackend {
     }
 
     fn show_cursor(&mut self, show_cursor: bool) {
-        js! ( @{&self.canvas}.style.cursor = @{show_cursor} ? @{self.prev_cursor.into_css_style()} : "none"; );
+        js! ( @{&self.canvas}.style.cursor = @{show_cursor} ? @{self.prev_cursor_style.into_css_style()} : "none"; );
     }
 
     fn set_cursor(&mut self, cursor: MouseCursor) {
-        self.prev_cursor = cursor;
+        self.prev_cursor_style = cursor;
         js! ( @{&self.canvas}.style.cursor = @{cursor.into_css_style()} );
     }
 
