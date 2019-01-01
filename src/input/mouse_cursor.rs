@@ -22,14 +22,14 @@ pub enum MouseCursor {
     /// Grabbing cursor
     Grabbing,
 
-    /// Hand cursor
-    Hand,
-
     /// Help cursor
     Help,
 
     /// Move cursor
     Move,
+
+    /// Pointer cursor
+    Pointer,
 
     /// Progress cursor
     Progress,
@@ -52,9 +52,9 @@ impl MouseCursor {
             MouseCursor::Crosshair => "crosshair",
             MouseCursor::Grab => "grab",
             MouseCursor::Grabbing => "grabbing",
-            MouseCursor::Hand => "hand",
             MouseCursor::Help => "help",
             MouseCursor::Move => "move",
+            MouseCursor::Pointer => "pointer",
             MouseCursor::Progress => "progress",
             MouseCursor::Text => "text",
             MouseCursor::Wait => "wait",
@@ -71,9 +71,9 @@ impl MouseCursor {
             MouseCursor::Crosshair => GlMouseCursor::Crosshair,
             MouseCursor::Grab => GlMouseCursor::Grab,
             MouseCursor::Grabbing => GlMouseCursor::Grabbing,
-            MouseCursor::Hand => GlMouseCursor::Hand,
             MouseCursor::Help => GlMouseCursor::Help,
             MouseCursor::Move => GlMouseCursor::Move,
+            MouseCursor::Pointer => GlMouseCursor::Hand,
             MouseCursor::Progress => GlMouseCursor::Progress,
             MouseCursor::Text => GlMouseCursor::Text,
             MouseCursor::Wait => GlMouseCursor::Wait,
