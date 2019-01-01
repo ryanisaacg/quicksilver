@@ -331,12 +331,12 @@ impl Backend for WebGLBackend {
     }
 
     fn show_cursor(&mut self, show_cursor: bool) {
-        js! ( @{&self.canvas}.style.cursor = @{show_cursor} ? @{self.prev_cursor.as_css_style()} : "none"; );
+        js! ( @{&self.canvas}.style.cursor = @{show_cursor} ? @{self.prev_cursor.into_css_style()} : "none"; );
     }
 
     fn set_cursor(&mut self, cursor: MouseCursor) {
         self.prev_cursor = cursor;
-        js! ( @{&self.canvas}.style.cursor = @{cursor.as_css_style()} );
+        js! ( @{&self.canvas}.style.cursor = @{cursor.into_css_style()} );
     }
 
     fn set_title(&mut self, title: &str) {
