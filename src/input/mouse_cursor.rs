@@ -1,7 +1,7 @@
 #[cfg(not(target_arch = "wasm32"))]
 use glutin::MouseCursor as GlMouseCursor;
 
-/// Mouse cursor modes
+/// Mouse cursor styles
 #[derive(Copy, Clone, Debug)]
 pub enum MouseCursor {
     /// Default cursor
