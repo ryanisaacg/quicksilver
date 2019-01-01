@@ -2,7 +2,8 @@ use crate::{
     Result,
     backend::{Backend, ImageData, SurfaceData, VERTEX_SIZE},
     geom::{Rectangle, Vector},
-    graphics::{BlendMode, Color, GpuTriangle, Image, ImageScaleStrategy, PixelFormat, Surface, Vertex}
+    graphics::{BlendMode, Color, GpuTriangle, Image, ImageScaleStrategy, PixelFormat, Surface, Vertex},
+    input::MouseCursor
 };
 use glutin::{GlWindow, dpi::LogicalSize};
 use std::{
@@ -326,6 +327,8 @@ impl Backend for GL3Backend {
     fn show_cursor(&mut self, show_cursor: bool) {
         self.context.hide_cursor(!show_cursor);
     }
+
+    fn set_cursor(&mut self, cursor: MouseCursor) { self.context.set_cursor(cursor.into_gl_cursor()); }
 
     fn set_title(&mut self, title: &str) {
         self.context.set_title(title);

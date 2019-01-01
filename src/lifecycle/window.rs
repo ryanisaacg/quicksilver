@@ -3,7 +3,7 @@ use crate::{
     backend::{Backend, BackendImpl, instance, set_instance},
     geom::{Rectangle, Scalar, Transform, Vector},
     graphics::{Background, BlendMode, Color, Drawable, Mesh, PixelFormat, ResizeStrategy, View},
-    input::{ButtonState, Gamepad, Keyboard, Mouse},
+    input::{ButtonState, Gamepad, Keyboard, Mouse, MouseCursor},
     lifecycle::{Event, GamepadProvider, Settings},
 };
 use image::{
@@ -400,6 +400,11 @@ impl Window {
     /// Set if the cursor should be visible when over the application
     pub fn set_show_cursor(&mut self, show_cursor: bool) {
         self.backend().show_cursor(show_cursor);
+    }
+
+    /// Set current cursor
+    pub fn set_cursor(&mut self, cursor: MouseCursor) {
+        self.backend().set_cursor(cursor);
     }
 
     /// Set the title of the window (or tab on mobile)
