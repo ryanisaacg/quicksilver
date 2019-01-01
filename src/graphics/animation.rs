@@ -17,6 +17,13 @@ struct AnimationData {
 /// Animation advance by time delta, which should be run in the `update` section of a
 /// quicksilver application loop rather than the `draw` section. Draws may happen as
 /// often as possible, whereas updates will have consistent rates
+///
+/// To restart an animation:
+///
+/// ```rust,ignore
+/// anim.reset();
+/// anim.play();
+/// ```
 pub struct Animation {
     data: Rc<AnimationData>,
     /// duration in secs
@@ -30,7 +37,7 @@ pub struct Animation {
 }
 
 impl Animation {
-    /// Create a new animation from a series of images and a frame delay
+    /// Create a new animation from a series of images and a duration.
     pub fn new<I>(images: I, duration: f64) -> Animation
         where I: IntoIterator<Item = Image> {
         let frames: Vec<_> = images.into_iter().collect();
@@ -44,7 +51,7 @@ impl Animation {
         }
     }
 
-    /// Create a new animation from regions of images from a spritesheet
+    /// Create a new animation from regions of images from a spritesheet.
     pub fn from_spritesheet<R>(sheet: Image, regions: R, duration: f64) -> Animation
         where R: IntoIterator<Item = Rectangle> {
         Animation::new(regions.into_iter()
@@ -63,39 +70,36 @@ impl Animation {
         }
     }
 
-    /// Play the animation
+    /// Play the animation.
     pub fn play(&mut self) {
-        self.current_time = 0.;
         self.stopped = false;
+        self.paused = false;
     }
 
-    /// Pause the animation
+    /// Pause the animation.
     pub fn pause(&mut self) {
         self.paused = true;
     }
 
-    /// Unpause the animation
+    /// Unpause the animation.
     pub fn unpause(&mut self) {
         self.paused = false;
     }
 
-    /// Reset the animation
+    /// Reset the animation.
     pub fn reset(&mut self) {
         self.current_time = 0.;
         self.stopped = true;
     }
 
+    /// Returns true if the animation is not stopped and not paused.
+    pub fn is_playing(&mut self) -> bool {
+        !self.stopped && !self.paused
+    }
+
     /// Set the duration of the animation. Unit in secs
     pub fn set_duration(&mut self, duration: f64) {
         self.duration = duration;
-    }
-
-    /// get current frame index
-    #[inline(always)]
-    fn current_frame_index(&self) -> usize {
-        let frame = (self.current_time / self.duration * self.data.len as f64).floor() as usize + 1;
-        let nth = frame % self.data.len;
-        nth
     }
 
     /// Get the current frame of the animation
@@ -106,5 +110,14 @@ impl Animation {
             Some(&self.data.frames[self.current_frame_index()])
         }
     }
+
+    /// Get current frame index.
+    #[inline(always)]
+    fn current_frame_index(&self) -> usize {
+        let frame = (self.current_time / self.duration * self.data.len as f64).floor() as usize + 1;
+        let nth = frame % self.data.len;
+        nth
+    }
+
 }
 
