@@ -34,11 +34,13 @@ pub struct Animation {
     stopped: bool,
     /// if animation is paused
     paused: bool,
+    /// if animation is looped
+    looped: bool,
 }
 
 impl Animation {
     /// Create a new animation from a series of images and a duration.
-    pub fn new<I>(images: I, duration: f64) -> Animation
+    pub fn new<I>(images: I, duration: f64, looped: bool) -> Animation
         where I: IntoIterator<Item = Image> {
         let frames: Vec<_> = images.into_iter().collect();
         let len = frames.len();
@@ -48,14 +50,15 @@ impl Animation {
             current_time: 0.,
             stopped: true,
             paused: false,
+            looped,
         }
     }
 
     /// Create a new animation from regions of images from a spritesheet.
-    pub fn from_spritesheet<R>(sheet: Image, regions: R, duration: f64) -> Animation
+    pub fn from_spritesheet<R>(sheet: Image, regions: R, duration: f64, looped: bool) -> Animation
         where R: IntoIterator<Item = Rectangle> {
         Animation::new(regions.into_iter()
-                       .map(|region| sheet.subimage(region)), duration)
+                       .map(|region| sheet.subimage(region)), duration, looped)
     }
 
     /// Update the internal time of the animation. Must be called.
@@ -66,7 +69,9 @@ impl Animation {
             self.current_time -= self.duration
         }
         if self.current_frame_index() + 1 == self.data.len {
-            self.stopped = true;
+            if !self.looped {
+                self.stopped = true;
+            }
         }
     }
 
@@ -101,6 +106,12 @@ impl Animation {
     pub fn set_duration(&mut self, duration: f64) {
         self.duration = duration;
     }
+
+    /// Sets if the animation is looped
+    pub fn set_looped(&mut self, looped: bool) {
+        self.looped = looped;
+    }
+
 
     /// Get the current frame of the animation
     pub fn current_frame(&self) -> Option<&Image> {
