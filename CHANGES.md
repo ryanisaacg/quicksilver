@@ -4,6 +4,7 @@
 
 - Add support for touch events on web
 - Fix a bug with swapping textures in the WebGL backend
+- Add support for cursor style change
 
 ## 0.3.4
 
