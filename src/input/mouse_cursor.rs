@@ -2,43 +2,80 @@
 use glutin::MouseCursor as GlMouseCursor;
 
 /// Mouse cursor styles
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Eq, Hash, PartialEq)]
 pub enum MouseCursor {
     /// Default cursor
     Default,
-
-    /// Arrow cursor
-    Arrow,
-
-    /// Copy cursor
-    Copy,
-
     /// Crosshair cursor
     Crosshair,
-
-    /// Grab cursor
-    Grab,
-
-    /// Grabbing cursor
-    Grabbing,
-
-    /// Help cursor
-    Help,
-
+    /// Hand cursor
+    Hand,
+    /// Arrow cursor
+    Arrow,
     /// Move cursor
     Move,
-
-    /// Pointer cursor
-    Pointer,
-
+    /// Text cursor
+    Text,
+    /// Wait cursor
+    Wait,
+    /// Help cursor
+    Help,
     /// Progress cursor
     Progress,
 
-    /// Text cursor
-    Text,
+    /// NotAllowed cursor
+    NotAllowed,
+    /// ContextMenu cursor
+    ContextMenu,
+    /// Cell cursor
+    Cell,
+    /// VerticalText cursor
+    VerticalText,
+    /// Alias cursor
+    Alias,
+    /// Copy cursor
+    Copy,
+    /// NoDrop cursor
+    NoDrop,
+    /// Grab cursor
+    Grab,
+    /// Grabbing cursor
+    Grabbing,
+    /// AllScroll cursor
+    AllScroll,
+    /// ZoomIn cursor
+    ZoomIn,
+    /// ZoomOut cursor
+    ZoomOut,
 
-    /// Wait cursor
-    Wait,
+    /// EResize cursor
+    EResize,
+    /// NResize cursor
+    NResize,
+    /// NeResize cursor
+    NeResize,
+    /// NwResize cursor
+    NwResize,
+    /// SResize cursor
+    SResize,
+    /// SeResize cursor
+    SeResize,
+    /// SwResize cursor
+    SwResize,
+    /// WResize cursor
+    WResize,
+    /// EwResize cursor
+    EwResize,
+    /// NsResize cursor
+    NsResize,
+    /// NeswResize cursor
+    NeswResize,
+    /// NwseResize cursor
+    NwseResize,
+    /// ColResize cursor
+    ColResize,
+    /// RowResize cursor
+    RowResize,
 }
 
 impl MouseCursor {
@@ -47,17 +84,42 @@ impl MouseCursor {
     pub(crate) fn into_css_style(self) -> &'static str {
         match self {
             MouseCursor::Default => "auto",
-            MouseCursor::Arrow => "arrow",
-            MouseCursor::Copy => "copy",
             MouseCursor::Crosshair => "crosshair",
-            MouseCursor::Grab => "grab",
-            MouseCursor::Grabbing => "grabbing",
-            MouseCursor::Help => "help",
+            MouseCursor::Hand => "pointer",
+            MouseCursor::Arrow => "default",
             MouseCursor::Move => "move",
-            MouseCursor::Pointer => "pointer",
-            MouseCursor::Progress => "progress",
             MouseCursor::Text => "text",
             MouseCursor::Wait => "wait",
+            MouseCursor::Help => "help",
+            MouseCursor::Progress => "progress",
+
+            MouseCursor::NotAllowed => "not-allowed",
+            MouseCursor::ContextMenu => "context-menu",
+            MouseCursor::Cell => "cell",
+            MouseCursor::VerticalText => "auto",
+            MouseCursor::Alias => "alias",
+            MouseCursor::Copy => "copy",
+            MouseCursor::NoDrop => "no-drop",
+            MouseCursor::Grab => "grab",
+            MouseCursor::Grabbing => "grabbing",
+            MouseCursor::AllScroll => "all-scroll",
+            MouseCursor::ZoomIn => "zoom-in",
+            MouseCursor::ZoomOut => "zoom-out",
+
+            MouseCursor::EResize => "e-resize",
+            MouseCursor::NResize => "n-resize",
+            MouseCursor::NeResize => "ne-resize",
+            MouseCursor::NwResize => "nw-resize",
+            MouseCursor::SResize => "s-resize",
+            MouseCursor::SeResize => "se-resize",
+            MouseCursor::SwResize => "sw-resize",
+            MouseCursor::WResize => "w-resize",
+            MouseCursor::EwResize => "ew-resize",
+            MouseCursor::NsResize => "ns-resize",
+            MouseCursor::NeswResize => "nesw-resize",
+            MouseCursor::NwseResize => "nwse-resize",
+            MouseCursor::ColResize => "col-resize",
+            MouseCursor::RowResize => "row-resize",
         }
     }
 
@@ -66,17 +128,42 @@ impl MouseCursor {
     pub(crate) fn into_gl_cursor(self) -> GlMouseCursor {
         match self {
             MouseCursor::Default => GlMouseCursor::Default,
-            MouseCursor::Arrow => GlMouseCursor::Arrow,
-            MouseCursor::Copy => GlMouseCursor::Copy,
             MouseCursor::Crosshair => GlMouseCursor::Crosshair,
-            MouseCursor::Grab => GlMouseCursor::Grab,
-            MouseCursor::Grabbing => GlMouseCursor::Grabbing,
-            MouseCursor::Help => GlMouseCursor::Help,
+            MouseCursor::Hand => GlMouseCursor::Hand,
+            MouseCursor::Arrow => GlMouseCursor::Arrow,
             MouseCursor::Move => GlMouseCursor::Move,
-            MouseCursor::Pointer => GlMouseCursor::Hand,
-            MouseCursor::Progress => GlMouseCursor::Progress,
             MouseCursor::Text => GlMouseCursor::Text,
             MouseCursor::Wait => GlMouseCursor::Wait,
+            MouseCursor::Help => GlMouseCursor::Help,
+            MouseCursor::Progress => GlMouseCursor::Progress,
+
+            MouseCursor::NotAllowed => GlMouseCursor::NotAllowed,
+            MouseCursor::ContextMenu => GlMouseCursor::ContextMenu,
+            MouseCursor::Cell => GlMouseCursor::Cell,
+            MouseCursor::VerticalText => GlMouseCursor::VerticalText,
+            MouseCursor::Alias => GlMouseCursor::Alias,
+            MouseCursor::Copy => GlMouseCursor::Copy,
+            MouseCursor::NoDrop => GlMouseCursor::NoDrop,
+            MouseCursor::Grab => GlMouseCursor::Grab,
+            MouseCursor::Grabbing => GlMouseCursor::Grabbing,
+            MouseCursor::AllScroll => GlMouseCursor::AllScroll,
+            MouseCursor::ZoomIn => GlMouseCursor::ZoomIn,
+            MouseCursor::ZoomOut => GlMouseCursor::ZoomOut,
+
+            MouseCursor::EResize => GlMouseCursor::EResize,
+            MouseCursor::NResize => GlMouseCursor::NResize,
+            MouseCursor::NeResize => GlMouseCursor::NeResize,
+            MouseCursor::NwResize => GlMouseCursor::NwResize,
+            MouseCursor::SResize => GlMouseCursor::SResize,
+            MouseCursor::SeResize => GlMouseCursor::SeResize,
+            MouseCursor::SwResize => GlMouseCursor::SwResize,
+            MouseCursor::WResize => GlMouseCursor::WResize,
+            MouseCursor::EwResize => GlMouseCursor::EwResize,
+            MouseCursor::NsResize => GlMouseCursor::NsResize,
+            MouseCursor::NeswResize => GlMouseCursor::NeswResize,
+            MouseCursor::NwseResize => GlMouseCursor::NwseResize,
+            MouseCursor::ColResize => GlMouseCursor::ColResize,
+            MouseCursor::RowResize => GlMouseCursor::RowResize,
         }
     }
 }
