@@ -13,22 +13,22 @@ use std::{
     io::Error as IOError
 };
 
-///Save some arbitrary data to the given profile
+/// Save some arbitrary data to the given profile
 ///
-///Different platforms may have different save locations: on the Web, data is saved in cookies, on
-///the desktop, it is stored in some appropriate home-directory folder.
+/// Different platforms may have different save locations: on the Web, data is saved in local
+/// storage, on the desktop, it is stored in some appropriate home-directory folder.
 ///
-///The appname should be some constant; this is used to name the file to place the save in on
-///Desktop platforms. The profile should allow multiple saves of the same game (save slots,
-///numbered saves, different players) etc.
+/// The appname should be some constant; this is used to name the file to place the save in on
+/// desktop platforms. The profile should allow multiple saves of the same game (save slots,
+/// numbered saves, different players) etc.
 pub fn save<T: Serialize>(appname: &str, profile: &str, data: &T) -> Result<(), SaveError> {
     save_impl(appname, profile, data)
 }
 
-///Load some data from the given profile
+/// Load some data from the given profile
 ///
-///Different platforms may have different save locations: on the Web, data is saved in cookies, on
-///the desktop, it is stored in some appropriate home-directory folder.
+/// Different platforms may have different save locations: on the Web, data is saved in local
+/// storage, on the desktop, it is stored in some appropriate home-directory folder.
 pub fn load<T>(appname: &str, profile: &str) -> Result<T, SaveError>
         where for<'de> T: Deserialize<'de> {
     load_impl(appname, profile)
@@ -81,7 +81,7 @@ fn save_impl<T: Serialize>(_appname: &str, profile: &str, data: &T) -> Result<()
 fn load_impl<T>(_appname: &str, profile: &str) -> Result<T, SaveError>
         where for<'de> T: Deserialize<'de> {
     use stdweb::web;
-    let storage = web::window().session_storage();
+    let storage = web::window().local_storage();
     match storage.get(profile) {
         Some(string) => Ok(serde_json::from_str(string.as_str())?),
         None => Err(SaveError::SaveNotFound(profile.to_string()))
