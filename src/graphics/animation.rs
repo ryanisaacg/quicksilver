@@ -23,8 +23,10 @@ pub struct Animation {
     duration: f64,
     /// current time
     current_time: f64,
-    /// whether the animation has been played
-    played: bool,
+    /// if animation is stopped
+    stopped: bool,
+    /// if animation is paused
+    paused: bool,
 }
 
 impl Animation {
@@ -37,7 +39,8 @@ impl Animation {
             data: Rc::new(AnimationData { frames, len }),
             duration,
             current_time: 0.,
-            played: false,
+            stopped: false,
+            paused: false,
         }
     }
 
@@ -50,19 +53,36 @@ impl Animation {
 
     /// Update the internal time of the animation. Must be called.
     pub fn update(&mut self, window: &mut Window) {
+        if self.paused { return; }
         self.current_time += window.update_rate() * 0.001;
         if self.current_time >= self.duration {
             self.current_time -= self.duration
         }
         if self.current_frame_index() + 1 == self.data.len {
-            self.played = true;
+            self.stopped = true;
         }
     }
 
     /// Play the animation
     pub fn play(&mut self) {
-        self.played = false;
         self.current_time = 0.;
+        self.stopped = false;
+    }
+
+    /// Pause the animation
+    pub fn pause(&mut self) {
+        self.paused = true;
+    }
+
+    /// Unpause the animation
+    pub fn unpause(&mut self) {
+        self.paused = false;
+    }
+
+    /// Reset the animation
+    pub fn reset(&mut self) {
+        self.current_time = 0.;
+        self.stopped = true;
     }
 
     /// Set the duration of the animation. Unit in secs
@@ -80,7 +100,7 @@ impl Animation {
 
     /// Get the current frame of the animation
     pub fn current_frame(&self) -> Option<&Image> {
-        if self.played {
+        if self.stopped {
             None
         } else {
             Some(&self.data.frames[self.current_frame_index()])
