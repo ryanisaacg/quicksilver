@@ -12,7 +12,7 @@ use rusttype::{Point, Scale};
 ///
 /// This is the main way to use Immi from within Quicksilver
 pub fn create_immi_ctx<'a>(state: ImmiStatus, render: &'a mut ImmiRender<'a>) -> DrawContext<'a, ImmiRender<'a>> {
-    immi::draw().draw(state.window_size.x, state.window_size.y, render, state.mouse_pos, state.left, state.right)
+    immi::draw().draw(state.window_size.x, state.window_size.y, render, state.mouse_pos, state.pressed, state.released)
 }
 
 /// The current state of the world to pass to Immi
@@ -21,8 +21,8 @@ pub fn create_immi_ctx<'a>(state: ImmiStatus, render: &'a mut ImmiRender<'a>) ->
 pub struct ImmiStatus {
     window_size: Vector,
     mouse_pos: Option<[f32; 2]>,
-    left: bool,
-    right: bool,
+    pressed: bool,
+    released: bool,
 }
 
 impl ImmiStatus {
@@ -34,12 +34,12 @@ impl ImmiStatus {
         let mouse_x_normalized = (mouse_pos.x / window_size.x) * 2f32 - 1f32;
         // Scaled from -1 to 1. (-1 being the bottom of the window, 1 being the top of the window)
         let mouse_y_normalized = (mouse_pos.y / window_size.y) * -2f32 + 1f32;
-        let left_down = window.mouse()[MouseButton::Left].is_down();
+        let state = window.mouse()[MouseButton::Left];
         ImmiStatus {
             window_size,
             mouse_pos: Some([mouse_x_normalized, mouse_y_normalized]),
-            left: left_down,
-            right: !left_down,
+            pressed: state == ButtonState::Pressed,
+            released: state == ButtonState::Released,
         }
     }
 }
