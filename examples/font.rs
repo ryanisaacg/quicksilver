@@ -6,46 +6,29 @@ use quicksilver::{
     combinators::result,
     geom::{Shape, Vector},
     graphics::{Background::Img, Color, Font, FontStyle, Image},
-    lifecycle::{Asset, Event, Settings, State, Window, run},
+    lifecycle::{Asset, Settings, State, Window, run},
 };
 
 struct SampleText {
-    font: Font,
-    image: Image,
-    string: String,
-}
-
-fn render(font: &Font, string: &str) -> Result<Image> {
-    font.render(string, &FontStyle::new(72.0, Color::BLACK))
+    asset: Asset<Image>,
 }
 
 impl State for SampleText {
     fn new() -> Result<SampleText> {
-        let font = Font::from_slice(include_bytes!("../static/font.ttf"))?;
-        let image = render(&font, "Sample Text")?;
-        let string = "Sample Text".to_owned();
-        Ok(SampleText {
-            font,
-            image,
-            string,
-        })
-    }
-
-    fn event(&mut self, event: &Event, window: &mut Window) -> Result<()> {
-        match event {
-            Event::Typed(character) => {
-                self.string.push(*character);
-                self.image = render(&self.font, &self.string)?;
-            }
-            _ => ()
-        }
-        Ok(())
+        let asset = Asset::new(Font::load("font.ttf")
+            .and_then(|font| {
+                let style = FontStyle::new(72.0, Color::BLACK);
+                result(font.render("Sample Text", &style))
+            }));
+        Ok(SampleText { asset })
     }
 
     fn draw(&mut self, window: &mut Window) -> Result<()> {
         window.clear(Color::WHITE)?;
-        window.draw(&self.image.area().with_center((400, 300)), Img(&self.image));
-        Ok(())
+        self.asset.execute(|image| {
+            window.draw(&image.area().with_center((400, 300)), Img(&image));
+            Ok(())
+        })
     }
 }
 
