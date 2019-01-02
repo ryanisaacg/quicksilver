@@ -2,6 +2,7 @@
 
 ## In-development
 
+- Add a new event: `Typed(char)` that allows reading typed alphanumeric characters
 - Add support for touch events on web
 - Fix a bug with swapping textures in the WebGL backend
 

@@ -25,6 +25,8 @@ pub enum Event {
     Unfocused,
     /// A key has changed its button state
     Key(Key, ButtonState),
+    /// An alphanumeric character has been entered from the keyboard
+    Typed(char),
     /// The mouse has been moved to a position
     MouseMoved(Vector),
     /// The mouse has entered the window
@@ -75,6 +77,9 @@ impl EventProvider {
                         let key = KEY_LIST[keycode as usize];
                         events.push(Event::Key(key, state));
                     }
+                }
+                glutin::WindowEvent::ReceivedCharacter(character) if character.is_alphanumeric() => {
+                    events.push(Event::Typed(character));
                 }
                 glutin::WindowEvent::CursorMoved { position, .. } => {
                     let position: Vector = position.into();
