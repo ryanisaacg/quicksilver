@@ -12,7 +12,7 @@ use rusttype::{Point, Scale};
 ///
 /// This is the main way to use Immi from within Quicksilver
 pub fn create_immi_ctx<'a>(state: ImmiStatus, render: &'a mut ImmiRender<'a>) -> DrawContext<'a, ImmiRender<'a>> {
-    immi::draw().draw(state.window_size.x, state.window_size.y, render, state.mouse_pos, state.left, state.right)
+    immi::draw().draw(state.window_size.x, state.window_size.y, render, state.mouse_pos, state.pressed, state.released)
 }
 
 /// The current state of the world to pass to Immi
@@ -21,8 +21,8 @@ pub fn create_immi_ctx<'a>(state: ImmiStatus, render: &'a mut ImmiRender<'a>) ->
 pub struct ImmiStatus {
     window_size: Vector,
     mouse_pos: Option<[f32; 2]>,
-    left: bool,
-    right: bool,
+    pressed: bool,
+    released: bool,
 }
 
 impl ImmiStatus {
@@ -34,11 +34,12 @@ impl ImmiStatus {
         let mouse_x_normalized = (mouse_pos.x / window_size.x) * 2f32 - 1f32;
         // Scaled from -1 to 1. (-1 being the bottom of the window, 1 being the top of the window)
         let mouse_y_normalized = (mouse_pos.y / window_size.y) * -2f32 + 1f32;
+        let state = window.mouse()[MouseButton::Left];
         ImmiStatus {
             window_size,
             mouse_pos: Some([mouse_x_normalized, mouse_y_normalized]),
-            left: window.mouse()[MouseButton::Left] == ButtonState::Pressed,
-            right: window.mouse()[MouseButton::Left] == ButtonState::Released
+            pressed: state == ButtonState::Pressed,
+            released: state == ButtonState::Released,
         }
     }
 }
@@ -82,9 +83,9 @@ impl<'a> ImmiRender<'a> {
 fn matrix_to_trans(matrix: &Matrix) -> Transform {
     let array = matrix.0;
     Transform::from_array([
-        [array[0][0], array[0][1], 0.0],
-        [array[1][0], array[1][1], 0.0],
-        [array[2][0], array[2][1], 1.0],
+        [array[0][0], array[1][0], array[2][0]],
+        [array[0][1], array[1][1], array[2][1]],
+        [0.0, 0.0, 1.0],
     ])
 }
 
@@ -94,12 +95,12 @@ impl<'a> Draw for ImmiRender<'a> {
     type TextStyle = FontStyle;
 
     fn draw_triangle(&mut self, texture: &Image, matrix: &Matrix, uv_coords: [[f32; 2]; 3]) {
-        let transform =  self.view.opengl.inverse() * Transform::scale((1, -1)) * matrix_to_trans(matrix);
+        let transform = self.view.opengl.inverse() * matrix_to_trans(matrix);
         let offset = self.window.vertices.len() as u32;
         self.window.vertices.extend([(-1, 1), (-1, -1), (1, 1)]
             .iter()
             .map(|(x, y)| transform * Vector::new(*x, *y))
-            .zip(uv_coords.iter().map(|[x, y]| Vector::new(*x, *y)))
+            .zip(uv_coords.iter().map(|[x, y]| Vector::new(*x, 1.0 - *y)))
             .map(|(pos, tex_coord)| Vertex::new(pos, Some(tex_coord), Background::Img(texture))));
         self.window.triangles.push(GpuTriangle::new(offset, [0, 1, 2], 0.0, Background::Img(texture)));
     }
