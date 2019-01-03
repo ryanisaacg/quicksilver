@@ -398,8 +398,13 @@ impl Window {
     }
 
     /// Set if the cursor should be visible when over the application
+    #[deprecated(since = "0.3.5", note = "please use `set_cursor` instead")]
     pub fn set_show_cursor(&mut self, show_cursor: bool) {
-        self.backend().show_cursor(show_cursor);
+        if show_cursor {
+            self.set_cursor(MouseCursor::Default);
+        } else {
+            self.set_cursor(MouseCursor::None);
+        }
     }
 
     /// Set current cursor

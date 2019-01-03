@@ -4,6 +4,9 @@ use glutin::MouseCursor as GlMouseCursor;
 /// Mouse cursor styles
 #[derive(Copy, Clone, Debug, Eq, Hash, PartialEq)]
 pub enum MouseCursor {
+    /// No cursor
+    None,
+
     /// Default cursor
     Default,
     /// Crosshair cursor
@@ -83,6 +86,7 @@ impl MouseCursor {
     #[inline]
     pub(crate) fn into_css_style(self) -> &'static str {
         match self {
+            MouseCursor::None => "none",
             MouseCursor::Default => "auto",
             MouseCursor::Crosshair => "crosshair",
             MouseCursor::Hand => "pointer",
@@ -125,45 +129,46 @@ impl MouseCursor {
 
     #[cfg(not(target_arch = "wasm32"))]
     #[inline]
-    pub(crate) fn into_gl_cursor(self) -> GlMouseCursor {
+    pub(crate) fn into_gl_cursor(self) -> Option<GlMouseCursor> {
         match self {
-            MouseCursor::Default => GlMouseCursor::Default,
-            MouseCursor::Crosshair => GlMouseCursor::Crosshair,
-            MouseCursor::Hand => GlMouseCursor::Hand,
-            MouseCursor::Arrow => GlMouseCursor::Arrow,
-            MouseCursor::Move => GlMouseCursor::Move,
-            MouseCursor::Text => GlMouseCursor::Text,
-            MouseCursor::Wait => GlMouseCursor::Wait,
-            MouseCursor::Help => GlMouseCursor::Help,
-            MouseCursor::Progress => GlMouseCursor::Progress,
+            MouseCursor::None => None,
+            MouseCursor::Default => Some(GlMouseCursor::Default),
+            MouseCursor::Crosshair => Some(GlMouseCursor::Crosshair),
+            MouseCursor::Hand => Some(GlMouseCursor::Hand),
+            MouseCursor::Arrow => Some(GlMouseCursor::Arrow),
+            MouseCursor::Move => Some(GlMouseCursor::Move),
+            MouseCursor::Text => Some(GlMouseCursor::Text),
+            MouseCursor::Wait => Some(GlMouseCursor::Wait),
+            MouseCursor::Help => Some(GlMouseCursor::Help),
+            MouseCursor::Progress => Some(GlMouseCursor::Progress),
 
-            MouseCursor::NotAllowed => GlMouseCursor::NotAllowed,
-            MouseCursor::ContextMenu => GlMouseCursor::ContextMenu,
-            MouseCursor::Cell => GlMouseCursor::Cell,
-            MouseCursor::VerticalText => GlMouseCursor::VerticalText,
-            MouseCursor::Alias => GlMouseCursor::Alias,
-            MouseCursor::Copy => GlMouseCursor::Copy,
-            MouseCursor::NoDrop => GlMouseCursor::NoDrop,
-            MouseCursor::Grab => GlMouseCursor::Grab,
-            MouseCursor::Grabbing => GlMouseCursor::Grabbing,
-            MouseCursor::AllScroll => GlMouseCursor::AllScroll,
-            MouseCursor::ZoomIn => GlMouseCursor::ZoomIn,
-            MouseCursor::ZoomOut => GlMouseCursor::ZoomOut,
+            MouseCursor::NotAllowed => Some(GlMouseCursor::NotAllowed),
+            MouseCursor::ContextMenu => Some(GlMouseCursor::ContextMenu),
+            MouseCursor::Cell => Some(GlMouseCursor::Cell),
+            MouseCursor::VerticalText => Some(GlMouseCursor::VerticalText),
+            MouseCursor::Alias => Some(GlMouseCursor::Alias),
+            MouseCursor::Copy => Some(GlMouseCursor::Copy),
+            MouseCursor::NoDrop => Some(GlMouseCursor::NoDrop),
+            MouseCursor::Grab => Some(GlMouseCursor::Grab),
+            MouseCursor::Grabbing => Some(GlMouseCursor::Grabbing),
+            MouseCursor::AllScroll => Some(GlMouseCursor::AllScroll),
+            MouseCursor::ZoomIn => Some(GlMouseCursor::ZoomIn),
+            MouseCursor::ZoomOut => Some(GlMouseCursor::ZoomOut),
 
-            MouseCursor::EResize => GlMouseCursor::EResize,
-            MouseCursor::NResize => GlMouseCursor::NResize,
-            MouseCursor::NeResize => GlMouseCursor::NeResize,
-            MouseCursor::NwResize => GlMouseCursor::NwResize,
-            MouseCursor::SResize => GlMouseCursor::SResize,
-            MouseCursor::SeResize => GlMouseCursor::SeResize,
-            MouseCursor::SwResize => GlMouseCursor::SwResize,
-            MouseCursor::WResize => GlMouseCursor::WResize,
-            MouseCursor::EwResize => GlMouseCursor::EwResize,
-            MouseCursor::NsResize => GlMouseCursor::NsResize,
-            MouseCursor::NeswResize => GlMouseCursor::NeswResize,
-            MouseCursor::NwseResize => GlMouseCursor::NwseResize,
-            MouseCursor::ColResize => GlMouseCursor::ColResize,
-            MouseCursor::RowResize => GlMouseCursor::RowResize,
+            MouseCursor::EResize => Some(GlMouseCursor::EResize),
+            MouseCursor::NResize => Some(GlMouseCursor::NResize),
+            MouseCursor::NeResize => Some(GlMouseCursor::NeResize),
+            MouseCursor::NwResize => Some(GlMouseCursor::NwResize),
+            MouseCursor::SResize => Some(GlMouseCursor::SResize),
+            MouseCursor::SeResize => Some(GlMouseCursor::SeResize),
+            MouseCursor::SwResize => Some(GlMouseCursor::SwResize),
+            MouseCursor::WResize => Some(GlMouseCursor::WResize),
+            MouseCursor::EwResize => Some(GlMouseCursor::EwResize),
+            MouseCursor::NsResize => Some(GlMouseCursor::NsResize),
+            MouseCursor::NeswResize => Some(GlMouseCursor::NeswResize),
+            MouseCursor::NwseResize => Some(GlMouseCursor::NwseResize),
+            MouseCursor::ColResize => Some(GlMouseCursor::ColResize),
+            MouseCursor::RowResize => Some(GlMouseCursor::RowResize),
         }
     }
 }

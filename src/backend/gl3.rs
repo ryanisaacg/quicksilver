@@ -324,11 +324,15 @@ impl Backend for GL3Backend {
         (Vector::new(width, height), buffer)
     }
 
-    fn show_cursor(&mut self, show_cursor: bool) {
-        self.context.hide_cursor(!show_cursor);
+    fn set_cursor(&mut self, cursor: MouseCursor) {
+        match cursor.into_gl_cursor() {
+            Some(gl_cursor) => {
+                self.context.hide_cursor(false);
+                self.context.set_cursor(gl_cursor);
+            }
+            None => self.context.hide_cursor(true),
+        }
     }
-
-    fn set_cursor(&mut self, cursor: MouseCursor) { self.context.set_cursor(cursor.into_gl_cursor()); }
 
     fn set_title(&mut self, title: &str) {
         self.context.set_title(title);
