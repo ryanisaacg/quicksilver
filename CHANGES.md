@@ -6,6 +6,7 @@
 - Add support for touch events on web
 - Fix a bug with swapping textures in the WebGL backend
 - Fix a bug with save / load on WASM
+- Add support for saving raw bytes
 
 ## 0.3.4
 
