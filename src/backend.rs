@@ -2,6 +2,7 @@ use crate::{
     Result,
     geom::{Rectangle, Vector},
     graphics::{Background::Col, BlendMode, Color, GpuTriangle, Image, ImageScaleStrategy, PixelFormat, Surface, Vertex},
+    input::MouseCursor,
 };
 
 pub(crate) trait Backend {
@@ -30,7 +31,7 @@ pub(crate) trait Backend {
 
     unsafe fn screenshot(&self, format: PixelFormat) -> (Vector, Vec<u8>);
 
-    fn show_cursor(&mut self, show_cursor: bool);
+    fn set_cursor(&mut self, cursor: MouseCursor);
     fn set_title(&mut self, title: &str);
 
     fn set_fullscreen(&mut self, fullscreen: bool) -> Option<Vector>;

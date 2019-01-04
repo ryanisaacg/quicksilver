@@ -4,6 +4,7 @@ use crate::{
     geom::{Rectangle, Vector},
     error::QuicksilverError,
     graphics::{BlendMode, Color, GpuTriangle, Image, ImageScaleStrategy, PixelFormat, Surface, Vertex},
+    input::MouseCursor,
 };
 use std::mem::size_of;
 use stdweb::{
@@ -327,8 +328,8 @@ impl Backend for WebGLBackend {
         (Vector::new(width, height), buffer)
     }
 
-    fn show_cursor(&mut self, show_cursor: bool) {
-        js! ( @{&self.canvas}.style.cursor = @{show_cursor} ? "auto" : "none"; );
+    fn set_cursor(&mut self, cursor: MouseCursor) {
+        js!( @{&self.canvas}.style.cursor = @{cursor.into_css_style()} );
     }
 
     fn set_title(&mut self, title: &str) {

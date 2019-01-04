@@ -8,6 +8,7 @@ mod gamepad;
 mod key;
 mod keyboard;
 mod mouse;
+mod mouse_cursor;
 
 pub(crate) const LINES_TO_PIXELS: f32 = 15.0;
 
@@ -16,7 +17,8 @@ pub use self::{
     key::Key,
     gamepad::{Gamepad, GamepadAxis, GamepadButton},
     keyboard::Keyboard,
-    mouse::{Mouse, MouseButton}
+    mouse::{Mouse, MouseButton},
+    mouse_cursor::MouseCursor
 };
 pub(crate) use self::key::KEY_LIST;
 #[cfg(all(not(any(target_arch="wasm32", target_os="macos")), feature = "gamepads"))]

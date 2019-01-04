@@ -84,6 +84,10 @@ name = "lyon"
 required-features = ["complex_shapes"]
 
 [[example]]
+name = "set-cursor"
+required-features = []
+
+[[example]]
 name = "stopwatch"
 required-features = []
 
