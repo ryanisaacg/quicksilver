@@ -21,13 +21,14 @@ use {
     stdweb::{
         Value, unstable::TryInto,
         web::{
-            document, window, IEventTarget,  IWindowOrWorker,
+            document, window, IEventTarget, IHtmlElement,  IWindowOrWorker,
             event::{
                 BlurEvent, ConcreteEvent, FocusEvent, GamepadConnectedEvent, GamepadDisconnectedEvent,
                 IGamepadEvent, IKeyboardEvent, IMouseEvent, KeyDownEvent, KeyUpEvent,
                 MouseButton as WebMouseButton, PointerDownEvent, PointerMoveEvent, PointerOutEvent,
                 PointerOverEvent, PointerUpEvent, ResizeEvent
-            }
+            },
+            html_element::InputElement
         }
     }
 };
@@ -67,9 +68,11 @@ fn run_impl<T: State>(title: &str, size: Vector, settings: Settings) -> Result<(
 
 #[cfg(target_arch = "wasm32")]
 fn run_impl<T: State>(title: &str, size: Vector, settings: Settings) -> Result<()> {
-    let (win, canvas) = Window::build(title, size, settings)?;
+    let (win, canvas, input) = Window::build(title, size, settings)?;
 
     let app: Rc<RefCell<Application<T>>> = Rc::new(RefCell::new(Application::new(win)?));
+
+    let input_rc: Rc<InputElement> = Rc::new(input);
 
     let document = document();
     let window = window();
@@ -99,11 +102,16 @@ fn run_impl<T: State>(title: &str, size: Vector, settings: Settings) -> Result<(
         }
     }
 
-    handle_event(&document, &app, |mut app, _: BlurEvent| {
-        app.event_buffer.push(Event::Unfocused)
+    let input = input_rc.clone();
+    handle_event(&document, &app, move |mut app, _: BlurEvent| {
+        app.event_buffer.push(Event::Unfocused);
+        input.blur();
     });
-    handle_event(&document, &app, |mut app, _: FocusEvent| {
-        app.event_buffer.push(Event::Focused)
+
+    let input = input_rc.clone();
+    handle_event(&document, &app, move |mut app, _: FocusEvent| {
+        app.event_buffer.push(Event::Focused);
+        input.focus();
     });
 
     handle_event(&canvas, &app, |mut app, _: PointerOutEvent| {
@@ -127,7 +135,9 @@ fn run_impl<T: State>(title: &str, size: Vector, settings: Settings) -> Result<(
         };
         app.event_buffer.push(Event::MouseButton(button, state));
     });
-    handle_event(&canvas, &app, |mut app, event: PointerDownEvent| {
+
+    let input = input_rc.clone();
+    handle_event(&canvas, &app, move |mut app, event: PointerDownEvent| {
         let state = ButtonState::Pressed;
         let button = match event.button() {
             WebMouseButton::Left => MouseButton::Left,
@@ -136,6 +146,7 @@ fn run_impl<T: State>(title: &str, size: Vector, settings: Settings) -> Result<(
             _ => return,
         };
         app.event_buffer.push(Event::MouseButton(button, state));
+        input.focus();
     });
 
     let key_names = generate_key_names();

@@ -15,7 +15,7 @@ use {
     stdweb::{
         web::{
             IElement, INode, document,
-            html_element::CanvasElement,
+            html_element::{CanvasElement, InputElement},
         },
         unstable::TryInto
     }
@@ -120,7 +120,7 @@ impl Window {
     }
 
     #[cfg(target_arch = "wasm32")]
-    pub(crate) fn build(title: &str, size: Vector, settings: Settings) -> Result<(Window, CanvasElement)> {
+    pub(crate) fn build(title: &str, size: Vector, settings: Settings) -> Result<(Window, CanvasElement, InputElement)> {
         let document = document();
         if let Some(path) = settings.icon_path {
             let head = document.head().ok_or(QuicksilverError::ContextError("Failed to find head node".to_owned()))?;
@@ -140,6 +140,28 @@ impl Window {
             .map_err(|_| QuicksilverError::ContextError("Failed to create canvas element".to_owned()))?;
         let canvas: CanvasElement = element.try_into()
             .map_err(|_| QuicksilverError::ContextError("Failed to create canvas element".to_owned()))?;
+        let element = document
+            .create_element("input")
+            .map_err(|_| QuicksilverError::ContextError("Failed to create input element".to_owned()))?;
+        let input: InputElement = element.try_into()
+            .map_err(|_| QuicksilverError::ContextError("Failed to create input element".to_owned()))?;
+
+        js! {
+            @{&input}.type = "text";
+            @{&input}.autofocus = "";
+            @{&input}.style.pointerEvents = "none";
+            @{&input}.style.position = "absolute";
+        };
+        js! {
+            @{&input}.style.zIndex = -1;
+            @{&input}.style.width = 0;
+            @{&input}.style.height = 0;
+            @{&input}.style.left = 0;
+            @{&input}.style.top = 0;
+        };
+
+        canvas.append_child(&input);
+
         let body = document.body().ok_or(QuicksilverError::ContextError("Failed to find body node".to_owned()))?;
         body.append_child(&canvas);
         canvas.set_width(size.x as u32);
@@ -147,7 +169,7 @@ impl Window {
         unsafe { set_instance(BackendImpl::new(canvas.clone(), settings.scale, settings.multisampling != None)?) };
         let mut window = Window::build_agnostic(size, size, settings)?;
         window.set_title(title);
-        Ok((window, canvas))
+        Ok((window, canvas, input))
     }
 
     pub(crate) fn process_event(&mut self, event: &Event) {
