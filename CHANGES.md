@@ -7,6 +7,7 @@
 - Fix a bug with swapping textures in the WebGL backend
 - Add support for cursor style change
 - Fix a bug with save / load on WASM
+- Add support change IME and get compositionend event data by `Typed` event on web
 
 ## 0.3.4
 
