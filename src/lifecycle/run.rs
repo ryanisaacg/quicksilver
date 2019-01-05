@@ -102,6 +102,26 @@ fn run_impl<T: State>(title: &str, size: Vector, settings: Settings) -> Result<(
         }
     }
 
+    let application = app.clone();
+    let input = input_rc.clone();
+    let document_composition_end_handler = move |event: Value| {
+        let data: String = js! { return @{&event}.data }.try_into().unwrap();
+
+        js! {
+            @{&*input}.value = "";
+            @{&event}.preventDefault();
+        }
+
+        match data.chars().next() {
+            Some(ch) if ch.is_alphanumeric() => application.borrow_mut().event_buffer.push(Event::Typed(ch)),
+            _ => (),
+        }
+    };
+
+    js! {
+        document.addEventListener("compositionend", @{document_composition_end_handler});
+    }
+
     let input = input_rc.clone();
     handle_event(&document, &app, move |mut app, _: BlurEvent| {
         app.event_buffer.push(Event::Unfocused);
