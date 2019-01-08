@@ -7,6 +7,7 @@
 - Fix a bug with swapping textures in the WebGL backend
 - Add support for cursor style change
 - Fix a bug with save / load on WASM
+- Add support for saving raw bytes
 
 ## 0.3.4
 
