@@ -37,9 +37,7 @@ use {
 /// On desktop platforms, this yields control to a simple game loop controlled by a Timer. On wasm,
 /// this yields control to the browser functions setInterval and requestAnimationFrame
 pub fn run<T: State>(title: &str, size: Vector, settings: Settings) {
-    if let Err(error) = run_impl::<T, _>(title, size.into(), settings, || T::new()) {
-        T::handle_error(error);
-    }
+    run_with(title, size, settings, || T::new());
 }
 
 /// Run the application's game loop
