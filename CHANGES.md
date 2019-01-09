@@ -8,6 +8,7 @@
 - Add support for cursor style change
 - Fix a bug with save / load on WASM
 - Add support for saving raw bytes
+- Add the ability to use a custom initializer for `State` implementors using `run_with`
 
 ## 0.3.4
 
@@ -15,7 +16,6 @@
     - This requires cargo web of >= 0.6.23, use `cargo install -f cargo-web` to update
 - Add the ability to take screenshots of the window or surface with `Window::screenshot`
 - Fix a bug in web key input where any key past F15 would not map correctly
-- Add the ability to use a custom initializer for `State` implementors using `run_with`
 
 ## 0.3.3
 
