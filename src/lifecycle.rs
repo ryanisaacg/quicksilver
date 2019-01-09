@@ -13,6 +13,7 @@ pub use self::{
     asset::Asset,
     event::Event,
     run::run,
+    run::run_with,
     state::State,
     settings::Settings,
     window::Window,
