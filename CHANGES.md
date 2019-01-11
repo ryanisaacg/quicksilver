@@ -8,6 +8,7 @@
 - Add support for cursor style change
 - Fix a bug with save / load on WASM
 - Add support for saving raw bytes
+- Add the ability to use a custom initializer for `State` implementors using `run_with`
 
 ## 0.3.4
 

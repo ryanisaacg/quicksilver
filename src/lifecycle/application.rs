@@ -18,10 +18,10 @@ pub struct Application<T: State> {
 }
 
 impl<T: State> Application<T> {
-    pub fn new(window: Window) -> Result<Application<T>> {
+    pub fn new<F: FnOnce()->Result<T>>(window: Window, f: F) -> Result<Application<T>> {
         let time = current_time();
         Ok(Application {
-            state: T::new()?,
+            state: f()?,
             window,
             event_buffer: Vec::new(),
             accumulator: 0.0,
