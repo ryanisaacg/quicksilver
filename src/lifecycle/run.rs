@@ -37,13 +37,26 @@ use {
 /// On desktop platforms, this yields control to a simple game loop controlled by a Timer. On wasm,
 /// this yields control to the browser functions setInterval and requestAnimationFrame
 pub fn run<T: State>(title: &str, size: Vector, settings: Settings) {
-    if let Err(error) = run_impl::<T>(title, size.into(), settings) {
+    run_with(title, size, settings, || T::new());
+}
+
+/// Run the application's game loop
+///
+/// On desktop platforms, this yields control to a simple game loop controlled by a Timer. On wasm,
+/// this yields control to the browser functions setInterval and requestAnimationFrame
+///
+/// This function behaves the same as `run`, but the `FnOnce` argument is responsible for state
+/// creation instead of the backend.
+pub fn run_with<T: State, F: FnOnce()->Result<T>>(title: &str, size: Vector, settings: Settings,
+                                                  f: F) {
+    if let Err(error) = run_impl::<T, F>(title, size.into(), settings, f) {
         T::handle_error(error);
     }
 }
 
 #[cfg(not(target_arch = "wasm32"))]
-fn run_impl<T: State>(title: &str, size: Vector, settings: Settings) -> Result<()> {
+fn run_impl<T: State, F: FnOnce()->Result<T>>(title: &str, size: Vector, settings: Settings,
+                                              f: F) -> Result<()> {
     // A workaround for https://github.com/koute/cargo-web/issues/112
     if let Err(_) = set_current_dir("static") {
         eprintln!("Warning: no asset directory found. Please place all your assets inside a directory called 'static' so they can be loaded");
@@ -53,7 +66,7 @@ fn run_impl<T: State>(title: &str, size: Vector, settings: Settings) -> Result<(
     let mut events = EventProvider::new(events_loop);
     #[cfg(feature = "sounds")]
     crate::sound::Sound::initialize();
-    let mut app: Application<T> = Application::new(window)?;
+    let mut app: Application<T> = Application::new(window, f)?;
     while app.window.is_running() {
         let stay_open = events.generate_events(&mut app.window, &mut app.event_buffer);
         if !stay_open {
@@ -66,10 +79,11 @@ fn run_impl<T: State>(title: &str, size: Vector, settings: Settings) -> Result<(
 }
 
 #[cfg(target_arch = "wasm32")]
-fn run_impl<T: State>(title: &str, size: Vector, settings: Settings) -> Result<()> {
+fn run_impl<T: State, F: FnOnce()->Result<T>>(title: &str, size: Vector, settings: Settings,
+                                              f: F) -> Result<()> {
     let (win, canvas) = Window::build(title, size, settings)?;
 
-    let app: Rc<RefCell<Application<T>>> = Rc::new(RefCell::new(Application::new(win)?));
+    let app: Rc<RefCell<Application<T>>> = Rc::new(RefCell::new(Application::new(win, f)?));
 
     let document = document();
     let window = window();
