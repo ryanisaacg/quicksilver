@@ -2,39 +2,28 @@
 //!
 //! On the desktop, currently all sounds are loaded into memory, but streaming sounds may be
 //! introduced in the future. On the web, it can be different from browser to browser
+mod bucket;
+mod error;
+mod player;
+mod instance;
+mod play_state;
 
 use crate::{
-    Result,
+    Result, load_file,
     error::QuicksilverError,
+};
+use self::{
+    bucket::Bucket,
+    player::{SoundData, Player, get_player}
+};
+pub use self::{
+    instance::SoundInstance,
+    play_state::PlayState,
 };
 use futures::{Future, future};
 use std::{
-    error::Error,
-    fmt,
-    io::Error as IOError,
-    path::Path
-};
-#[cfg(not(target_arch="wasm32"))]
-use {
-    rodio::{
-        self,
-        decoder::{Decoder, DecoderError},
-        source::{SamplesConverter, Source,Amplify},
-    },
-    std::{
-        fs::File,
-        io::{Cursor, Read},
-        sync::Arc
-    }
-};
-#[cfg(target_arch="wasm32")]
-use {
-    futures::Async,
-    std::io::ErrorKind,
-    stdweb::{
-        unstable::TryInto,
-        Value
-    }
+    path::Path,
+    rc::Rc
 };
 
 
@@ -45,23 +34,28 @@ use {
 /// volumes, you can clone the Sound.
 #[derive(Clone, Debug)]
 pub struct Sound {
-    #[cfg(not(target_arch="wasm32"))]
-    val: Arc<Vec<u8>>,
-    #[cfg(target_arch="wasm32")]
-    sound: Value,
-    volume: f32
-}
-
-
-#[cfg(target_arch="wasm32")]
-fn wasm_sound_error(error: &str) -> QuicksilverError {
-    let error = IOError::new(ErrorKind::NotFound, error);
-    let error: SoundError = error.into();
-    error.into()
+    data: Rc<SoundData>,
+    volume: f32,
+    balance: f32, // left / right balancing
 }
 
 impl Sound {
-    /// Start loading a sound from a given path
+    pub fn from_bytes(raw: &[u8]) -> Result<Sound> {
+        let data = get_player().from_bytes(raw)?;
+        Ok(Sound {
+            data,
+            volume: 1.0,
+            balance: 0.0
+        })
+    }
+
+    pub fn load(path: impl AsRef<Path>) -> impl Future<Item = Sound, Error = QuicksilverError> {
+        load_file(path)
+            .map(|data| Sound::from_bytes(data.as_slice()))
+            .and_then(future::result)
+    }
+
+    /*/// Start loading a sound from a given path
     pub fn load(path: impl AsRef<Path>) -> impl Future<Item = Sound, Error = QuicksilverError> {
         Sound::load_impl(path.as_ref())
     }
@@ -93,7 +87,7 @@ impl Sound {
                 (_, Err(_)) => Err(wasm_sound_error("Checking sound ready state failed")),
             }
         })
-    }
+    }*/
     
 
     /// Get the volume of the sound clip instance
@@ -114,9 +108,12 @@ impl Sound {
         self.volume = volume;
     }
 
-    #[cfg(not(target_arch="wasm32"))]
-    fn get_source(&self) -> Result<SamplesConverter<Amplify<Decoder<Cursor<Sound>>>, f32>> {
-        Ok(Decoder::new(Cursor::new(self.clone()))?.amplify(self.volume).convert_samples())
+    pub fn balance(&self) -> f32 {
+        self.balance
+    }
+    
+    pub fn set_balance(&mut self, balance: f32) {
+        self.balance = balance;
     }
 
     /// Play the sound clip at its current volume
@@ -124,8 +121,9 @@ impl Sound {
     /// The sound clip can be played over itself.
     ///
     /// Future changes in volume will not change the sound emitted by this method.
-    pub fn play(&self) -> Result<()> {
-        #[cfg(not(target_arch="wasm32"))] {
+    pub fn play(&self) -> Result<SoundInstance> {
+        get_player().play(self, false)
+        /*#[cfg(not(target_arch="wasm32"))] {
             let device = match rodio::default_output_device() {
                 Some(device) => device,
                 None => return Err(SoundError::NoOutputAvailable.into())
@@ -135,91 +133,11 @@ impl Sound {
         #[cfg(target_arch="wasm32")] js! {
             @{&self.sound}.cloneNode().play();
         }
-        Ok(())
-    }
-    
-    #[cfg(not(target_arch="wasm32"))]
-    //Play a silent sound so rodio startup doesn't interfere with application
-    //Unfortunately this means even apps that don't use sound eat the startup penalty but it's not a
-    //huge one
-    pub(crate) fn initialize() {
-        if let Some(ref device) = rodio::default_output_device() {
-            rodio::play_raw(device, rodio::source::Empty::new())
-        }
-    }
-}
-
-#[cfg(not(target_arch="wasm32"))]
-fn load(path: &Path) -> Result<Sound> {
-    let mut bytes = Vec::new();
-    File::open(path)?.read_to_end(&mut bytes)?;
-    let val = Arc::new(bytes);
-    let sound = Sound {
-        val,
-        volume: 1f32
-    };
-    Decoder::new(Cursor::new(sound.clone()))?;
-    Ok(sound)
-}
-
-#[doc(hidden)]
-#[cfg(not(target_arch="wasm32"))]
-impl AsRef<[u8]> for Sound {
-    fn as_ref(&self) -> &[u8] {
-        self.val.as_ref().as_ref()
-    }
-}
-
-#[derive(Debug)]
-/// An error generated when loading a sound
-pub enum SoundError {
-    /// The sound file is not in an format that can be played
-    UnrecognizedFormat,
-    /// No output device was found to play the sound
-    NoOutputAvailable,
-    /// The Sound was not found or could not be loaded
-    IOError(IOError)
-}
-
-impl fmt::Display for SoundError  {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.description())
-    }
-}
-
-impl Error for SoundError {
-    fn description(&self) -> &str {
-        match self {
-            SoundError::UnrecognizedFormat => "The sound file format was not recognized",
-            SoundError::NoOutputAvailable => "There was no output device available for playing",
-            SoundError::IOError(err) => err.description()
-        }
+        Ok(())*/
     }
 
-    fn cause(&self) -> Option<&dyn Error> {
-        match self {
-            SoundError::UnrecognizedFormat
-                | SoundError::NoOutputAvailable => None,
-            SoundError::IOError(err) => Some(err)
-        }
-    }
-
-}
-
-#[doc(hidden)]
-#[cfg(not(target_arch="wasm32"))]
-impl From<DecoderError> for SoundError {
-    fn from(err: DecoderError) -> SoundError {
-        match err {
-            DecoderError::UnrecognizedFormat => SoundError::UnrecognizedFormat
-        }
-    }
-}
-
-#[doc(hidden)]
-impl From<IOError> for SoundError {
-    fn from(err: IOError) -> SoundError {
-        SoundError::IOError(err)
+    pub fn repeat(&self) -> Result<SoundInstance> {
+        get_player().play(self, true)
     }
 }
 
