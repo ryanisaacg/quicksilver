@@ -57,7 +57,6 @@ impl Font {
                     let y = y + bound_min_y;
                     // x or y can be greater than our pixels area:
                     if x < width as u32 && y < style.size as u32 {
-                        //let height = size as u32;
                         let index = (4 * (x + y * width as u32)) as usize;
                         let red = (255.0 * style.color.r) as u8;
                         let green = (255.0 * style.color.g) as u8;
