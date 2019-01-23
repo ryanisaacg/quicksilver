@@ -2,6 +2,8 @@
 
 ## In-development
 
+- Fix a crash in certain font & text combinations
+
 ## 0.3.5
 
 - Add a new event: `Typed(char)` that allows reading typed alphanumeric characters
