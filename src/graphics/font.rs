@@ -50,17 +50,23 @@ impl Font {
         for glyph in glyphs {
             if let Some(bounds) = glyph.pixel_bounding_box() {
                 glyph.draw(|x, y, v| {
-                    let x = x + bounds.min.x as u32;
-                    let y = y + bounds.min.y as u32;
-                    //let height = size as u32;
-                    let index = (4 * (x + y * width as u32)) as usize;
-                    let red = (255.0 * style.color.r) as u8;
-                    let green = (255.0 * style.color.g) as u8;
-                    let blue = (255.0 * style.color.b) as u8;
-                    let alpha = (255.0 * v) as u8;
-                    let bytes = [red, green, blue, alpha];
-                    for i in 0..bytes.len() {
-                        pixels[index + i] = bytes[i];
+                    // `bounds.min` can contain negative numbers:
+                    let bound_min_x = std::cmp::max(0, bounds.min.x) as u32;
+                    let bound_min_y = std::cmp::max(0, bounds.min.y) as u32;
+                    let x = x + bound_min_x;
+                    let y = y + bound_min_y;
+                    // x or y can be greater than our pixels area:
+                    if x < width as u32 && y < style.size as u32 {
+                        //let height = size as u32;
+                        let index = (4 * (x + y * width as u32)) as usize;
+                        let red = (255.0 * style.color.r) as u8;
+                        let green = (255.0 * style.color.g) as u8;
+                        let blue = (255.0 * style.color.b) as u8;
+                        let alpha = (255.0 * v) as u8;
+                        let bytes = [red, green, blue, alpha];
+                        for i in 0..bytes.len() {
+                            pixels[index + i] = bytes[i];
+                        }
                     }
                 });
             }
