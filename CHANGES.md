@@ -2,7 +2,10 @@
 
 ## In-development
 
+## 0.3.6
+
 - Fix a crash in certain font & text combinations
+- Add a blend background option for blending images and color
 
 ## 0.3.5
 
