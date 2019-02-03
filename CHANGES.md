@@ -2,6 +2,8 @@
 
 ## In-development
 
+- Render string slices with newlines correctly
+
 ## 0.3.6
 
 - Fix a crash in certain font & text combinations
