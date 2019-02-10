@@ -2,6 +2,8 @@
 
 ## In-development
 
+- Fix text rendering failing on immi (it's still not very good)
+
 ## 0.3.6
 
 - Fix a crash in certain font & text combinations
