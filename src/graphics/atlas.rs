@@ -52,6 +52,8 @@ impl Atlas {
                 let directory: &Path = if let Some(parent) = path.parent() { parent } else { path.as_ref() };
                 while let Some(line) = lines.next() {
                     use std::path::PathBuf;
+                    //Skip empty lines at the beggining of file
+                    if line.trim().len() == 0 { continue; }
                     //Create a path relative to the atlas location
                     let path: PathBuf = [directory, &Path::new(line)].iter().collect();
                     images.push(Image::load(path));
