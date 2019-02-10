@@ -2,6 +2,8 @@
 
 ## In-development
 
+## 0.3.7
+
 - Fix text rendering failing on immi (it's still not very good)
 - Render string slices with newlines correctly
 - Updated optional dependencies: nalgebra to ^0.17, ncollide2d to ^0.18
