@@ -41,6 +41,37 @@ impl Color {
             a: self.a * other.a
         }
     }
+
+    /// Create a color from a common RGBA definition
+    pub fn from_rgba(red: u8, green: u8, blue: u8, a: f32) -> Color {
+        Color {
+            r: red as f32 / 255.0,
+            g: green as f32 / 255.0,
+            b: blue as f32 / 255.0,
+            a
+        }
+    }
+
+    /// Create a color from a hexadecimal code
+    pub fn from_hex(hex: &str) -> Color {
+        let trimmed_hex = hex.trim_start_matches('#');
+        match trimmed_hex.len() {
+            3 => {
+                let longer_hex: Vec<String> = trimmed_hex.chars().map(|single_char| {
+                    single_char.to_string().repeat(2)
+                })
+                .collect();
+                Color::from_hex(&longer_hex.concat())
+            },
+            6 => {
+                let red = u8::from_str_radix(&trimmed_hex[0..=1], 16).unwrap();
+                let green = u8::from_str_radix(&trimmed_hex[2..=3], 16).unwrap();
+                let blue = u8::from_str_radix(&trimmed_hex[4..=5], 16).unwrap();
+                Color::from_rgba(red, green, blue, 1.0)
+            },
+            _ => panic!("Malformed hex string")
+        }
+    }
 }
 
 #[allow(missing_docs)]
@@ -74,5 +105,27 @@ mod tests {
         assert_eq!(Color::BLACK.with_red(1.0), Color::RED);
         assert_eq!(Color::BLACK.with_green(1.0), Color::GREEN);
         assert_eq!(Color::BLACK.with_blue(1.0), Color::BLUE);
+    }
+
+    #[test]
+    fn colors_from_rgba() {
+        assert_eq!(Color::BLACK.with_red(1.0), Color::from_rgba(255, 0, 0, 1.0));
+        assert_eq!(Color::BLACK.with_green(1.0), Color::from_rgba(0, 255, 0, 1.0));
+        assert_eq!(Color::BLACK.with_blue(1.0), Color::from_rgba(0, 0, 255, 1.0));
+    }
+
+    #[test]
+    fn colors_from_hex() {
+        assert_eq!(Color::BLACK.with_red(1.0), Color::from_hex("#FF0000"));
+        assert_eq!(Color::BLACK.with_green(1.0), Color::from_hex("00FF00"));
+        assert_eq!(Color::BLACK.with_blue(1.0), Color::from_hex("00f"));
+        assert_eq!(Color::WHITE, Color::from_hex("#fff"));
+    }
+
+    #[test]
+    #[should_panic(expected = "Malformed hex string")]
+    fn colors_from_wrong_hex() {
+        let _wrong_one = Color::from_hex("FF");
+        let _wrong_two = Color::from_hex("FF00FF00");
     }
 }
