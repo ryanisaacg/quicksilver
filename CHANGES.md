@@ -2,6 +2,8 @@
 
 ## In-development
 
+- Add `from_rgba` and `from_hex` functions to create colors
+
 ## 0.3.7
 
 - Fix text rendering failing on immi (it's still not very good)
