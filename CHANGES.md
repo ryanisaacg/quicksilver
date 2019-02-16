@@ -1,6 +1,8 @@
 # Changelog
 
 ## In-development
+- Updated lyon to 0.13
+
 
 ## 0.3.7
 
