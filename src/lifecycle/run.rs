@@ -517,7 +517,7 @@ mod tests {
         assert_eq!(Key::Backslash as usize, mapping["Backslash"]);
         assert_eq!(Key::Calculator as usize, mapping["Calculator"]);
         assert_eq!(Key::Capital as usize, mapping["Capital"]);
-        assert_eq!(Key::Colon as usize, mapping["Colon"]);
+        assert_eq!(Key::Colon as usize, mapping["Semicolon"]);
         assert_eq!(Key::Comma as usize, mapping["Comma"]);
         assert_eq!(Key::Convert as usize, mapping["Convert"]);
         assert_eq!(Key::Decimal as usize, mapping["Decimal"]);
@@ -559,7 +559,7 @@ mod tests {
         assert_eq!(Key::Slash as usize, mapping["Slash"]);
         assert_eq!(Key::Sleep as usize, mapping["Sleep"]);
         assert_eq!(Key::Stop as usize, mapping["Stop"]);
-        assert_eq!(Key::Subtract as usize, mapping["Subtract"]);
+        assert_eq!(Key::Subtract as usize, mapping["Minus"]);
         assert_eq!(Key::Sysrq as usize, mapping["Sysrq"]);
         assert_eq!(Key::Tab as usize, mapping["Tab"]);
         assert_eq!(Key::Underline as usize, mapping["Underline"]);
