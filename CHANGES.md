@@ -2,6 +2,8 @@
 
 ## In-development
 
+- Fix the key codes on web for ':' and '-'
+
 ## 0.3.7
 
 - Fix text rendering failing on immi (it's still not very good)
