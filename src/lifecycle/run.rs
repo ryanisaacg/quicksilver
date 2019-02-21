@@ -337,7 +337,7 @@ static KEY_NAMES: &[&str] = &[
     "Backslash",
     "Calculator",
     "Capital",
-    "Colon",
+    "Semicolon",
     "Comma",
     "Convert",
     "Decimal",
