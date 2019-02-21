@@ -155,7 +155,7 @@ fn run_impl<T: State, F: FnOnce()->Result<T>>(title: &str, size: Vector, setting
     let key_names = generate_key_names();
     handle_event(&document, &app, move |mut app, event: KeyDownEvent| {
         // Winit doesn't filter to printable Typed events, so it should just be up to the user
-        for characters in event.key().chars() {
+        for ch in event.key().chars() {
             app.event_buffer.push(Event::Typed(ch));
         }
         if let Some(keycode) = key_names.get(&event.code()) {
