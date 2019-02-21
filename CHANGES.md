@@ -2,7 +2,9 @@
 
 ## In-development
 
-- Fix the key codes on web for ':' and '-'
+- Fix web keycodes
+- Add more characters to Event::Typed reporting on web
+- Add `from_rgba` and `from_hex` functions to create colors
 
 ## 0.3.7
 
