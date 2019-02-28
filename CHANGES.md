@@ -3,6 +3,7 @@
 ## In-development
 
 - Add `from_rgba` and `from_hex` functions to create colors
+- Fix mouse clicks not registering in Immi
 
 ## 0.3.7
 

@@ -38,8 +38,8 @@ impl ImmiStatus {
         ImmiStatus {
             window_size,
             mouse_pos: Some([mouse_x_normalized, mouse_y_normalized]),
-            pressed: state == ButtonState::Pressed,
-            released: state == ButtonState::Released,
+            pressed: state.is_down(),
+            released: !state.is_down(),
         }
     }
 }
