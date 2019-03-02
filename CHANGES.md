@@ -2,6 +2,8 @@
 
 ## In-development
 
+- Fix web keycodes
+- Add more characters to Event::Typed reporting on web
 - Add `from_rgba` and `from_hex` functions to create colors
 - Fix mouse clicks not registering in Immi
 
