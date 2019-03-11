@@ -5,7 +5,7 @@ use crate::{
     graphics::{BlendMode, Color, GpuTriangle, Image, ImageScaleStrategy, PixelFormat, Surface, Vertex},
     input::MouseCursor
 };
-use glutin::{GlWindow, dpi::LogicalSize};
+use glutin::{WindowedContext, dpi::LogicalSize};
 use std::{
     ffi::CString,
     mem::size_of,
@@ -14,7 +14,7 @@ use std::{
 };
 
 pub struct GL3Backend {
-    context: GlWindow,
+    context: WindowedContext,
     texture: u32,
     vertices: Vec<f32>,
     indices: Vec<u32>, 
@@ -66,9 +66,9 @@ fn format_gl(format: PixelFormat) -> u32 {
 }
 
 impl Backend for GL3Backend {
-    type Platform = GlWindow;
+    type Platform = WindowedContext;
 
-    unsafe fn new(context: GlWindow, texture_mode: ImageScaleStrategy, multisample: bool) -> Result<GL3Backend> {
+    unsafe fn new(context: WindowedContext, texture_mode: ImageScaleStrategy, multisample: bool) -> Result<GL3Backend> {
         let texture_mode = match texture_mode {
             ImageScaleStrategy::Pixelate => gl::NEAREST,
             ImageScaleStrategy::Blur => gl::LINEAR

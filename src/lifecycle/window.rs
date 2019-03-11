@@ -23,7 +23,7 @@ use {
 #[cfg(not(target_arch = "wasm32"))]
 use {
     gl,
-    glutin::{self, EventsLoop, GlContext, Icon}
+    glutin::{self, EventsLoop, ContextTrait, Icon}
 };
 
 
@@ -104,7 +104,7 @@ impl Window {
         let context = glutin::ContextBuilder::new()
             .with_vsync(settings.vsync)
             .with_multisampling(settings.multisampling.unwrap_or(0));
-        let gl_window = glutin::GlWindow::new(window, context, &events)?;
+        let gl_window = glutin::WindowedContext::new_windowed(window, context, &events)?;
         unsafe {
             gl_window.make_current()?;
             gl::load_with(|symbol| gl_window.get_proc_address(symbol) as *const _);
