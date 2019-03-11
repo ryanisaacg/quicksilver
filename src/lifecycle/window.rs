@@ -77,7 +77,11 @@ impl Window {
             running: true,
             fullscreen: false
         };
-        window.set_show_cursor(settings.show_cursor);
+        window.set_cursor(if settings.show_cursor {
+            MouseCursor::Default
+        } else {
+            MouseCursor::None
+        });
         window.set_fullscreen(settings.fullscreen);
         Ok(window)
     }

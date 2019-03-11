@@ -38,8 +38,8 @@ impl ImmiStatus {
         ImmiStatus {
             window_size,
             mouse_pos: Some([mouse_x_normalized, mouse_y_normalized]),
-            pressed: state == ButtonState::Pressed,
-            released: state == ButtonState::Released,
+            pressed: state.is_down(),
+            released: !state.is_down(),
         }
     }
 }
@@ -112,40 +112,33 @@ impl<'a> Draw for ImmiRender<'a> {
     fn draw_glyph(&mut self, text_style: &FontStyle, glyph: char, matrix: &Matrix) {
         let rendered = self.font.render(glyph.encode_utf8(&mut [0; 4]), text_style)
             .expect("The character must render correctly");
-        self.draw_triangle(&rendered, matrix, [
-            [0.0, 0.0],
-            [0.0, 1.0],
-            [1.0, 1.0]
-        ]);
-        self.draw_triangle(&rendered, matrix, [
-            [0.0, 1.0],
-            [1.0, 1.0],
-            [1.0, 0.0]
-        ]);
+        self.draw_image(&rendered, matrix);
+        /*let bottom_left = [0.0, 0.0];
+        let top_right = [1.0, 1.0];
+        let bottom_right = [0.0, 1.0];
+        let top_left = [1.0, 0.0];
+        self.draw_triangle(&rendered, matrix, [top_left, bottom_left, top_right]);
+        self.draw_triangle(&rendered, matrix, [bottom_right, top_right, bottom_left]);*/
     }
 
     fn line_height(&self, _text_style: &FontStyle) -> f32 { 1.2 }
 
     fn glyph_infos(&self, text_style: &FontStyle, glyph: char) -> GlyphInfos {
-        let mut buffer = [0; 4];
-        let string = glyph.encode_utf8(&mut buffer);
         let scale = Scale::uniform(text_style.size);
         let start = Point { x: 0.0, y: 0.0 };
-        let layout = self.font.data.layout(string, scale, start)
+        let layout = self.font.data.layout(glyph.encode_utf8(&mut [0; 4]), scale, start)
             .next()
             .expect("One character string in, one layout object out");
         let bounds = layout.pixel_bounding_box()
-            .expect("Pixel bounding box must exit");
-        let x_offset = bounds.min.y as f32;
-        let y_offset = bounds.min.y as f32;
-        let width = bounds.max.x  as f32 - x_offset;
-        let height = bounds.max.y as f32 - y_offset;
+            .expect("Pixel bounding box must exist");
+        let width = bounds.max.x  as f32 - bounds.min.x as f32;
+        let height = bounds.max.y as f32 - bounds.min.y as f32;
         GlyphInfos {
-            x_offset,
-            y_offset,
+            x_offset: layout.position().x,
+            y_offset: -self.font.data.v_metrics(scale).ascent + height - layout.position().y,
             width,
             height,
-            x_advance: x_offset + width
+            x_advance: width
         }
     }
 

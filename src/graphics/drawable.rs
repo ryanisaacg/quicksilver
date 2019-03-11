@@ -21,7 +21,9 @@ pub enum Background<'a> {
     /// A uniform color background
     Col(Color),
     /// A textured background
-    Img(&'a Image)
+    Img(&'a Image),
+    /// A color and image blended multiplicatively
+    Blended(&'a Image, Color)
 }
 
 impl<'a> Background<'a> {
@@ -29,15 +31,15 @@ impl<'a> Background<'a> {
     pub fn image(&self) -> Option<&Image> {
         match self {
             Background::Col(_) => None,
-            Background::Img(img) => Some(img)
+            Background::Img(img) | Background::Blended(img, _) => Some(img),
         }
     }
 
     /// Return either the stored Color or Color::WHITE
     pub fn color(&self) -> Color {
         match self {
-            Background::Col(color) => *color,
-            Background::Img(_) => Color::WHITE
+            Background::Col(color) |Background::Blended(_, color) => *color,
+            Background::Img(_) => Color::WHITE,
         }
     }
 }

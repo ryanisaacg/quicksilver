@@ -2,6 +2,26 @@
 
 ## In-development
 
+## 0.3.8
+
+- Fix web keycodes
+- Add more characters to Event::Typed reporting on web
+- Add `from_rgba` and `from_hex` functions to create colors
+- Fix mouse clicks not registering in Immi
+
+## 0.3.7
+
+- Fix text rendering failing on immi (it's still not very good)
+- Render string slices with newlines correctly
+- Updated optional dependencies: nalgebra to ^0.17, ncollide2d to ^0.18
+
+## 0.3.6
+
+- Fix a crash in certain font & text combinations
+- Add a blend background option for blending images and color
+
+## 0.3.5
+
 - Add a new event: `Typed(char)` that allows reading typed alphanumeric characters
 - Add support for touch events on web
 - Fix a bug with swapping textures in the WebGL backend

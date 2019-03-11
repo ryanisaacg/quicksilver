@@ -70,7 +70,7 @@ Make sure to put all your assets in a top-level folder of your crate called `sta
 
 ### Linux dependencies
 
-On Windows and Mac, all you'll need to build Quicksilver is the right version of `rustc` and `cargo`. A few of Quicksilver's dependencies require Linux packages to build, namely `libudev`, `zlib`, and `alsa`. To install these on Ubuntu or Debian, run the command `sudo apt install libudev-dev zlib1g-dev alsa`.
+On Windows and Mac, all you'll need to build Quicksilver is the right version of `rustc` and `cargo`. A few of Quicksilver's dependencies require Linux packages to build, namely `libudev`, `zlib`, and `alsa`. To install these on Ubuntu or Debian, run the command `sudo apt install libudev-dev zlib1g-dev alsa libasound2-dev`.
 
 ### Deploying for desktop
 
