@@ -128,8 +128,9 @@ fn run_impl<T: State, F: FnOnce()->Result<T>>(title: &str, size: Vector, setting
     });
 
     handle_event(&canvas, &app, |mut app, event: PointerMoveEvent| {
-        let pointer = Vector::new(event.offset_x() as f32, event.offset_y() as f32);
-        app.event_buffer.push(Event::MouseMoved(pointer));
+        let position = Vector::new(event.offset_x() as f32, event.offset_y() as f32);
+        let position = app.window.project() * (position - app.window.screen_offset());
+        app.event_buffer.push(Event::MouseMoved(position));
     });
     handle_event(&canvas, &app, |mut app, event: PointerUpEvent| {
         let state = ButtonState::Released;
