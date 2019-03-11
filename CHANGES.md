@@ -1,6 +1,7 @@
 # Changelog
 
 ## In-development
+- Fix web mouse positions to be consistent with native behaviour 
 
 ## 0.3.8
 
