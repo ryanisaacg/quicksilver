@@ -26,7 +26,7 @@ pub enum QuicksilverError {
     /// An error from loading a file
     IOError(IOError),
     /// An error when creating a gilrs context
-    #[cfg(all(not(target_arch = "wasm32"), feature = "gamepads"))]
+    #[cfg(feature = "gamepads")]
     GilrsError(gilrs::Error),
     /// An error from loading a sound
     #[cfg(feature = "sounds")]
@@ -52,7 +52,7 @@ impl Error for QuicksilverError {
             QuicksilverError::ContextError(string) => string.as_str(),
             QuicksilverError::ImageError(err) => err.description(),
             QuicksilverError::IOError(err) => err.description(),
-            #[cfg(all(not(target_arch = "wasm32"), feature = "gamepads"))]
+            #[cfg(feature = "gamepads")]
             QuicksilverError::GilrsError(err) => err.description(),
             #[cfg(feature = "sounds")]
             QuicksilverError::SoundError(err) => err.description(),
@@ -193,7 +193,7 @@ impl From<glutin::ContextError> for QuicksilverError {
 }
 
 #[doc(hidden)]
-#[cfg(all(not(target_arch = "wasm32"), feature = "gamepads"))]
+#[cfg(feature = "gamepads")]
 impl From<gilrs::Error> for QuicksilverError {
     fn from(err: gilrs::Error) -> QuicksilverError {
         QuicksilverError::GilrsError(err)
