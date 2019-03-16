@@ -20,7 +20,6 @@ pub use self::{
 };
 pub(crate) use self::{
     application::Application,
-    gamepad_provider::GamepadProvider,
 };
 #[cfg(not(target_arch = "wasm32"))]
 pub(crate) use self::event::EventProvider;
