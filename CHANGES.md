@@ -2,7 +2,7 @@
 
 ## In-development
 - Updated lyon to 0.13
-
+- Updated gilrs to 0.7, which brings macOS support
 
 ## 0.3.8
 
