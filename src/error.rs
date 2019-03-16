@@ -69,7 +69,7 @@ impl Error for QuicksilverError {
             QuicksilverError::ContextError(_) => None,
             QuicksilverError::ImageError(err) => Some(err),
             QuicksilverError::IOError(err) => Some(err),
-            #[cfg(all(not(target_arch = "wasm32"), feature = "gamepads"))]
+            #[cfg(feature = "gamepads")]
             QuicksilverError::GilrsError(err) => Some(err),
             #[cfg(feature = "sounds")]
             QuicksilverError::SoundError(err) => Some(err),
