@@ -4,7 +4,7 @@ use crate::{
     geom::{Rectangle, Scalar, Transform, Vector},
     graphics::{Background, BlendMode, Color, Drawable, Mesh, PixelFormat, ResizeStrategy, View},
     input::{ButtonState, Gamepad, Keyboard, Mouse, MouseCursor},
-    lifecycle::{Event, GamepadProvider, Settings},
+    lifecycle::{Event, Settings},
 };
 use image::{
     DynamicImage, RgbImage, RgbaImage,

@@ -10,7 +10,11 @@ use quicksilver::{
         extra::rust_logo::build_logo_path,
         tessellation::{FillTessellator, FillOptions},
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         path::{Path, builder::*},
+=======
+        path::{builder::*, Path}
+>>>>>>> Stashed changes
 =======
         path::{builder::*, Path}
 >>>>>>> Stashed changes
