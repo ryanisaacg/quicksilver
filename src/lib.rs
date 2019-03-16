@@ -128,6 +128,7 @@ pub mod geom;
 pub mod graphics;
 pub mod input;
 pub mod lifecycle;
+pub mod prelude;
 #[cfg(feature = "saving")]
 pub mod saving;
 #[cfg(feature = "sounds")]
