@@ -1,4 +1,4 @@
-//! A collection of imports for convenience
+//! A collection of common imports for convenience
 
 pub use crate::{
     Error, Future, Result, load_file,
