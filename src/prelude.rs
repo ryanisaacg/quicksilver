@@ -4,7 +4,7 @@ pub use crate::{
     Error, Future, Result, load_file,
     combinators::{join_all, result},
     geom::*,
-    graphics::{Background::{self, *}, Color, Image, },
+    graphics::{Background::{self, *}, Color, Image},
     input::{ButtonState, Key, MouseButton},
     lifecycle::{Asset, Event, Settings, State, Window, run}
 };
