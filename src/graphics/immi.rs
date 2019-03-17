@@ -1,7 +1,7 @@
 // TODO: in the next breaking change, this should possibly become its own module
 use crate::{
     geom::{Rectangle, Vector, Transform},
-    input::{ButtonState, MouseButton},
+    input::MouseButton,
     graphics::{Background, Font, FontStyle, GpuTriangle, Image, Mesh, Vertex, View},
     lifecycle::Window,
 };

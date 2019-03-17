@@ -3,7 +3,7 @@ use crate::{
     graphics::{Background::Col, Color, GpuTriangle, Mesh, Vertex}
 };
 use lyon::tessellation::{
-    geometry_builder::{Count, GeometryBuilder, VertexId},
+    geometry_builder::{Count, GeometryBuilder, GeometryBuilderError, VertexId},
     FillVertex, VertexConstructor
 };
 
@@ -79,11 +79,11 @@ impl<'a, Input> GeometryBuilder<Input> for ShapeRenderer<'a>
         }
     }
 
-    fn add_vertex(&mut self, vertex: Input) -> VertexId {
+    fn add_vertex(&mut self, vertex: Input) -> Result<VertexId, GeometryBuilderError> {
         let mut vertex = self.color.new_vertex(vertex);
         vertex.pos = self.trans * vertex.pos;
         self.mesh.vertices.push(vertex);
-        VertexId(self.mesh.vertices.len() as u32 - 1)
+        Ok(VertexId(self.mesh.vertices.len() as u32 - 1))
     }
 
     fn add_triangle(&mut self, a: VertexId, b: VertexId, c: VertexId) {

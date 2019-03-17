@@ -4,10 +4,17 @@ use crate::{
     geom::{Rectangle, Scalar, Transform, Vector},
     graphics::{Background, BlendMode, Color, Drawable, Mesh, PixelFormat, ResizeStrategy, View},
     input::{ButtonState, Gamepad, Keyboard, Mouse, MouseCursor},
-    lifecycle::{Event, GamepadProvider, Settings},
+    lifecycle::{Event, Settings},
 };
 use image::{
     DynamicImage, RgbImage, RgbaImage,
+};
+#[cfg(feature = "gilrs")] use {
+    crate::input::{GAMEPAD_BUTTON_LIST, GILRS_GAMEPAD_LIST},
+    gilrs::{
+        Axis, Gilrs,
+        ev::state::AxisData
+    }
 };
 #[cfg(target_arch = "wasm32")]
 use {
@@ -23,13 +30,14 @@ use {
 #[cfg(not(target_arch = "wasm32"))]
 use {
     gl,
-    glutin::{self, EventsLoop, GlContext, Icon}
+    glutin::{self, EventsLoop, ContextTrait, Icon}
 };
 
 
 ///The window currently in use
 pub struct Window {
-    provider: GamepadProvider,
+    #[cfg(feature = "gilrs")]
+    gilrs: Gilrs,
     gamepads: Vec<Gamepad>,
     gamepad_buffer: Vec<Gamepad>, //used as a temporary buffer for storing new gamepads
     resize: ResizeStrategy,
@@ -55,7 +63,8 @@ impl Window {
         let mut window = Window {
             gamepads: Vec::new(),
             gamepad_buffer: Vec::new(),
-            provider: GamepadProvider::new()?,
+            #[cfg(feature = "gilrs")]
+            gilrs: Gilrs::new()?,
             resize: settings.resize,
             screen_region,
             keyboard: Keyboard {
@@ -104,7 +113,7 @@ impl Window {
         let context = glutin::ContextBuilder::new()
             .with_vsync(settings.vsync)
             .with_multisampling(settings.multisampling.unwrap_or(0));
-        let gl_window = glutin::GlWindow::new(window, context, &events)?;
+        let gl_window = glutin::WindowedContext::new_windowed(window, context, &events)?;
         unsafe {
             gl_window.make_current()?;
             gl::load_with(|symbol| gl_window.get_proc_address(symbol) as *const _);
@@ -175,7 +184,9 @@ impl Window {
     }
 
     pub(crate) fn update_gamepads(&mut self, events: &mut Vec<Event>) {
-        self.provider.provide_gamepads(&mut self.gamepad_buffer);
+        #[cfg(feature = "gilrs")]
+        self.update_gamepads_impl();
+
         let (mut i, mut j) = (0, 0);
         while i < self.gamepads.len() && j < self.gamepad_buffer.len() {
             if self.gamepads[i].id() == self.gamepad_buffer[j].id() {
@@ -192,6 +203,43 @@ impl Window {
         }
         self.gamepads.clear();
         self.gamepads.append(&mut self.gamepad_buffer);
+    }
+
+    #[cfg(feature = "gilrs")]
+    pub(crate) fn update_gamepads_impl(&mut self) {
+        while let Some(ev) = self.gilrs.next_event() {
+            self.gilrs.update(&ev);
+        }
+        fn axis_value(data: Option<&AxisData>) -> f32 {
+            match data {
+                Some(ref data) => data.value(),
+                None => 0.0
+            }
+        }
+        self.gamepad_buffer.extend(self.gilrs.gamepads().map(|(id, gamepad)| {
+            let id: usize = id.into();
+            let id = id as i32;
+
+            let axes = [
+                axis_value(gamepad.axis_data(Axis::LeftStickX)),
+                axis_value(gamepad.axis_data(Axis::LeftStickY)),
+                axis_value(gamepad.axis_data(Axis::RightStickX)),
+                axis_value(gamepad.axis_data(Axis::RightStickY))
+            ];
+
+            let mut buttons = [ButtonState::NotPressed; 17];
+            for i in 0..GAMEPAD_BUTTON_LIST.len() {
+                let button = GAMEPAD_BUTTON_LIST[i];
+                let value = match gamepad.button_data(GILRS_GAMEPAD_LIST[i]) {
+                    Some(ref data) => data.is_pressed(),
+                    None => false
+                };
+                let state = if value { ButtonState::Pressed } else { ButtonState::Released };
+                buttons[button as usize] = state;
+            }
+
+            Gamepad { id, axes, buttons }
+        }));
     }
 
     ///Transition temporary input states (Pressed, Released) into sustained ones (Held, NotPressed)
