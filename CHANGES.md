@@ -1,12 +1,14 @@
 # Changelog
 
 ## In-development
+
+## 0.3.10
 - Updated lyon to 0.13
 - Updated gilrs to 0.7, which brings macOS support
 - Created a `prelude` module which contains commonly-used imports
 
 ## 0.3.9
-- Fix web mouse positions to be consistent with native behaviour 
+- Fix web mouse positions to be consistent with native behaviour
 
 ## 0.3.8
 
