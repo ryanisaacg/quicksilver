@@ -21,5 +21,6 @@ pub use self::{
     mouse_cursor::MouseCursor
 };
 pub(crate) use self::key::KEY_LIST;
-#[cfg(all(not(any(target_arch="wasm32", target_os="macos")), feature = "gamepads"))]
 pub(crate) use self::gamepad::GAMEPAD_BUTTON_LIST;
+#[cfg(feature = "gilrs")]
+pub(crate) use self::gamepad::GILRS_GAMEPAD_LIST;

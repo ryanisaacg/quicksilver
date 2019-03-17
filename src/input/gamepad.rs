@@ -2,6 +2,8 @@ use crate::{
     input::ButtonState,
     lifecycle::Event,
 };
+#[cfg(feature = "gilrs")]
+use gilrs::Button;
 use std::ops::Index;
 
 /// A queryable traditional 2-stick gamepad
@@ -151,3 +153,23 @@ const GAMEPAD_AXIS_LIST: &[GamepadAxis] = &[
     GamepadAxis::RightStickY,
 ];
 
+#[cfg(feature = "gilrs")]
+pub(crate) const GILRS_GAMEPAD_LIST: &[Button] = &[
+    Button::South,
+    Button::East,
+    Button::North,
+    Button::West,
+    Button::LeftTrigger,
+    Button::LeftTrigger2,
+    Button::RightTrigger,
+    Button::RightTrigger2,
+    Button::South,
+    Button::South,
+    Button::Mode,
+    Button::LeftThumb,
+    Button::RightThumb,
+    Button::DPadUp,
+    Button::DPadDown,
+    Button::DPadLeft,
+    Button::DPadRight,
+];

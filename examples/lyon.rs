@@ -9,10 +9,7 @@ use quicksilver::{
     lyon::{
         extra::rust_logo::build_logo_path,
         tessellation::{FillTessellator, FillOptions},
-        path::{
-            builder::*,
-            default::Path
-        }
+        path::{Path, builder::*},
     }
 };
 
@@ -32,12 +29,9 @@ impl State for LyonExample {
 
         let mut logo = Mesh::new();
 
-        {
-            let mut logo = ShapeRenderer::new(&mut logo, Color::BLACK);
-            logo.set_transform(Transform::scale((3, 3)));
-            tessellator.tessellate_path(path.path_iter(),
-                &FillOptions::tolerance(0.01), &mut logo).unwrap();
-        }
+        let mut logo_shape = ShapeRenderer::new(&mut logo, Color::BLACK);
+        logo_shape.set_transform(Transform::scale((3, 3)));
+        tessellator.tessellate_path(&path, &FillOptions::tolerance(0.01), &mut logo_shape).unwrap();
 
         Ok(LyonExample { logo })
     }
