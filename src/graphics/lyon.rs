@@ -4,7 +4,7 @@ use crate::{
 };
 use lyon::tessellation::{
     geometry_builder::{Count, GeometryBuilder, GeometryBuilderError, VertexId},
-    FillVertex, VertexConstructor
+    FillVertex, StrokeVertex, VertexConstructor
 };
 
 /// A way to render complex shapes using the lyon API
@@ -101,6 +101,13 @@ impl<'a, Input> GeometryBuilder<Input> for ShapeRenderer<'a>
 
 impl VertexConstructor<FillVertex, Vertex> for Color {
     fn new_vertex(&mut self, vertex: FillVertex) -> Vertex {
+        let position = Vector::new(vertex.position.x, vertex.position.y);
+        Vertex::new(position, None, Col(*self))
+    }
+}
+
+impl VertexConstructor<StrokeVertex, Vertex> for Color {
+    fn new_vertex(&mut self, vertex: StrokeVertex) -> Vertex {
         let position = Vector::new(vertex.position.x, vertex.position.y);
         Vertex::new(position, None, Col(*self))
     }

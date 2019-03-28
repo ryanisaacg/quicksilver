@@ -1,6 +1,7 @@
 # Changelog
 
 ## In-development
+- Add support for lyon's StrokeTessellator
 
 ## 0.3.10
 - Updated lyon to 0.13
