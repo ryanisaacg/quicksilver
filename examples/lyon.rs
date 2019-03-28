@@ -2,20 +2,22 @@
 extern crate quicksilver;
 
 use quicksilver::{
-    Result,
     geom::{Transform, Vector},
     graphics::{Color, Mesh, ShapeRenderer},
-    lifecycle::{Settings, State, Window, run},
+    input::{ButtonState, Key},
+    lifecycle::{run, Event, Settings, State, Window},
     lyon::{
         extra::rust_logo::build_logo_path,
-        tessellation::{FillTessellator, FillOptions},
-        path::{Path, builder::*},
-    }
+        path::{builder::*, Path},
+        tessellation::{FillOptions, FillTessellator, StrokeOptions, StrokeTessellator},
+    },
+    Result,
 };
 
-
 struct LyonExample {
-    logo: Mesh
+    filled_logo: Mesh,
+    stroked_logo: Mesh,
+    draw_filled: bool,
 }
 
 impl State for LyonExample {
@@ -25,24 +27,70 @@ impl State for LyonExample {
         build_logo_path(&mut builder);
         let path = builder.build();
 
-        let mut tessellator = FillTessellator::new();
+        let filled_logo = {
+            let mut logo = Mesh::new();
+            let mut logo_shape = ShapeRenderer::new(&mut logo, Color::BLACK);
+            logo_shape.set_transform(Transform::scale((3, 3)));
+            let mut tessellator = FillTessellator::new();
+            tessellator
+                .tessellate_path(&path, &FillOptions::tolerance(0.01), &mut logo_shape)
+                .unwrap();
+            logo
+        };
 
-        let mut logo = Mesh::new();
+        let stroked_logo = {
+            let mut logo = Mesh::new();
+            let mut logo_shape = ShapeRenderer::new(&mut logo, Color::BLACK);
+            logo_shape.set_transform(Transform::scale((3, 3)));
+            let mut tessellator = StrokeTessellator::new();
+            tessellator
+                .tessellate_path(
+                    &path,
+                    &StrokeOptions::tolerance(0.01).with_line_width(0.4),
+                    &mut logo_shape,
+                )
+                .unwrap();
+            logo
+        };
 
-        let mut logo_shape = ShapeRenderer::new(&mut logo, Color::BLACK);
-        logo_shape.set_transform(Transform::scale((3, 3)));
-        tessellator.tessellate_path(&path, &FillOptions::tolerance(0.01), &mut logo_shape).unwrap();
+        Ok(LyonExample {
+            filled_logo,
+            stroked_logo,
+            draw_filled: true,
+        })
+    }
 
-        Ok(LyonExample { logo })
+    fn event(&mut self, event: &Event, window: &mut Window) -> Result<()> {
+        match *event {
+            Event::Key(Key::Space, ButtonState::Pressed) => {
+                self.draw_filled = !self.draw_filled;
+            }
+            Event::Key(Key::Escape, ButtonState::Pressed) => {
+                window.close();
+            }
+            _ => (),
+        }
+        Ok(())
     }
 
     fn draw(&mut self, window: &mut Window) -> Result<()> {
         window.clear(Color::WHITE)?;
-        window.mesh().extend(&self.logo);
+        window.mesh().extend(if self.draw_filled {
+            &self.filled_logo
+        } else {
+            &self.stroked_logo
+        });
         Ok(())
     }
 }
 
 fn main() {
-    run::<LyonExample>("Lyon Demo", Vector::new(800, 600), Settings::default());
+    run::<LyonExample>(
+        "Lyon Demo - press Space to switch between tessellation methods",
+        Vector::new(800, 600),
+        Settings {
+            multisampling: Some(4),
+            ..Settings::default()
+        },
+    );
 }
