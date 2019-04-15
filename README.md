@@ -6,7 +6,7 @@
 [![dependency status](https://deps.rs/repo/github/ryanisaacg/quicksilver/status.svg)](https://deps.rs/repo/github/ryanisaacg/quicksilver)
 [![Gitter chat](https://badges.gitter.im/quicksilver-rs/Lobby.svg)](https://gitter.im/quicksilver-rs/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-A 2D game framework written in pure Rust
+A Rust 2D game framework, for both the Web and Desktop
 
 ## A quick example
 
@@ -60,34 +60,45 @@ fn main() {
 }
 ```
 
-Run this with `cargo run` or, if you have the wasm32 toolchain installed, you can build for the web 
-(instructions below).
+Run this with `cargo run` or, if you have the wasm32 toolchain installed, you can build for the web (instructions below).
 
+## Learning Quicksilver
+
+A good way to get started with Quicksilver is to [read and run the examples](https://github.com/ryanisaacg/quicksilver/tree/master/examples) and go through the tutorial modules [on docs.rs](https://docs.rs/quicksilver). If you have any question, feel free to hop onto Gitter or open an issue.
+
+## Made with Quicksilver
+
+- Documentation / Tutorials
+    - [tomassedovic](https://github.com/tomassedovic): [quicksilver-roguelike](https://github.com/tomassedovic/quicksilver-roguelike)
+- Games
+    - [codec-abc](https://github.com/codec-abc): [RustyVolley](https://github.com/RustyVolley/RustyVolleySrc)
+    - [rickyhan](https://github.com/rickyhan): [Kingston Crabfight Simulator](https://github.com/rickyhan/crabs)
+    - [robotcaleb](https://github.com/robotcaleb): [Replay](https://robotcaleb.github.io/Replay/)
+
+Want to add your project? Feel free to open an issue or PR!
 
 ## Building and Deploying a Quicksilver application
+
+Quicksilver should always compile and run on the latest stable version of Rust, for both web and desktop.
 
 Make sure to put all your assets in a top-level folder of your crate called `static/`. *All* Quicksilver file loading-APIs will expect paths that originate in the static folder, so `static/image.png` should be referenced as `image.png`.
 
 ### Linux dependencies
 
-On Windows and Mac, all you'll need to build Quicksilver is the right version of `rustc` and `cargo`. A few of Quicksilver's dependencies require Linux packages to build, namely `libudev`, `zlib`, and `alsa`. To install these on Ubuntu or Debian, run the command `sudo apt install libudev-dev zlib1g-dev alsa libasound2-dev`.
+On Windows and Mac, all you'll need to build Quicksilver is a recent stable version of `rustc` and `cargo`. A few of Quicksilver's dependencies require Linux packages to build, namely `libudev`, `zlib`, and `alsa`. To install these on Ubuntu or Debian, run the command `sudo apt install libudev-dev zlib1g-dev alsa libasound2-dev`.
 
 ### Deploying for desktop
 
 If you're deploying for desktop platforms, build in release mode (`cargo build --release`) 
 and copy the executable file produced (found at "target/release/") and any assets you used (image files 
 etc) and create an archive (on Windows a zip file, on Unix a tar file). You should be able to distribute
-this archive with no problems; if there are problems, please open an issue.
+this archive with no problems; if there are any, please open an issue.
 
 ### Deploying for the web
 
 If you're deploying for the web, first make sure you've [installed the cargo web tool](https://github.com/koute/cargo-web). Then use the `cargo web deploy` to build your application for distribution (located at `target/deploy`).
 
 If you want to test your application locally, use `cargo web start` and open your favorite browser to the port it provides. 
-
-## Learning Quicksilver
-
-A good way to get started with Quicksilver is to [read and run the examples](https://github.com/ryanisaacg/quicksilver/tree/master/examples) and go through the tutorial module [on docs.rs](https://docs.rs/quicksilver). If you have any question, feel free to hop onto Gitter or open an issue.
 
 ## Optional Features
 
@@ -105,32 +116,11 @@ Each are enabled by default, but you can [specify which features](https://doc.ru
 
 ## Supported Platforms
 
-The engine is supported on Windows, macOS, (somewhat) Linux, and the web via WebAssembly. 
-Linux is supported inasmuch as the libraries used for graphics (glutin, gl) and sound (rodio) work correctly, 
-but no extra attempts to support exotic setups will be made. 
+The engine is supported on Windows, macOS, Linux, and the web via WebAssembly. 
 The web is only supported via the `wasm32-unknown-unknown` Rust target, not through emscripten.
 It might work with emscripten but this is not an ongoing guarantee.
 
-It has not been tested extensively on desktop platforms other than x86, but there is no reason it should fail to work. If the dependencies and the Rust compiler support a platform, quicksilver should as well.
+On desktop it requires OpenGL 3.2; on the web it requires WebGL 2.0.
 
-There are no plans to support mobile / touch-primary platforms, as the paradigms are completely different. UI elements must be created differently, input is one or two points of contact rather than primarily through a keyboard, etc. 
-
-## Comparison with [ggez](https://github.com/ggez/ggez)
-
-| Quicksilver | GGEZ |
-|-|:-:|
-| 2D only game development framework | 2D focused game development framework |
-| Targets native and web | Targets native, plans to target mobile and web |
-| Built on OpenGL and WebGL | Built on gfx-rs |
-| Automatic batched drawing | Opt-in batched drawing |
-| Sound playback through rodio | Sound playback through rodio |
-| Font rendering with rusttype | Font rendering with rusttype |
-| Polling-based and event-based input handling | Event / callback based input handling |
-| No custom shader support | Custom shader support |
-| Pure rust | Dependency on SDL2, with plans to transition to glutin |
-| Configurable feature flags | Most features have no flags |
-
-## Compiler versions
-
-Quicksilver should always compile and run on the latest stable Rust.
+Mobile support would be a future possibility, but likely only through external contributions.
 
