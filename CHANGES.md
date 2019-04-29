@@ -1,6 +1,7 @@
 # Changelog
 
 ## In-development
+- Updated glutin to 0.21
 
 ## 0.3.11
 - Add support for lyon's StrokeTessellator

@@ -30,7 +30,7 @@ use {
 #[cfg(not(target_arch = "wasm32"))]
 use {
     gl,
-    glutin::{self, EventsLoop, ContextTrait, Icon}
+    glutin::{self, EventsLoop, Icon}
 };
 
 
@@ -113,19 +113,15 @@ impl Window {
         let context = glutin::ContextBuilder::new()
             .with_vsync(settings.vsync)
             .with_multisampling(settings.multisampling.unwrap_or(0));
-        let gl_window = glutin::WindowedContext::new_windowed(window, context, &events)?;
-        unsafe {
-            gl_window.make_current()?;
+        let gl_window = context.build_windowed(window, &events)?;
+        let gl_window = unsafe {
+            let gl_window = match gl_window.make_current() {
+                Ok(window) => window,
+                Err((_, err)) => Err(err)?
+            };
             gl::load_with(|symbol| gl_window.get_proc_address(symbol) as *const _);
-        }
-        // A mitigation for https://github.com/tomaka/glutin/issues/1069
-        // When it is resolved, this can be removed
-        #[cfg(target_os = "macos")]
-        let events = {
-            let mut events = events;
-            events.poll_events(|_| {});
-            gl_window.resize(user_size.into());
-            events
+
+            gl_window
         };
         unsafe { set_instance(BackendImpl::new(gl_window, settings.scale, settings.multisampling != None)?) };
         let window = Window::build_agnostic(user_size, user_size, settings)?;

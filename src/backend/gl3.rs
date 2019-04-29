@@ -5,7 +5,7 @@ use crate::{
     graphics::{BlendMode, Color, GpuTriangle, Image, ImageScaleStrategy, PixelFormat, Surface, Vertex},
     input::MouseCursor
 };
-use glutin::{WindowedContext, dpi::LogicalSize};
+use glutin::{PossiblyCurrent, WindowedContext, dpi::LogicalSize};
 use std::{
     ffi::CString,
     mem::size_of,
@@ -14,7 +14,7 @@ use std::{
 };
 
 pub struct GL3Backend {
-    context: WindowedContext,
+    context: WindowedContext<PossiblyCurrent>,
     texture: u32,
     vertices: Vec<f32>,
     indices: Vec<u32>, 
@@ -66,9 +66,9 @@ fn format_gl(format: PixelFormat) -> u32 {
 }
 
 impl Backend for GL3Backend {
-    type Platform = WindowedContext;
+    type Platform = WindowedContext<PossiblyCurrent>;
 
-    unsafe fn new(context: WindowedContext, texture_mode: ImageScaleStrategy, multisample: bool) -> Result<GL3Backend> {
+    unsafe fn new(context: WindowedContext<PossiblyCurrent>, texture_mode: ImageScaleStrategy, multisample: bool) -> Result<GL3Backend> {
         let texture_mode = match texture_mode {
             ImageScaleStrategy::Pixelate => gl::NEAREST,
             ImageScaleStrategy::Blur => gl::LINEAR
@@ -298,7 +298,7 @@ impl Backend for GL3Backend {
 
     unsafe fn set_viewport(&mut self, area: Rectangle) where Self: Sized {
         let size: LogicalSize = area.size().into();
-        let dpi = self.context.get_hidpi_factor();
+        let dpi = self.context.window().get_hidpi_factor();
         self.context.resize(size.to_physical(dpi));
         let dpi = dpi as f32;
         gl::Viewport(
@@ -327,15 +327,15 @@ impl Backend for GL3Backend {
     fn set_cursor(&mut self, cursor: MouseCursor) {
         match cursor.into_gl_cursor() {
             Some(gl_cursor) => {
-                self.context.hide_cursor(false);
-                self.context.set_cursor(gl_cursor);
+                self.context.window().hide_cursor(false);
+                self.context.window().set_cursor(gl_cursor);
             }
-            None => self.context.hide_cursor(true),
+            None => self.context.window().hide_cursor(true),
         }
     }
 
     fn set_title(&mut self, title: &str) {
-        self.context.set_title(title);
+        self.context.window().set_title(title);
     }
 
     fn present(&self) -> Result<()> {
@@ -343,8 +343,8 @@ impl Backend for GL3Backend {
     }
 
     fn set_fullscreen(&mut self, fullscreen: bool) -> Option<Vector> {
-        self.context.set_fullscreen(if fullscreen {
-            Some(self.context.get_primary_monitor())
+        self.context.window().set_fullscreen(if fullscreen {
+            Some(self.context.window().get_primary_monitor())
         } else {
             None
         });
@@ -352,7 +352,7 @@ impl Backend for GL3Backend {
     }
 
     fn resize(&mut self, size: Vector) {
-        self.context.set_inner_size(size.into());
+        self.context.window().set_inner_size(size.into());
     }
 }
 
