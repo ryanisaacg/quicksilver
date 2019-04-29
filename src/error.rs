@@ -166,7 +166,9 @@ fn creation_to_str(err: &glutin::CreationError) -> String {
                 "Window creation failed: not supported".to_owned()
             }
         },
-        glutin::CreationError::CreationErrorPair(a, b) => format!("({}, {})", creation_to_str(a), creation_to_str(b)),
+        glutin::CreationError::CreationErrors(errors) => {
+            format!("{:?}", errors)
+        }
     }
 }
 
