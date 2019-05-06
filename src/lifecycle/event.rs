@@ -78,7 +78,7 @@ impl EventProvider {
                         events.push(Event::Key(key, state));
                     }
                 }
-                glutin::WindowEvent::ReceivedCharacter(character) if character.is_alphanumeric() => {
+                glutin::WindowEvent::ReceivedCharacter(character) if !character.is_ascii_control() => {
                     events.push(Event::Typed(character));
                 }
                 glutin::WindowEvent::CursorMoved { position, .. } => {
