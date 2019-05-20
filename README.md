@@ -74,6 +74,7 @@ A good way to get started with Quicksilver is to [read and run the examples](htt
     - [codec-abc](https://github.com/codec-abc): [RustyVolley](https://github.com/RustyVolley/RustyVolleySrc)
     - [rickyhan](https://github.com/rickyhan): [Kingston Crabfight Simulator](https://github.com/rickyhan/crabs)
     - [robotcaleb](https://github.com/robotcaleb): [Replay](https://robotcaleb.github.io/Replay/)
+    - [rsribeiro](https://github.com/rsribeiro/): [Evil Alligator](https://rsribeiro.github.io/website/)
 
 Want to add your project? Feel free to open an issue or PR!
 
