@@ -5,8 +5,10 @@ use crate::{
 use std::rc::Rc;
 
 #[derive(Debug)]
-struct AnimationData {
-    frames: Vec<Image>
+/// Data of frames for the animation
+pub struct AnimationData {
+    /// Frames Vector
+    pub frames: Vec<Image>
 }
 
 #[derive(Clone, Debug)]
@@ -16,8 +18,10 @@ struct AnimationData {
 /// quicksilver application loop rather than the `draw` section. Draws may happen as 
 /// often as possible, whereas updates will have consistent rates
 pub struct Animation {
-    data: Rc<AnimationData>,
-    current: usize,
+    /// Data of frames
+    pub data: Rc<AnimationData>,
+    /// Current Frame
+    pub current: usize,
     current_time: u32,
     frame_delay: u32
 }
