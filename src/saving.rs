@@ -13,7 +13,7 @@ use std::{
     io::Error as IOError
 };
 
-/// Save some arbitrary data to the given profile
+/// Save some arbitrary data to the given profile using Serde
 ///
 /// Different platforms may have different save locations: on the Web, data is saved in local
 /// storage, on the desktop, it is stored in some appropriate home-directory folder.
@@ -21,6 +21,31 @@ use std::{
 /// The appname should be some constant; this is used to name the file to place the save in on
 /// desktop platforms. The profile should allow multiple saves of the same game (save slots,
 /// numbered saves, different players) etc.
+///
+/// The example shows how to round-trip some data. Note that for [load](fn.load.html) you must
+/// explicitly specify the type of the data, this is because the struct is not passed as a
+/// parameter to `load` so Rust cannot infer the type.
+///
+/// ```
+/// # use quicksilver::saving::{save, load};
+/// use serde::{Serialize, Deserialize};
+///
+/// #[derive(Serialize, Deserialize)]
+/// struct Player {
+///     name: String,
+///     score: u32
+/// }
+///
+/// let player1 = Player { name: "Bob".to_string(), score: 21 };
+/// save("mygame", "player1", &player1).expect("Could not save Player 1");
+///
+/// let player2 = Player { name: "Alice".to_string(), score: 200 };
+/// save("mygame", "player2", &player2).expect("Could not save Player 2");
+///
+/// // Now reload.
+/// let player1 = load::<Player>("mygame", "player1").expect("Could not load Player 1");
+/// let player2 = load::<Player>("mygame", "player2").expect("Could not load Player 2");
+/// ```
 pub fn save<T: Serialize>(appname: &str, profile: &str, data: &T) -> Result<(), SaveError> {
     save_impl(appname, profile, data)
 }
@@ -38,10 +63,12 @@ pub fn save_raw(appname: &str, profile: &str, data: &[u8]) -> Result<(), SaveErr
     save_raw_impl(appname, profile, data)
 }
 
-/// Load some data from the given profile
+/// Load some data from the given profile using Serde
 ///
 /// Different platforms may have different save locations: on the Web, data is saved in local
 /// storage, on the desktop, it is stored in some appropriate home-directory folder.
+///
+/// See [save](fn.save.html) for an example of saving and then loading some data.
 pub fn load<T>(appname: &str, profile: &str) -> Result<T, SaveError>
         where for<'de> T: Deserialize<'de> {
     load_impl(appname, profile)
@@ -92,7 +119,7 @@ fn save_raw_impl(appname: &str, profile: &str, data: &[u8]) -> Result<(), SaveEr
 }
 
 #[cfg(not(target_arch="wasm32"))]
-fn load_impl<T>(appname: &str, profile: &str) -> Result<T, SaveError> 
+fn load_impl<T>(appname: &str, profile: &str) -> Result<T, SaveError>
         where for<'de> T: Deserialize<'de> {
     Ok(serde_json::from_reader(File::open(get_save_location(appname, profile)?)?)?)
 }
@@ -162,7 +189,7 @@ pub enum SaveError {
     SaveWriteFailed,
     /// The save profile with the given name was not found
     ///
-    /// On desktop this will more likely be reported as an IO error, but on web it will be a 
+    /// On desktop this will more likely be reported as an IO error, but on web it will be a
     /// SaveNotFound
     SaveNotFound(String)
 }
@@ -201,7 +228,7 @@ impl Error for SaveError {
         match self {
             SaveError::SerdeError(err) => Some(err),
             SaveError::IOError(err) => Some(err),
-            SaveError::SaveLocationNotFound 
+            SaveError::SaveLocationNotFound
                 | SaveError::SaveWriteFailed
                 | SaveError::SaveNotFound(_)
                 | SaveError::DecodeError => None

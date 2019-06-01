@@ -2,6 +2,7 @@
 
 ## In-development
 - Allow any type that is `Into<Background>` to be passed into `draw` and `draw_ex`
+- Update docs for `save` and `load`
 
 ## 0.3.12
 - Updated glutin to 0.21
