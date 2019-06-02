@@ -1,8 +1,8 @@
-use super::{Player, PlayState, get_player};
+use super::{PlayState, get_player};
 
 pub struct SoundInstance {
-    index: u32,
-    generation: u32
+    pub(crate) bucket: usize,
+    pub(crate) generation: u32
 }
 
 impl SoundInstance {

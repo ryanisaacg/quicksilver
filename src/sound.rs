@@ -17,6 +17,7 @@ use self::{
     player::{SoundData, Player, get_player}
 };
 pub use self::{
+    error::SoundError,
     instance::SoundInstance,
     play_state::PlayState,
 };
@@ -41,7 +42,7 @@ pub struct Sound {
 
 impl Sound {
     pub fn from_bytes(raw: &[u8]) -> Result<Sound> {
-        let data = get_player().from_bytes(raw)?;
+        let data = Rc::new(get_player().from_bytes(raw)?);
         Ok(Sound {
             data,
             volume: 1.0,
@@ -54,41 +55,6 @@ impl Sound {
             .map(|data| Sound::from_bytes(data.as_slice()))
             .and_then(future::result)
     }
-
-    /*/// Start loading a sound from a given path
-    pub fn load(path: impl AsRef<Path>) -> impl Future<Item = Sound, Error = QuicksilverError> {
-        Sound::load_impl(path.as_ref())
-    }
-
-    #[cfg(not(target_arch="wasm32"))]
-    fn load_impl(path: &Path) -> impl Future<Item = Sound, Error = QuicksilverError> {
-        future::result(load(path))
-    }
-
-    #[cfg(target_arch="wasm32")]
-    fn load_impl(path: &Path) -> impl Future<Item = Sound, Error = QuicksilverError> {
-        let sound = js! {
-            const audio = new Audio(@{path.to_str().expect("Path must be stringifiable")});
-            audio.hasError = false;
-            audio.onerror = (error) => audio.hasError = true;
-            return audio;
-        };
-        future::poll_fn(move || {
-            let error = js! ( return @{&sound}.hasError ).try_into();
-            let ready = js! ( return @{&sound}.readyState ).try_into();
-            match (error, ready) {
-                (Ok(false), Ok(4)) => Ok(Async::Ready(Sound {
-                    sound: sound.clone(),
-                    volume: 1f32
-                })),
-                (Ok(true), _) => Err(wasm_sound_error("Sound file not found or could not load")),
-                (Ok(false), Ok(_)) => Ok(Async::NotReady),
-                (Err(_), _) => Err(wasm_sound_error("Checking sound network state failed")),
-                (_, Err(_)) => Err(wasm_sound_error("Checking sound ready state failed")),
-            }
-        })
-    }*/
-    
 
     /// Get the volume of the sound clip instance
     ///
@@ -123,17 +89,6 @@ impl Sound {
     /// Future changes in volume will not change the sound emitted by this method.
     pub fn play(&self) -> Result<SoundInstance> {
         get_player().play(self, false)
-        /*#[cfg(not(target_arch="wasm32"))] {
-            let device = match rodio::default_output_device() {
-                Some(device) => device,
-                None => return Err(SoundError::NoOutputAvailable.into())
-            };
-            rodio::play_raw(&device, self.get_source()?);
-        }
-        #[cfg(target_arch="wasm32")] js! {
-            @{&self.sound}.cloneNode().play();
-        }
-        Ok(())*/
     }
 
     pub fn repeat(&self) -> Result<SoundInstance> {

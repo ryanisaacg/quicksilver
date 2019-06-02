@@ -1,3 +1,11 @@
+use std::{
+    error::Error,
+    fmt,
+    io::Error as IOError
+};
+#[cfg(not(target_arch="wasm32"))]
+use rodio::decoder::DecoderError;
+
 #[derive(Debug)]
 /// An error generated when loading a sound
 pub enum SoundError {
@@ -6,7 +14,9 @@ pub enum SoundError {
     /// No output device was found to play the sound
     NoOutputAvailable,
     /// The Sound was not found or could not be loaded
-    IOError(IOError)
+    IOError(IOError),
+    /// A sound that was paused or resumed was already stopped
+    AlreadyDone
 }
 
 impl fmt::Display for SoundError  {
@@ -20,14 +30,16 @@ impl Error for SoundError {
         match self {
             SoundError::UnrecognizedFormat => "The sound file format was not recognized",
             SoundError::NoOutputAvailable => "There was no output device available for playing",
-            SoundError::IOError(err) => err.description()
+            SoundError::IOError(err) => err.description(),
+            SoundError::AlreadyDone => "The sound that was played or paused has already stopped",
         }
     }
 
     fn cause(&self) -> Option<&dyn Error> {
         match self {
             SoundError::UnrecognizedFormat
-                | SoundError::NoOutputAvailable => None,
+                | SoundError::NoOutputAvailable
+                | SoundError::AlreadyDone => None,
             SoundError::IOError(err) => Some(err)
         }
     }

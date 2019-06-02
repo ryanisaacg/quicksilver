@@ -1,61 +1,81 @@
-use crate::sound::{Bucket, Sound};
-use std::{
-    error::Error,
-    fmt,
-    io::Error as IOError,
+use crate::Result;
+use super::{Bucket, PlayState, Sound, SoundInstance};
+#[cfg(target_arch = "wasm32")]
+use stdweb::{
+    Value,
+    web::TypedArray,
 };
 
-pub struct PlayingSound {
-    bucket: u32,
-    generation: u32
-}
-
-pub enum PlayingState {
-    Playing, Paused, Stopped
-}
-
 pub struct Player {
-    buckets: Vec<Bucket>
+    buckets: Vec<Bucket>,
+    #[cfg(target_arch = "wasm32")]
+    context: Value
 }
 
 impl Player {
     pub fn new() -> Player {
         Player {
-            buckets: Vec::new()
-        }
-    }
-
-    pub fn state(&self, sound: PlayingSound) -> PlayingState {
-        let bucket = &self.buckets[sound.bucket];
-        if sound.generation == bucket.get_generation() {
-            if bucket.is_paused() {
-                PlayingState::Paused
-            } else {
-                PlayingState::Playing
+            buckets: Vec::new(),
+            // TODO
+            #[cfg(target_arch = "wasm32")]
+            context: js! {
+                return null;
             }
-        } else {
-            PlayingState::Stopped
         }
     }
 
-    pub fn play(&mut self, clip: Sound) -> Result<PlayingSound> {
-
+    pub fn from_bytes(&self, raw: &[u8]) -> Result<SoundData> {
+        #[cfg(not(target_arch = "wasm32"))] {
+            Ok(SoundData {
+                val: raw.to_vec()
+            })
+        }
+        #[cfg(target_arch = "wasm32")] {
+            let array: TypedArray<u8> = raw.into();
+            let buffer = array.buffer();
+            let context = &self.context;
+            Ok(SoundData {
+                sound: js! {
+                    var data = { sound: null, error: null };
+                    @{context}.decodeAudioData(@{buffer})
+                        .then(sound => data.sound = sound)
+                        .catch(error => data.error = error)
+                }
+            })
+        }
     }
 
-    pub fn repeat(&mut self, clip: Sound) -> Result<PlayingSound> {
-
+    pub fn state(&self, sound: &SoundInstance) -> PlayState {
+        self.buckets[sound.bucket].state(sound)
     }
 
-    pub fn pause(&mut self, sound: PlayingSound) -> Result<()> {
-
+    pub fn play(&mut self, sound: &Sound, repeat: bool) -> Result<SoundInstance> {
+        let index = self.buckets.iter()
+            .enumerate()
+            .filter(|(index, bucket)| (*bucket).available())
+            .next()
+            .map(|(idx, _)| Ok(idx))
+            .unwrap_or_else(|| {
+                self.buckets.push(Bucket::new()?);
+                Ok(self.buckets.len() - 1)
+            })?;
+        self.buckets[index].play(sound.clone(), repeat)?;
+        Ok(SoundInstance {
+            bucket: index,
+            generation: self.buckets[index].generation()
+        })
     }
 
-    pub fn resume(&mut self, sound: PlayingSound) -> Result<()> {
-
+    pub fn pause(&mut self, sound: &SoundInstance) -> Result<()> {
+        self.buckets[sound.bucket].pause(sound)
     }
 
-    pub fn stop(&mut self, sound: PlayingSound) -> Result<()> {
+    pub fn resume(&mut self, sound: &SoundInstance) -> Result<()> {
+        self.buckets[sound.bucket].pause(sound)
+    }
 
+    pub fn stop(&mut self, sound: &SoundInstance) -> Result<()> {
+        self.buckets[sound.bucket].stop(sound)
     }
 }
     
@@ -80,9 +100,10 @@ fn wasm_sound_error(error: &str) -> QuicksilverError {
     error.into()
 }
 
+#[derive(Debug)]
 pub struct SoundData {
-    #[cfg(not(target_arch="wasm32"))]
-    val: Vec<u8>>,
-    #[cfg(target_arch="wasm32")]
-    sound: Value,
+    #[cfg(not(target_arch = "wasm32"))]
+    pub val: Vec<u8>,
+    #[cfg(target_arch = "wasm32")]
+    pub sound: Value,
 }
