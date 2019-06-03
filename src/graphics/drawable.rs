@@ -44,6 +44,24 @@ impl<'a> Background<'a> {
     }
 }
 
+impl<'a> From<Color> for Background<'a> {
+    fn from(col: Color) -> Self {
+        Background::Col(col)
+    }
+}
+
+impl<'a> From<&'a Image> for Background<'a> {
+    fn from(img: &'a Image) -> Self {
+        Background::Img(img)
+    }
+}
+
+impl<'a> From<(&'a Image, Color)> for Background<'a> {
+    fn from((img, col): (&'a Image, Color)) -> Self {
+        Background::Blended(img, col)
+    }
+}
+
 impl Drawable for Vector {
     fn draw<'a>(&self, mesh: &mut Mesh, bkg: Background<'a>, trans: Transform, z: impl Scalar) {
         Rectangle::new(*self, Vector::ONE).draw(mesh, bkg, trans, z);
@@ -85,7 +103,7 @@ impl Drawable for Triangle {
             * trans
             * Transform::translate(-self.center());
         let tex_transform = bkg.image().map(|image| image.projection(self.bounding_box()));
-        let offset = mesh.add_positioned_vertices([self.a, self.b, self.c].iter().cloned(), 
+        let offset = mesh.add_positioned_vertices([self.a, self.b, self.c].iter().cloned(),
             trans, tex_transform, bkg);
         mesh.triangles.push(GpuTriangle::new(offset, [0, 1, 2], z, bkg));
     }
