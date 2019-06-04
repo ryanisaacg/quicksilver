@@ -52,7 +52,7 @@
 //! The input API generally follows this principal: an input source is indexed by a button enum,
 //! and returns a `ButtonState` enum. A button state can be `Pressed`, `Held`, `Released` or
 //! `NotPressed`, and a convenience method `is_down` checks if the button is either pressed or
-//! held. 
+//! held.
 //!
 //! If we wanted to give the user more freedom, and allow them to use the mouse buttons or gamepad triggers instead of the arrow
 //! keys, we could do that fairly easily:
@@ -107,11 +107,11 @@
 //! ```
 //! Unlike mice and keyboards, which generally are one-per-system, a machine may have many gamepads
 //! connected. More advanced applications may wish to assign specific gamepads to specific
+//! functions or specific users, but for our case checking against any gamepad does just fine.
 //! The input API generally follows this principal: an input source is indexed by a button enum,
 //! and returns a `ButtonState` enum. A button state can be `Pressed`, `Held`, `Released` or
 //! `NotPressed`, and a convenience method `is_down` checks if the button is either pressed or
-//! held. 
-//! functions or specific users, but for our case checking against any gamepad does just fine.
+//! held.
 //!
 //! If we want to only apply an effect once per input submission, we have two options. One is to
 //! check if the button state is exactly `Pressed`: that is, the button was not pressed the last
