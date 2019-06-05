@@ -1,5 +1,5 @@
 //! # quicksilver
-//! ![Quicksilver Logo](./logo.svg)
+//! ![Quicksilver Logo](https://raw.github.com/ryanisaacg/quicksilver/master/logo.svg?sanitize=true)
 //! 
 //! [![Build Status](https://travis-ci.org/ryanisaacg/quicksilver.svg)](https://travis-ci.org/ryanisaacg/quicksilver)
 //! [![Crates.io](https://img.shields.io/crates/v/quicksilver.svg)](https://crates.io/crates/quicksilver)
