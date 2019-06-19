@@ -282,7 +282,6 @@ impl Backend for WebGLBackend {
             framebuffer: try_opt(self.gl_ctx.create_framebuffer(), "Create GL framebuffer")?
         };
         self.gl_ctx.bind_framebuffer(gl::FRAMEBUFFER, Some(&surface.framebuffer));
-        js!( console.log(@{self.textures[image.get_id() as usize].as_ref()}); );
         self.gl_ctx.framebuffer_texture2_d(gl::FRAMEBUFFER, gl::COLOR_ATTACHMENT0, gl::TEXTURE_2D, self.textures[image.get_id() as usize].as_ref(), 0);
         self.gl_ctx.draw_buffers(&[gl::COLOR_ATTACHMENT0]);
         self.gl_ctx.bind_framebuffer(gl::FRAMEBUFFER, None);
