@@ -1,6 +1,9 @@
 # Changelog
 
 ## In-development
+- Fix an issue with the viewport in `Surface::render_to()`
+- Fix a GL error in `Image::new_null()` for the WebGL backend
+- Unbind newly created FBOs and textures to prevent GL errors and unwanted behaviours
 
 ## 0.3.14
 - Documentation fixes in src/lib.rs
