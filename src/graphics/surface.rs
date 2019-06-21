@@ -41,8 +41,8 @@ impl Surface {
         window.flush()?;
         window.set_view(View::new_transformed(self.image.area(), Transform::scale(Vector::new(1, -1))));
         func(window)?;
-        window.set_view(view);
         window.flush()?;
+        window.set_view(view);
         unsafe {
             backend.unbind_surface(self, &viewport);
         }
