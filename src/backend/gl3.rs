@@ -255,6 +255,7 @@ impl Backend for GL3Backend {
         gl::TexImage2D(gl::TEXTURE_2D, 0, gl::RGBA as i32, width as i32, 
                         height as i32, 0, format, gl::UNSIGNED_BYTE, data);
         gl::GenerateMipmap(gl::TEXTURE_2D);
+        gl::BindTexture(gl::TEXTURE_2D, 0);
         Ok(ImageData { id, width, height })
     }
 
@@ -273,6 +274,7 @@ impl Backend for GL3Backend {
         gl::BindFramebuffer(gl::FRAMEBUFFER, surface.framebuffer);
         gl::FramebufferTexture(gl::FRAMEBUFFER, gl::COLOR_ATTACHMENT0, image.get_id(), 0);
         gl::DrawBuffers(1, &gl::COLOR_ATTACHMENT0 as *const u32);
+        gl::BindFramebuffer(gl::FRAMEBUFFER, 0);
         Ok(surface)
     }
 

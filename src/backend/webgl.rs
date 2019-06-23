@@ -253,6 +253,12 @@ impl Backend for WebGLBackend {
             PixelFormat::RGB => gl::RGB as i64,
             PixelFormat::RGBA => gl::RGBA as i64
         };
+        let maybe_data =
+            if data.len() == 0 {
+                None
+            } else {
+                Some(data)
+            };
         let texture = try_opt(self.gl_ctx.create_texture(), "Create GL texture")?;
         self.gl_ctx.bind_texture(gl::TEXTURE_2D, Some(&texture));
         self.gl_ctx.tex_parameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_S, gl::CLAMP_TO_EDGE as i32);
@@ -260,8 +266,9 @@ impl Backend for WebGLBackend {
         self.gl_ctx.tex_parameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::NEAREST as i32);
         self.gl_ctx.tex_parameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::NEAREST as i32);
         let format = format as u32;
-        self.gl_ctx.tex_image2_d(gl::TEXTURE_2D, 0, gl::RGBA as i32, width as i32, height as i32, 0, format, gl::UNSIGNED_BYTE, Some(data));
+        self.gl_ctx.tex_image2_d(gl::TEXTURE_2D, 0, gl::RGBA as i32, width as i32, height as i32, 0, format, gl::UNSIGNED_BYTE, maybe_data);
         self.gl_ctx.generate_mipmap(gl::TEXTURE_2D);
+        self.gl_ctx.bind_texture(gl::TEXTURE_2D, None);
         self.textures.push(Some(texture));
         Ok(ImageData { id, width, height })
     }
@@ -277,6 +284,7 @@ impl Backend for WebGLBackend {
         self.gl_ctx.bind_framebuffer(gl::FRAMEBUFFER, Some(&surface.framebuffer));
         self.gl_ctx.framebuffer_texture2_d(gl::FRAMEBUFFER, gl::COLOR_ATTACHMENT0, gl::TEXTURE_2D, self.textures[image.get_id() as usize].as_ref(), 0);
         self.gl_ctx.draw_buffers(&[gl::COLOR_ATTACHMENT0]);
+        self.gl_ctx.bind_framebuffer(gl::FRAMEBUFFER, None);
         Ok(surface)
     }
     
@@ -297,10 +305,10 @@ impl Backend for WebGLBackend {
     unsafe fn viewport(&self) -> [i32; 4] {
         let viewport_data = self.gl_ctx.get_parameter(gl::VIEWPORT);
         [
-            js! { @{&viewport_data}[0] }.try_into().expect("Malformed GL viewport attribute"),
-            js! { @{&viewport_data}[1] }.try_into().expect("Malformed GL viewport attribute"),
-            js! { @{&viewport_data}[2] }.try_into().expect("Malformed GL viewport attribute"),
-            js! { @{&viewport_data}[3] }.try_into().expect("Malformed GL viewport attribute"),
+            js! { return @{&viewport_data}[0]; }.try_into().expect("Malformed GL viewport attribute"),
+            js! { return @{&viewport_data}[1]; }.try_into().expect("Malformed GL viewport attribute"),
+            js! { return @{&viewport_data}[2]; }.try_into().expect("Malformed GL viewport attribute"),
+            js! { return @{&viewport_data}[3]; }.try_into().expect("Malformed GL viewport attribute"),
         ]
     }
 
