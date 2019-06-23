@@ -1,6 +1,8 @@
 # Changelog
 
 ## In-development
+
+## 0.3.15
 - Fix an issue with the viewport in `Surface::render_to()`
 - Fix a GL error in `Image::new_null()` for the WebGL backend
 - Fix a JavaScript error for WebGL backend in Firefox
