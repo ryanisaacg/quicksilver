@@ -116,7 +116,6 @@
 //! gamepad support (via [gilrs](https://gitlab.com/gilrs-project/gilrs)), 
 //! saving (via [serde_json](https://github.com/serde-rs/json)),
 //! complex shape / svg rendering (via [lyon](https://github.com/nical/lyon)),
-//! immediate-mode GUIs (via [immi](https://github.com/tomaka/immi)),
 //! and sounds (via [rodio](https://github.com/tomaka/rodio)). 
 //! 
 //! Each are enabled by default, but you can
@@ -131,7 +130,7 @@
 //! 
 //! Mobile support would be a future possibility, but likely only through external contributions.
 
-#![doc(html_root_url = "https://docs.rs/quicksilver/0.3.15/quicksilver")]
+#![doc(html_root_url = "https://docs.rs/quicksilver/0.3.16/quicksilver")]
 #![deny(
     bare_trait_objects,
     missing_docs,
