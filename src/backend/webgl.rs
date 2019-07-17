@@ -249,10 +249,7 @@ impl Backend for WebGLBackend {
 
     unsafe fn create_texture(&mut self, data: &[u8], width: u32, height: u32, format: PixelFormat) -> Result<ImageData> {
         let id = self.textures.len() as u32;
-        let format = match format {
-            PixelFormat::RGB => gl::RGB as i64,
-            PixelFormat::RGBA => gl::RGBA as i64
-        };
+        let format = format_gl(format) as i64;
         let maybe_data =
             if data.len() == 0 {
                 None
@@ -266,7 +263,7 @@ impl Backend for WebGLBackend {
         self.gl_ctx.tex_parameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::NEAREST as i32);
         self.gl_ctx.tex_parameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::NEAREST as i32);
         let format = format as u32;
-        self.gl_ctx.tex_image2_d(gl::TEXTURE_2D, 0, gl::RGBA as i32, width as i32, height as i32, 0, format, gl::UNSIGNED_BYTE, maybe_data);
+        self.gl_ctx.tex_image2_d(gl::TEXTURE_2D, 0, format as i32, width as i32, height as i32, 0, format, gl::UNSIGNED_BYTE, maybe_data);
         self.gl_ctx.generate_mipmap(gl::TEXTURE_2D);
         self.gl_ctx.bind_texture(gl::TEXTURE_2D, None);
         self.textures.push(Some(texture));
