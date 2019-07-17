@@ -1,6 +1,7 @@
 # Changelog
 
 ## In-development
+- Add `transform_bounding_box` to `Shape`
 
 ## 0.3.16
 - Fix an issue creating non-RGBA images on web
