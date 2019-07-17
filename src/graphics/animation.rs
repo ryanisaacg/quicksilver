@@ -15,6 +15,7 @@ struct AnimationData {
 /// Frames advance by discrete ticks, which should be run in the `update` section of a 
 /// quicksilver application loop rather than the `draw` section. Draws may happen as 
 /// often as possible, whereas updates will have consistent rates
+#[deprecated(since = "0.3.16", note = "Animation is too inflexible for most users; an external solution is a better option")]
 pub struct Animation {
     data: Rc<AnimationData>,
     current: usize,

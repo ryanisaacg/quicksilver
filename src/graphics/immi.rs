@@ -11,6 +11,7 @@ use rusttype::{Point, Scale};
 /// Combine the ImmiStatus and the Render into a DrawContext
 ///
 /// This is the main way to use Immi from within Quicksilver
+#[deprecated(since = "0.3.16", note = "immi is not actively maintained or sufficient as a GUI solution")]
 pub fn create_immi_ctx<'a>(state: ImmiStatus, render: &'a mut ImmiRender<'a>) -> DrawContext<'a, ImmiRender<'a>> {
     immi::draw().draw(state.window_size.x, state.window_size.y, render, state.mouse_pos, state.pressed, state.released)
 }
@@ -18,6 +19,7 @@ pub fn create_immi_ctx<'a>(state: ImmiStatus, render: &'a mut ImmiRender<'a>) ->
 /// The current state of the world to pass to Immi
 ///
 /// Contains information about mouse position, cursor, etc. Used with `create_immi_ctx`
+#[deprecated(since = "0.3.16", note = "immi is not actively maintained or sufficient as a GUI solution")]
 pub struct ImmiStatus {
     window_size: Vector,
     mouse_pos: Option<[f32; 2]>,
@@ -47,6 +49,7 @@ impl ImmiStatus {
 /// The implementation of the Immi rendering code for Quicksilver
 ///
 /// This allows Immi to draw the UI to an arbitrary mesh. Used with `create_immi_ctx`
+#[deprecated(since = "0.3.16", note = "immi is not actively maintained or sufficient as a GUI solution")]
 pub struct ImmiRender<'a> {
     window: &'a mut Mesh,
     view: View,

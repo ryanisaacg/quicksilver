@@ -2,6 +2,10 @@
 
 ## In-development
 
+## 0.3.16
+- Fix an issue creating non-RGBA images on web
+- Deprecate Animation and Immi integration, pending removal in a future release
+
 ## 0.3.15
 - Fix an issue with the viewport in `Surface::render_to()`
 - Fix a GL error in `Image::new_null()` for the WebGL backend
