@@ -123,19 +123,20 @@ impl Sound {
     ///
     /// The sound clip can be played over itself.
     ///
-    /// Future changes in volume will not change the sound emitted by this method.
-    pub fn play(&self) -> Result<()> {
+    /// This function returns a handler to the sound resource, from that you can alter the playing sound
+    /// as documented here https://docs.rs/rodio/0.9.0/rodio/struct.Sink.html
+    pub fn play(&self) -> Result<rodio::Sink> {
         #[cfg(not(target_arch="wasm32"))] {
             let device = match rodio::default_output_device() {
                 Some(device) => device,
                 None => return Err(SoundError::NoOutputAvailable.into())
             };
-            rodio::play_raw(&device, self.get_source()?);
+            let sound_handler = rodio::play_once(&device, self.get_source()?);
         }
         #[cfg(target_arch="wasm32")] js! {
             @{&self.sound}.cloneNode().play();
         }
-        Ok(())
+        Ok(sound_handler)
     }
     
     #[cfg(not(target_arch="wasm32"))]
