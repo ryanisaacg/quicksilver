@@ -25,8 +25,11 @@ pub trait Shape {
     #[must_use]
     fn bounding_box(&self) -> Rectangle;
     /// Apply a transform to a shape then get the bounding box for the transformed shape
+    ///
+    /// Note: if you want to get the collision of rotated shapes, you probably
+    /// want to use [ncollide](https://crates.io/crates/ncollide)
     #[must_use]
-    fn transform_bounding_box(&self, transform: Transform) -> Rectangle {
+    fn transformed_bounding_box(&self, transform: Transform) -> Rectangle {
         let bb = self.bounding_box();
         // Build the transform to rotate the shape
         let transform = Transform::translate(bb.center() + bb.pos)
@@ -34,9 +37,9 @@ pub trait Shape {
             * Transform::translate(-bb.pos - bb.center());
         // Get new corner position
         let tl = transform * bb.pos;
-        let tr = transform * Vector::new(bb.pos.x + bb.size.x, bb.pos.y);
-        let bl = transform * Vector::new(bb.pos.x, bb.pos.y + bb.size.y);
-        let br = transform * Vector::new(bb.pos.x + bb.size.x, bb.pos.y + bb.size.y);
+        let tr = transform * (bb.pos + Vector::new(bb.size.x, 0));
+        let bl = transform * (bb.pos + Vector::new(0, bb.size.y));
+        let br = transform * (bb.pos + bb.size);
         // Get min and max points
         let min = tr.min(tl).min(bl).min(br);
         let max = tr.max(tl).max(bl).max(br);
