@@ -252,6 +252,13 @@ impl Distribution<Vector> for Standard {
     }
 }
 
+#[cfg(feature="glam")]
+impl From<glam::Vec2> for Vector {
+    fn from(other: glam::Vec2) -> Vector {
+        Vector::new(other.x(), other.y())
+    }
+}
+
 #[cfg(feature="nalgebra")]
 impl From<Vector2<f32>> for Vector {
     fn from(other: Vector2<f32>) -> Vector {
