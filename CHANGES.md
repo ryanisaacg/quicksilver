@@ -2,6 +2,10 @@
 
 ## In-development
 
+## 0.3.17
+- Add `transform_bounding_box` to `Shape`
+- Fix a bug with circles being textured incorrectly
+
 ## 0.3.16
 - Fix an issue creating non-RGBA images on web
 - Deprecate Animation and Immi integration, pending removal in a future release
