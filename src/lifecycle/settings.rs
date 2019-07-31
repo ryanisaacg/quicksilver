@@ -19,8 +19,12 @@ pub struct Settings {
     /// How content should be presented when the window is resized
     pub resize: ResizeStrategy,
     /// How images should be scaled
+    ///
+    /// Does nothing on web
     pub scale: ImageScaleStrategy,
     /// If the application should be fullscreen
+    ///
+    /// Does nothing on web
     pub fullscreen: bool,
     /// How many milliseconds should elapse between update calls
     pub update_rate: f64,
