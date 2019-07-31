@@ -88,7 +88,7 @@ impl Drawable for Circle {
         let trans = Transform::translate(self.center())
             * trans
             * Transform::scale(Vector::ONE * self.radius);
-        let tex_trans = bkg.image().map(|img| img.projection(self.bounding_box()));
+        let tex_trans = bkg.image().map(|img| img.projection(Rectangle::new((-1,-1), (2,2))));
         let offset = mesh.add_positioned_vertices(CIRCLE_POINTS.iter().cloned(), trans, tex_trans, bkg);
         mesh.triangles.extend(iter::repeat(z)
             .take(CIRCLE_POINTS.len() - 1)
@@ -102,7 +102,7 @@ impl Drawable for Triangle {
         let trans = Transform::translate(self.center())
             * trans
             * Transform::translate(-self.center());
-        let tex_transform = bkg.image().map(|image| image.projection(Rectangle::new((-1,-1), (2,2))));
+        let tex_transform = bkg.image().map(|image| image.projection(self.bounding_box()));
         let offset = mesh.add_positioned_vertices([self.a, self.b, self.c].iter().cloned(),
             trans, tex_transform, bkg);
         mesh.triangles.push(GpuTriangle::new(offset, [0, 1, 2], z, bkg));
