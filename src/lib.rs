@@ -130,7 +130,7 @@
 //! 
 //! Mobile support would be a future possibility, but likely only through external contributions.
 
-#![doc(html_root_url = "https://docs.rs/quicksilver/0.3.17/quicksilver")]
+#![doc(html_root_url = "https://docs.rs/quicksilver/0.3.18/quicksilver")]
 #![deny(
     bare_trait_objects,
     missing_docs,
