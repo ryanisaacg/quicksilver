@@ -23,8 +23,6 @@ pub struct Settings {
     /// Does nothing on web
     pub scale: ImageScaleStrategy,
     /// If the application should be fullscreen
-    ///
-    /// Does nothing on web
     pub fullscreen: bool,
     /// How many milliseconds should elapse between update calls
     pub update_rate: f64,
