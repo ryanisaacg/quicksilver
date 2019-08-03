@@ -2,6 +2,9 @@
 
 ## In-development
 
+## 0.3.18
+- Fix the circle fix (was mistakenly applied to triangles)
+
 ## 0.3.17
 - Add `transform_bounding_box` to `Shape`
 - Fix a bug with circles being textured incorrectly
