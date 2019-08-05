@@ -2,6 +2,9 @@
 
 ## In-development
 
+## 0.3.19
+- Add new stop and loop sound feature
+
 ## 0.3.18
 - Fix the circle fix (was mistakenly applied to triangles)
 
