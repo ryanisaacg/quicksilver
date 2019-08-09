@@ -1,6 +1,7 @@
 # Changelog
 
 ## In-development
+- Cross-browser fixes for touch input events on the web 
 
 ## 0.3.18
 - Fix the circle fix (was mistakenly applied to triangles)

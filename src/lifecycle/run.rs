@@ -24,9 +24,9 @@ use {
             document, window, IEventTarget,  IWindowOrWorker,
             event::{
                 BlurEvent, ConcreteEvent, FocusEvent, GamepadConnectedEvent, GamepadDisconnectedEvent,
-                IGamepadEvent, IKeyboardEvent, IMouseEvent, KeyDownEvent, KeyUpEvent,
-                MouseButton as WebMouseButton, PointerDownEvent, PointerMoveEvent, PointerOutEvent,
-                PointerOverEvent, PointerUpEvent, ResizeEvent
+                IGamepadEvent, IKeyboardEvent, IMouseEvent, ITouchEvent, KeyDownEvent, KeyUpEvent,
+                MouseButton as WebMouseButton, MouseDownEvent, MouseMoveEvent, PointerOutEvent,
+                PointerOverEvent, MouseUpEvent, ResizeEvent, TouchEnd, TouchMove, TouchStart,
             }
         }
     }
@@ -127,12 +127,12 @@ fn run_impl<T: State, F: FnOnce()->Result<T>>(title: &str, size: Vector, setting
         app.event_buffer.push(Event::MouseEntered)
     });
 
-    handle_event(&canvas, &app, |mut app, event: PointerMoveEvent| {
+    handle_event(&canvas, &app, |mut app, event: MouseMoveEvent| {
         let position = Vector::new(event.offset_x() as f32, event.offset_y() as f32);
         let position = app.window.project() * (position - app.window.screen_offset());
         app.event_buffer.push(Event::MouseMoved(position));
     });
-    handle_event(&canvas, &app, |mut app, event: PointerUpEvent| {
+    handle_event(&canvas, &app, |mut app, event: MouseUpEvent| {
         let state = ButtonState::Released;
         let button = match event.button() {
             WebMouseButton::Left => MouseButton::Left,
@@ -142,7 +142,7 @@ fn run_impl<T: State, F: FnOnce()->Result<T>>(title: &str, size: Vector, setting
         };
         app.event_buffer.push(Event::MouseButton(button, state));
     });
-    handle_event(&canvas, &app, |mut app, event: PointerDownEvent| {
+    handle_event(&canvas, &app, |mut app, event: MouseDownEvent| {
         let state = ButtonState::Pressed;
         let button = match event.button() {
             WebMouseButton::Left => MouseButton::Left,
@@ -185,6 +185,32 @@ fn run_impl<T: State, F: FnOnce()->Result<T>>(title: &str, size: Vector, setting
     handle_event(&window, &app, move |mut app, _: ResizeEvent| {
         if app.window.get_fullscreen() {
             app.window.set_fullscreen(true);
+        }
+    });
+
+    handle_event(&window, &app, move |mut app, event: TouchEnd| {
+        let touches = event.touches();
+        if touches.len() == 0 {
+            app.event_buffer.push(Event::MouseButton(MouseButton::Left, ButtonState::Released));
+        }
+    });
+    handle_event(&window, &app, move |mut app, event: TouchMove| {
+        let touches = event.touches();
+        if touches.len() == 1 {
+            let touch = &touches[0];
+            let position = Vector::new(touch.page_x() as f32, touch.page_y() as f32);
+            let position = app.window.project() * (position - app.window.screen_offset());
+            app.event_buffer.push(Event::MouseMoved(position));
+        }
+    });
+    handle_event(&window, &app, move |mut app, event: TouchStart| {
+        let touches = event.touches();
+        if touches.len() == 1 {
+            let touch = &touches[0];
+            let position = Vector::new(touch.page_x() as f32, touch.page_y() as f32);
+            let position = app.window.project() * (position - app.window.screen_offset());
+            app.event_buffer.push(Event::MouseMoved(position));
+            app.event_buffer.push(Event::MouseButton(MouseButton::Left, ButtonState::Pressed));
         }
     });
 
