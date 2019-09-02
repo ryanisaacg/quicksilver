@@ -32,7 +32,7 @@ maintenance = { status = "actively-developed" }
 futures = "0.1"
 gilrs = { version = "0.7", optional = true }
 image = "0.21"
-lyon = { version = "0.13", features = ["extra"], optional = true }
+lyon = { version = "0.14", features = ["extra"], optional = true }
 rand = { version = "0.7", features = ["stdweb"] }
 serde = "1.0"
 serde_derive = "1.0"
