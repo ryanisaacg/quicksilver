@@ -37,7 +37,7 @@ rand = { version = "0.7", features = ["stdweb"] }
 serde = "1.0"
 serde_derive = "1.0"
 nalgebra = { version = "0.18", features = ["stdweb"], optional = true }
-ncollide2d = { version = "0.19", optional = true }
+ncollide2d = { version = "0.20", optional = true }
 immi = { version = "1.0", optional = true }
 rusttype = { version = "0.7", optional = true }
 serde_json = { version = "1.0", optional = true }
