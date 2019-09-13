@@ -1,0 +1,51 @@
+name: Integration
+on: [push]
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macOS-latest]
+        rust: [stable, nightly]
+        include:
+          - os: macOS-latest
+            web: true
+    steps:
+    - uses: hecrj/setup-rust-action@v1
+      with:
+        rust-version: ${{ matrix.rust }}
+    - name: Install clippy and rustfmt
+      run: |
+        rustup component add clippy
+        rustup component add rustfmt
+    - name: Install the web target
+      if: matrix.web == true
+      run: rustup target add wasm32-unknown-unknown
+    - name: Install Linux dependencies
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        sudo apt-get -qq update
+        sudo apt-get install -y libudev-dev zlib1g-dev alsa libasound2-dev
+    # Checking stdweb
+    - uses: actions/checkout@master
+    - name: Check stdweb
+      if: matrix.web == true
+      run: |
+        cargo check --target wasm32-unknown-unknown --features stdweb
+        cargo clippy --target wasm32-unknown-unknown --features stdweb
+    # Checking web-sys
+    - name: Check web-sys
+      if: matrix.web == true
+      run: |
+        cargo check --target wasm32-unknown-unknown --features web-sys
+        cargo clippy --target wasm32-unknown-unknown --features web-sys
+    # Checking normal
+    - name: Run tests
+      if: matrix.target == ''
+      run: |
+        cargo check
+        cargo clippy
+    # Checking fmt
+    - name: Rustfmt
+      run: cargo fmt -- --check
+
