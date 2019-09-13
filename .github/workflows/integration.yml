@@ -31,14 +31,8 @@ jobs:
     - name: Check stdweb
       if: matrix.web == true
       run: |
-        cargo check --target wasm32-unknown-unknown --features stdweb
-        cargo clippy --target wasm32-unknown-unknown --features stdweb
-    # Checking web-sys
-    - name: Check web-sys
-      if: matrix.web == true
-      run: |
-        cargo check --target wasm32-unknown-unknown --features web-sys
-        cargo clippy --target wasm32-unknown-unknown --features web-sys
+        cargo check --target wasm32-unknown-unknown
+        cargo clippy --target wasm32-unknown-unknown
     # Checking normal
     - name: Run tests
       if: matrix.target == ''
