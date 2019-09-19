@@ -120,7 +120,7 @@ The engine is supported on Windows, macOS, Linux, and the web via WebAssembly.
 The web is only supported via the `wasm32-unknown-unknown` Rust target, not through emscripten.
 It might work with emscripten but this is not an ongoing guarantee.
 
-On desktop it requires OpenGL 3.2; on the web it requires WebGL 2.0.
+On desktop it requires OpenGL 3.2; on the web it requires WebGL 2.0 or WebGL 1.0 (with the `webgl1` feature enabled).
 
 Mobile support would be a future possibility, but likely only through external contributions.
 
