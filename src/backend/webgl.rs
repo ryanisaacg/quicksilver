@@ -17,11 +17,14 @@ use stdweb::{
 use webgl_stdweb::{
     WebGLBuffer,
     WebGLProgram,
-    WebGL2RenderingContext as gl,
     WebGLShader,
     WebGLTexture,
     WebGLUniformLocation
 };
+#[cfg(feature = "webgl1")]
+use webgl_stdweb::WebGLRenderingContext as gl;
+#[cfg(not(feature = "webgl1"))]
+use webgl_stdweb::WebGL2RenderingContext as gl;
 use stdweb::web::document;
 
 pub struct WebGLBackend {
@@ -94,6 +97,9 @@ impl Backend for WebGLBackend {
             Ok(ctx) => ctx,
             _ => return Err(QuicksilverError::ContextError("Could not create WebGL2 context".to_owned()))
         };
+        if cfg!(feature = "webgl1") && gl_ctx.get_extension::<webgl_stdweb::OES_element_index_uint>().is_none() {
+            return Err(QuicksilverError::ContextError("Could not aquire OES_element_index_uint extension.".to_owned()))
+        }
         let texture_mode = match texture_mode {
             ImageScaleStrategy::Pixelate => gl::NEAREST,
             ImageScaleStrategy::Blur => gl::LINEAR
