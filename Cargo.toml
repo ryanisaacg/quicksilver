@@ -22,7 +22,6 @@ gamepads = ["gilrs"]
 immi_ui = ["immi", "fonts"]
 saving = ["dirs", "serde_json"]
 sounds = ["rodio"]
-webgl1 = []
 
 [badges]
 
