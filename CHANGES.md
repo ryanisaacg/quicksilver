@@ -2,6 +2,10 @@
 
 ## In-development
 
+## 0.3.19
+- Update dependencies
+- Bump WebGL requirement from 2.0 down to 1.0
+
 ## 0.3.18
 - Fix the circle fix (was mistakenly applied to triangles)
 
