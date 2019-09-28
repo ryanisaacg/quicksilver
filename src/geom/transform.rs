@@ -1,4 +1,4 @@
-#[cfg(feature="nalgebra")] use nalgebra::core::Matrix3;
+#[cfg(feature="collisions")] use nalgebra::core::Matrix3;
 
 use crate::geom::{about_equal, Scalar, Vector};
 use std::{
@@ -201,7 +201,7 @@ impl PartialEq for Transform {
 impl Eq for Transform {}
 
 
-#[cfg(feature="nalgebra")]
+#[cfg(feature="collisions")]
 impl From<Matrix3<f32>> for Transform {
     fn from(other: Matrix3<f32>) -> Transform {
         Transform([[other[0], other[1], other[2]],
@@ -268,7 +268,7 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature="nalgebra")]
+    #[cfg(feature="collisions")]
     fn conversion() {
         let transform = Transform::rotate(5);
         let vector = Vector::new(1, 2);

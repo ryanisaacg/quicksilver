@@ -1,4 +1,4 @@
-#[cfg(feature="ncollide2d")] use ncollide2d::{
+#[cfg(feature="collisions")] use ncollide2d::{
     bounding_volume::AABB,
     shape::Cuboid
 };
@@ -31,7 +31,7 @@ impl Rectangle {
         }
     }
 
-    #[cfg(feature="ncollide2d")]
+    #[cfg(feature="collisions")]
     ///Create a rectangle with a given center and Cuboid from ncollide
     pub fn from_cuboid(center: impl Into<Vector>, cuboid: &Cuboid<f32>) -> Rectangle {
         let half_size = cuboid.half_extents().clone().into();
@@ -39,13 +39,13 @@ impl Rectangle {
     }
    
     ///Convert this rect into an ncollide Cuboid2
-    #[cfg(feature="ncollide2d")]
+    #[cfg(feature="collisions")]
     pub fn into_cuboid(self) -> Cuboid<f32> {
         Cuboid::new((self.size() / 2).into_vector())
     }
     
     ///Convert this rect into an ncollide AABB2
-    #[cfg(feature="ncollide2d")]
+    #[cfg(feature="collisions")]
     pub fn into_aabb(self) -> AABB<f32> { 
         let min = self.top_left().into_point(); 
         let max = (self.top_left() + self.size()).into_point();
@@ -94,7 +94,7 @@ impl PartialEq for Rectangle {
 
 impl Eq for Rectangle {}
 
-#[cfg(feature="ncollide2d")]
+#[cfg(feature="collisions")]
 impl From<AABB<f32>> for Rectangle {
     fn from(other: AABB<f32>) -> Rectangle {
         let min: Vector = Clone::clone(other.mins()).into();

@@ -1,6 +1,7 @@
 # Changelog
 
 ## In-development
+- Fix `collisions` feature
 
 ## 0.3.19
 - Update dependencies
