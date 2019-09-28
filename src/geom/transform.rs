@@ -72,7 +72,7 @@ impl Transform {
                   [0f32, 0f32, 1f32]])
     }
    
-    #[cfg(feature="nalgebra")]
+    #[cfg(feature="collisions")]
     ///Convert the Transform into an nalgebra Matrix3
     pub fn into_matrix(self) -> Matrix3<f32> {
         Matrix3::new(

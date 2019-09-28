@@ -1,4 +1,4 @@
-#[cfg(feature="nalgebra")] use nalgebra::{
+#[cfg(feature="collisions")] use nalgebra::{
     core::Vector2,
     geometry::Point2
 };
@@ -45,13 +45,13 @@ impl Vector {
     }
 
     ///Convert this vector into an nalgebra Vector2
-    #[cfg(feature="nalgebra")]
+    #[cfg(feature="collisions")]
     pub fn into_vector(self) -> Vector2<f32> {
         Vector2::new(self.x, self.y)
     }
    
     ///Convert this vector into an nalgebra Point2
-    #[cfg(feature="nalgebra")]
+    #[cfg(feature="collisions")]
     pub fn into_point(self) -> Point2<f32> {
         Point2::new(self.x, self.y)
     }
@@ -252,14 +252,14 @@ impl Distribution<Vector> for Standard {
     }
 }
 
-#[cfg(feature="nalgebra")]
+#[cfg(feature="collisions")]
 impl From<Vector2<f32>> for Vector {
     fn from(other: Vector2<f32>) -> Vector {
         Vector::new(other.x, other.y)
     }
 }
 
-#[cfg(feature="nalgebra")]
+#[cfg(feature="collisions")]
 impl From<Point2<f32>> for Vector {
     fn from(other: Point2<f32>) -> Vector {
         Vector::new(other.x, other.y)
