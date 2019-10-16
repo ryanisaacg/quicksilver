@@ -1,35 +1,29 @@
 // Draw an image to the screen
-extern crate quicksilver;
-extern crate image;
-
+use mint::Vector2;
 use quicksilver::{
-    Result,
-    geom::{Shape, Vector},
-    graphics::{Background::Img, Color, Image},
-    lifecycle::{Asset, Settings, State, Window, run},
+    QuicksilverError,
+    graphics::{Color, Image},
+    lifecycle::{Event, EventStream, Settings, Window, run},
 };
 
-struct ImageViewer {
-    asset: Asset<Image>,
-}
+async fn app(window: Window, mut events: EventStream) -> Result<(), QuicksilverError> {
+    let context = Context::new(&mut window);
 
-impl State for ImageViewer {
-    fn new() -> Result<ImageViewer> {
-        let asset = Asset::new(Image::load("image.png"));
-        Ok(ImageViewer { asset })
-    }
+    let image = Image::load("image.png").await?;
 
-    fn draw(&mut self, window: &mut Window) -> Result<()> {
-        window.clear(Color::WHITE)?;
-        self.asset.execute(|image| {
-            window.draw(&image.area().with_center((400, 300)), Img(&image));
-            Ok(())
-        })
+    while let Some(event) = events.next().await {
+        if let Event::Draw = event {
+            context.clear(Color::WHITE)?;
+            context.draw(Vector2 { x: 400.0, y: 300.0 }, &image);
+            context.present()?;
+        }
     }
 }
 
 fn main() {
-    run::<ImageViewer>("Image Example", Vector::new(800, 600), Settings {
+    run(app, Settings {
+        size: Vector2 { x: 800, 600 },
+        title: "Image Example",
         icon_path: Some("image.png"),
         ..Settings::default()
     });

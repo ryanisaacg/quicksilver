@@ -1,47 +1,32 @@
 // Draw some sample text to the screen
-extern crate quicksilver;
-
+use mint::Vector2;
 use quicksilver::{
-    Future, Result,
-    combinators::result,
-    geom::{Shape, Vector},
-    graphics::{Background::Img, Color, Font, FontStyle, Image},
-    lifecycle::{Asset, Settings, State, Window, run},
+    QuicksilverError,
+    graphics::{Color, Font, FontStyle},
+    lifecycle::{Event, EventStream, Settings, State, Window, run},
 };
 
-struct SampleText {
-    asset: Asset<Image>,
-    multiline: Asset<Image>,
-}
+async fn app(window: Window, mut events: EventStream) -> Result<(), QuicksilverError> {
+    let context = Context::new(&mut window);
 
-impl State for SampleText {
-    fn new() -> Result<SampleText> {
-        let asset = Asset::new(Font::load("font.ttf")
-            .and_then(|font| {
-                let style = FontStyle::new(72.0, Color::BLACK);
-                result(font.render("Sample Text", &style))
-            }));
-        let multiline = Asset::new(Font::load("font.ttf")
-            .and_then(|font| {
-                let style = FontStyle::new(48.0, Color::BLACK);
-                result(font.render("First line\nSecond line\nThird line", &style))
-            }));
-        Ok(SampleText { asset, multiline })
-    }
+    let font = Font::load("font.ttf").await?;
+    let sample = font.render("Sample Text", FontStyle::new(72.0, Color::BLACK));
+    let multiline = font.render("First line\nSecond line\nThird line", FontStyle::new(48.0, Color::BLACK));
 
-    fn draw(&mut self, window: &mut Window) -> Result<()> {
-        window.clear(Color::WHITE)?;
-        self.asset.execute(|image| {
-            window.draw(&image.area().with_center((400, 300)), Img(&image));
-            Ok(())
-        })?;
-        self.multiline.execute(|image| {
-            window.draw(&image.area(), Img(&image));
-            Ok(())
-        })
+    while let Some(event) = events.next().await {
+        if let Event::Draw = event {
+            context.clear(Color::WHITE)?;
+            context.draw(Vector2 { x: 0.0, y: 0.0 }, &multiline);
+            context.draw(Vector2 { x: 300.0, y: 400.0 }, &sample);
+            context.present()?;
+        }
     }
 }
 
 fn main() {
-    run::<SampleText>("Font Example", Vector::new(800, 600), Settings::default());
+    run(app, Settings {
+        title: "Font Example",
+        size: Vector2 { x: 800, y: 600 },
+        ..Settings::default()
+    });
 }
