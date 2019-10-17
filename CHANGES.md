@@ -1,6 +1,8 @@
 # Changelog
 
 ## In-development
+
+## 0.3.20
 - Fix gamepad Select/Start events misfiring when A is pressed
 
 ## 0.3.19
