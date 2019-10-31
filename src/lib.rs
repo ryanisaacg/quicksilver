@@ -139,38 +139,20 @@
     unused_qualifications
 )]
 
-#[macro_use]
-extern crate serde_derive;
-#[cfg(target_arch = "wasm32")]
-#[macro_use]
-extern crate stdweb;
-
-mod backend;
-mod error;
-mod file;
-pub mod geom;
-pub mod graphics;
-pub mod input;
-pub mod lifecycle;
-pub mod prelude;
+//mod backend;
+//mod error;
+//pub mod graphics;
+//pub mod input;
+//pub mod lifecycle;
+//pub mod prelude;
 #[cfg(feature = "saving")]
-pub mod saving;
-#[cfg(feature = "sounds")]
-pub mod sound;
-pub use crate::error::QuicksilverError as Error;
-pub use crate::file::load_file;
+pub mod saving {
+    pub use gestalt::*;
+}
+//pub use crate::error::QuicksilverError as Error;
+pub use platter::load_file;
 
-#[cfg(feature = "lyon")]
-pub use lyon;
+//pub mod tutorials;
 
-pub mod tutorials;
-
-/// A Result that returns either success or a Quicksilver Error
-pub type Result<T> = ::std::result::Result<T, Error>;
-/// Types that represents a "future" computation, used to load assets
-pub use futures::Future;
-/// Helpers that allow chaining computations together in a single Future
-///
-/// This allows one Asset object that contains all of the various resources
-/// an application needs to load.
-pub use futures::future as combinators;
+//// A Result that returns either success or a Quicksilver Error
+//pub type Result<T> = ::std::result::Result<T, Error>;

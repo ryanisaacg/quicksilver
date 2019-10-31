@@ -2,21 +2,17 @@
 use mint::Vector2;
 use quicksilver::{
     QuicksilverError,
-    graphics::{Color, Image},
+    graphics::{Color, Context, Image, ImageDraw},
     lifecycle::{Event, EventStream, Settings, Window, run},
 };
 
 async fn app(window: Window, mut events: EventStream) -> Result<(), QuicksilverError> {
-    let context = Context::new(&mut window);
-
     let image = Image::load("image.png").await?;
 
-    while let Some(event) = events.next().await {
-        if let Event::Draw = event {
-            context.clear(Color::WHITE)?;
-            context.draw(Vector2 { x: 400.0, y: 300.0 }, &image);
-            context.present()?;
-        }
+    while let Some(_) = events.next().await {
+        let cmd = DrawCommand::new(&mut window);
+        cmd.clear(Color::WHITE)?;
+        cmd.draw_image(Vector2 { x: 400.0, y: 300.0 }, image);
     }
 }
 
