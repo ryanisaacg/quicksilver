@@ -1,6 +1,7 @@
 # Changelog
 
 ## In-development
+- Fix gamepad buttons mistakenly marked as `Released` instead of `NotPressed`
 
 ## 0.3.20
 - Fix gamepad Select/Start events misfiring when A is pressed
