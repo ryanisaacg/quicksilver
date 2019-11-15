@@ -70,6 +70,7 @@ A good way to get started with Quicksilver is to [read and run the examples](htt
 - Documentation / Tutorials
     - [tomassedovic](https://github.com/tomassedovic): [quicksilver-roguelike](https://github.com/tomassedovic/quicksilver-roguelike)
 - Games
+    - [WushuWorks](https://github.com/WushuWorks): [I am the Elder God](https://wushuworks.github.io/I-am-the-Elder-God/)
     - [codec-abc](https://github.com/codec-abc): [RustyVolley](https://github.com/RustyVolley/RustyVolleySrc)
     - [rickyhan](https://github.com/rickyhan): [Kingston Crabfight Simulator](https://github.com/rickyhan/crabs)
     - [robotcaleb](https://github.com/robotcaleb): [Replay](https://robotcaleb.github.io/Replay/)
