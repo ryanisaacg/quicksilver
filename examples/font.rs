@@ -2,11 +2,11 @@
 extern crate quicksilver;
 
 use quicksilver::{
-    Future, Result,
     combinators::result,
     geom::{Shape, Vector},
     graphics::{Background::Img, Color, Font, FontStyle, Image},
-    lifecycle::{Asset, Settings, State, Window, run},
+    lifecycle::{run, Asset, Settings, State, Window},
+    Future, Result,
 };
 
 struct SampleText {
@@ -15,17 +15,17 @@ struct SampleText {
 }
 
 impl State for SampleText {
+    type Message = quicksilver::lifecycle::Event;
+
     fn new() -> Result<SampleText> {
-        let asset = Asset::new(Font::load("font.ttf")
-            .and_then(|font| {
-                let style = FontStyle::new(72.0, Color::BLACK);
-                result(font.render("Sample Text", &style))
-            }));
-        let multiline = Asset::new(Font::load("font.ttf")
-            .and_then(|font| {
-                let style = FontStyle::new(48.0, Color::BLACK);
-                result(font.render("First line\nSecond line\nThird line", &style))
-            }));
+        let asset = Asset::new(Font::load("font.ttf").and_then(|font| {
+            let style = FontStyle::new(72.0, Color::BLACK);
+            result(font.render("Sample Text", &style))
+        }));
+        let multiline = Asset::new(Font::load("font.ttf").and_then(|font| {
+            let style = FontStyle::new(48.0, Color::BLACK);
+            result(font.render("First line\nSecond line\nThird line", &style))
+        }));
         Ok(SampleText { asset, multiline })
     }
 

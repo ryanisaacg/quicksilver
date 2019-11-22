@@ -7,10 +7,10 @@ extern crate quicksilver;
 use nalgebra::{zero, Isometry2};
 use ncollide2d::query::{Ray, RayCast};
 use quicksilver::{
-    Result,
     geom::{Rectangle, Vector},
     graphics::{Color, GpuTriangle, Mesh, Vertex},
-    lifecycle::{Event, Settings, State, Window, run},
+    lifecycle::{run, Event, Settings, State, Window},
+    Result,
 };
 use std::cmp::Ordering;
 
@@ -20,10 +20,12 @@ struct Raycast {
     // the points to send rays to
     targets: Vec<Vector>,
     // the vertices to draw to the screen
-    mesh: Mesh
+    mesh: Mesh,
 }
 
 impl State for Raycast {
+    type Message = quicksilver::lifecycle::Event;
+
     fn new() -> Result<Raycast> {
         //The different squares that cast shadows
         let regions = vec![
@@ -35,7 +37,7 @@ impl State for Raycast {
             Rectangle::new((400, 400), (100, 100)),
             Rectangle::new((200, 400), (100, 100)),
             Rectangle::new((50, 50), (50, 50)),
-            Rectangle::new((550, 300), (64, 64))
+            Rectangle::new((550, 300), (64, 64)),
         ];
         // Build the list of targets to cast rays to
         let targets = regions
@@ -46,7 +48,8 @@ impl State for Raycast {
                     region.top_left() + region.size().x_comp(),
                     region.top_left() + region.size().y_comp(),
                     region.top_left() + region.size(),
-                ].into_iter()
+                ]
+                .into_iter()
             })
             .collect();
         Ok(Raycast {
@@ -72,7 +75,8 @@ impl State for Raycast {
                     let ray = Ray::new(start, direction);
                     // Perform the actual raycast, returning the target and an iterator of collisions
                     let identity = Isometry2::new(zero(), zero());
-                    let cast = self.regions
+                    let cast = self
+                        .regions
                         .iter()
                         .filter_map(|region| {
                             region.into_aabb().toi_with_ray(&identity, &ray, false)
@@ -111,17 +115,13 @@ impl State for Raycast {
                     col: Color::WHITE,
                 },
             );
-             // Calculate the number of triangles needed to draw the poly
+            // Calculate the number of triangles needed to draw the poly
             let triangle_count = self.mesh.vertices.len() as u32 - 1;
             for index in 0..triangle_count {
                 self.mesh.triangles.push(GpuTriangle {
                     z: 0.0,
-                    indices: [
-                        0, 
-                        index as u32 + 1,
-                        (index as u32 + 1) % triangle_count + 1
-                    ],
-                    image: None
+                    indices: [0, index as u32 + 1, (index as u32 + 1) % triangle_count + 1],
+                    image: None,
                 });
             }
         }

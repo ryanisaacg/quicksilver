@@ -1,13 +1,10 @@
 use crate::{
-    Result,
     geom::Vector,
-    lifecycle::{Application, State, Settings, Window},
+    lifecycle::{Application, Settings, State, Window},
+    Result,
 };
 #[cfg(not(target_arch = "wasm32"))]
-use {
-    crate::lifecycle::EventProvider,
-    std::env::set_current_dir,
-};
+use {crate::lifecycle::EventProvider, std::env::set_current_dir};
 #[cfg(target_arch = "wasm32")]
 use {
     crate::{
@@ -16,20 +13,22 @@ use {
     },
     std::{
         cell::{RefCell, RefMut},
-        rc::Rc
+        rc::Rc,
     },
     stdweb::{
-        Value, unstable::TryInto,
+        unstable::TryInto,
         web::{
-            document, window, IEventTarget,  IWindowOrWorker,
+            document,
             event::{
-                BlurEvent, ConcreteEvent, FocusEvent, GamepadConnectedEvent, GamepadDisconnectedEvent,
-                IGamepadEvent, IKeyboardEvent, IMouseEvent, KeyDownEvent, KeyUpEvent,
-                MouseButton as WebMouseButton, PointerDownEvent, PointerMoveEvent, PointerOutEvent,
-                PointerOverEvent, PointerUpEvent, ResizeEvent
-            }
-        }
-    }
+                BlurEvent, ConcreteEvent, FocusEvent, GamepadConnectedEvent,
+                GamepadDisconnectedEvent, IGamepadEvent, IKeyboardEvent, IMouseEvent, KeyDownEvent,
+                KeyUpEvent, MouseButton as WebMouseButton, PointerDownEvent, PointerMoveEvent,
+                PointerOutEvent, PointerOverEvent, PointerUpEvent, ResizeEvent,
+            },
+            window, IEventTarget, IWindowOrWorker,
+        },
+        Value,
+    },
 };
 
 /// Run the application's game loop
@@ -47,16 +46,24 @@ pub fn run<T: State>(title: &str, size: Vector, settings: Settings) {
 ///
 /// This function behaves the same as `run`, but the `FnOnce` argument is responsible for state
 /// creation instead of the backend.
-pub fn run_with<T: State, F: FnOnce()->Result<T>>(title: &str, size: Vector, settings: Settings,
-                                                  f: F) {
+pub fn run_with<T: State, F: FnOnce() -> Result<T>>(
+    title: &str,
+    size: Vector,
+    settings: Settings,
+    f: F,
+) {
     if let Err(error) = run_impl::<T, F>(title, size.into(), settings, f) {
         T::handle_error(error);
     }
 }
 
 #[cfg(not(target_arch = "wasm32"))]
-fn run_impl<T: State, F: FnOnce()->Result<T>>(title: &str, size: Vector, settings: Settings,
-                                              f: F) -> Result<()> {
+fn run_impl<T: State, F: FnOnce() -> Result<T>>(
+    title: &str,
+    size: Vector,
+    settings: Settings,
+    f: F,
+) -> Result<()> {
     // A workaround for https://github.com/koute/cargo-web/issues/112
     if let Err(_) = set_current_dir("static") {
         eprintln!("Warning: no asset directory found. Please place all your assets inside a directory called 'static' so they can be loaded");
@@ -79,8 +86,12 @@ fn run_impl<T: State, F: FnOnce()->Result<T>>(title: &str, size: Vector, setting
 }
 
 #[cfg(target_arch = "wasm32")]
-fn run_impl<T: State, F: FnOnce()->Result<T>>(title: &str, size: Vector, settings: Settings,
-                                              f: F) -> Result<()> {
+fn run_impl<T: State, F: FnOnce() -> Result<T>>(
+    title: &str,
+    size: Vector,
+    settings: Settings,
+    f: F,
+) -> Result<()> {
     let (win, canvas) = Window::build(title, size, settings)?;
 
     let app: Rc<RefCell<Application<T>>> = Rc::new(RefCell::new(Application::new(win, f)?));
@@ -166,22 +177,34 @@ fn run_impl<T: State, F: FnOnce()->Result<T>>(title: &str, size: Vector, setting
             app.event_buffer.push(Event::Typed(key));
         }
         if let Some(keycode) = key_names.get(&event.code()) {
-            app.event_buffer.push(Event::Key(KEY_LIST[*keycode], ButtonState::Pressed));
+            app.event_buffer
+                .push(Event::Key(KEY_LIST[*keycode], ButtonState::Pressed));
         }
     });
     let key_names = generate_key_names();
     handle_event(&document, &app, move |mut app, event: KeyUpEvent| {
         if let Some(keycode) = key_names.get(&event.code()) {
-            app.event_buffer.push(Event::Key(KEY_LIST[*keycode], ButtonState::Released));
+            app.event_buffer
+                .push(Event::Key(KEY_LIST[*keycode], ButtonState::Released));
         }
     });
 
-    handle_event(&window, &app, move |mut app, event: GamepadConnectedEvent| {
-        app.event_buffer.push(Event::GamepadConnected(event.gamepad().index() as i32));
-    });
-    handle_event(&window, &app, move |mut app, event: GamepadDisconnectedEvent| {
-        app.event_buffer.push(Event::GamepadDisconnected(event.gamepad().index() as i32));
-    });
+    handle_event(
+        &window,
+        &app,
+        move |mut app, event: GamepadConnectedEvent| {
+            app.event_buffer
+                .push(Event::GamepadConnected(event.gamepad().index() as i32));
+        },
+    );
+    handle_event(
+        &window,
+        &app,
+        move |mut app, event: GamepadDisconnectedEvent| {
+            app.event_buffer
+                .push(Event::GamepadDisconnected(event.gamepad().index() as i32));
+        },
+    );
     handle_event(&window, &app, move |mut app, _: ResizeEvent| {
         if app.window.get_fullscreen() {
             app.window.set_fullscreen(true);
@@ -197,9 +220,14 @@ fn update<T: State>(app: Rc<RefCell<Application<T>>>) -> Result<()> {
     app.borrow_mut().update()?;
     let duration = app.borrow_mut().window.update_rate();
     if app.borrow().window.is_running() {
-        window().set_timeout(move || if let Err(error) = update(app) {
-            T::handle_error(error)
-        }, duration as u32);
+        window().set_timeout(
+            move || {
+                if let Err(error) = update(app) {
+                    T::handle_error(error)
+                }
+            },
+            duration as u32,
+        );
     }
     Ok(())
 }
@@ -208,8 +236,10 @@ fn update<T: State>(app: Rc<RefCell<Application<T>>>) -> Result<()> {
 fn draw<T: State>(app: Rc<RefCell<Application<T>>>) -> Result<()> {
     app.borrow_mut().draw()?;
     if app.borrow().window.is_running() {
-        window().request_animation_frame(move |_| if let Err(error) = draw(app) {
-            T::handle_error(error)
+        window().request_animation_frame(move |_| {
+            if let Err(error) = draw(app) {
+                T::handle_error(error)
+            }
         });
     }
     Ok(())

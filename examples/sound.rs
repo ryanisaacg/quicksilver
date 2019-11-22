@@ -2,12 +2,12 @@
 extern crate quicksilver;
 
 use quicksilver::{
-    Result,
     geom::{Rectangle, Shape, Vector},
     graphics::{Background::Col, Color},
     input::{ButtonState, MouseButton},
-    lifecycle::{Asset, Settings, State, Window, run},
-    sound::Sound
+    lifecycle::{run, Asset, Settings, State, Window},
+    sound::Sound,
+    Result,
 };
 
 struct SoundPlayer {
@@ -15,11 +15,13 @@ struct SoundPlayer {
 }
 
 const BUTTON_AREA: Rectangle = Rectangle {
-    pos:  Vector {x: 350.0, y: 250.0},
-    size: Vector {x: 100.0, y: 100.0}
+    pos: Vector { x: 350.0, y: 250.0 },
+    size: Vector { x: 100.0, y: 100.0 },
 };
 
 impl State for SoundPlayer {
+    type Message = quicksilver::lifecycle::Event;
+
     fn new() -> Result<SoundPlayer> {
         let asset = Asset::new(Sound::load("boop.ogg"));
         Ok(SoundPlayer { asset })
@@ -28,7 +30,8 @@ impl State for SoundPlayer {
     fn update(&mut self, window: &mut Window) -> Result<()> {
         self.asset.execute(|sound| {
             if window.mouse()[MouseButton::Left] == ButtonState::Pressed
-                && BUTTON_AREA.contains(window.mouse().pos()) {
+                && BUTTON_AREA.contains(window.mouse().pos())
+            {
                 sound.play()?;
             }
             Ok(())
@@ -48,4 +51,3 @@ impl State for SoundPlayer {
 fn main() {
     run::<SoundPlayer>("Sound example", Vector::new(800, 600), Settings::default());
 }
-

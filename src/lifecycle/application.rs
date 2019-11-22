@@ -1,10 +1,13 @@
 use crate::{
-    Result,
     backend::Backend,
-    lifecycle::{Event, State, Window},
+    lifecycle::{Event, FromEvent, State, Window},
+    Result,
 };
 #[cfg(not(target_arch = "wasm32"))]
-use std::{thread, time::{SystemTime, UNIX_EPOCH, Duration}};
+use std::{
+    thread,
+    time::{Duration, SystemTime, UNIX_EPOCH},
+};
 #[cfg(target_arch = "wasm32")]
 use stdweb::web::Date;
 
@@ -17,8 +20,11 @@ pub struct Application<T: State> {
     last_update: f64,
 }
 
-impl<T: State> Application<T> {
-    pub fn new<F: FnOnce()->Result<T>>(window: Window, f: F) -> Result<Application<T>> {
+impl<T: State> Application<T>
+where
+    <T as State>::Message: FromEvent,
+{
+    pub fn new<F: FnOnce() -> Result<T>>(window: Window, f: F) -> Result<Application<T>> {
         let time = current_time();
         Ok(Application {
             state: f()?,
@@ -34,7 +40,8 @@ impl<T: State> Application<T> {
         self.window.update_gamepads(&mut self.event_buffer);
         for i in 0..self.event_buffer.len() {
             self.window.process_event(&self.event_buffer[i]);
-            self.state.event(&self.event_buffer[i], &mut self.window)?;
+            let message = <T::Message as FromEvent>::from(&self.event_buffer[i]);
+            self.state.event(&message, &mut self.window)?;
         }
         self.event_buffer.clear();
 
@@ -43,7 +50,9 @@ impl<T: State> Application<T> {
         self.last_update = current;
         let mut ticks = 0;
         let update_rate = self.window.update_rate();
-        while self.accumulator > 0.0 && (self.window.max_updates() == 0 || ticks < self.window.max_updates()) {
+        while self.accumulator > 0.0
+            && (self.window.max_updates() == 0 || ticks < self.window.max_updates())
+        {
             self.state.update(&mut self.window)?;
             self.window.clear_temporary_states();
             self.accumulator -= update_rate;
@@ -91,7 +100,8 @@ impl<T: State> Application<T> {
 #[cfg(not(target_arch = "wasm32"))]
 fn current_time() -> f64 {
     let start = SystemTime::now();
-    let since_the_epoch = start.duration_since(UNIX_EPOCH)
+    let since_the_epoch = start
+        .duration_since(UNIX_EPOCH)
         .expect("Time went backwards");
     since_the_epoch.as_secs() as f64 * 1000.0 + since_the_epoch.subsec_nanos() as f64 / 1e6
 }

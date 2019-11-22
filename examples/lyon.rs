@@ -21,6 +21,8 @@ struct LyonExample {
 }
 
 impl State for LyonExample {
+    type Message = quicksilver::lifecycle::Event;
+
     fn new() -> Result<LyonExample> {
         // Build a Path for the rust logo.
         let mut builder = SvgPathBuilder::new(Path::builder());

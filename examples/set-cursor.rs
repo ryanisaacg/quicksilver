@@ -1,11 +1,11 @@
 extern crate quicksilver;
 
 use quicksilver::{
-    Result,
-    geom::{Shape, Rectangle, Vector},
+    geom::{Rectangle, Shape, Vector},
     graphics::{Background::Col, Color},
     input::MouseCursor,
-    lifecycle::{Event, Settings, State, Window, run}
+    lifecycle::{run, Event, Settings, State, Window},
+    Result,
 };
 
 struct RectangleState {
@@ -14,6 +14,8 @@ struct RectangleState {
 }
 
 impl State for RectangleState {
+    type Message = quicksilver::lifecycle::Event;
+
     fn new() -> Result<Self> {
         Ok(RectangleState {
             grab_rect: Rectangle::new((0, 0), (200, 100)).with_center((400, 100)),

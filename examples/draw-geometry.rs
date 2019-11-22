@@ -3,10 +3,10 @@
 extern crate quicksilver;
 
 use quicksilver::{
-    Result,
     geom::{Circle, Line, Rectangle, Transform, Triangle, Vector},
     graphics::{Background::Col, Color},
-    lifecycle::{Settings, State, Window, run},
+    lifecycle::{run, Settings, State, Window},
+    Result,
 };
 
 // A unit struct that we're going to use to run the Quicksilver functions
@@ -14,6 +14,8 @@ use quicksilver::{
 struct DrawGeometry;
 
 impl State for DrawGeometry {
+    type Message = quicksilver::lifecycle::Event;
+
     // Initialize the struct
     fn new() -> Result<DrawGeometry> {
         Ok(DrawGeometry)
@@ -26,17 +28,22 @@ impl State for DrawGeometry {
         // a blue background
         window.draw(&Rectangle::new((100, 100), (32, 32)), Col(Color::BLUE));
         // Draw another rectangle, rotated by 45 degrees, with a z-height of 10
-        window.draw_ex(&Rectangle::new((400, 300), (32, 32)), Col(Color::BLUE), Transform::rotate(45), 10);
+        window.draw_ex(
+            &Rectangle::new((400, 300), (32, 32)),
+            Col(Color::BLUE),
+            Transform::rotate(45),
+            10,
+        );
         // Draw a circle with its center at (400, 300) and a radius of 100, with a background of
         // green
         window.draw(&Circle::new((400, 300), 100), Col(Color::GREEN));
         // Draw a line with a thickness of 2 pixels, a red background,
         // and a z-height of 5
         window.draw_ex(
-            &Line::new((50, 80),(600, 450)).with_thickness(2.0),
+            &Line::new((50, 80), (600, 450)).with_thickness(2.0),
             Col(Color::RED),
             Transform::IDENTITY,
-            5
+            5,
         );
         // Draw a triangle with a red background, rotated by 45 degrees, and scaled down to half
         // its size
@@ -44,7 +51,7 @@ impl State for DrawGeometry {
             &Triangle::new((500, 50), (450, 100), (650, 150)),
             Col(Color::RED),
             Transform::rotate(45) * Transform::scale((0.5, 0.5)),
-            0
+            0,
         );
         // We completed with no errors
         Ok(())
@@ -58,4 +65,3 @@ fn main() {
     // size of (800, 600)
     run::<DrawGeometry>("Draw Geometry", Vector::new(800, 600), Settings::default());
 }
-

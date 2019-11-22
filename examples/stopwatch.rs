@@ -2,10 +2,10 @@
 extern crate quicksilver;
 
 use quicksilver::{
-    Result,
     geom::{Circle, Line, Vector},
     graphics::{Background::Col, Color},
-    lifecycle::{Settings, State, Window, run},
+    lifecycle::{run, Settings, State, Window},
+    Result,
 };
 
 struct Stopwatch {
@@ -16,8 +16,15 @@ struct Stopwatch {
 }
 
 impl State for Stopwatch {
+    type Message = quicksilver::lifecycle::Event;
+
     fn new() -> Result<Stopwatch> {
-        Ok(Stopwatch {elapsed: 0., hours: 0., minutes: 0., seconds: 0.})
+        Ok(Stopwatch {
+            elapsed: 0.,
+            hours: 0.,
+            minutes: 0.,
+            seconds: 0.,
+        })
     }
 
     fn update(&mut self, window: &mut Window) -> Result<()> {
@@ -46,9 +53,9 @@ impl State for Stopwatch {
 
         window.draw(&Circle::new((400, 300), 180), Col(Color::WHITE));
 
-        let hour_angle = 360. * ((self.hours+9.) * 2. / 24.);
-        let minute_angle = 360. * ((self.minutes+45.) / 60.);
-        let second_angle = 360. * ((self.seconds+45.) / 60.);
+        let hour_angle = 360. * ((self.hours + 9.) * 2. / 24.);
+        let minute_angle = 360. * ((self.minutes + 45.) / 60.);
+        let second_angle = 360. * ((self.seconds + 45.) / 60.);
 
         let hour_pos = Vector::from_angle(hour_angle as f32) * 150. + Vector::new(400, 300);
         let min_pos = Vector::from_angle(minute_angle as f32) * 180. + Vector::new(400, 300);
@@ -67,11 +74,14 @@ impl State for Stopwatch {
 }
 
 fn main() {
-    run::<Stopwatch>("Stopwatch", Vector::new(800, 600), Settings {
-        draw_rate: 1000. / 10., // 10 FPS are enough
-        update_rate: 1000., // every second to make it appear like a clock
-        vsync: false, // don't use VSync, we're limiting to 10 FPS on our own
-        ..Settings::default()
-    });
+    run::<Stopwatch>(
+        "Stopwatch",
+        Vector::new(800, 600),
+        Settings {
+            draw_rate: 1000. / 10., // 10 FPS are enough
+            update_rate: 1000.,     // every second to make it appear like a clock
+            vsync: false,           // don't use VSync, we're limiting to 10 FPS on our own
+            ..Settings::default()
+        },
+    );
 }
-

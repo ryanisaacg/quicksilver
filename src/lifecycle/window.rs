@@ -1,38 +1,30 @@
 use crate::{
-    Result,
-    backend::{Backend, BackendImpl, instance, set_instance},
+    backend::{instance, set_instance, Backend, BackendImpl},
     geom::{Rectangle, Scalar, Transform, Vector},
     graphics::{Background, BlendMode, Color, Drawable, Mesh, PixelFormat, ResizeStrategy, View},
     input::{ButtonState, Gamepad, Keyboard, Mouse, MouseCursor},
     lifecycle::{Event, Settings},
+    Result,
 };
-use image::{
-    DynamicImage, RgbImage, RgbaImage,
-};
-#[cfg(feature = "gilrs")] use {
-    crate::input::{GAMEPAD_BUTTON_LIST, GILRS_GAMEPAD_LIST},
-    gilrs::{
-        Axis, Gilrs,
-        ev::state::AxisData
-    }
-};
+use image::{DynamicImage, RgbImage, RgbaImage};
 #[cfg(target_arch = "wasm32")]
 use {
     crate::error::QuicksilverError,
     stdweb::{
-        web::{
-            IElement, INode, document,
-            html_element::CanvasElement,
-        },
-        unstable::TryInto
-    }
+        unstable::TryInto,
+        web::{document, html_element::CanvasElement, IElement, INode},
+    },
+};
+#[cfg(feature = "gilrs")]
+use {
+    crate::input::{GAMEPAD_BUTTON_LIST, GILRS_GAMEPAD_LIST},
+    gilrs::{ev::state::AxisData, Axis, Gilrs},
 };
 #[cfg(not(target_arch = "wasm32"))]
 use {
     gl,
-    glutin::{self, EventsLoop, Icon}
+    glutin::{self, EventsLoop, Icon},
 };
-
 
 ///The window currently in use
 pub struct Window {
@@ -57,7 +49,11 @@ pub struct Window {
 }
 
 impl Window {
-    pub(crate) fn build_agnostic(user_size: Vector, actual_size: Vector, settings: Settings) -> Result<Window> {
+    pub(crate) fn build_agnostic(
+        user_size: Vector,
+        actual_size: Vector,
+        settings: Settings,
+    ) -> Result<Window> {
         let screen_region = settings.resize.resize(user_size, actual_size);
         let view = View::new(Rectangle::new_sized(screen_region.size()));
         let mut window = Window {
@@ -84,7 +80,7 @@ impl Window {
             fps: 0.0,
             last_framerate: 0.0,
             running: true,
-            fullscreen: false
+            fullscreen: false,
         };
         window.set_cursor(if settings.show_cursor {
             MouseCursor::Default
@@ -96,7 +92,11 @@ impl Window {
     }
 
     #[cfg(not(target_arch = "wasm32"))]
-    pub(crate) fn build(title: &str, user_size: Vector, settings: Settings) -> Result<(Window, EventsLoop)> {
+    pub(crate) fn build(
+        title: &str,
+        user_size: Vector,
+        settings: Settings,
+    ) -> Result<(Window, EventsLoop)> {
         let events = glutin::EventsLoop::new();
         let mut window = glutin::WindowBuilder::new()
             .with_title(title)
@@ -117,43 +117,67 @@ impl Window {
         let gl_window = unsafe {
             let gl_window = match gl_window.make_current() {
                 Ok(window) => window,
-                Err((_, err)) => Err(err)?
+                Err((_, err)) => Err(err)?,
             };
             gl::load_with(|symbol| gl_window.get_proc_address(symbol) as *const _);
 
             gl_window
         };
-        unsafe { set_instance(BackendImpl::new(gl_window, settings.scale, settings.multisampling != None)?) };
+        unsafe {
+            set_instance(BackendImpl::new(
+                gl_window,
+                settings.scale,
+                settings.multisampling != None,
+            )?)
+        };
         let window = Window::build_agnostic(user_size, user_size, settings)?;
         Ok((window, events))
     }
 
     #[cfg(target_arch = "wasm32")]
-    pub(crate) fn build(title: &str, size: Vector, settings: Settings) -> Result<(Window, CanvasElement)> {
+    pub(crate) fn build(
+        title: &str,
+        size: Vector,
+        settings: Settings,
+    ) -> Result<(Window, CanvasElement)> {
         let document = document();
         if let Some(path) = settings.icon_path {
-            let head = document.head().ok_or(QuicksilverError::ContextError("Failed to find head node".to_owned()))?;
-            let element = document
-                .create_element("link")
-                .map_err(|_| QuicksilverError::ContextError("Failed to create link element".to_owned()))?;
-            element.set_attribute("rel", "shortcut icon")
-                .map_err(|_| QuicksilverError::ContextError("Failed to create favicon element".to_owned()))?;
-            element.set_attribute("type", "image/png")
-                .map_err(|_| QuicksilverError::ContextError("Failed to create favicon element".to_owned()))?;
-            element.set_attribute("href", path)
-                .map_err(|_| QuicksilverError::ContextError("Failed to create favicon element".to_owned()))?;
+            let head = document.head().ok_or(QuicksilverError::ContextError(
+                "Failed to find head node".to_owned(),
+            ))?;
+            let element = document.create_element("link").map_err(|_| {
+                QuicksilverError::ContextError("Failed to create link element".to_owned())
+            })?;
+            element.set_attribute("rel", "shortcut icon").map_err(|_| {
+                QuicksilverError::ContextError("Failed to create favicon element".to_owned())
+            })?;
+            element.set_attribute("type", "image/png").map_err(|_| {
+                QuicksilverError::ContextError("Failed to create favicon element".to_owned())
+            })?;
+            element.set_attribute("href", path).map_err(|_| {
+                QuicksilverError::ContextError("Failed to create favicon element".to_owned())
+            })?;
             head.append_child(&element);
         }
-        let element = document
-            .create_element("canvas")
-            .map_err(|_| QuicksilverError::ContextError("Failed to create canvas element".to_owned()))?;
-        let canvas: CanvasElement = element.try_into()
-            .map_err(|_| QuicksilverError::ContextError("Failed to create canvas element".to_owned()))?;
-        let body = document.body().ok_or(QuicksilverError::ContextError("Failed to find body node".to_owned()))?;
+        let element = document.create_element("canvas").map_err(|_| {
+            QuicksilverError::ContextError("Failed to create canvas element".to_owned())
+        })?;
+        let canvas: CanvasElement = element.try_into().map_err(|_| {
+            QuicksilverError::ContextError("Failed to create canvas element".to_owned())
+        })?;
+        let body = document.body().ok_or(QuicksilverError::ContextError(
+            "Failed to find body node".to_owned(),
+        ))?;
         body.append_child(&canvas);
         canvas.set_width(size.x as u32);
         canvas.set_height(size.y as u32);
-        unsafe { set_instance(BackendImpl::new(canvas.clone(), settings.scale, settings.multisampling != None)?) };
+        unsafe {
+            set_instance(BackendImpl::new(
+                canvas.clone(),
+                settings.scale,
+                settings.multisampling != None,
+            )?)
+        };
         let mut window = Window::build_agnostic(size, size, settings)?;
         window.set_title(title);
         Ok((window, canvas))
@@ -209,33 +233,38 @@ impl Window {
         fn axis_value(data: Option<&AxisData>) -> f32 {
             match data {
                 Some(ref data) => data.value(),
-                None => 0.0
+                None => 0.0,
             }
         }
-        self.gamepad_buffer.extend(self.gilrs.gamepads().map(|(id, gamepad)| {
-            let id: usize = id.into();
-            let id = id as i32;
+        self.gamepad_buffer
+            .extend(self.gilrs.gamepads().map(|(id, gamepad)| {
+                let id: usize = id.into();
+                let id = id as i32;
 
-            let axes = [
-                axis_value(gamepad.axis_data(Axis::LeftStickX)),
-                axis_value(gamepad.axis_data(Axis::LeftStickY)),
-                axis_value(gamepad.axis_data(Axis::RightStickX)),
-                axis_value(gamepad.axis_data(Axis::RightStickY))
-            ];
+                let axes = [
+                    axis_value(gamepad.axis_data(Axis::LeftStickX)),
+                    axis_value(gamepad.axis_data(Axis::LeftStickY)),
+                    axis_value(gamepad.axis_data(Axis::RightStickX)),
+                    axis_value(gamepad.axis_data(Axis::RightStickY)),
+                ];
 
-            let mut buttons = [ButtonState::NotPressed; 17];
-            for i in 0..GAMEPAD_BUTTON_LIST.len() {
-                let button = GAMEPAD_BUTTON_LIST[i];
-                let value = match gamepad.button_data(GILRS_GAMEPAD_LIST[i]) {
-                    Some(ref data) => data.is_pressed(),
-                    None => false
-                };
-                let state = if value { ButtonState::Pressed } else { ButtonState::Released };
-                buttons[button as usize] = state;
-            }
+                let mut buttons = [ButtonState::NotPressed; 17];
+                for i in 0..GAMEPAD_BUTTON_LIST.len() {
+                    let button = GAMEPAD_BUTTON_LIST[i];
+                    let value = match gamepad.button_data(GILRS_GAMEPAD_LIST[i]) {
+                        Some(ref data) => data.is_pressed(),
+                        None => false,
+                    };
+                    let state = if value {
+                        ButtonState::Pressed
+                    } else {
+                        ButtonState::Released
+                    };
+                    buttons[button as usize] = state;
+                }
 
-            Gamepad { id, axes, buttons }
-        }));
+                Gamepad { id, axes, buttons }
+            }));
     }
 
     ///Transition temporary input states (Pressed, Released) into sustained ones (Held, NotPressed)
@@ -250,7 +279,9 @@ impl Window {
     ///Handle the available size for the window changing
     pub(crate) fn adjust_size(&mut self, available: Vector) {
         self.screen_region = self.resize.resize(self.screen_region.size(), available);
-        unsafe { self.backend().set_viewport(self.screen_region); }
+        unsafe {
+            self.backend().set_viewport(self.screen_region);
+        }
     }
 
     ///Get the view from the window
@@ -341,7 +372,10 @@ impl Window {
             vertex.pos = self.view.opengl * vertex.pos;
         }
         unsafe {
-            self.backend().draw(self.mesh.vertices.as_slice(), self.mesh.triangles.as_slice())?;
+            self.backend().draw(
+                self.mesh.vertices.as_slice(),
+                self.mesh.triangles.as_slice(),
+            )?;
         }
         self.mesh.clear();
         Ok(())
@@ -381,7 +415,13 @@ impl Window {
     }
 
     /// Draw a Drawable to the window with more options provided (draw exhaustive)
-    pub fn draw_ex<'a>(&'a mut self, draw: &impl Drawable, bkg: impl Into<Background<'a>>, trans: Transform, z: impl Scalar) {
+    pub fn draw_ex<'a>(
+        &'a mut self,
+        draw: &impl Drawable,
+        bkg: impl Into<Background<'a>>,
+        trans: Transform,
+        z: impl Scalar,
+    ) {
         draw.draw(&mut self.mesh, bkg.into(), trans, z);
     }
 
@@ -502,8 +542,12 @@ impl Window {
         let width = size.x as u32;
         let height = size.y as u32;
         let img = match format {
-            PixelFormat::RGB => DynamicImage::ImageRgb8(RgbImage::from_raw(width, height, buffer).expect("TODO")),
-            PixelFormat::RGBA => DynamicImage::ImageRgba8(RgbaImage::from_raw(width, height, buffer).expect("TODO")),
+            PixelFormat::RGB => {
+                DynamicImage::ImageRgb8(RgbImage::from_raw(width, height, buffer).expect("TODO"))
+            }
+            PixelFormat::RGBA => {
+                DynamicImage::ImageRgba8(RgbaImage::from_raw(width, height, buffer).expect("TODO"))
+            }
         };
         img.flipv()
     }
