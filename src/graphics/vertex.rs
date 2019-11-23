@@ -1,33 +1,26 @@
-use crate::{
-    geom::{Scalar, Vector},
-    graphics::{Background, Color, Image}
-};
-use std::cmp::Ordering;
+use mint::{ColumnMatrix3, Vector2};
+use crate::graphics::{Color, Image};
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 /// A vertex for drawing items to the GPU
 pub struct Vertex {
     /// The position of the vertex in space
-    pub pos: Vector,
+    pub pos: Vector2<f32>,
     /// If there is a texture attached to this vertex, where to get the texture data from
     ///
     /// It is normalized from 0 to 1
-    pub tex_pos: Option<Vector>,
+    pub uv: Option<Vector2<f32>>,
     /// The color to blend this vertex with
-    pub col: Color,
+    pub color: Color,
 }
 
-impl Vertex {
-    /// Create a new GPU vertex
-    pub fn new(pos: impl Into<Vector>, tex_pos: Option<Vector>, bkg: Background) -> Vertex {
-        Vertex {
-            pos: pos.into(),
-            tex_pos: tex_pos.map(|pos| pos.into()),
-            col: bkg.color()
-        }
-    }
+pub struct DrawGroup {
+    pub triangles: Vec<[u32; 3]>,
+    pub image: Option<Image>,
+    pub transform: ColumnMatrix3<f32>,
 }
 
+/*
 #[derive(Clone)]
 /// A triangle to draw to the GPU
 pub struct GpuTriangle {
@@ -90,4 +83,4 @@ impl Ord for GpuTriangle {
     }
 }
 
-
+*/

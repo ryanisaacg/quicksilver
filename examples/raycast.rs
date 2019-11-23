@@ -14,6 +14,54 @@ use quicksilver::{
 };
 use std::cmp::Ordering;
 
+fn main() {
+    run(app, Settings {
+        size: Vector2 { x: 800, 600 },
+        title: "Image Example",
+        icon_path: Some("image.png"),
+        ..Settings::default()
+    });
+}
+
+async fn app(window: Window, mut events: EventStream) -> Result<(), QuicksilverError> {
+    //The different squares that cast shadows
+    let regions = vec![
+        Rectangle::new_sized((800, 600)),
+        // Feel free to add or remove rectangles to this list
+        // to see the effect on the lighting
+        Rectangle::new((200, 200), (100, 100)),
+        Rectangle::new((400, 200), (100, 100)),
+        Rectangle::new((400, 400), (100, 100)),
+        Rectangle::new((200, 400), (100, 100)),
+        Rectangle::new((50, 50), (50, 50)),
+        Rectangle::new((550, 300), (64, 64))
+    ];
+    // Build the list of targets to cast rays to
+    let targets = regions
+        .iter()
+        .flat_map(|region| {
+            vec![
+                region.top_left(),
+                region.top_left() + region.size().x_comp(),
+                region.top_left() + region.size().y_comp(),
+                region.top_left() + region.size(),
+            ].into_iter()
+        })
+        .collect();
+
+    while let Some(frame) = events.next().await {
+        // Find where the mouse has moved to, or None if it hasn't moved
+        let position = frame
+            .into_iter()
+            .filter_map(|event| if let Event::MouseMoved { position, .. } = event { Some(position) } else { None })
+            .last();
+        // If the mouse moved, update the lighting
+        if let Some(position) = position {
+
+        }
+    }
+}
+
 struct Raycast {
     // the rectangles to raycast against
     regions: Vec<Rectangle>,
@@ -25,30 +73,6 @@ struct Raycast {
 
 impl State for Raycast {
     fn new() -> Result<Raycast> {
-        //The different squares that cast shadows
-        let regions = vec![
-            Rectangle::new_sized((800, 600)),
-            // Feel free to add or remove rectangles to this list
-            // to see the effect on the lighting
-            Rectangle::new((200, 200), (100, 100)),
-            Rectangle::new((400, 200), (100, 100)),
-            Rectangle::new((400, 400), (100, 100)),
-            Rectangle::new((200, 400), (100, 100)),
-            Rectangle::new((50, 50), (50, 50)),
-            Rectangle::new((550, 300), (64, 64))
-        ];
-        // Build the list of targets to cast rays to
-        let targets = regions
-            .iter()
-            .flat_map(|region| {
-                vec![
-                    region.top_left(),
-                    region.top_left() + region.size().x_comp(),
-                    region.top_left() + region.size().y_comp(),
-                    region.top_left() + region.size(),
-                ].into_iter()
-            })
-            .collect();
         Ok(Raycast {
             regions,
             targets,

@@ -1,4 +1,5 @@
-#[derive(Clone, Copy, Debug, Default, PartialEq, Deserialize, Serialize)]
+// TODO: optional serde
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
 /// An RGBA color represented by normalized floats
 pub struct Color {
     ///The red component of the color

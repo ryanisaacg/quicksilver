@@ -1,9 +1,12 @@
-use crate::{
+use std::rc::Rc;
+#[derive(Clone)]
+pub struct Image(pub(crate) Rc<golem::objects::Texture>);
+/*use crate::{
     Result,
     backend::{Backend, ImageData, instance},
     error::QuicksilverError,
     file::load_file,
-    geom::{Rectangle, Transform, Vector},
+    reom::{Rectangle, Transform, Vector},
 };
 use futures::{Future, future};
 use std::{
@@ -149,4 +152,4 @@ impl Error for ImageError {
             &ImageError::IOError(ref err) => Some(err),
         }
     }
-}
+}*/

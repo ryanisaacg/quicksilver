@@ -16,7 +16,6 @@ edition = "2018"
 # complex_shapes, fonts, gamepads, sounds
 default = ["saving"]
 
-# complex_shapes = ["lyon"]
 # fonts = ["rusttype"]
 # gamepads = ["gilrs"]
 saving = ["gestalt"]
@@ -31,49 +30,10 @@ maintenance = { status = "actively-developed" }
 
 [dependencies]
 gestalt = { version = "0.1", optional = true }
-glow = "0.3.0-alpha3"
+golem = { git = "https://github.com/ryanisaacg/golem" }
 image = "0.21"
 mint = "0.5.3"
 platter = "0.1"
-blinds = { git = "https://github.com/ryanisaacg/blinds" }
-
-[[example]]
-name = "draw-geometry"
-required-features = []
-
-[[example]]
-name = "image"
-required-features = []
-
-[[example]]
-name = "font"
-required-features = ["fonts"]
-
-[[example]]
-name = "sound"
-required-features = ["sounds"]
-
-[[example]]
-name = "raycast"
-required-features = ["collisions"]
-
-[[example]]
-name = "rgb-triangle"
-required-features = []
-
-[[example]]
-name = "lyon"
-required-features = ["complex_shapes"]
-
-[[example]]
-name = "set-cursor"
-required-features = []
-
-[[example]]
-name = "stopwatch"
-required-features = []
-
-[[example]]
-name = "camera"
-required-features = []
+blinds = { version = "0.1.0-alpha2", features = ["gl"] }
+vek = { version = "0.9.10", features = ["mint"] }
 
