@@ -161,7 +161,7 @@ impl Graphics {
         self.eb.set_data(self.index_data.as_slice());
         for index in 0..self.uniforms.len() {
             let uniform = &self.uniforms[index];
-            let next = self.uniforms.get(index);
+            let next = self.uniforms.get(index + 1);
 
             let (start, image) = uniform;
             let end = match next {
