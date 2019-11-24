@@ -157,8 +157,8 @@ impl Graphics {
     }
 
     pub fn flush(&mut self) {
-        self.vb.send_data(0, self.vertex_data.as_slice());
-        self.eb.send_data(0, self.index_data.as_slice());
+        self.vb.set_data(self.vertex_data.as_slice());
+        self.eb.set_data(self.index_data.as_slice());
         for index in 0..self.uniforms.len() {
             let uniform = &self.uniforms[index];
             let next = self.uniforms.get(index);
