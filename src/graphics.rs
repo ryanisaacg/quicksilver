@@ -6,11 +6,13 @@
 mod color;
 mod image;
 mod mesh;
+mod projection;
 mod vertex;
 
 pub use self::color::Color;
 pub use self::image::Image;
 pub use self::mesh::Mesh;
+pub use self::projection::orthographic;
 pub use self::vertex::{DrawGroup, Vertex};
 
 use crate::geom::*;
@@ -27,7 +29,7 @@ pub struct Graphics {
     shader: ShaderProgram,
     vertex_data: Vec<f32>,
     index_data: Vec<u32>,
-    uniforms: Vec<(usize, Option<Image>)>,
+    uniforms: Vec<(usize, Option<Image>, Option<ColumnMatrix3<f32>>)>,
 }
 
 impl Graphics {
@@ -37,26 +39,25 @@ impl Graphics {
                 Attribute::Vector(4, "vert_color"),
                 Attribute::Vector(2, "vert_position"),
                 Attribute::Vector(2, "vert_uv"),
-                Attribute::Scalar("vert_use_texture"),
             ],
             fragment_input: &[
                 Attribute::Vector(4, "frag_color"),
                 Attribute::Vector(2, "frag_uv"),
-                Attribute::Scalar("frag_use_texture"),
             ],
             uniforms: &[
-                Uniform::new("image", UniformType::Sampler(2))
+                Uniform::new("image", UniformType::Sampler(2)),
+                Uniform::new("projection", UniformType::Matrix(3)),
             ],
             vertex_shader: r#" void main() {
-                gl_Position = vec4(vert_position, 0, 1);
+                vec3 transformed = projection * vec3(vert_position, 1.0);
+                gl_Position = vec4(transformed.xy, 0, 1);
                 frag_uv = vert_uv;
                 frag_color = vert_color;
-                frag_use_texture = vert_use_texture;
             }"#,
             fragment_shader:
             r#" void main() {
                 vec4 tex = vec4(1);
-                if(frag_use_texture != 0.0) {
+                if(frag_uv.x < 0.0 && frag_uv.y < 0.0) {
                     tex = texture(image, frag_uv);
                 }
                 gl_FragColor = tex * frag_color;
@@ -78,11 +79,13 @@ impl Graphics {
     }
 
     pub fn clear(&mut self, color: Color) {
-        self.ctx.clear(color.r, color.g, color.b, color.a);
+        self.ctx.set_clear_color(color.r, color.g, color.b, color.a);
+        self.ctx.clear();
     }
 
-    pub fn set_projection(&mut self, _transform: ColumnMatrix3<f32>) {
-        // TODO: set projection?
+    pub fn set_projection(&mut self, transform: ColumnMatrix3<f32>) {
+        let head = self.index_data.len() / 3;
+        self.uniforms.push((head, None, Some(transform)));
     }
 
     pub fn draw_vertices(&mut self, vertices: impl Iterator<Item = Vertex>, triangles: impl Iterator<Item = [u32; 3]>, image: Option<&Image>) {
@@ -93,13 +96,11 @@ impl Graphics {
         let offset = self.vertex_data.len() / 9;
 
         for vertex in vertices {
-            let uv = vertex.uv.unwrap_or(Vector2 { x: 0.0, y: 0.0 });
-            let use_texture = if vertex.uv.is_some() { 1.0 } else { 0.0 };
+            let uv = vertex.uv.unwrap_or(Vector2 { x: -1.0, y: -1.0 });
             self.vertex_data.extend_from_slice(&[
                 vertex.color.r, vertex.color.g, vertex.color.b, vertex.color.a,
                 vertex.pos.x, vertex.pos.y,
                 uv.x, uv.y,
-                use_texture
             ]);
         }
 
@@ -115,17 +116,17 @@ impl Graphics {
             // have one, though
             (None, _) => false,
             // If we're inserting an image and there was an old one, check if they match
-            (Some(image), Some((_, Some(old_image)))) => image.0.id() != old_image.0.id(),
+            (Some(image), Some((_, Some(old_image), _))) => std::rc::Rc::ptr_eq(&image.0, &old_image.0),
             // If we're inserting an image and there wasn't one, we can just over-write the
             // previous range. Therefore we don't need to insert
             (Some(image), Some(old)) => {
-                *old = (old.0, Some(image.clone()));
+                old.1 = Some(image.clone());
 
                 false
             },
         };
         if insert_new_image {
-            self.uniforms.push((offset, image.cloned()));
+            self.uniforms.push((offset, image.cloned(), None));
         }
     }
 
@@ -140,10 +141,10 @@ impl Graphics {
     pub fn draw_polygon(&mut self, points: &[Vector2<f32>], color: Color) {
         let vertices = points.iter().cloned().map(|pos| Vertex { pos, uv: None, color });
         let indices = std::iter::repeat(())
-            .take(points.len() - 1)
+            .take(points.len() - 2)
             .enumerate()
             .map(|(idx, _)| idx as u32)
-            .map(|idx| [0, idx, idx + 1]);
+            .map(|idx| [0, idx + 1, idx + 2]);
         self.draw_vertices(vertices, indices, None);
     }
 
@@ -156,33 +157,46 @@ impl Graphics {
         ], color);
     }
 
-    pub fn flush(&mut self) {
+    pub fn flush(&mut self) -> Result<(), GolemError> {
         self.vb.set_data(self.vertex_data.as_slice());
         self.eb.set_data(self.index_data.as_slice());
+        self.shader.set_uniform("image", UniformValue::Int(0))?;
         for index in 0..self.uniforms.len() {
             let uniform = &self.uniforms[index];
             let next = self.uniforms.get(index + 1);
 
-            let (start, image) = uniform;
+            let (start, image, projection) = uniform;
             let end = match next {
-                Some((end, _)) => *end,
+                Some((end, _, _)) => *end,
                 None => self.index_data.len()
             };
             // If we're switching what image to use, do so now
             if let Some(image) = image {
                 image.0.bind(0);
             }
-            self.ctx.draw(&self.eb, *start..end).unwrap();
+            // If we're switching what projection to use, do so now
+            if let Some(projection) = projection {
+                let matrix: [f32; 9] = (*projection).into();
+                self.shader.set_uniform("projection", UniformValue::Matrix3(matrix))?;
+            }
+
+            if *start != end {
+                self.ctx.draw(&self.eb, *start..end).unwrap();
+            }
         }
         self.vertex_data.clear();
         self.index_data.clear();
         self.uniforms.clear();
+
+        Ok(())
     }
 
 
-    pub fn present(&mut self, win: &blinds::Window) {
-        self.flush();
+    pub fn present(&mut self, win: &blinds::Window) -> Result<(), GolemError> {
+        self.flush()?;
         win.present();
+
+        Ok(())
     }
 }
 /*

@@ -20,8 +20,8 @@ default = ["saving"]
 # gamepads = ["gilrs"]
 saving = ["gestalt"]
 # sounds = ["rodio"]
-stdweb = ["gestalt/stdweb", "platter/stdweb", "blinds/stdweb"]
-web-sys = ["gestalt/web-sys", "platter/web-sys", "blinds/web-sys"]
+std_web = ["gestalt/stdweb", "platter/stdweb", "blinds/stdweb", "golem/stdweb"]
+web-sys = ["gestalt/web-sys", "platter/web-sys", "blinds/web-sys", "golem/web-sys"]
 
 [badges]
 

@@ -24,7 +24,7 @@ async fn app(window: Window, mut gfx: Graphics, mut events: EventStream) {
         // It should have a top-left of (350, 100) and a bottom-left of (450, 200)
         gfx.draw_rect(Rect {
             min: Vector2 { x: 0.0, y: 0.0 },
-            max: Vector2 { x: 1.0, y: 1.0 },
+            max: Vector2 { x: 100.0, y: 100.0 },
         }, Color::BLUE);
         // Send the data to be drawn
         gfx.present(&window);

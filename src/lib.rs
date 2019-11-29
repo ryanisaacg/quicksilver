@@ -152,9 +152,21 @@ pub mod lifecycle {
 
     pub fn run<F, T>(settings: Settings, app: F) -> !
             where T: 'static + Future<Output = ()>, F: 'static + FnOnce(Window, Graphics, EventStream) -> T {
+        use mint::Vector2;
+        use crate::geom::Rect;
+
+        let size = settings.size;
+        let screen_region = Rect {
+            min: Vector2 { x: 0.0, y: 0.0 },
+            max: size
+        };
         run_gl(settings, |window, ctx, events| {
+            use crate::graphics::orthographic;
+
             let ctx = golem::Context::from_glow(ctx);
-            app(window, Graphics::new(ctx), events)
+            let mut graphics = Graphics::new(ctx);
+            graphics.set_projection(orthographic(screen_region));
+            app(window, graphics, events)
         });
     }
 }
