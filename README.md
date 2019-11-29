@@ -76,6 +76,7 @@ A good way to get started with Quicksilver is to [read and run the examples](htt
     - [robotcaleb](https://github.com/robotcaleb): [Replay](https://robotcaleb.github.io/Replay/)
     - [rsribeiro](https://github.com/rsribeiro/): [Evil Alligator](https://rsribeiro.github.io/website/)
     - [nycex](https://gitlab.com/nycex): [Axosnake](https://gitlab.com/nycex/axosnake)
+    - [Leinnan](https://github.com/Leinnan): [Slavic Castles](https://github.com/Leinnan/slavic_castles)
 
 Want to add your project? Feel free to open an issue or PR!
 
