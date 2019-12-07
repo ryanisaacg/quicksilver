@@ -4,7 +4,7 @@ use mint::Vector2;
 use quicksilver::{
     Result,
     graphics::{Color, Graphics, Image},
-    lifecycle::{Event, EventStream, Settings, Window, run},
+    lifecycle::{EventStream, Settings, Window, run},
     traits::*,
 };
 
