@@ -15,6 +15,7 @@ pub use self::mesh::Mesh;
 pub use self::projection::orthographic;
 pub use self::vertex::{DrawGroup, Vertex};
 
+pub use golem::objects::ColorFormat as PixelFormat;
 use crate::geom::*;
 use golem::{*, buffer::*, program::*, objects::*};
 use mint::*;
@@ -116,7 +117,7 @@ impl Graphics {
             // have one, though
             (None, _) => false,
             // If we're inserting an image and there was an old one, check if they match
-            (Some(image), Some((_, Some(old_image), _))) => std::rc::Rc::ptr_eq(&image.0, &old_image.0),
+            (Some(image), Some((_, Some(old_image), _))) => std::rc::Rc::ptr_eq(&image.raw(), &old_image.raw()),
             // If we're inserting an image and there wasn't one, we can just over-write the
             // previous range. Therefore we don't need to insert
             (Some(image), Some(old)) => {
@@ -157,6 +158,38 @@ impl Graphics {
         ], color);
     }
 
+    pub fn draw_image(&mut self, image: &Image, top_left: Vector2<f32>) {
+        let size = image.size();
+        let vertices = [
+            Vertex {
+                pos: top_left,
+                uv: Some(Vector2 { x: 0.0, y: 0.0 }),
+                color: Color::WHITE,
+            },
+            Vertex {
+                pos: Vector2 { x: top_left.x + size.x, y: top_left.y },
+                uv: Some(Vector2 { x: 1.0, y: 0.0 }),
+                color: Color::WHITE,
+            },
+            Vertex {
+                pos: Vector2 { x: top_left.x + size.x, y: top_left.y + size.y },
+                uv: Some(Vector2 { x: 1.0, y: 1.0 }),
+                color: Color::WHITE,
+            },
+            Vertex {
+                pos: Vector2 { x: top_left.x, y: top_left.y + size.y },
+                uv: Some(Vector2 { x: 0.0, y: 1.0 }),
+                color: Color::WHITE,
+            },
+        ];
+        let indices = [[0, 1, 2], [2, 3, 0]];
+        self.draw_vertices(
+            vertices.iter().cloned(),
+            indices.iter().cloned(),
+            Some(image)
+        );
+    }
+
     pub fn flush(&mut self) -> Result<(), GolemError> {
         self.vb.set_data(self.vertex_data.as_slice());
         self.eb.set_data(self.index_data.as_slice());
@@ -172,7 +205,7 @@ impl Graphics {
             };
             // If we're switching what image to use, do so now
             if let Some(image) = image {
-                image.0.bind(0);
+                image.raw().bind(0);
             }
             // If we're switching what projection to use, do so now
             if let Some(projection) = projection {
@@ -197,6 +230,10 @@ impl Graphics {
         win.present();
 
         Ok(())
+    }
+
+    pub(crate) fn create_image(&self, data: &[u8], width: u32, height: u32, format: PixelFormat) -> Result<Texture, GolemError> {
+        self.ctx.new_texture(data, width, height, format)
     }
 }
 /*

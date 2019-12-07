@@ -1,4 +1,33 @@
-#[cfg(all(not(target_arch = "wasm32"), feature = "gamepads"))]
+use golem::GolemError;
+use image::ImageError;
+use std::io::Error as IOError;
+
+#[derive(Debug)]
+pub enum QuicksilverError {
+    ImageError(ImageError),
+    IOError(IOError),
+    GraphicsError(GolemError)
+}
+
+impl From<ImageError> for QuicksilverError {
+    fn from(err: ImageError) -> QuicksilverError {
+        QuicksilverError::ImageError(err)
+    }
+}
+
+impl From<IOError> for QuicksilverError {
+    fn from(err: IOError) -> QuicksilverError {
+        QuicksilverError::IOError(err)
+    }
+}
+
+impl From<GolemError> for QuicksilverError {
+    fn from(err: GolemError) -> QuicksilverError {
+        QuicksilverError::GraphicsError(err)
+    }
+}
+
+/*#[cfg(all(not(target_arch = "wasm32"), feature = "gamepads"))]
 use gilrs;
 #[cfg(not(target_arch = "wasm32"))]
 use glutin;
@@ -82,13 +111,6 @@ impl Error for QuicksilverError {
 }
 
 #[doc(hidden)]
-impl From<ImageError> for QuicksilverError {
-    fn from(err: ImageError) -> QuicksilverError {
-        QuicksilverError::ImageError(err)
-    }
-}
-
-#[doc(hidden)]
 #[cfg(feature = "sounds")]
 impl From<SoundError> for QuicksilverError {
     fn from(err: SoundError) -> QuicksilverError {
@@ -100,12 +122,6 @@ impl From<SoundError> for QuicksilverError {
 impl From<AtlasError> for QuicksilverError {
     fn from(err: AtlasError) -> QuicksilverError {
         QuicksilverError::AtlasError(err)
-    }
-}
-
-impl From<IOError> for QuicksilverError {
-    fn from(err: IOError) -> QuicksilverError {
-        QuicksilverError::IOError(err)
     }
 }
 
@@ -200,4 +216,4 @@ impl From<gilrs::Error> for QuicksilverError {
     fn from(err: gilrs::Error) -> QuicksilverError {
         QuicksilverError::GilrsError(err)
     }
-}
+}*/

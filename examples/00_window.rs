@@ -3,6 +3,7 @@
 
 use mint::Vector2;
 use quicksilver::{
+    Result,
     graphics::Graphics,
     lifecycle::{EventStream, Settings, Window, run},
     traits::*,
@@ -20,11 +21,12 @@ fn main() {
 }
 
 // Our actual logic! Not much to see for this example
-async fn app(_window: Window, _gfx: Graphics, mut events: EventStream) {
+async fn app(_window: Window, _gfx: Graphics, mut events: EventStream) -> Result<()> {
     while let Some(_) = events.next().await {
         // Normally we'd do some processing here
         // When this loop ends, the window will close
         // That happens either when the user closes the window or when the loop is broken
     }
+    Ok(())
 }
 

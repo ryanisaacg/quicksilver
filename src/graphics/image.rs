@@ -1,6 +1,50 @@
+use crate::QuicksilverError;
+use super::{Graphics, PixelFormat};
+
+use mint::Vector2;
+use std::path::Path;
 use std::rc::Rc;
+
 #[derive(Clone)]
-pub struct Image(pub(crate) Rc<golem::objects::Texture>);
+pub struct Image {
+    tex: Rc<golem::objects::Texture>,
+    size: Vector2<f32>
+}
+
+impl Image {
+    fn new(texture: golem::objects::Texture, size: Vector2<f32>) -> Image {
+        Image {
+            tex: Rc::new(texture),
+            size,
+        }
+    }
+
+    pub fn from_raw(gfx: &Graphics, data: &[u8], width: u32, height: u32, format: PixelFormat) -> Result<Image, QuicksilverError> {
+        let texture = gfx.create_image(data, width, height, format)?;
+        let size = Vector2 { x: width as f32, y: height as f32 };
+        Ok(Image::new(texture, size))
+    }
+
+    pub fn from_bytes(gfx: &Graphics, raw: &[u8]) -> Result<Image, QuicksilverError> {
+        let img = image::load_from_memory(raw)?.to_rgba();
+        let width = img.width();
+        let height = img.height();
+        Ok(Image::from_raw(gfx, img.into_raw().as_slice(), width, height, PixelFormat::RGBA)?)
+    }
+
+    pub async fn load(gfx: &Graphics, path: impl AsRef<Path>) -> Result<Image, QuicksilverError> {
+        let file_contents = platter::load_file(path).await?;
+        Image::from_bytes(gfx, file_contents.as_slice())
+    }
+
+    pub(crate) fn raw(&self) -> &Rc<golem::objects::Texture> {
+        &self.tex
+    }
+
+    pub fn size(&self) -> Vector2<f32> {
+        self.size
+    }
+}
 /*use crate::{
     Result,
     backend::{Backend, ImageData, instance},

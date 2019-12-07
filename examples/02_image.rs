@@ -1,34 +1,32 @@
+// Example 2: The Image
 // Draw an image to the screen
 use mint::Vector2;
 use quicksilver::{
-    QuicksilverError,
-    graphics::{Color, Context, Image, ImageDraw},
+    Result,
+    graphics::{Color, Graphics, Image},
     lifecycle::{Event, EventStream, Settings, Window, run},
+    traits::*,
 };
 
 fn main() {
-    // If we encounter an error while executing the app, unwrap it
-    let handler = |window, gfx, events| async move {
-        app(window, gfx, events).unwrap()
-    };
-    run(handler , Settings {
-        size: Vector2 { x: 800, 600 },
+    run(Settings {
+        size: Vector2 { x: 800.0, y: 600.0 },
         title: "Image Example",
-        icon_path: Some("image.png"),
         ..Settings::default()
-    });
+    }, app);
 }
 
 // This time we might return an error, so we use a Result
-async fn app(window: Window, mut gfx: Graphics, mut events: EventStream) -> Result<(), QuicksilverError> {
+async fn app(window: Window, mut gfx: Graphics, mut events: EventStream) -> Result<()> {
     // Load the image and wait for it to finish
     // We also use '?' to handle errors like file-not-found
-    let image = Image::load(&mut gfx, "image.png").await?;
+    let image = Image::load(&gfx, "static/image.png").await?;
 
     while let Some(_) = events.next().await {
         gfx.clear(Color::WHITE);
         // Draw the image with the top-left at (100, 100)
         gfx.draw_image(&image, Vector2 { x: 400.0, y: 300.0 });
+        gfx.present(&window)?;
     }
 
     Ok(())

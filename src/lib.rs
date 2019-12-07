@@ -139,11 +139,12 @@
 )]
 
 //mod backend;
-//mod error;
+mod error;
 pub mod geom;
 pub mod graphics;
 //pub mod input;
 pub mod lifecycle {
+    use crate::Result;
     use crate::graphics::Graphics;
     pub use blinds::{EventStream, Settings, Window, *};
     use blinds::{run_gl, run as _};
@@ -151,7 +152,8 @@ pub mod lifecycle {
 
 
     pub fn run<F, T>(settings: Settings, app: F) -> !
-            where T: 'static + Future<Output = ()>, F: 'static + FnOnce(Window, Graphics, EventStream) -> T {
+            where T: 'static + Future<Output = Result<()>>,
+                  F: 'static + FnOnce(Window, Graphics, EventStream) -> T {
         use mint::Vector2;
         use crate::geom::Rect;
 
@@ -166,7 +168,11 @@ pub mod lifecycle {
             let ctx = golem::Context::from_glow(ctx);
             let mut graphics = Graphics::new(ctx);
             graphics.set_projection(orthographic(screen_region));
-            app(window, graphics, events)
+
+            // TODO: event logging or panic handling
+            async {
+                app(window, graphics, events).await.unwrap()
+            }
         });
     }
 }
@@ -175,7 +181,7 @@ pub mod lifecycle {
 pub mod saving {
     pub use gestalt::*;
 }
-//pub use crate::error::QuicksilverError as Error;
+pub use crate::error::QuicksilverError;
 pub use platter::load_file;
 pub mod traits {
     pub use blinds::traits::*;
@@ -184,4 +190,4 @@ pub mod traits {
 //pub mod tutorials;
 
 //// A Result that returns either success or a Quicksilver Error
-//pub type Result<T> = ::std::result::Result<T, Error>;
+pub type Result<T> = std::result::Result<T, QuicksilverError>;
