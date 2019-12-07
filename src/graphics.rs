@@ -58,7 +58,7 @@ impl Graphics {
             fragment_shader:
             r#" void main() {
                 vec4 tex = vec4(1);
-                if(frag_uv.x < 0.0 && frag_uv.y < 0.0) {
+                if(frag_uv.x >= 0.0 && frag_uv.y >= 0.0) {
                     tex = texture(image, frag_uv);
                 }
                 gl_FragColor = tex * frag_color;
