@@ -32,6 +32,6 @@ impl State for RgbTriangle {
 }
 
 fn main() {
-    run::<RgbTriangle>("Image Example", Vector::new(800, 600), Settings::default());
+    run::<RgbTriangle>("Rgb Triangle Example", Vector::new(800, 600), Settings::default());
 }
 
