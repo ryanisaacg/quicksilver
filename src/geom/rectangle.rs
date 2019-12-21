@@ -33,6 +33,10 @@ impl Rectangle {
 
     #[cfg(feature="ncollide2d")]
     ///Create a rectangle with a given center and Cuboid from ncollide
+    ///# Center
+    ///The center parameter here represents an offset from the center of the cuboid,
+    ///meaning that if `Vector::ZERO` is supplied, the rectangle will be centered exactly
+    ///in the middle of the cuboid.
     pub fn from_cuboid(center: impl Into<Vector>, cuboid: &Cuboid<f32>) -> Rectangle {
         let half_size = cuboid.half_extents().clone().into();
         Rectangle::new(center.into() - half_size, half_size * 2)
