@@ -68,7 +68,7 @@ impl Graphics {
         })?;
         let vb = VertexBuffer::new(&ctx)?;
         let eb = ElementBuffer::new(&ctx)?;
-        shader.bind(&vb);
+        shader.bind();
 
         Ok(Graphics {
             ctx,
@@ -216,7 +216,7 @@ impl Graphics {
 
             if *start != end {
                 unsafe {
-                    self.shader.draw(&self.eb, *start..end, GeometryMode::Triangles)?;
+                    self.shader.draw(&self.vb, &self.eb, *start..end, GeometryMode::Triangles)?;
                 }
             }
         }

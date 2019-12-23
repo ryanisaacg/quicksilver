@@ -30,10 +30,10 @@ maintenance = { status = "actively-developed" }
 
 [dependencies]
 gestalt = { version = "0.1", optional = true }
-golem = { version = "0.1.0-alpha0" }
+golem = { version = "0.1.0-alpha1" }
 image = "0.21"
 mint = "0.5.3"
 platter = "0.1"
-blinds = { version = "0.1.0-alpha6", features = ["gl"] }
+blinds = { version = "0.1.0-alpha7", features = ["gl"] }
 vek = { version = "0.9.10", features = ["mint"] }
 
