@@ -22,11 +22,13 @@ fn main() {
 
 // Our actual logic! Not much to see for this example
 async fn app(_window: Window, _gfx: Graphics, mut events: EventStream) -> Result<()> {
-    while let Some(_) = events.next().await {
-        // Normally we'd do some processing here
-        // When this loop ends, the window will close
-        // That happens either when the user closes the window or when the loop is broken
+    loop {
+        while let Some(_) = events.next().await {
+            // Normally we'd do some processing here
+        }
+        // And then we'd do updates and drawing here
+        // When this loop ends, the window will close and the application will stop
+        // If the window is closed, our application will receive a close event and terminate also
     }
-    Ok(())
 }
 

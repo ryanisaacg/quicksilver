@@ -1,7 +1,7 @@
 //! A module to draw 2D graphics in a window
 //!  It also includes image loading
 
-
+use crate::QuicksilverError;
 
 mod color;
 mod image;
@@ -15,10 +15,11 @@ pub use self::mesh::Mesh;
 pub use self::projection::orthographic;
 pub use self::vertex::{DrawGroup, Vertex};
 
-pub use golem::objects::ColorFormat as PixelFormat;
+use golem::*;
 use crate::geom::*;
-use golem::{*, buffer::*, program::*, objects::*};
 use mint::*;
+
+pub use golem::ColorFormat as PixelFormat;
 
 // TODO: should projection be handled GPU-side?
 // TODO: image views
@@ -34,20 +35,21 @@ pub struct Graphics {
 }
 
 impl Graphics {
-    pub(crate) fn new(ctx: Context) -> Graphics {
-        let mut shader = ctx.new_shader(ShaderDescription {
+    pub(crate) fn new(ctx: Context) -> Result<Graphics, QuicksilverError> {
+        use Dimension::*;
+        let mut shader = ShaderProgram::new(&ctx, ShaderDescription {
             vertex_input: &[
-                Attribute::Vector(4, "vert_color"),
-                Attribute::Vector(2, "vert_position"),
-                Attribute::Vector(2, "vert_uv"),
+                Attribute::new("vert_color", AttributeType::Vector(D4)),
+                Attribute::new("vert_position", AttributeType::Vector(D2)),
+                Attribute::new("vert_uv", AttributeType::Vector(D2)),
             ],
             fragment_input: &[
-                Attribute::Vector(4, "frag_color"),
-                Attribute::Vector(2, "frag_uv"),
+                Attribute::new("frag_color", AttributeType::Vector(D4)),
+                Attribute::new("frag_uv", AttributeType::Vector(D2)),
             ],
             uniforms: &[
-                Uniform::new("image", UniformType::Sampler(2)),
-                Uniform::new("projection", UniformType::Matrix(3)),
+                Uniform::new("image", UniformType::Sampler2D),
+                Uniform::new("projection", UniformType::Matrix(D3)),
             ],
             vertex_shader: r#" void main() {
                 vec3 transformed = projection * vec3(vert_position, 1.0);
@@ -63,12 +65,12 @@ impl Graphics {
                 }
                 gl_FragColor = tex * frag_color;
             }"#
-        }).unwrap();
-        let vb = ctx.new_vertex_buffer().unwrap();
-        let eb = ctx.new_element_buffer().unwrap();
+        })?;
+        let vb = VertexBuffer::new(&ctx)?;
+        let eb = ElementBuffer::new(&ctx)?;
         shader.bind(&vb);
 
-        Graphics {
+        Ok(Graphics {
             ctx,
             shader,
             vb,
@@ -76,7 +78,7 @@ impl Graphics {
             vertex_data: Vec::new(),
             index_data: Vec::new(),
             uniforms: Vec::new(),
-        }
+        })
     }
 
     pub fn clear(&mut self, color: Color) {
@@ -117,7 +119,7 @@ impl Graphics {
             // have one, though
             (None, _) => false,
             // If we're inserting an image and there was an old one, check if they match
-            (Some(image), Some((_, Some(old_image), _))) => std::rc::Rc::ptr_eq(&image.raw(), &old_image.raw()),
+            (Some(image), Some((_, Some(old_image), _))) => image.ptr_eq(&old_image),
             // If we're inserting an image and there wasn't one, we can just over-write the
             // previous range. Therefore we don't need to insert
             (Some(image), Some(old)) => {
@@ -140,12 +142,9 @@ impl Graphics {
     }
 
     pub fn draw_polygon(&mut self, points: &[Vector2<f32>], color: Color) {
+        assert!(points.len() >= 3);
         let vertices = points.iter().cloned().map(|pos| Vertex { pos, uv: None, color });
-        let indices = std::iter::repeat(())
-            .take(points.len() - 2)
-            .enumerate()
-            .map(|(idx, _)| idx as u32)
-            .map(|idx| [0, idx + 1, idx + 2]);
+        let indices = (0..(points.len() - 2)).map(|idx| idx as u32).map(|idx| [0, idx + 1, idx + 2]);
         self.draw_vertices(vertices, indices, None);
     }
 
@@ -190,7 +189,8 @@ impl Graphics {
         );
     }
 
-    pub fn flush(&mut self) -> Result<(), GolemError> {
+    pub fn flush(&mut self) -> Result<(), QuicksilverError> {
+        // TODO: check that all indices are valid
         self.vb.set_data(self.vertex_data.as_slice());
         self.eb.set_data(self.index_data.as_slice());
         self.shader.set_uniform("image", UniformValue::Int(0))?;
@@ -205,16 +205,19 @@ impl Graphics {
             };
             // If we're switching what image to use, do so now
             if let Some(image) = image {
-                image.raw().bind(0);
+                Texture::bind(&self.ctx, Some(image.raw()), 0);
             }
             // If we're switching what projection to use, do so now
             if let Some(projection) = projection {
                 let matrix: [f32; 9] = (*projection).into();
+                println!("Projection: {:?}", matrix);
                 self.shader.set_uniform("projection", UniformValue::Matrix3(matrix))?;
             }
 
             if *start != end {
-                self.ctx.draw(&self.eb, *start..end).unwrap();
+                unsafe {
+                    self.shader.draw(&self.eb, *start..end, GeometryMode::Triangles)?;
+                }
             }
         }
         self.vertex_data.clear();
@@ -225,7 +228,7 @@ impl Graphics {
     }
 
 
-    pub fn present(&mut self, win: &blinds::Window) -> Result<(), GolemError> {
+    pub fn present(&mut self, win: &blinds::Window) -> Result<(), QuicksilverError> {
         self.flush()?;
         win.present();
 
@@ -233,7 +236,10 @@ impl Graphics {
     }
 
     pub(crate) fn create_image(&self, data: &[u8], width: u32, height: u32, format: PixelFormat) -> Result<Texture, GolemError> {
-        self.ctx.new_texture(data, width, height, format)
+        let mut texture = Texture::new(&self.ctx)?;
+        texture.set_image(Some(data), width, height, format);
+
+        Ok(texture)
     }
 }
 /*

@@ -147,7 +147,7 @@ pub mod lifecycle {
     use crate::Result;
     use crate::graphics::Graphics;
     pub use blinds::{EventStream, Settings, Window, *};
-    use blinds::{run_gl, run as _};
+    use blinds::run_gl;
     use std::future::Future;
 
 
@@ -165,8 +165,8 @@ pub mod lifecycle {
         run_gl(settings, |window, ctx, events| {
             use crate::graphics::orthographic;
 
-            let ctx = golem::Context::from_glow(ctx);
-            let mut graphics = Graphics::new(ctx);
+            let ctx = golem::Context::from_glow(ctx).unwrap();
+            let mut graphics = Graphics::new(ctx).unwrap();
             graphics.set_projection(orthographic(screen_region));
 
             // TODO: event logging or panic handling
@@ -183,9 +183,6 @@ pub mod saving {
 }
 pub use crate::error::QuicksilverError;
 pub use platter::load_file;
-pub mod traits {
-    pub use blinds::traits::*;
-}
 
 //pub mod tutorials;
 

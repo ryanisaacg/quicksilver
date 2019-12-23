@@ -21,14 +21,13 @@ async fn app(window: Window, mut gfx: Graphics, mut events: EventStream) -> Resu
     // Load the image and wait for it to finish
     // We also use '?' to handle errors like file-not-found
     let image = Image::load(&gfx, "static/image.png").await?;
-
-    while let Some(_) = events.next().await {
+    
+    loop {
+        while let Some(_) = events.next().await {}
         gfx.clear(Color::WHITE);
         // Draw the image with the top-left at (100, 100)
         gfx.draw_image(&image, Vector2 { x: 400.0, y: 300.0 });
         gfx.present(&window)?;
     }
-
-    Ok(())
 }
 

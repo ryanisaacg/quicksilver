@@ -5,24 +5,22 @@ use mint::Vector2;
 use std::path::Path;
 use std::rc::Rc;
 
+struct Contents(golem::Texture);
+
 #[derive(Clone)]
 pub struct Image {
-    tex: Rc<golem::objects::Texture>,
-    size: Vector2<f32>
+    tex: Rc<Contents>,
 }
 
 impl Image {
-    fn new(texture: golem::objects::Texture, size: Vector2<f32>) -> Image {
+    fn new(texture: golem::Texture) -> Image {
         Image {
-            tex: Rc::new(texture),
-            size,
+            tex: Rc::new(Contents(texture)),
         }
     }
 
     pub fn from_raw(gfx: &Graphics, data: &[u8], width: u32, height: u32, format: PixelFormat) -> Result<Image, QuicksilverError> {
-        let texture = gfx.create_image(data, width, height, format)?;
-        let size = Vector2 { x: width as f32, y: height as f32 };
-        Ok(Image::new(texture, size))
+        Ok(Image::new(gfx.create_image(data, width, height, format)?))
     }
 
     pub fn from_bytes(gfx: &Graphics, raw: &[u8]) -> Result<Image, QuicksilverError> {
@@ -37,12 +35,19 @@ impl Image {
         Image::from_bytes(gfx, file_contents.as_slice())
     }
 
-    pub(crate) fn raw(&self) -> &Rc<golem::objects::Texture> {
-        &self.tex
+    pub(crate) fn raw(&self) -> &golem::Texture {
+        &self.tex.0
+    }
+
+    pub(crate) fn ptr_eq(&self, other: &Image) -> bool {
+        Rc::ptr_eq(&self.tex, &other.tex)
     }
 
     pub fn size(&self) -> Vector2<f32> {
-        self.size
+        Vector2 {
+            x: self.raw().width() as f32,
+            y: self.raw().height() as f32,
+        }
     }
 }
 /*use crate::{

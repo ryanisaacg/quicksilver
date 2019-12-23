@@ -6,7 +6,6 @@ use quicksilver::{
     geom::Rect,
     graphics::{Color, Graphics},
     lifecycle::{EventStream, Settings, Window, run},
-    traits::*,
 };
 
 fn main() {
@@ -18,7 +17,8 @@ fn main() {
 }
 
 async fn app(window: Window, mut gfx: Graphics, mut events: EventStream) -> Result<()> {
-    while let Some(_) = events.next().await {
+    loop {
+        while let Some(_) = events.next_event().await {}
         // Clear the screen to a blank, white color
         gfx.clear(Color::WHITE);
         // Paint a blue square in the center of our screen
@@ -30,7 +30,5 @@ async fn app(window: Window, mut gfx: Graphics, mut events: EventStream) -> Resu
         // Send the data to be drawn
         gfx.present(&window)?;
     }
-
-    Ok(())
 }
 
