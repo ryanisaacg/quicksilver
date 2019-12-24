@@ -191,8 +191,14 @@ impl Graphics {
 
     pub fn flush(&mut self) -> Result<(), QuicksilverError> {
         // TODO: check that all indices are valid
-        self.vb.set_data(self.vertex_data.as_slice());
-        self.eb.set_data(self.index_data.as_slice());
+        if self.vertex_data.len() > self.vb.size() || self.index_data.len() > self.eb.size() {
+            self.vb.set_data(self.vertex_data.as_slice());
+            self.eb.set_data(self.index_data.as_slice());
+            self.shader.prepare_draw(&self.vb, &self.eb)?;
+        } else {
+            self.vb.set_sub_data(0, self.vertex_data.as_slice());
+            self.eb.set_sub_data(0, self.index_data.as_slice());
+        }
         self.shader.set_uniform("image", UniformValue::Int(0))?;
         for index in 0..self.uniforms.len() {
             let uniform = &self.uniforms[index];
@@ -210,13 +216,12 @@ impl Graphics {
             // If we're switching what projection to use, do so now
             if let Some(projection) = projection {
                 let matrix: [f32; 9] = (*projection).into();
-                println!("Projection: {:?}", matrix);
                 self.shader.set_uniform("projection", UniformValue::Matrix3(matrix))?;
             }
 
             if *start != end {
                 unsafe {
-                    self.shader.draw(&self.vb, &self.eb, *start..end, GeometryMode::Triangles)?;
+                    self.shader.draw_prepared(*start..end, GeometryMode::Triangles);
                 }
             }
         }

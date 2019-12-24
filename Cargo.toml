@@ -30,7 +30,7 @@ maintenance = { status = "actively-developed" }
 
 [dependencies]
 gestalt = { version = "0.1", optional = true }
-golem = { version = "0.1.0-alpha1" }
+golem = { version = "0.1.0-alpha2" }
 image = "0.21"
 mint = "0.5.3"
 platter = "0.1"

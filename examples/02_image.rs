@@ -5,7 +5,6 @@ use quicksilver::{
     Result,
     graphics::{Color, Graphics, Image},
     lifecycle::{EventStream, Settings, Window, run},
-    traits::*,
 };
 
 fn main() {
@@ -23,7 +22,7 @@ async fn app(window: Window, mut gfx: Graphics, mut events: EventStream) -> Resu
     let image = Image::load(&gfx, "static/image.png").await?;
     
     loop {
-        while let Some(_) = events.next().await {}
+        while let Some(_) = events.next_event().await {}
         gfx.clear(Color::WHITE);
         // Draw the image with the top-left at (100, 100)
         gfx.draw_image(&image, Vector2 { x: 400.0, y: 300.0 });
