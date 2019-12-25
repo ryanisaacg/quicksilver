@@ -2,17 +2,20 @@
 // Draw an image to the screen
 use mint::Vector2;
 use quicksilver::{
-    Result,
     graphics::{Color, Graphics, Image},
-    lifecycle::{EventStream, Settings, Window, run},
+    lifecycle::{run, EventStream, Settings, Window},
+    Result,
 };
 
 fn main() {
-    run(Settings {
-        size: Vector2 { x: 800.0, y: 600.0 },
-        title: "Image Example",
-        ..Settings::default()
-    }, app);
+    run(
+        Settings {
+            size: Vector2 { x: 800.0, y: 600.0 },
+            title: "Image Example",
+            ..Settings::default()
+        },
+        app,
+    );
 }
 
 // This time we might return an error, so we use a Result
@@ -20,7 +23,7 @@ async fn app(window: Window, mut gfx: Graphics, mut events: EventStream) -> Resu
     // Load the image and wait for it to finish
     // We also use '?' to handle errors like file-not-found
     let image = Image::load(&gfx, "static/image.png").await?;
-    
+
     loop {
         while let Some(_) = events.next_event().await {}
         gfx.clear(Color::WHITE);
@@ -29,4 +32,3 @@ async fn app(window: Window, mut gfx: Graphics, mut events: EventStream) -> Resu
         gfx.present(&window)?;
     }
 }
-
