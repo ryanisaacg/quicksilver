@@ -4,7 +4,7 @@ use crate::graphics::{Vertex, DrawGroup};
 pub struct Mesh {
     /// All the vertices in the mesh
     pub vertices: Vec<Vertex>,
-    /// The properties TODO
+    /// The properties that define the elements to draw
     pub group: DrawGroup,
 }
 

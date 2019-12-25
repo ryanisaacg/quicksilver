@@ -15,9 +15,16 @@ pub struct Vertex {
 }
 
 pub struct DrawGroup {
-    pub triangles: Vec<[u32; 3]>,
+    pub elements: Vec<Element>,
     pub image: Option<Image>,
     pub transform: ColumnMatrix3<f32>,
+}
+
+#[derive(Clone)]
+pub enum Element {
+    Point(u32),
+    Lines([u32; 2]),
+    Triangle([u32; 3]),
 }
 
 /*
