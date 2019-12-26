@@ -228,27 +228,55 @@ impl Graphics {
     }
 
     pub fn draw_image(&mut self, image: &Image, top_left: Vector2<f32>) {
+        let region = Rect {
+            min: Vector2 { x: 0.0, y: 0.0 },
+            max: image.size(),
+        };
+        self.draw_subimage_tinted(image, region, top_left, Color::WHITE);
+    }
+
+    pub fn draw_image_tinted(&mut self, image: &Image, top_left: Vector2<f32>, tint: Color) {
+        let region = Rect {
+            min: Vector2 { x: 0.0, y: 0.0 },
+            max: image.size(),
+        };
+        self.draw_subimage_tinted(image, region, top_left, tint);
+    }
+
+    pub fn draw_subimage(&mut self, image: &Image, region: Rect, top_left: Vector2<f32>) {
+        self.draw_subimage_tinted(image, region, top_left, Color::WHITE);
+    }
+    
+    pub fn draw_subimage_tinted(&mut self, image: &Image, region: Rect, top_left: Vector2<f32>, tint: Color) {
         let size = image.size();
+        // Calculate the region of the image to draw
+        let min_u = region.min.x / size.x;
+        let min_v = region.min.y / size.y;
+        let max_u = region.max.x / size.x;
+        let max_v = region.max.y / size.y;
+        // Calculate how big to draw it
+        let region_width = region.max.x - region.min.x;
+        let region_height = region.max.y - region.min.y;
         let vertices = [
             Vertex {
                 pos: top_left,
-                uv: Some(Vector2 { x: 0.0, y: 0.0 }),
-                color: Color::WHITE,
+                uv: Some(Vector2 { x: min_u, y: min_v }),
+                color: tint,
             },
             Vertex {
-                pos: Vector2 { x: top_left.x + size.x, y: top_left.y },
-                uv: Some(Vector2 { x: 1.0, y: 0.0 }),
-                color: Color::WHITE,
+                pos: Vector2 { x: top_left.x + region_width, y: top_left.y },
+                uv: Some(Vector2 { x: max_u, y: min_v }),
+                color: tint,
             },
             Vertex {
-                pos: Vector2 { x: top_left.x + size.x, y: top_left.y + size.y },
-                uv: Some(Vector2 { x: 1.0, y: 1.0 }),
-                color: Color::WHITE,
+                pos: Vector2 { x: top_left.x + region_width, y: top_left.y + region_height },
+                uv: Some(Vector2 { x: max_u, y: max_v }),
+                color: tint,
             },
             Vertex {
-                pos: Vector2 { x: top_left.x, y: top_left.y + size.y },
-                uv: Some(Vector2 { x: 0.0, y: 1.0 }),
-                color: Color::WHITE,
+                pos: Vector2 { x: top_left.x, y: top_left.y + region_height },
+                uv: Some(Vector2 { x: min_u, y: max_v }),
+                color: tint,
             },
         ];
         let indices = [
