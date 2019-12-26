@@ -35,6 +35,7 @@ pub struct Graphics {
     image_changes: Vec<(usize, Image)>,
     projection_changes: Vec<(usize, ColumnMatrix3<f32>)>,
     geom_mode_changes: Vec<(usize, GeometryMode)>,
+    transform_changes: Vec<(usize, ColumnMatrix3<f32>)>,
 }
 
 const VERTEX_SIZE: usize = 8;
@@ -55,9 +56,10 @@ impl Graphics {
             uniforms: &[
                 Uniform::new("image", UniformType::Sampler2D),
                 Uniform::new("projection", UniformType::Matrix(D3)),
+                Uniform::new("transform", UniformType::Matrix(D3)),
             ],
             vertex_shader: r#" void main() {
-                vec3 transformed = projection * vec3(vert_position, 1.0);
+                vec3 transformed = projection * transform * vec3(vert_position, 1.0);
                 gl_Position = vec4(transformed.xy, 0, 1);
                 frag_uv = vert_uv;
                 frag_color = vert_color;
@@ -85,6 +87,7 @@ impl Graphics {
             image_changes: Vec::new(),
             projection_changes: Vec::new(),
             geom_mode_changes: Vec::new(),
+            transform_changes: Vec::new(),
         })
     }
 
@@ -96,6 +99,11 @@ impl Graphics {
     pub fn set_projection(&mut self, transform: ColumnMatrix3<f32>) {
         let head = self.index_data.len();
         self.projection_changes.push((head, transform));
+    }
+
+    pub fn set_transform(&mut self, transform: ColumnMatrix3<f32>) {
+        let head = self.index_data.len();
+        self.transform_changes.push((head, transform));
     }
 
     pub fn draw_elements(&mut self, vertices: impl Iterator<Item = Vertex>, elements: impl Iterator<Item = Element>, image: Option<&Image>) {
@@ -304,12 +312,26 @@ impl Graphics {
             self.vb.set_sub_data(0, self.vertex_data.as_slice());
             self.eb.set_sub_data(0, self.index_data.as_slice());
         }
+        // If there are no transforms, at least insert an identity so OpenGL doesn't 0 it out
+        if self.transform_changes.is_empty() {
+            let ident = [1.0, 0.0, 0.0,
+                0.0, 1.0, 0.0,
+                0.0, 0.0, 1.0
+            ];
+            self.transform_changes.push((0, ident.into()));
+        }
         self.shader.set_uniform("image", UniformValue::Int(TEX_BIND_POINT as i32))?;
         let mut previous = 0;
         let mut element_mode = GeometryMode::Triangles;
         let change_list = join_change_lists(
-            join_change_lists(self.image_changes.drain(..), self.projection_changes.drain(..)),
-            self.geom_mode_changes.drain(..)
+            join_change_lists(
+                join_change_lists(
+                    self.image_changes.drain(..),
+                    self.projection_changes.drain(..)
+                ),
+                self.geom_mode_changes.drain(..)
+            ),
+            self.transform_changes.drain(..)
         );
         for (index, changes) in change_list {
             // Before we change state, draw the old state
@@ -320,21 +342,28 @@ impl Graphics {
                 previous = index;
             }
             // Change the render state
-            if let Some(first) = changes.0 {
-                // If we're switching what image to use, do so now
-                if let Some(image) = first.0 {
-                    let bind_point = std::num::NonZeroU32::new(TEX_BIND_POINT).unwrap();
-                    image.raw().set_active(bind_point);
+            if let Some(changes) = changes.0  {
+                if let Some(first) = changes.0 {
+                    // If we're switching what image to use, do so now
+                    if let Some(image) = first.0 {
+                        let bind_point = std::num::NonZeroU32::new(TEX_BIND_POINT).unwrap();
+                        image.raw().set_active(bind_point);
+                    }
+                    // If we're switching what projection to use, do so now
+                    if let Some(projection) = first.1 {
+                        let matrix = projection.into();
+                        self.shader.set_uniform("projection", UniformValue::Matrix3(matrix))?;
+                    } 
                 }
-                // If we're switching what projection to use, do so now
-                if let Some(projection) = first.1 {
-                    let matrix = projection.into();
-                    self.shader.set_uniform("projection", UniformValue::Matrix3(matrix))?;
-                } 
+                // If we're switching the element mode, do so now
+                if let Some(g_m) = changes.1 {
+                    element_mode = g_m;
+                }
             }
-            // If we're switching the element mode, do so now
-            if let Some(g_m) = changes.1 {
-                element_mode = g_m;
+            // If we're switching what transform to use, do so now
+            if let Some(trans) = changes.1 {
+                let matrix = trans.into();
+                self.shader.set_uniform("transform", UniformValue::Matrix3(matrix))?;
             }
         }
         if previous != self.index_data.len() {
