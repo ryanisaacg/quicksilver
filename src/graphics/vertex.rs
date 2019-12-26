@@ -23,7 +23,7 @@ pub struct DrawGroup {
 #[derive(Clone)]
 pub enum Element {
     Point(u32),
-    Lines([u32; 2]),
+    Line([u32; 2]),
     Triangle([u32; 3]),
 }
 

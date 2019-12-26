@@ -21,6 +21,8 @@ use mint::*;
 
 pub use golem::ColorFormat as PixelFormat;
 
+use std::iter;
+
 // TODO: should projection be handled GPU-side?
 // TODO: image views
 
@@ -56,7 +58,7 @@ fn join_change_lists<'a, U, V> (
 ) -> impl 'a + Iterator<Item = (usize, (Option<U>, Option<V>))> {
     let mut u = u.peekable();
     let mut v = v.peekable();
-    std::iter::from_fn(move || {
+    iter::from_fn(move || {
         match (u.peek(), v.peek()) {
             (None, None) => None,
             (Some(_), None) => {
@@ -173,7 +175,7 @@ impl Graphics {
                     self.index_data.push(a + tri_offset);
                     GeometryMode::Points
                 }
-                Element::Lines([a, b]) => {
+                Element::Line([a, b]) => {
                     self.index_data.extend_from_slice(&[a + tri_offset, b + tri_offset]);
                     GeometryMode::Lines
                 }
@@ -190,6 +192,15 @@ impl Graphics {
         }
     }
 
+    pub fn draw_point(&mut self, pos: Vector2<f32>, color: Color) {
+        let vertex = Vertex {
+            pos,
+            uv: Some(Vector2 { x: -1.0, y: -1.0 }),
+            color,
+        };
+        self.draw_elements(iter::once(vertex), iter::once(Element::Point(0)), None);
+    }
+
     pub fn draw_mesh(&mut self, mesh: &Mesh) {
         self.draw_elements(
             mesh.vertices.iter().cloned(),
@@ -198,22 +209,39 @@ impl Graphics {
         );
     }
 
-    pub fn draw_polygon(&mut self, points: &[Vector2<f32>], color: Color) {
+    pub fn fill_polygon(&mut self, points: &[Vector2<f32>], color: Color) {
         assert!(points.len() >= 3);
         let vertices = points.iter().cloned().map(|pos| Vertex { pos, uv: None, color });
-        let indices = (0..(points.len() - 2))
-            .map(|idx| idx as u32)
+        let len = points.len() as u32;
+        let indices = (0..(len - 2))
             .map(|idx| Element::Triangle([0, idx + 1, idx + 2]));
         self.draw_elements(vertices, indices, None);
     }
+    
+    pub fn stroke_polygon(&mut self, points: &[Vector2<f32>], color: Color) {
+        assert!(points.len() >= 3);
+        let vertices = points.iter().cloned().map(|pos| Vertex { pos, uv: None, color });
+        let len = points.len() as u32;
+        let indices = (0..len)
+            .map(|idx| Element::Line([idx, (idx + 1) % len]));
+        self.draw_elements(vertices, indices, None);
+    }
 
-    pub fn draw_rect(&mut self, rect: Rect, color: Color) {
-        self.draw_polygon(&[
+    fn rect_to_poly(rect: &Rect) -> [Vector2<f32>; 4] {
+        [
             rect.min,
             Vector2 { x: rect.min.x, y: rect.max.y },
             rect.max,
             Vector2 { x: rect.max.x, y: rect.min.y },
-        ], color);
+        ]
+    }
+
+    pub fn fill_rect(&mut self, rect: &Rect, color: Color) {
+        self.fill_polygon(&Self::rect_to_poly(rect), color);
+    }
+    
+    pub fn stroke_rect(&mut self, rect: &Rect, color: Color) {
+        self.stroke_polygon(&Self::rect_to_poly(rect), color);
     }
 
     pub fn draw_image(&mut self, image: &Image, top_left: Vector2<f32>) {
@@ -252,8 +280,6 @@ impl Graphics {
     }
 
     pub fn flush(&mut self) -> Result<(), QuicksilverError> {
-        println!("{:?}", self.vertex_data);
-        println!("{:?}", self.index_data);
         const TEX_BIND_POINT: u32 = 1;
         // TODO: check that all indices are valid
         if self.vertex_data.len() > self.vb.size() || self.index_data.len() > self.eb.size() {
@@ -272,7 +298,6 @@ impl Graphics {
             self.geometry_mode.drain(..)
         );
         for (index, changes) in change_list {
-            println!("{:?}", index);
             // Before we change state, draw the old state
             if previous != index {
                 unsafe {
