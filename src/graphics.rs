@@ -38,50 +38,7 @@ pub struct Graphics {
     geometry_mode: Vec<(usize, GeometryMode)>,
 }
 
-fn insert_if_changed<T: Clone>(
-    buffer: &mut Vec<(usize, T)>,
-    (index, value): (usize, &T),
-    are_eq: impl FnOnce(&T, &T) -> bool
-) {
-    let insert = match buffer.last() {
-        Some((_, buf_value)) => !are_eq(buf_value, value),
-        None => true,
-    };
-    if insert {
-        buffer.push((index, value.clone()));
-    }
-}
-
-fn join_change_lists<'a, U, V> (
-    u: impl 'a + Iterator<Item = (usize, U)>,
-    v: impl 'a + Iterator<Item = (usize, V)>
-) -> impl 'a + Iterator<Item = (usize, (Option<U>, Option<V>))> {
-    let mut u = u.peekable();
-    let mut v = v.peekable();
-    iter::from_fn(move || {
-        match (u.peek(), v.peek()) {
-            (None, None) => None,
-            (Some(_), None) => {
-                let (idx, u_val) = u.next().expect("peek indicated an element");
-                Some((idx, (Some(u_val), None)))
-            },
-            (None, Some(_)) => {
-                let (idx, v_val) = v.next().expect("peek indicated an element");
-                Some((idx, (None, Some(v_val))))
-            },
-            (Some((u_idx, _)), Some((v_idx, _))) => {
-                if u_idx <= v_idx {
-                    let (idx, u_val) = u.next().expect("peek indicated an element");
-                    Some((idx, (Some(u_val), None)))
-                } else {
-                    let (idx, v_val) = v.next().expect("peek indicated an element");
-                    Some((idx, (None, Some(v_val))))
-                }
-            }
-        }
-    })
-}
-
+const VERTEX_SIZE: usize = 8;
 
 impl Graphics {
     pub(crate) fn new(ctx: Context) -> Result<Graphics, QuicksilverError> {
@@ -147,7 +104,7 @@ impl Graphics {
         // In the input, the 0th index is the 0th provided vertex
         // In the GL buffer, the 0th index will be the first vertex we ever inserted
         // The number of vertices we've inserted is the length over the size of one insertion
-        let offset = self.vertex_data.len() / 8;
+        let offset = self.vertex_data.len() / VERTEX_SIZE;
 
         for vertex in vertices {
             let uv = vertex.uv.unwrap_or(Vector2 { x: -1.0, y: -1.0 });
@@ -289,7 +246,10 @@ impl Graphics {
 
     pub fn flush(&mut self) -> Result<(), QuicksilverError> {
         const TEX_BIND_POINT: u32 = 1;
-        // TODO: check that all indices are valid
+        let max_index = (self.vertex_data.len() / VERTEX_SIZE) as u32;
+        for index in self.index_data.iter() {
+            assert!(*index < max_index, "Element index out of bounds: are you calling draw_elements with invalid index values?");
+        }
         if self.vertex_data.len() > self.vb.size() || self.index_data.len() > self.eb.size() {
             self.vb.set_data(self.vertex_data.as_slice());
             self.eb.set_data(self.index_data.as_slice());
@@ -356,6 +316,50 @@ impl Graphics {
 
         Ok(texture)
     }
+}
+
+fn insert_if_changed<T: Clone>(
+    buffer: &mut Vec<(usize, T)>,
+    (index, value): (usize, &T),
+    are_eq: impl FnOnce(&T, &T) -> bool
+) {
+    let insert = match buffer.last() {
+        Some((_, buf_value)) => !are_eq(buf_value, value),
+        None => true,
+    };
+    if insert {
+        buffer.push((index, value.clone()));
+    }
+}
+
+fn join_change_lists<'a, U, V> (
+    u: impl 'a + Iterator<Item = (usize, U)>,
+    v: impl 'a + Iterator<Item = (usize, V)>
+) -> impl 'a + Iterator<Item = (usize, (Option<U>, Option<V>))> {
+    let mut u = u.peekable();
+    let mut v = v.peekable();
+    iter::from_fn(move || {
+        match (u.peek(), v.peek()) {
+            (None, None) => None,
+            (Some(_), None) => {
+                let (idx, u_val) = u.next().expect("peek indicated an element");
+                Some((idx, (Some(u_val), None)))
+            },
+            (None, Some(_)) => {
+                let (idx, v_val) = v.next().expect("peek indicated an element");
+                Some((idx, (None, Some(v_val))))
+            },
+            (Some((u_idx, _)), Some((v_idx, _))) => {
+                if u_idx <= v_idx {
+                    let (idx, u_val) = u.next().expect("peek indicated an element");
+                    Some((idx, (Some(u_val), None)))
+                } else {
+                    let (idx, v_val) = v.next().expect("peek indicated an element");
+                    Some((idx, (None, Some(v_val))))
+                }
+            }
+        }
+    })
 }
 /*
 mod animation;
