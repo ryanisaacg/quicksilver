@@ -23,7 +23,6 @@ pub use golem::ColorFormat as PixelFormat;
 
 use std::iter;
 
-// TODO: should projection be handled GPU-side?
 // TODO: image views
 
 pub struct Graphics {
