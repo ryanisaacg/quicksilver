@@ -277,7 +277,7 @@ impl Graphics {
             self.vb.set_sub_data(0, self.vertex_data.as_slice());
             self.eb.set_sub_data(0, self.index_data.as_slice());
         }
-        self.shader.set_uniform("image", UniformValue::Int(0))?;
+        self.shader.set_uniform("image", UniformValue::Int(TEX_BIND_POINT as i32))?;
         let mut previous = 0;
         let mut element_mode = GeometryMode::Triangles;
         let change_list = join_change_lists(
