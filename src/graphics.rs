@@ -34,7 +34,7 @@ pub struct Graphics {
     index_data: Vec<u32>,
     image_changes: Vec<(usize, Image)>,
     projection_changes: Vec<(usize, ColumnMatrix3<f32>)>,
-    geometry_mode: Vec<(usize, GeometryMode)>,
+    geom_mode_changes: Vec<(usize, GeometryMode)>,
 }
 
 const VERTEX_SIZE: usize = 8;
@@ -84,7 +84,7 @@ impl Graphics {
             index_data: Vec::new(),
             image_changes: Vec::new(),
             projection_changes: Vec::new(),
-            geometry_mode: Vec::new(),
+            geom_mode_changes: Vec::new(),
         })
     }
 
@@ -144,7 +144,7 @@ impl Graphics {
                     GeometryMode::Triangles
                 }
             };
-            insert_if_changed(&mut self.geometry_mode, (index, &mode), GeometryMode::eq);
+            insert_if_changed(&mut self.geom_mode_changes, (index, &mode), GeometryMode::eq);
         }
     }
 
@@ -309,7 +309,7 @@ impl Graphics {
         let mut element_mode = GeometryMode::Triangles;
         let change_list = join_change_lists(
             join_change_lists(self.image_changes.drain(..), self.projection_changes.drain(..)),
-            self.geometry_mode.drain(..)
+            self.geom_mode_changes.drain(..)
         );
         for (index, changes) in change_list {
             // Before we change state, draw the old state
