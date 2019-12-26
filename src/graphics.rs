@@ -217,6 +217,14 @@ impl Graphics {
             .map(|idx| Element::Triangle([0, idx + 1, idx + 2]));
         self.draw_elements(vertices, indices, None);
     }
+
+    pub fn stroke_path(&mut self, points: &[Vector2<f32>], color: Color) {
+        let vertices = points.iter().cloned().map(|pos| Vertex { pos, uv: None, color });
+        let len = points.len() as u32;
+        let indices = (0..(len - 1))
+            .map(|idx| Element::Line([idx, idx + 1]));
+        self.draw_elements(vertices, indices, None);
+    }
     
     pub fn stroke_polygon(&mut self, points: &[Vector2<f32>], color: Color) {
         assert!(points.len() >= 3);
