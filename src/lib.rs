@@ -169,9 +169,14 @@ pub mod lifecycle {
             let mut graphics = Graphics::new(ctx).unwrap();
             graphics.set_projection(orthographic(screen_region));
 
-            // TODO: event logging or panic handling
             async {
-                app(window, graphics, events).await.unwrap()
+                match app(window, graphics, events).await {
+                    Ok(()) => log::info!("Exited successfully"),
+                    Err(err) => {
+                        log::error!("Error: {:?}", err);
+                        panic!("{:?}", err);
+                    }
+                }
             }
         });
     }

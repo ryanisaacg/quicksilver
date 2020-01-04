@@ -20,7 +20,7 @@ default = ["saving"]
 # gamepads = ["gilrs"]
 saving = ["gestalt"]
 # sounds = ["rodio"]
-std_web = ["gestalt/stdweb", "platter/stdweb", "blinds/stdweb", "golem/stdweb"]
+stdweb = ["gestalt/stdweb", "platter/stdweb", "blinds/stdweb", "golem/stdweb"]
 web-sys = ["gestalt/web-sys", "platter/web-sys", "blinds/web-sys", "golem/web-sys"]
 
 [badges]
@@ -30,10 +30,11 @@ maintenance = { status = "actively-developed" }
 
 [dependencies]
 gestalt = { version = "0.1", optional = true }
-golem = "0.1.0-alpha4"
+golem = "0.1.0-alpha5"
 image = "0.21"
+log = "0.4"
 mint = "0.5.3"
 platter = "0.1"
 blinds = { version = "0.1.0-alpha7", features = ["gl"] }
 vek = { version = "0.9.10", features = ["mint"] }
-
+web_logger = "0.2"
