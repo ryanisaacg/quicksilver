@@ -29,4 +29,4 @@ jobs:
       if: matrix.os == 'macOS-latest'
       run: cargo clippy --target wasm32-unknown-unknown --features web-sys -- -D warnings
     - name: Examples
-      run: cargo check --examples
+      run: cargo test --examples
