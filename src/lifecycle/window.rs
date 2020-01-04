@@ -230,7 +230,7 @@ impl Window {
                     Some(ref data) => data.is_pressed(),
                     None => false
                 };
-                let state = if value { ButtonState::Pressed } else { ButtonState::Released };
+                let state = if value { ButtonState::Held } else { ButtonState::NotPressed };
                 buttons[button as usize] = state;
             }
 
