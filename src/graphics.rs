@@ -516,6 +516,7 @@ for point in points:
 
 print("];")
 */
+#[allow(clippy::unreadable_literal)]
 const CIRCLE_POINTS: [Vector2<f32>; CIRCLE_LEN] = [
     Vector2 { x: 1.0, y: 0.0 },
     Vector2 {
