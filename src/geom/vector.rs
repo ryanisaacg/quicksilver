@@ -1,8 +1,8 @@
 use crate::geom::{about_equal, Scalar};
 use std::{
-    ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign},
     cmp::{Eq, PartialEq},
-    fmt
+    fmt,
+    ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign},
 };
 
 #[derive(Copy, Clone, Default, Debug)]
@@ -14,27 +14,32 @@ pub struct Vector {
     pub y: f32,
 }
 
-
 impl Vector {
     /// A vector with x = 0, y = 0
     pub const ZERO: Vector = Vector { x: 0f32, y: 0f32 };
     /// A vector with x = 1, y = 0
-    pub const X: Vector    = Vector { x: 1f32, y: 0f32 };
+    pub const X: Vector = Vector { x: 1f32, y: 0f32 };
     /// A vector with x = 0, y = 1
-    pub const Y: Vector    =  Vector { x: 0f32, y: 1f32 };
+    pub const Y: Vector = Vector { x: 0f32, y: 1f32 };
     /// A vector with x = 1, y = 1
-    pub const ONE: Vector  =  Vector { x: 1f32, y: 1f32 };
+    pub const ONE: Vector = Vector { x: 1f32, y: 1f32 };
 }
 
 impl Vector {
     ///Create a new vector
     pub fn new(x: impl Scalar, y: impl Scalar) -> Vector {
-        Vector { x: x.float(), y: y.float() }
+        Vector {
+            x: x.float(),
+            y: y.float(),
+        }
     }
 
     ///Create a unit vector at a given angle
     pub fn from_angle<T: Scalar>(angle: T) -> Vector {
-        Vector::new(angle.float().to_radians().cos(), angle.float().to_radians().sin())
+        Vector::new(
+            angle.float().to_radians().cos(),
+            angle.float().to_radians().sin(),
+        )
     }
 
     ///Get the squared length of the vector (faster than getting the length)
@@ -117,18 +122,12 @@ impl Vector {
 
     ///Get a vector with the minimum of each component of this and another vector
     pub fn min(self, other: Vector) -> Vector {
-        Vector::new(
-            self.x.min(other.x),
-            self.y.min(other.y)
-        )
+        Vector::new(self.x.min(other.x), self.y.min(other.y))
     }
 
     ///Get a vector with the maximum of each component of this and another vector
     pub fn max(self, other: Vector) -> Vector {
-        Vector::new(
-            self.x.max(other.x),
-            self.y.max(other.y)
-        )
+        Vector::new(self.x.max(other.x), self.y.max(other.y))
     }
 }
 
@@ -288,7 +287,10 @@ mod tests {
 
     #[test]
     fn dot() {
-        assert!(about_equal(Vector::new(6, 5).dot(Vector::new(2, -8)), -28f32));
+        assert!(about_equal(
+            Vector::new(6, 5).dot(Vector::new(2, -8)),
+            -28f32
+        ));
     }
 
     #[test]

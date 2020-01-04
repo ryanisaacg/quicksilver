@@ -1,4 +1,4 @@
-use crate::geom::{Vector, Scalar};
+use crate::geom::{Scalar, Vector};
 use std::cmp::{Eq, PartialEq};
 
 #[derive(Clone, Copy, Default, Debug)]
@@ -13,12 +13,12 @@ pub struct Line {
 }
 
 impl Line {
-    ///Create a new line with a start- and an endpoint 
+    ///Create a new line with a start- and an endpoint
     pub fn new(start: impl Into<Vector>, end: impl Into<Vector>) -> Line {
         Line {
             a: start.into(),
             b: end.into(),
-            t: 1.0
+            t: 1.0,
         }
     }
 
@@ -39,7 +39,6 @@ impl PartialEq for Line {
 }
 
 impl Eq for Line {}
-
 
 #[cfg(test)]
 mod tests {

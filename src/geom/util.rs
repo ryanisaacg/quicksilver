@@ -42,5 +42,3 @@ mod tests {
         assert!(about_equal(lerp_angle(45f32, 315f32, 0.5), 0f32));
     }
 }
-
-

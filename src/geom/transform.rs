@@ -1,10 +1,10 @@
 use crate::geom::{about_equal, Rectangle, Scalar, Vector};
 use std::{
-    ops::Mul,
+    cmp::{Eq, PartialEq},
+    default::Default,
     f32::consts::PI,
     fmt,
-    default::Default,
-    cmp::{Eq, PartialEq}
+    ops::Mul,
 };
 
 /// A 2D transformation represented by a matrix
@@ -35,34 +35,27 @@ pub struct Transform([[f32; 3]; 3]);
 
 impl Transform {
     /// The identity transformation
-    pub const IDENTITY: Transform = Transform([[1f32, 0f32, 0f32],
-                  [0f32, 1f32, 0f32],
-                  [0f32, 0f32, 1f32]]);
+    pub const IDENTITY: Transform =
+        Transform([[1f32, 0f32, 0f32], [0f32, 1f32, 0f32], [0f32, 0f32, 1f32]]);
 
     /// Create a rotation transformation
     pub fn rotate<T: Scalar>(angle: T) -> Transform {
         let angle = angle.float();
         let c = (angle * PI / 180f32).cos();
         let s = (angle * PI / 180f32).sin();
-        Transform([[c, -s, 0f32],
-                  [s, c, 0f32],
-                  [0f32, 0f32, 1f32]])
+        Transform([[c, -s, 0f32], [s, c, 0f32], [0f32, 0f32, 1f32]])
     }
 
     /// Create a translation transformation
     pub fn translate(vec: impl Into<Vector>) -> Transform {
         let vec = vec.into();
-        Transform([[1f32, 0f32, vec.x],
-                  [0f32, 1f32, vec.y],
-                  [0f32, 0f32, 1f32]])
+        Transform([[1f32, 0f32, vec.x], [0f32, 1f32, vec.y], [0f32, 0f32, 1f32]])
     }
 
     /// Create a scale transformation
     pub fn scale(vec: impl Into<Vector>) -> Transform {
         let vec = vec.into();
-        Transform([[vec.x, 0f32, 0f32],
-                  [0f32, vec.y, 0f32],
-                  [0f32, 0f32, 1f32]])
+        Transform([[vec.x, 0f32, 0f32], [0f32, vec.y, 0f32], [0f32, 0f32, 1f32]])
     }
 
     /// Create an orthographic projection
@@ -90,8 +83,7 @@ impl Transform {
     /// ```
     #[must_use]
     pub fn inverse(&self) -> Transform {
-        let det =
-            self.0[0][0] * (self.0[1][1] * self.0[2][2] - self.0[2][1] * self.0[1][2])
+        let det = self.0[0][0] * (self.0[1][1] * self.0[2][2] - self.0[2][1] * self.0[1][2])
             - self.0[0][1] * (self.0[1][0] * self.0[2][2] - self.0[1][2] * self.0[2][0])
             + self.0[0][2] * (self.0[1][0] * self.0[2][1] - self.0[1][1] * self.0[2][0]);
 
@@ -179,7 +171,6 @@ impl Default for Transform {
     }
 }
 
-
 impl PartialEq for Transform {
     fn eq(&self, other: &Transform) -> bool {
         for i in 0..3 {
@@ -262,16 +253,19 @@ mod tests {
 
     #[test]
     fn identity() {
-        let trans = Transform::IDENTITY * Transform::translate(Vector::ZERO) *
-            Transform::rotate(0f32) * Transform::scale(Vector::ONE);
+        let trans = Transform::IDENTITY
+            * Transform::translate(Vector::ZERO)
+            * Transform::rotate(0f32)
+            * Transform::scale(Vector::ONE);
         let vec = Vector::new(15, 12);
         assert_eq!(vec, trans * vec);
     }
 
     #[test]
     fn complex_inverse() {
-        let a = Transform::rotate(5f32) * Transform::scale(Vector::new(0.2, 1.23)) *
-            Transform::translate(Vector::ONE * 100f32);
+        let a = Transform::rotate(5f32)
+            * Transform::scale(Vector::new(0.2, 1.23))
+            * Transform::translate(Vector::ONE * 100f32);
         let a_inv = a.inverse();
         let vec = Vector::new(120f32, 151f32);
         assert_eq!(vec, a * a_inv * vec);
@@ -283,9 +277,15 @@ mod tests {
         let region = Rectangle::new(Vector::new(40.0, 40.0), Vector::new(50.0, 50.0));
         let view = Transform::orthographic(region);
         assert_eq!(view * region.pos, -Vector::X + Vector::Y);
-        assert_eq!(view * (region.pos + region.size.y_comp()), -Vector::X + -Vector::Y);
+        assert_eq!(
+            view * (region.pos + region.size.y_comp()),
+            -Vector::X + -Vector::Y
+        );
         assert_eq!(view * (region.pos + region.size), Vector::X + -Vector::Y);
-        assert_eq!(view * (region.pos + region.size.x_comp()), Vector::X + Vector::Y);
+        assert_eq!(
+            view * (region.pos + region.size.x_comp()),
+            Vector::X + Vector::Y
+        );
         assert_eq!(view * (region.pos + region.size / 2), Vector::ZERO);
     }
 }

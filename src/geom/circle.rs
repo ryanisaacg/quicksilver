@@ -1,7 +1,5 @@
 use crate::geom::{about_equal, Scalar, Vector};
-use std::{
-    cmp::{Eq, PartialEq},
-};
+use std::cmp::{Eq, PartialEq};
 
 #[derive(Clone, Copy, Default, Debug)]
 ///A circle with a center and a radius
@@ -16,8 +14,8 @@ impl Circle {
     /// Create a circle with the center as a vector
     pub fn new(center: impl Into<Vector>, radius: impl Scalar) -> Circle {
         Circle {
-            pos:    center.into(),
-            radius: radius.float()
+            pos: center.into(),
+            radius: radius.float(),
         }
     }
 }
@@ -26,7 +24,7 @@ impl PartialEq for Circle {
     fn eq(&self, other: &Circle) -> bool {
         return about_equal(self.pos.x, other.pos.x)
             && about_equal(self.pos.y, other.pos.y)
-            && about_equal(self.radius, other.radius)
+            && about_equal(self.radius, other.radius);
     }
 }
 
@@ -80,7 +78,9 @@ mod tests {
     fn translate() {
         let circ = Circle::new((0, 0), 16);
         let translate = Vector::new(4, 4);
-        assert_eq!(circ.center() + translate, circ.translate(translate).center());
+        assert_eq!(
+            circ.center() + translate,
+            circ.translate(translate).center()
+        );
     }
-
 }

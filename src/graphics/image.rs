@@ -1,6 +1,6 @@
 use super::{Graphics, PixelFormat};
-use crate::QuicksilverError;
 use crate::geom::Vector;
+use crate::QuicksilverError;
 
 use std::path::Path;
 use std::rc::Rc;

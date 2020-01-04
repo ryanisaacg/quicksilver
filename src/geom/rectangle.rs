@@ -7,23 +7,23 @@ pub struct Rectangle {
     ///The top-left coordinate of the rectangle
     pub pos: Vector,
     ///The width and height of the rectangle
-    pub size: Vector
+    pub size: Vector,
 }
 
 impl Rectangle {
     ///Create a rectangle from a top-left vector and a size vector
     pub fn new(pos: impl Into<Vector>, size: impl Into<Vector>) -> Rectangle {
         Rectangle {
-            pos:  pos.into(),
-            size: size.into()
+            pos: pos.into(),
+            size: size.into(),
         }
     }
 
     ///Create a rectangle at the origin with the given size
     pub fn new_sized(size: impl Into<Vector>) -> Rectangle {
         Rectangle {
-            pos:  Vector::ZERO,
-            size: size.into()
+            pos: Vector::ZERO,
+            size: size.into(),
         }
     }
 
@@ -62,7 +62,9 @@ impl Rectangle {
 
 impl PartialEq for Rectangle {
     fn eq(&self, other: &Rectangle) -> bool {
-        about_equal(self.x(), other.pos.x) && about_equal(self.y(), other.pos.y) && about_equal(self.width(), other.size.x)
+        about_equal(self.x(), other.pos.x)
+            && about_equal(self.y(), other.pos.y)
+            && about_equal(self.width(), other.size.x)
             && about_equal(self.height(), other.size.y)
     }
 }

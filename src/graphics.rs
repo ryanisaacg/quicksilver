@@ -399,7 +399,7 @@ impl Graphics {
     fn transform_to_gl(trans: Transform) -> [f32; 9] {
         let matrix: mint::RowMatrix3<f32> = trans.into();
         let matrix: mint::ColumnMatrix3<f32> = matrix.into();
-        
+
         matrix.into()
     }
 

@@ -1,5 +1,5 @@
-use crate::graphics::{Color, Image};
 use crate::geom::{Transform, Vector};
+use crate::graphics::{Color, Image};
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 /// A vertex for drawing items to the GPU
@@ -26,4 +26,3 @@ pub enum Element {
     Line([u32; 2]),
     Triangle([u32; 3]),
 }
-

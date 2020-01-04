@@ -158,17 +158,17 @@ pub mod lifecycle {
     {
         #[cfg(target_arch = "wasm32")]
         web_logger::custom_init(web_logger::Config {
-            level: log::Level::Debug
+            level: log::Level::Debug,
         });
         #[cfg(not(target_arch = "wasm32"))]
-        simple_logger::init_with_level(log::Level::Debug).expect("A logger was already initialized");
+        simple_logger::init_with_level(log::Level::Debug)
+            .expect("A logger was already initialized");
 
         use crate::geom::{Rectangle, Transform};
 
         let size = settings.size;
         let screen_region = Rectangle::new_sized(size);
         run_gl(settings, move |window, ctx, events| {
-
             #[cfg(not(target_arch = "wasm32"))]
             {
                 if let Err(_) = std::env::set_current_dir("static") {
