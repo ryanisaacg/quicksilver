@@ -1,13 +1,18 @@
 //! # quicksilver
 //! ![Quicksilver Logo](https://raw.github.com/ryanisaacg/quicksilver/master/logo.svg?sanitize=true)
 //!
-//! [![Build Status](https://travis-ci.org/ryanisaacg/quicksilver.svg)](https://travis-ci.org/ryanisaacg/quicksilver)
 //! [![Crates.io](https://img.shields.io/crates/v/quicksilver.svg)](https://crates.io/crates/quicksilver)
 //! [![Docs Status](https://docs.rs/quicksilver/badge.svg)](https://docs.rs/quicksilver)
 //! [![dependency status](https://deps.rs/repo/github/ryanisaacg/quicksilver/status.svg)](https://deps.rs/repo/github/ryanisaacg/quicksilver)
-//! [![Gitter chat](https://badges.gitter.im/quicksilver-rs/Lobby.svg)](https://gitter.im/quicksilver-rs/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 //!
-//! A 2D game framework written in pure Rust, for both the Web and Desktop
+//! A simple 2D game framework written in pure Rust, for both the Web and Desktop
+//!
+//! ## Alpha Notice
+//!
+//! This version of Quicksilver is currently in a very early alpha! There are still planned changes
+//! to the API, some of them breaking. Additionally, major features (like audio support or text, for
+//! example) are entirely missing. Use at your own risk! Feedback on alpha-related bugs or the API
+//! changes from the 0.3.x API to the new API would be appreciated.
 //!
 //! ## A quick example
 //!
@@ -19,46 +24,43 @@
 //! `examples/draw-geometry.rs`):
 //!
 //! ```no_run
-//! // Draw some multi-colored geometry to the screen
-//! extern crate quicksilver;
-//!
+//! // Example 1: The Square
+//! // Open a window, and draw a colored square in it
+//! use mint::Vector2;
 //! use quicksilver::{
+//!     geom::Rect,
+//!     graphics::{Color, Graphics},
+//!     lifecycle::{run, EventStream, Settings, Window},
 //!     Result,
-//!     geom::{Circle, Line, Rectangle, Transform, Triangle, Vector},
-//!     graphics::{Background::Col, Color},
-//!     lifecycle::{Settings, State, Window, run},
 //! };
 //!
-//! struct DrawGeometry;
-//!
-//! impl State for DrawGeometry {
-//!     fn new() -> Result<DrawGeometry> {
-//!         Ok(DrawGeometry)
-//!     }
-//!
-//!     fn draw(&mut self, window: &mut Window) -> Result<()> {
-//!         window.clear(Color::WHITE)?;
-//!         window.draw(&Rectangle::new((100, 100), (32, 32)), Col(Color::BLUE));
-//!         window.draw_ex(&Rectangle::new((400, 300), (32, 32)), Col(Color::BLUE), Transform::rotate(45), 10);
-//!         window.draw(&Circle::new((400, 300), 100), Col(Color::GREEN));
-//!         window.draw_ex(
-//!             &Line::new((50, 80),(600, 450)).with_thickness(2.0),
-//!             Col(Color::RED),
-//!             Transform::IDENTITY,
-//!             5
-//!         );
-//!         window.draw_ex(
-//!             &Triangle::new((500, 50), (450, 100), (650, 150)),
-//!             Col(Color::RED),
-//!             Transform::rotate(45) * Transform::scale((0.5, 0.5)),
-//!             0
-//!         );
-//!         Ok(())
-//!     }
+//! fn main() {
+//!     run(
+//!         Settings {
+//!             size: Vector2 { x: 800.0, y: 600.0 },
+//!             title: "Square Example",
+//!             ..Settings::default()
+//!         },
+//!         app,
+//!     );
 //! }
 //!
-//! fn main() {
-//!     run::<DrawGeometry>("Draw Geometry", Vector::new(800, 600), Settings::default());
+//! async fn app(window: Window, mut gfx: Graphics, mut events: EventStream) -> Result<()> {
+//!     // Clear the screen to a blank, white color
+//!     gfx.clear(Color::WHITE);
+//!     // Paint a blue square with a red outline in the center of our screen
+//!     // It should have a top-left of (350, 100) and a bottom-left of (450, 200)
+//!     let rect = Rect {
+//!         min: Vector2 { x: 350.0, y: 100.0 },
+//!         max: Vector2 { x: 450.0, y: 200.0 },
+//!     };
+//!     gfx.fill_rect(&rect, Color::BLUE);
+//!     gfx.stroke_rect(&rect, Color::RED);
+//!     // Send the data to be drawn
+//!     gfx.present(&window)?;
+//!     loop {
+//!         while let Some(_) = events.next_event().await {}
+//!     }
 //! }
 //! ```
 //!
@@ -69,8 +71,9 @@
 //!
 //! A good way to get started with Quicksilver is to
 //! [read and run the examples](https://github.com/ryanisaacg/quicksilver/tree/master/examples)
-//! and go through the tutorial modules [on docs.rs](https://docs.rs/quicksilver). If you have any
-//! questions, feel free to hop onto Gitter or open an issue.
+//! which also serve as tutorials. IF you have any questions, feel free to open an issue or ask for
+//! help in the [Rust Community Discord](https://discord.gg/aVESxV8) from other Quicksilver users
+//! and developers.
 //!
 //! ## Building and Deploying a Quicksilver application
 //!
@@ -105,18 +108,21 @@
 //! If you want to test your application locally, use `cargo web start` and open your favorite
 //! browser to the port it provides.
 //!
+//! #### wasm-bindgen support
+//!
+//! Quicksilver has recently gained experimental support for `wasm-bindgen`. The workflow is not
+//! currently documented here, but it should be the same as any other library.
+//!
 //! ## Optional Features
 //!
 //! Quicksilver by default tries to provide all features a 2D application may need, but not all
 //! applications need these features.
 //!
-//! The optional features available are
-//! collision support (via [ncollide2d](https://github.com/sebcrozet/ncollide)),
-//! font support (via [rusttype](https://github.com/redox-os/rusttype)),
-//! gamepad support (via [gilrs](https://gitlab.com/gilrs-project/gilrs)),
-//! saving (via [serde_json](https://github.com/serde-rs/json)),
-//! complex shape / svg rendering (via [lyon](https://github.com/nical/lyon)),
-//! and sounds (via [rodio](https://github.com/tomaka/rodio)).
+//! The optional features available are:
+//! - easy logging (via [log](https://github.com/rust-lang/log),
+//! [simple_logger](https://github.com/borntyping/rust-simple_logger), and
+//! [web_logger](https://github.com/yewstack/web_logger))
+//! - saving (via [gestalt](https://github.com/ryanisaacg/golem))
 //!
 //! Each are enabled by default, but you can
 //! [specify which features](https://doc.rust-lang.org/cargo/reference/specifying-dependencies.html#choosing-features)
@@ -125,12 +131,9 @@
 //! ## Supported Platforms
 //!
 //! The engine is supported on Windows, macOS, Linux, and the web via WebAssembly.
-//! The web is only supported via the `wasm32-unknown-unknown` Rust target, not through emscripten.
-//! It might work with emscripten but this is not an ongoing guarantee.
 //!
 //! Mobile support would be a future possibility, but likely only through external contributions.
 
-#![doc(html_root_url = "https://docs.rs/quicksilver/0.3.19/quicksilver")]
 #![deny(
     bare_trait_objects,
     unused_extern_crates,
@@ -138,11 +141,9 @@
     unused_qualifications
 )]
 
-//mod backend;
 mod error;
 pub mod geom;
 pub mod graphics;
-//pub mod input;
 pub mod lifecycle {
     use crate::graphics::Graphics;
     use crate::Result;
@@ -200,7 +201,20 @@ pub mod saving {
     pub use gestalt::*;
 }
 pub use crate::error::QuicksilverError;
+
+/// Load a file as a [`Future`]
+///
+/// Within an `async` function (like the one passed to [`run`]), you can use `.await`:
+///
+/// ```no_run
+/// # use platter::load_file;
+/// # async fn test() {
+/// load_file("my_file_path").await.expect("The file was not found!");
+/// # }
+/// ```
+///
+/// [`Future`]: std::future::Future
 pub use platter::load_file;
 
-//// A Result that returns either success or a Quicksilver Error
+/// A Result that returns either success or a Quicksilver Error
 pub type Result<T> = std::result::Result<T, QuicksilverError>;
