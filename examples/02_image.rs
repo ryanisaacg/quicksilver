@@ -22,7 +22,7 @@ fn main() {
 async fn app(window: Window, mut gfx: Graphics, mut events: EventStream) -> Result<()> {
     // Load the image and wait for it to finish
     // We also use '?' to handle errors like file-not-found
-    let image = Image::load(&gfx, "static/image.png").await?;
+    let image = Image::load(&gfx, "image.png").await?;
 
     loop {
         while let Some(_) = events.next_event().await {}

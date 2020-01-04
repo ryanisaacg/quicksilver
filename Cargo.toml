@@ -14,8 +14,9 @@ edition = "2018"
 
 [features]
 # complex_shapes, fonts, gamepads, sounds
-default = ["saving"]
+default = ["easy_log", "saving"]
 
+easy_log = ["simple_logger", "web_logger"]
 # fonts = ["rusttype"]
 # gamepads = ["gilrs"]
 saving = ["gestalt"]
@@ -37,4 +38,9 @@ mint = "0.5.3"
 platter = "0.1"
 blinds = { version = "0.1.0-alpha7", features = ["gl"] }
 vek = { version = "0.9.10", features = ["mint"] }
-web_logger = "0.2"
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+simple_logger = { version = "1.4", optional = true }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+web_logger = { version = "0.2", optional = true }

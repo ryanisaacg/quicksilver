@@ -154,6 +154,11 @@ pub mod lifecycle {
     pub fn run<F, T>(settings: Settings, app: F) -> !
             where T: 'static + Future<Output = Result<()>>,
                   F: 'static + FnOnce(Window, Graphics, EventStream) -> T {
+        #[cfg(target_arch = "wasm32")]
+        web_logger::init_custom(log::Level::Info);
+        #[cfg(not(target_arch = "wasm32"))]
+        simple_logger::init_with_level(log::Level::Info).expect("A logger was already initialized");
+
         use mint::Vector2;
         use crate::geom::Rect;
 
@@ -164,6 +169,13 @@ pub mod lifecycle {
         };
         run_gl(settings, |window, ctx, events| {
             use crate::graphics::orthographic;
+
+            #[cfg(not(target_arch="wasm32"))] {
+                if let Err(_) = std::env::set_current_dir("static") {
+                    log::warn!("Warning: no asset directory found. Please place all your assets inside a directory called 'static' so they can be loaded");
+                    log::warn!("Execution continuing, but any asset-not-found errors are likely due to the lack of a 'static' directory.")
+                }
+            }
 
             let ctx = golem::Context::from_glow(ctx).unwrap();
             let mut graphics = Graphics::new(ctx).unwrap();
