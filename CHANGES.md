@@ -1,6 +1,8 @@
 # Changelog
 
 ## In-development
+
+## 0.3.21
 - Fix gamepad buttons mistakenly marked as `Released` instead of `NotPressed`
 
 ## 0.3.20
