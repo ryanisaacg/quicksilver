@@ -1,8 +1,7 @@
 // Example 1: The Square
 // Open a window, and draw a colored square in it
-use mint::Vector2;
 use quicksilver::{
-    geom::Rect,
+    geom::{Rectangle, Vector},
     graphics::{Color, Graphics},
     lifecycle::{run, EventStream, Settings, Window},
     Result,
@@ -11,7 +10,7 @@ use quicksilver::{
 fn main() {
     run(
         Settings {
-            size: Vector2 { x: 800.0, y: 600.0 },
+            size: Vector::new(800.0, 600.0).into(),
             title: "Square Example",
             ..Settings::default()
         },
@@ -23,11 +22,8 @@ async fn app(window: Window, mut gfx: Graphics, mut events: EventStream) -> Resu
     // Clear the screen to a blank, white color
     gfx.clear(Color::WHITE);
     // Paint a blue square with a red outline in the center of our screen
-    // It should have a top-left of (350, 100) and a bottom-left of (450, 200)
-    let rect = Rect {
-        min: Vector2 { x: 350.0, y: 100.0 },
-        max: Vector2 { x: 450.0, y: 200.0 },
-    };
+    // It should have a top-left of (350, 100) and a size of (150, 100)
+    let rect = Rectangle::new(Vector::new(0.0, 0.0), Vector::new(100.0, 100.0));
     gfx.fill_rect(&rect, Color::BLUE);
     gfx.stroke_rect(&rect, Color::RED);
     // Send the data to be drawn

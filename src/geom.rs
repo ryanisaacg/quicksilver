@@ -1,17 +1,27 @@
-use mint::Vector2;
+//! A 2D geometry module
+//!
+//! It contains basic shapes such as rectangles and circles, as well as vectors, lines, and a
+//! universal Shape API. It also has matrix-backed Transforms for arbitrary constant-time 2D
+//! transformations, such as rotating, scaling, or translating. 
+//!
+//! The Tilemap allows 2D storage of data in a world-like grid, and also moving objects at given
+//! speeds around the map, which is highly useful for games like platformers.
 
-pub struct Rect {
-    pub min: Vector2<f32>,
-    pub max: Vector2<f32>,
-}
-
-pub struct Circle {
-    pub center: Vector2<f32>,
-    pub radius: f32,
-}
-
-pub struct Line {
-    pub a: Vector2<f32>,
-    pub b: Vector2<f32>,
-    pub thickness: f32,
-}
+mod vector;
+mod rectangle;
+mod circle;
+mod objects;
+mod shape;
+mod transform;
+mod util;
+mod scalar;
+pub use self::{
+    vector::Vector,
+    rectangle::Rectangle,
+    circle::Circle,
+    objects::{Line, Triangle},
+    shape::Shape,
+    transform::Transform,
+    util::{about_equal, lerp, lerp_angle},
+    scalar::Scalar
+};

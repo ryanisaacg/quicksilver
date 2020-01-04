@@ -157,20 +157,17 @@ pub mod lifecycle {
         F: 'static + FnOnce(Window, Graphics, EventStream) -> T,
     {
         #[cfg(target_arch = "wasm32")]
-        web_logger::init_custom(log::Level::Info);
+        web_logger::custom_init(web_logger::Config {
+            level: log::Level::Debug
+        });
         #[cfg(not(target_arch = "wasm32"))]
-        simple_logger::init_with_level(log::Level::Info).expect("A logger was already initialized");
+        simple_logger::init_with_level(log::Level::Debug).expect("A logger was already initialized");
 
-        use crate::geom::Rect;
-        use mint::Vector2;
+        use crate::geom::{Rectangle, Transform};
 
         let size = settings.size;
-        let screen_region = Rect {
-            min: Vector2 { x: 0.0, y: 0.0 },
-            max: size,
-        };
-        run_gl(settings, |window, ctx, events| {
-            use crate::graphics::orthographic;
+        let screen_region = Rectangle::new_sized(size);
+        run_gl(settings, move |window, ctx, events| {
 
             #[cfg(not(target_arch = "wasm32"))]
             {
@@ -182,7 +179,7 @@ pub mod lifecycle {
 
             let ctx = golem::Context::from_glow(ctx).unwrap();
             let mut graphics = Graphics::new(ctx).unwrap();
-            graphics.set_projection(orthographic(screen_region));
+            graphics.set_projection(Transform::orthographic(screen_region));
 
             async {
                 match app(window, graphics, events).await {

@@ -30,6 +30,7 @@ travis-ci = { repository = "ryanisaacg/quicksilver", branch = "master" }
 maintenance = { status = "actively-developed" }
 
 [dependencies]
+bytemuck = "1.0"
 gestalt = { version = "0.1", optional = true }
 golem = "0.1.0-alpha5"
 image = "0.21"
@@ -37,7 +38,6 @@ log = "0.4"
 mint = "0.5.3"
 platter = "0.1"
 blinds = { version = "0.1.0-alpha8", features = ["gl"] }
-vek = { version = "0.9.10", features = ["mint"] }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 simple_logger = { version = "1.4", optional = true }

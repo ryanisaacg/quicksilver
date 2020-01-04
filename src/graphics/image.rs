@@ -1,7 +1,7 @@
 use super::{Graphics, PixelFormat};
 use crate::QuicksilverError;
+use crate::geom::Vector;
 
-use mint::Vector2;
 use std::path::Path;
 use std::rc::Rc;
 
@@ -55,8 +55,8 @@ impl Image {
         Rc::ptr_eq(&self.tex, &other.tex)
     }
 
-    pub fn size(&self) -> Vector2<f32> {
-        Vector2 {
+    pub fn size(&self) -> Vector {
+        Vector {
             x: self.raw().width() as f32,
             y: self.raw().height() as f32,
         }
