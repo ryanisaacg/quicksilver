@@ -76,7 +76,7 @@ impl Transform {
     pub fn then(self, next: Transform) -> Transform {
         next * self
     }
-    
+
     /// Find the inverse of a Transform
     ///
     /// A transform's inverse will cancel it out when multplied with it, as seen below:
@@ -90,7 +90,7 @@ impl Transform {
     /// ```
     #[must_use]
     pub fn inverse(&self) -> Transform {
-        let det = 
+        let det =
             self.0[0][0] * (self.0[1][1] * self.0[2][2] - self.0[2][1] * self.0[1][2])
             - self.0[0][1] * (self.0[1][0] * self.0[2][2] - self.0[1][2] * self.0[2][0])
             + self.0[0][2] * (self.0[1][0] * self.0[2][1] - self.0[1][1] * self.0[2][0]);
@@ -195,21 +195,9 @@ impl PartialEq for Transform {
 
 impl Eq for Transform {}
 
-impl From<[f32; 9]> for Transform {
-    fn from(array: [f32; 9]) -> Transform {
-        Transform(bytemuck::cast(array))
-    }
-}
-
 impl From<[[f32; 3]; 3]> for Transform {
     fn from(array: [[f32; 3]; 3]) -> Transform {
         Transform(array)
-    }
-}
-
-impl Into<[f32; 9]> for Transform {
-    fn into(self) -> [f32; 9] {
-        bytemuck::cast(self.0)
     }
 }
 
@@ -219,16 +207,16 @@ impl Into<[[f32; 3]; 3]> for Transform {
     }
 }
 
-impl From<mint::ColumnMatrix3<f32>> for Transform {
-    fn from(mat: mint::ColumnMatrix3<f32>) -> Transform {
+impl From<mint::RowMatrix3<f32>> for Transform {
+    fn from(mat: mint::RowMatrix3<f32>) -> Transform {
         let data: [f32; 9] = mat.into();
-        data.into()
+        Transform(bytemuck::cast(data))
     }
 }
 
-impl Into<mint::ColumnMatrix3<f32>> for Transform {
-    fn into(self) -> mint::ColumnMatrix3<f32> {
-        let data: [f32; 9] = self.into();
+impl Into<mint::RowMatrix3<f32>> for Transform {
+    fn into(self) -> mint::RowMatrix3<f32> {
+        let data: [f32; 9] = bytemuck::cast(self.0);
         data.into()
     }
 }

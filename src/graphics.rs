@@ -366,7 +366,7 @@ impl Graphics {
                     }
                     // If we're switching what projection to use, do so now
                     if let Some(projection) = first.1 {
-                        let matrix = projection.into();
+                        let matrix = Self::transform_to_gl(projection);
                         self.shader
                             .set_uniform("projection", UniformValue::Matrix3(matrix))?;
                     }
@@ -378,7 +378,7 @@ impl Graphics {
             }
             // If we're switching what transform to use, do so now
             if let Some(trans) = changes.1 {
-                let matrix = trans.into();
+                let matrix = Self::transform_to_gl(trans);
                 self.shader
                     .set_uniform("transform", UniformValue::Matrix3(matrix))?;
             }
@@ -393,6 +393,14 @@ impl Graphics {
         self.index_data.clear();
 
         Ok(())
+    }
+
+    // Handle converting a row-matrix transformation to a column-major array
+    fn transform_to_gl(trans: Transform) -> [f32; 9] {
+        let matrix: mint::RowMatrix3<f32> = trans.into();
+        let matrix: mint::ColumnMatrix3<f32> = matrix.into();
+        
+        matrix.into()
     }
 
     pub fn present(&mut self, win: &blinds::Window) -> Result<(), QuicksilverError> {
