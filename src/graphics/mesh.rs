@@ -1,4 +1,4 @@
-use crate::graphics::{Vertex, DrawGroup};
+use crate::graphics::{DrawGroup, Vertex};
 
 /// A way to store rendered objects without having to re-process them
 pub struct Mesh {

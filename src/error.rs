@@ -6,7 +6,7 @@ use std::io::Error as IOError;
 pub enum QuicksilverError {
     ImageError(ImageError),
     IOError(IOError),
-    GraphicsError(GolemError)
+    GraphicsError(GolemError),
 }
 
 impl From<ImageError> for QuicksilverError {

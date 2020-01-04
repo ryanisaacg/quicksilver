@@ -1,5 +1,5 @@
-use mint::{ColumnMatrix3, Vector2};
 use crate::graphics::{Color, Image};
+use mint::{ColumnMatrix3, Vector2};
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 /// A vertex for drawing items to the GPU
@@ -78,7 +78,7 @@ impl PartialOrd for GpuTriangle {
 impl Ord for GpuTriangle {
     fn cmp(&self, other: &GpuTriangle) -> Ordering {
         match self.z.partial_cmp(&other.z) {
-            None | Some(Ordering::Equal) => 
+            None | Some(Ordering::Equal) =>
                 match (&self.image, &other.image) {
                     (&Some(ref a), &Some(ref b)) => a.get_id().cmp(&b.get_id()),
                     (&Some(_), &None) => Ordering::Greater,

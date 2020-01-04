@@ -144,33 +144,35 @@ pub mod geom;
 pub mod graphics;
 //pub mod input;
 pub mod lifecycle {
-    use crate::Result;
     use crate::graphics::Graphics;
-    pub use blinds::{EventStream, Settings, Window, *};
+    use crate::Result;
     use blinds::run_gl;
+    pub use blinds::{EventStream, Settings, Window, *};
     use std::future::Future;
 
-
     pub fn run<F, T>(settings: Settings, app: F) -> !
-            where T: 'static + Future<Output = Result<()>>,
-                  F: 'static + FnOnce(Window, Graphics, EventStream) -> T {
+    where
+        T: 'static + Future<Output = Result<()>>,
+        F: 'static + FnOnce(Window, Graphics, EventStream) -> T,
+    {
         #[cfg(target_arch = "wasm32")]
         web_logger::init_custom(log::Level::Info);
         #[cfg(not(target_arch = "wasm32"))]
         simple_logger::init_with_level(log::Level::Info).expect("A logger was already initialized");
 
-        use mint::Vector2;
         use crate::geom::Rect;
+        use mint::Vector2;
 
         let size = settings.size;
         let screen_region = Rect {
             min: Vector2 { x: 0.0, y: 0.0 },
-            max: size
+            max: size,
         };
         run_gl(settings, |window, ctx, events| {
             use crate::graphics::orthographic;
 
-            #[cfg(not(target_arch="wasm32"))] {
+            #[cfg(not(target_arch = "wasm32"))]
+            {
                 if let Err(_) = std::env::set_current_dir("static") {
                     log::warn!("Warning: no asset directory found. Please place all your assets inside a directory called 'static' so they can be loaded");
                     log::warn!("Execution continuing, but any asset-not-found errors are likely due to the lack of a 'static' directory.")
@@ -199,7 +201,6 @@ pub mod saving {
 }
 pub use crate::error::QuicksilverError;
 pub use platter::load_file;
-
 
 //// A Result that returns either success or a Quicksilver Error
 pub type Result<T> = std::result::Result<T, QuicksilverError>;

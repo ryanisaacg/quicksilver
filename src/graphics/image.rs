@@ -1,5 +1,5 @@
-use crate::QuicksilverError;
 use super::{Graphics, PixelFormat};
+use crate::QuicksilverError;
 
 use mint::Vector2;
 use std::path::Path;
@@ -19,7 +19,13 @@ impl Image {
         }
     }
 
-    pub fn from_raw(gfx: &Graphics, data: &[u8], width: u32, height: u32, format: PixelFormat) -> Result<Image, QuicksilverError> {
+    pub fn from_raw(
+        gfx: &Graphics,
+        data: &[u8],
+        width: u32,
+        height: u32,
+        format: PixelFormat,
+    ) -> Result<Image, QuicksilverError> {
         Ok(Image::new(gfx.create_image(data, width, height, format)?))
     }
 
@@ -27,7 +33,13 @@ impl Image {
         let img = image::load_from_memory(raw)?.to_rgba();
         let width = img.width();
         let height = img.height();
-        Ok(Image::from_raw(gfx, img.into_raw().as_slice(), width, height, PixelFormat::RGBA)?)
+        Ok(Image::from_raw(
+            gfx,
+            img.into_raw().as_slice(),
+            width,
+            height,
+            PixelFormat::RGBA,
+        )?)
     }
 
     pub async fn load(gfx: &Graphics, path: impl AsRef<Path>) -> Result<Image, QuicksilverError> {
@@ -194,7 +206,7 @@ impl Error for ImageError {
             &ImageError::IOError(ref err) => err.description(),
         }
     }
-    
+
     fn cause(&self) -> Option<&dyn Error> {
         match self {
             &ImageError::DecodingError(ref err) => Some(err),

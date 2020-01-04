@@ -1,5 +1,5 @@
-use mint::*;
 use crate::geom::*;
+use mint::*;
 use vek::{Mat3, Vec2, Vec3};
 
 pub fn orthographic(rect: Rect) -> ColumnMatrix3<f32> {
@@ -15,4 +15,3 @@ pub fn orthographic(rect: Rect) -> ColumnMatrix3<f32> {
         .scaled_3d(Vec3::new(2.0, -2.0, 1.0))
         .into()
 }
-
