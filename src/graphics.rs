@@ -439,6 +439,35 @@ fn join_change_lists<'a, U, V> (
 
 const CIRCLE_LEN: usize = 63;
 
+// Until there's serious compile-time calculations in Rust,
+// it's best to just pre-write the points on a rasterized circle
+
+// Python script to generate the array:
+/*
+import math
+from math import pi
+
+
+def points_on_circumference(center=(0, 0), r=50, n=100):
+    n -= 1
+    return [
+        (
+            center[0]+(math.cos(2 * pi / n * x) * r),  # x
+            center[1] + (math.sin(2 * pi / n * x) * r)  # y
+
+        ) for x in range(0, n + 1)]
+
+
+number_of_points = 64
+points = points_on_circumference(center=(0,0),r=1, n=number_of_points)
+
+print("const CIRCLE_POINTS: [Vector; %i] = [" % number_of_points)
+
+for point in points:
+    print("    Vector { x: %s, y: %s }," % (point[0], point[1]))
+
+print("];")
+*/
 const CIRCLE_POINTS: [Vector2<f32>; CIRCLE_LEN] = [
     Vector2 { x: 1.0, y: 0.0 },
     Vector2 { x: 0.9950307753654014, y: 0.09956784659581666 },

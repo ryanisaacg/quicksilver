@@ -193,7 +193,6 @@ pub mod lifecycle {
         });
     }
 }
-//pub mod prelude;
 #[cfg(feature = "saving")]
 pub mod saving {
     pub use gestalt::*;
@@ -201,7 +200,6 @@ pub mod saving {
 pub use crate::error::QuicksilverError;
 pub use platter::load_file;
 
-//pub mod tutorials;
 
 //// A Result that returns either success or a Quicksilver Error
 pub type Result<T> = std::result::Result<T, QuicksilverError>;
