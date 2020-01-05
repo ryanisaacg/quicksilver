@@ -14,13 +14,11 @@ edition = "2018"
 
 [features]
 # complex_shapes, fonts, gamepads, sounds
-default = ["easy_log", "saving", "stdweb"]
+default = ["easy_log", "gamepad", "saving"]
 
 easy_log = ["simple_logger", "web_logger"]
-# fonts = ["rusttype"]
-# gamepads = ["gilrs"]
+gamepad = ["blinds/gamepad"]
 saving = ["gestalt"]
-# sounds = ["rodio"]
 stdweb = ["gestalt/stdweb", "platter/stdweb", "blinds/stdweb", "golem/stdweb"]
 web-sys = ["gestalt/web-sys", "platter/web-sys", "blinds/web-sys", "golem/web-sys"]
 
