@@ -159,7 +159,7 @@ impl fmt::Display for Transform {
             for j in 0..3 {
                 write!(f, "{},", self.0[i][j])?;
             }
-            write!(f, "\n")?;
+            writeln!(f)?;
         }
         write!(f, "]")
     }

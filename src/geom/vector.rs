@@ -148,7 +148,7 @@ impl Add for Vector {
 }
 
 impl AddAssign for Vector {
-    fn add_assign(&mut self, rhs: Vector) -> () {
+    fn add_assign(&mut self, rhs: Vector)  {
         *self = *self + rhs;
     }
 }
@@ -162,7 +162,7 @@ impl Sub for Vector {
 }
 
 impl SubAssign for Vector {
-    fn sub_assign(&mut self, rhs: Vector) -> () {
+    fn sub_assign(&mut self, rhs: Vector)  {
         *self = *self - rhs;
     }
 }
@@ -177,7 +177,7 @@ impl<T: Scalar> Div<T> for Vector {
 }
 
 impl<T: Scalar> DivAssign<T> for Vector {
-    fn div_assign(&mut self, rhs: T) -> () {
+    fn div_assign(&mut self, rhs: T)  {
         let rhs = rhs.float();
         *self = *self / rhs;
     }
@@ -193,7 +193,7 @@ impl<T: Scalar> Mul<T> for Vector {
 }
 
 impl<T: Scalar> MulAssign<T> for Vector {
-    fn mul_assign(&mut self, rhs: T) -> () {
+    fn mul_assign(&mut self, rhs: T)  {
         let rhs = rhs.float();
         *self = *self * rhs;
     }
