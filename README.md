@@ -64,7 +64,7 @@ async fn app(window: Window, mut gfx: Graphics, mut events: EventStream) -> Resu
 
 A good way to get started with Quicksilver is to
 [read and run the examples](https://github.com/ryanisaacg/quicksilver/tree/master/examples)
-which also serve as tutorials. IF you have any questions, feel free to open an issue or ask for
+which also serve as tutorials. If you have any questions, feel free to open an issue or ask for
 help in the [#gamdev channel in the Rust Community Discord](https://discord.gg/aVESxV8) from other
 Quicksilver users and developers.
 
