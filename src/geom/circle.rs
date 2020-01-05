@@ -22,9 +22,9 @@ impl Circle {
 
 impl PartialEq for Circle {
     fn eq(&self, other: &Circle) -> bool {
-        return about_equal(self.pos.x, other.pos.x)
+        about_equal(self.pos.x, other.pos.x)
             && about_equal(self.pos.y, other.pos.y)
-            && about_equal(self.radius, other.radius);
+            && about_equal(self.radius, other.radius)
     }
 }
 

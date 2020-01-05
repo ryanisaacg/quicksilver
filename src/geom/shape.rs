@@ -112,10 +112,10 @@ impl Shape for Rectangle {
     fn contains(&self, point: impl Into<Vector>) -> bool {
         let p = point.into();
 
-        return p.x >= self.x()
+        p.x >= self.x()
             && p.y >= self.y()
             && p.x < self.x() + self.width()
-            && p.y < self.y() + self.height();
+            && p.y < self.y() + self.height()
     }
     fn overlaps_circle(&self, c: &Circle) -> bool {
         (c.center()
