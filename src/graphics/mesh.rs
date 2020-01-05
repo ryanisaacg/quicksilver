@@ -7,7 +7,7 @@ pub struct Mesh {
     /// The properties that define the elements to draw
     pub elements: Vec<Element>,
     /// If the vertices reference an image, this is the image they will use
-    pub image: Option<Image>
+    pub image: Option<Image>,
 }
 
 /*

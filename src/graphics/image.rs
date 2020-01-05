@@ -46,7 +46,7 @@ impl Image {
             PixelFormat::RGBA,
         )?)
     }
-    
+
     /// Load an image from a file at the given path
     pub async fn load(gfx: &Graphics, path: impl AsRef<Path>) -> Result<Image, QuicksilverError> {
         let file_contents = platter::load_file(path).await?;

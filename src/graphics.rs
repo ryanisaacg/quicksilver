@@ -5,7 +5,7 @@
 //! existing drawing methods don't fit your needs, try [`Graphics::draw_elements`] for manual
 //! control over the shapes drawn.
 //!
-//! For loading and drawing images, to the screen, use [`Image`]. 
+//! For loading and drawing images, to the screen, use [`Image`].
 //!
 //! [`run`]: crate::lifecycle::run
 
@@ -39,7 +39,7 @@ use std::iter;
 /// applied to every single vertex, and it's advised to keep it constant as much as possible. The
 /// transformation is used to rotate, scale, or translate a handful of draw calls, and is set by
 /// [`Graphics::set_transform`].
-/// 
+///
 /// For best performance, try to reduce unnecessary state changes. Sources of state changes include
 /// changing the image you're drawing, changing the projection, or changing the type of geomety
 /// you're drawing.
