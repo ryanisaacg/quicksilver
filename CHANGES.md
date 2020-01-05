@@ -2,6 +2,32 @@
 
 ## In-development
 
+## 0.4.0-alpha0
+The API change *very breaking*. It can be considered nearly a full re-write of Quicksilver.
+
+- Added the new async API, via `blinds`
+- Added experimental support for `web-sys` behind the feature named `web-sys`
+- [Breaking] Moved `stdweb` support behind the feature named `stdweb`
+- [Breaking] Removed the following APIs/integrations, pending re-works (to be added before 0.4):
+    - BlendMode
+    - Font
+    - ImageScaleStrategy
+    - ResizeStrategy
+    - Sound
+    - Surface
+    - `lyon` integration
+- [Breaking] Removed the following APIs/integrations, (possibly to be added before 0.4);
+    - Keyboard
+    - Mouse
+- [Breaking] Removed the following APIs/integrations permanently:
+    - Asset
+    - Animation
+    - Atlas
+    - State
+    - combinators module
+    - `immi` integration
+    - `nalgebra` integration (replaced with `mint` integration)
+
 ## 0.3.21
 - Fix gamepad buttons mistakenly marked as `Released` instead of `NotPressed`
 
