@@ -1,6 +1,7 @@
 # Changelog
 
 ## In-development
+- [Breaking, Soundness Fix] Mark Surface::render_to as unsafe
 
 ## 0.3.21
 - Fix gamepad buttons mistakenly marked as `Released` instead of `NotPressed`
