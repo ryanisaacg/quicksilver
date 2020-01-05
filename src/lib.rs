@@ -18,17 +18,17 @@
 //!
 //! Create a rust project and add this line to your `Cargo.toml` file under `[dependencies]`:
 //! ```text
-//!     quicksilver = "*"
+//!     quicksilver = "=0.4.0-alpha0"
 //! ```
 //! Then replace `src/main.rs` with the following (the contents of quicksilver's
-//! `examples/draw-geometry.rs`):
+//! `examples/01_square.rs`):
 //!
 //! ```no_run
 //! // Example 1: The Square
 //! // Open a window, and draw a colored square in it
 //! use mint::Vector2;
 //! use quicksilver::{
-//!     geom::Rect,
+//!     geom::{Rectangle, Vector},
 //!     graphics::{Color, Graphics},
 //!     lifecycle::{run, EventStream, Settings, Window},
 //!     Result,
@@ -49,11 +49,8 @@
 //!     // Clear the screen to a blank, white color
 //!     gfx.clear(Color::WHITE);
 //!     // Paint a blue square with a red outline in the center of our screen
-//!     // It should have a top-left of (350, 100) and a bottom-left of (450, 200)
-//!     let rect = Rect {
-//!         min: Vector2 { x: 350.0, y: 100.0 },
-//!         max: Vector2 { x: 450.0, y: 200.0 },
-//!     };
+//!     // It should have a top-left of (350, 100) and a size of (150, 100)
+//!     let rect = Rectangle::new(Vector::new(350.0, 100.0), Vector::new(100.0, 100.0));
 //!     gfx.fill_rect(&rect, Color::BLUE);
 //!     gfx.stroke_rect(&rect, Color::RED);
 //!     // Send the data to be drawn
@@ -105,13 +102,14 @@
 //! [installed the cargo web tool](https://github.com/koute/cargo-web). Then use `cargo web deploy`
 //! to build your application for distribution (located at `target/deploy`).
 //!
-//! If you want to test your application locally, use `cargo web start` and open your favorite
-//! browser to the port it provides.
+//! If you want to test your application locally, use `cargo web start --features stdweb` and open your
+//! favorite browser to the port it provides.
 //!
 //! #### wasm-bindgen support
 //!
-//! Quicksilver has recently gained experimental support for `wasm-bindgen`. The workflow is not
-//! currently documented here, but it should be the same as any other library.
+//! Quicksilver has recently gained experimental support for `wasm-bindgen`, under the `web-sys`
+//! feature. The workflow is not currently documented here, but it should be the same as any other
+//! library.
 //!
 //! ## Optional Features
 //!
@@ -122,6 +120,7 @@
 //! - easy logging (via [log](https://github.com/rust-lang/log),
 //! [simple_logger](https://github.com/borntyping/rust-simple_logger), and
 //! [web_logger](https://github.com/yewstack/web_logger))
+//! - gamepad event generation (via [gilrs](https://gitlab.com/gilrs-project/gilrs))
 //! - saving (via [gestalt](https://github.com/ryanisaacg/golem))
 //!
 //! Each are enabled by default, but you can
