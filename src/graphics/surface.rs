@@ -30,7 +30,7 @@ impl Surface {
     ///Render data to the surface
     ///
     ///Do not attempt to use the surface or its image within the function, because it is undefined behavior
-    pub fn render_to(&self, window: &mut Window, func: impl FnOnce(&mut Window) -> Result<()>) -> Result<()> {
+    pub unsafe fn render_to(&self, window: &mut Window, func: impl FnOnce(&mut Window) -> Result<()>) -> Result<()> {
         let backend = unsafe { instance() };
         let view = window.view();
         let viewport = unsafe {
