@@ -25,7 +25,7 @@ async fn app(window: Window, mut gfx: Graphics, mut events: EventStream) -> Resu
     let image = Image::load(&gfx, "image.png").await?;
     gfx.clear(Color::WHITE);
     // Draw the image with the top-left at (100, 100)
-    let region = Rectangle::new(Vector::new(000.0, 000.0), image.size());
+    let region = Rectangle::new(Vector::new(100.0, 100.0), image.size());
     gfx.draw_image(&image, region);
     gfx.present(&window)?;
 
