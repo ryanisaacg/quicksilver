@@ -1,23 +1,11 @@
-#[cfg(feature="nalgebra")] use nalgebra::{
-    core::Vector2,
-    geometry::Point2
-};
-
 use crate::geom::{about_equal, Scalar};
-use rand::{
-    Rng,
-    distributions::{Distribution, Standard}
-};
 use std::{
-    ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign},
     cmp::{Eq, PartialEq},
-    fmt
+    fmt,
+    ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign},
 };
-#[cfg(not(target_arch = "wasm32"))]
-use glutin::dpi::{LogicalPosition, PhysicalPosition, LogicalSize, PhysicalSize};
 
-
-#[derive(Copy, Clone, Default, Debug, Deserialize, Serialize)]
+#[derive(Copy, Clone, Default, Debug)]
 ///A 2D vector with an arbitrary numeric type
 pub struct Vector {
     ///The x coordinate of the vector
@@ -26,39 +14,33 @@ pub struct Vector {
     pub y: f32,
 }
 
-
 impl Vector {
     /// A vector with x = 0, y = 0
     pub const ZERO: Vector = Vector { x: 0f32, y: 0f32 };
     /// A vector with x = 1, y = 0
-    pub const X: Vector    = Vector { x: 1f32, y: 0f32 };
+    pub const X: Vector = Vector { x: 1f32, y: 0f32 };
     /// A vector with x = 0, y = 1
-    pub const Y: Vector    =  Vector { x: 0f32, y: 1f32 };
+    pub const Y: Vector = Vector { x: 0f32, y: 1f32 };
     /// A vector with x = 1, y = 1
-    pub const ONE: Vector  =  Vector { x: 1f32, y: 1f32 };
+    pub const ONE: Vector = Vector { x: 1f32, y: 1f32 };
 }
 
+#[allow(clippy::len_without_is_empty)]
 impl Vector {
     ///Create a new vector
     pub fn new(x: impl Scalar, y: impl Scalar) -> Vector {
-        Vector { x: x.float(), y: y.float() }
-    }
-
-    ///Convert this vector into an nalgebra Vector2
-    #[cfg(feature="nalgebra")]
-    pub fn into_vector(self) -> Vector2<f32> {
-        Vector2::new(self.x, self.y)
-    }
-   
-    ///Convert this vector into an nalgebra Point2
-    #[cfg(feature="nalgebra")]
-    pub fn into_point(self) -> Point2<f32> {
-        Point2::new(self.x, self.y)
+        Vector {
+            x: x.float(),
+            y: y.float(),
+        }
     }
 
     ///Create a unit vector at a given angle
     pub fn from_angle<T: Scalar>(angle: T) -> Vector {
-        Vector::new(angle.float().to_radians().cos(), angle.float().to_radians().sin())
+        Vector::new(
+            angle.float().to_radians().cos(),
+            angle.float().to_radians().sin(),
+        )
     }
 
     ///Get the squared length of the vector (faster than getting the length)
@@ -80,7 +62,7 @@ impl Vector {
             max_bound.y.min(min_bound.y.max(self.y)),
         )
     }
-    
+
     ///Get the cross product of a vector
     pub fn cross(self, other: impl Into<Vector>) -> f32 {
         let other = other.into();
@@ -119,8 +101,7 @@ impl Vector {
 
     ///Multiply the components in the matching places
     #[must_use]
-    pub fn times(self, other: impl Into<Vector>) -> Vector {
-        let other = other.into();
+    pub fn times(self, other: Vector) -> Vector {
         Vector::new(self.x * other.x, self.y * other.y)
     }
 
@@ -136,27 +117,18 @@ impl Vector {
     }
 
     ///Get the Euclidean distance to another vector
-    pub fn distance(self, other: impl Into<Vector>) -> f32 {
-        let other = other.into();
+    pub fn distance(self, other: Vector) -> f32 {
         ((other.x - self.x).powi(2) + (other.y - self.y).powi(2)).sqrt()
     }
 
     ///Get a vector with the minimum of each component of this and another vector
-    pub fn min(self, other: impl Into<Vector>) -> Vector {
-        let other = other.into();
-        Vector::new(
-            self.x.min(other.x),
-            self.y.min(other.y)
-        )
+    pub fn min(self, other: Vector) -> Vector {
+        Vector::new(self.x.min(other.x), self.y.min(other.y))
     }
 
     ///Get a vector with the maximum of each component of this and another vector
-    pub fn max(self, other: impl Into<Vector>) -> Vector {
-        let other = other.into();
-        Vector::new(
-            self.x.max(other.x),
-            self.y.max(other.y)
-        )
+    pub fn max(self, other: Vector) -> Vector {
+        Vector::new(self.x.max(other.x), self.y.max(other.y))
     }
 }
 
@@ -177,7 +149,7 @@ impl Add for Vector {
 }
 
 impl AddAssign for Vector {
-    fn add_assign(&mut self, rhs: Vector) -> () {
+    fn add_assign(&mut self, rhs: Vector) {
         *self = *self + rhs;
     }
 }
@@ -191,7 +163,7 @@ impl Sub for Vector {
 }
 
 impl SubAssign for Vector {
-    fn sub_assign(&mut self, rhs: Vector) -> () {
+    fn sub_assign(&mut self, rhs: Vector) {
         *self = *self - rhs;
     }
 }
@@ -206,7 +178,7 @@ impl<T: Scalar> Div<T> for Vector {
 }
 
 impl<T: Scalar> DivAssign<T> for Vector {
-    fn div_assign(&mut self, rhs: T) -> () {
+    fn div_assign(&mut self, rhs: T) {
         let rhs = rhs.float();
         *self = *self / rhs;
     }
@@ -222,12 +194,11 @@ impl<T: Scalar> Mul<T> for Vector {
 }
 
 impl<T: Scalar> MulAssign<T> for Vector {
-    fn mul_assign(&mut self, rhs: T) -> () {
+    fn mul_assign(&mut self, rhs: T) {
         let rhs = rhs.float();
         *self = *self * rhs;
     }
 }
-
 
 impl PartialEq for Vector {
     fn eq(&self, other: &Vector) -> bool {
@@ -243,82 +214,18 @@ impl fmt::Display for Vector {
     }
 }
 
-impl Distribution<Vector> for Standard {
-    fn sample<R: Rng + ?Sized>(&self, rand: &mut R) -> Vector {
-        Vector {
-            x: self.sample(rand),
-            y: self.sample(rand)
+impl From<mint::Vector2<f32>> for Vector {
+    fn from(other: mint::Vector2<f32>) -> Vector {
+        Vector::new(other.x, other.y)
+    }
+}
+
+impl Into<mint::Vector2<f32>> for Vector {
+    fn into(self) -> mint::Vector2<f32> {
+        mint::Vector2 {
+            x: self.x,
+            y: self.y,
         }
-    }
-}
-
-#[cfg(feature="nalgebra")]
-impl From<Vector2<f32>> for Vector {
-    fn from(other: Vector2<f32>) -> Vector {
-        Vector::new(other.x, other.y)
-    }
-}
-
-#[cfg(feature="nalgebra")]
-impl From<Point2<f32>> for Vector {
-    fn from(other: Point2<f32>) -> Vector {
-        Vector::new(other.x, other.y)
-    }
-}
-
-#[cfg(not(target_arch = "wasm32"))]
-impl From<Vector> for LogicalPosition {
-    fn from(other: Vector) -> LogicalPosition {
-        LogicalPosition::new(other.x as f64, other.y as f64)
-    }
-}
-
-#[cfg(not(target_arch = "wasm32"))]
-impl From<Vector> for PhysicalPosition {
-    fn from(other: Vector) -> PhysicalPosition {
-        PhysicalPosition::new(other.x as f64, other.y as f64)
-    }
-}
-
-#[cfg(not(target_arch = "wasm32"))]
-impl From<LogicalPosition> for Vector {
-    fn from(other: LogicalPosition) -> Vector {
-        Vector::new(other.x as f32, other.y as f32)
-    }
-}
-
-#[cfg(not(target_arch = "wasm32"))]
-impl From<PhysicalPosition> for Vector {
-    fn from(other: PhysicalPosition) -> Vector {
-        Vector::new(other.x as f32, other.y as f32)
-    }
-}
-
-#[cfg(not(target_arch = "wasm32"))]
-impl From<Vector> for LogicalSize {
-    fn from(other: Vector) -> LogicalSize {
-        LogicalSize::new(other.x as f64, other.y as f64)
-    }
-}
-
-#[cfg(not(target_arch = "wasm32"))]
-impl From<Vector> for PhysicalSize {
-    fn from(other: Vector) -> PhysicalSize {
-        PhysicalSize::new(other.x as f64, other.y as f64)
-    }
-}
-
-#[cfg(not(target_arch = "wasm32"))]
-impl From<LogicalSize> for Vector {
-    fn from(other: LogicalSize) -> Vector {
-        Vector::new(other.width as f32, other.height as f32)
-    }
-}
-
-#[cfg(not(target_arch = "wasm32"))]
-impl From<PhysicalSize> for Vector {
-    fn from(other: PhysicalSize) -> Vector {
-        Vector::new(other.width as f32, other.height as f32)
     }
 }
 
@@ -381,7 +288,10 @@ mod tests {
 
     #[test]
     fn dot() {
-        assert!(about_equal(Vector::new(6, 5).dot(Vector::new(2, -8)), -28f32));
+        assert!(about_equal(
+            Vector::new(6, 5).dot(Vector::new(2, -8)),
+            -28f32
+        ));
     }
 
     #[test]

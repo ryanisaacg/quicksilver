@@ -1,7 +1,7 @@
 use crate::geom::Vector;
 use std::cmp::{Eq, PartialEq};
 
-#[derive(Clone, Copy, Default, Debug, Deserialize, Serialize)]
+#[derive(Clone, Copy, Default, Debug)]
 ///A triangle with three points
 pub struct Triangle {
     ///The first point
@@ -15,16 +15,19 @@ pub struct Triangle {
 impl Triangle {
     ///Create a triangle from `Vector`s of all three points
     pub fn new(a: impl Into<Vector>, b: impl Into<Vector>, c: impl Into<Vector>) -> Triangle {
-        Triangle { 
+        Triangle {
             a: a.into(),
             b: b.into(),
-            c: c.into()
+            c: c.into(),
         }
     }
     ///Calculate the area of the triangle
     pub fn area(self) -> f32 {
         // Heron's Formula
-        ((self.b.x - self.a.x) * (self.c.y - self.a.y) - (self.c.x - self.a.x) * (self.b.y - self.a.y)).abs() / 2.0
+        ((self.b.x - self.a.x) * (self.c.y - self.a.y)
+            - (self.c.x - self.a.x) * (self.b.y - self.a.y))
+            .abs()
+            / 2.0
     }
 }
 

@@ -1,12 +1,10 @@
-#[cfg(feature="nalgebra")] use nalgebra::core::Matrix3;
-
-use crate::geom::{about_equal, Scalar, Vector};
+use crate::geom::{about_equal, Rectangle, Scalar, Vector};
 use std::{
-    ops::Mul,
+    cmp::{Eq, PartialEq},
+    default::Default,
     f32::consts::PI,
     fmt,
-    default::Default,
-    cmp::{Eq, PartialEq}
+    ops::Mul,
 };
 
 /// A 2D transformation represented by a matrix
@@ -32,57 +30,47 @@ use std::{
 /// transform * Vector::new(5, 5)
 /// # ;
 /// ```
-#[derive(Clone, Copy, Debug, Deserialize, Serialize)]
+#[derive(Clone, Copy, Debug)]
 pub struct Transform([[f32; 3]; 3]);
 
 impl Transform {
-    ///The identity transformation
-    pub const IDENTITY: Transform = Transform([[1f32, 0f32, 0f32],
-                  [0f32, 1f32, 0f32],
-                  [0f32, 0f32, 1f32]]);
+    /// The identity transformation
+    pub const IDENTITY: Transform =
+        Transform([[1f32, 0f32, 0f32], [0f32, 1f32, 0f32], [0f32, 0f32, 1f32]]);
 
-    ///Create a Transform from an arbitrary matrix in a column-major matrix
-    pub fn from_array(array: [[f32; 3]; 3]) -> Transform {
-        Transform(array)
-    }
-
-    ///Create a rotation transformation
+    /// Create a rotation transformation
     pub fn rotate<T: Scalar>(angle: T) -> Transform {
         let angle = angle.float();
         let c = (angle * PI / 180f32).cos();
         let s = (angle * PI / 180f32).sin();
-        Transform([[c, -s, 0f32],
-                  [s, c, 0f32],
-                  [0f32, 0f32, 1f32]])
+        Transform([[c, -s, 0f32], [s, c, 0f32], [0f32, 0f32, 1f32]])
     }
 
-    ///Create a translation transformation
+    /// Create a translation transformation
     pub fn translate(vec: impl Into<Vector>) -> Transform {
         let vec = vec.into();
-        Transform([[1f32, 0f32, vec.x],
-                  [0f32, 1f32, vec.y],
-                  [0f32, 0f32, 1f32]])
+        Transform([[1f32, 0f32, vec.x], [0f32, 1f32, vec.y], [0f32, 0f32, 1f32]])
     }
 
-    ///Create a scale transformation
+    /// Create a scale transformation
     pub fn scale(vec: impl Into<Vector>) -> Transform {
         let vec = vec.into();
-        Transform([[vec.x, 0f32, 0f32],
-                  [0f32, vec.y, 0f32],
-                  [0f32, 0f32, 1f32]])
+        Transform([[vec.x, 0f32, 0f32], [0f32, vec.y, 0f32], [0f32, 0f32, 1f32]])
     }
-   
-    #[cfg(feature="nalgebra")]
-    ///Convert the Transform into an nalgebra Matrix3
-    pub fn into_matrix(self) -> Matrix3<f32> {
-        Matrix3::new(
-            self.0[0][0], self.0[0][1], self.0[0][2],
-            self.0[1][0], self.0[1][1], self.0[1][2],
-            self.0[2][0], self.0[2][1], self.0[2][2],
-        )
+
+    /// Create an orthographic projection
+    pub fn orthographic(rect: Rectangle) -> Transform {
+        Transform::translate(-rect.pos)
+            .then(Transform::scale(rect.size.recip()))
+            .then(Transform::translate(-Vector::ONE / 2.0))
+            .then(Transform::scale(Vector::new(2.0, -2.0)))
     }
- 
-    ///Find the inverse of a Transform
+
+    pub fn then(self, next: Transform) -> Transform {
+        next * self
+    }
+
+    /// Find the inverse of a Transform
     ///
     /// A transform's inverse will cancel it out when multplied with it, as seen below:
     /// ```
@@ -95,8 +83,7 @@ impl Transform {
     /// ```
     #[must_use]
     pub fn inverse(&self) -> Transform {
-        let det = 
-            self.0[0][0] * (self.0[1][1] * self.0[2][2] - self.0[2][1] * self.0[1][2])
+        let det = self.0[0][0] * (self.0[1][1] * self.0[2][2] - self.0[2][1] * self.0[1][2])
             - self.0[0][1] * (self.0[1][0] * self.0[2][2] - self.0[1][2] * self.0[2][0])
             + self.0[0][2] * (self.0[1][0] * self.0[2][1] - self.0[1][1] * self.0[2][0]);
 
@@ -116,7 +103,7 @@ impl Transform {
     }
 }
 
-///Concat two transforms A and B such that A * B * v = A * (B * v)
+/// Concat two transforms A and B such that A * B * v = A * (B * v)
 impl Mul<Transform> for Transform {
     type Output = Transform;
 
@@ -134,7 +121,7 @@ impl Mul<Transform> for Transform {
     }
 }
 
-///Transform a vector
+/// Transform a vector
 impl Mul<Vector> for Transform {
     type Output = Vector;
 
@@ -172,7 +159,7 @@ impl fmt::Display for Transform {
             for j in 0..3 {
                 write!(f, "{},", self.0[i][j])?;
             }
-            write!(f, "\n")?;
+            writeln!(f)?;
         }
         write!(f, "]")
     }
@@ -183,7 +170,6 @@ impl Default for Transform {
         Transform::IDENTITY
     }
 }
-
 
 impl PartialEq for Transform {
     fn eq(&self, other: &Transform) -> bool {
@@ -200,13 +186,29 @@ impl PartialEq for Transform {
 
 impl Eq for Transform {}
 
+impl From<[[f32; 3]; 3]> for Transform {
+    fn from(array: [[f32; 3]; 3]) -> Transform {
+        Transform(array)
+    }
+}
 
-#[cfg(feature="nalgebra")]
-impl From<Matrix3<f32>> for Transform {
-    fn from(other: Matrix3<f32>) -> Transform {
-        Transform([[other[0], other[1], other[2]],
-                  [other[3], other[4], other[5]],
-                  [other[6], other[7], other[8]]])
+impl Into<[[f32; 3]; 3]> for Transform {
+    fn into(self) -> [[f32; 3]; 3] {
+        self.0
+    }
+}
+
+impl From<mint::RowMatrix3<f32>> for Transform {
+    fn from(mat: mint::RowMatrix3<f32>) -> Transform {
+        let data: [f32; 9] = mat.into();
+        Transform(bytemuck::cast(data))
+    }
+}
+
+impl Into<mint::RowMatrix3<f32>> for Transform {
+    fn into(self) -> mint::RowMatrix3<f32> {
+        let data: [f32; 9] = bytemuck::cast(self.0);
+        data.into()
     }
 }
 
@@ -251,16 +253,19 @@ mod tests {
 
     #[test]
     fn identity() {
-        let trans = Transform::IDENTITY * Transform::translate(Vector::ZERO) *
-            Transform::rotate(0f32) * Transform::scale(Vector::ONE);
+        let trans = Transform::IDENTITY
+            * Transform::translate(Vector::ZERO)
+            * Transform::rotate(0f32)
+            * Transform::scale(Vector::ONE);
         let vec = Vector::new(15, 12);
         assert_eq!(vec, trans * vec);
     }
 
     #[test]
     fn complex_inverse() {
-        let a = Transform::rotate(5f32) * Transform::scale(Vector::new(0.2, 1.23)) *
-            Transform::translate(Vector::ONE * 100f32);
+        let a = Transform::rotate(5f32)
+            * Transform::scale(Vector::new(0.2, 1.23))
+            * Transform::translate(Vector::ONE * 100f32);
         let a_inv = a.inverse();
         let vec = Vector::new(120f32, 151f32);
         assert_eq!(vec, a * a_inv * vec);
@@ -268,12 +273,19 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature="nalgebra")]
-    fn conversion() {
-        let transform = Transform::rotate(5);
-        let vector = Vector::new(1, 2);
-        let na_matrix = transform.into_matrix();
-        let na_vector = vector.into_vector();
-        assert_eq!(transform * vector, (na_matrix.transform_vector(&na_vector)).into());
+    fn ortho() {
+        let region = Rectangle::new(Vector::new(40.0, 40.0), Vector::new(50.0, 50.0));
+        let view = Transform::orthographic(region);
+        assert_eq!(view * region.pos, -Vector::X + Vector::Y);
+        assert_eq!(
+            view * (region.pos + region.size.y_comp()),
+            -Vector::X + -Vector::Y
+        );
+        assert_eq!(view * (region.pos + region.size), Vector::X + -Vector::Y);
+        assert_eq!(
+            view * (region.pos + region.size.x_comp()),
+            Vector::X + Vector::Y
+        );
+        assert_eq!(view * (region.pos + region.size / 2), Vector::ZERO);
     }
 }

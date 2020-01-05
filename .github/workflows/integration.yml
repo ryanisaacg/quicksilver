@@ -1,0 +1,32 @@
+name: Integration
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macOS-latest]
+        rust: [stable, nightly]
+    steps:
+    - uses: hecrj/setup-rust-action@v1.2.0
+      with:
+        rust-version: ${{ matrix.rust }}
+        components: clippy,rustfmt
+        targets: wasm32-unknown-unknown
+    - uses: actions/checkout@master
+    - name: Install libudev
+      if: matrix.os == 'ubuntu-latest'
+      run: sudo apt update && sudo apt install libudev-dev
+    - name: Check formatting
+      if: matrix.rust == 'stable'
+      run: cargo fmt -- --check
+    - name: Clippy desktop
+      run: cargo clippy -- -D warnings
+    - name: Check stdweb
+      if: matrix.os == 'macOS-latest'
+      run: cargo install cargo-web && cargo web check --features stdweb
+    - name: Clippy web-sys
+      if: matrix.os == 'macOS-latest'
+      run: cargo clippy --target wasm32-unknown-unknown --features web-sys -- -D warnings
+    - name: Examples
+      run: cargo test --examples

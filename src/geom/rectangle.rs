@@ -1,55 +1,30 @@
-#[cfg(feature="ncollide2d")] use ncollide2d::{
-    bounding_volume::AABB,
-    shape::Cuboid
-};
 use crate::geom::{about_equal, Vector};
 use std::cmp::{Eq, PartialEq};
 
-#[derive(Clone, Copy, Default, Debug, Deserialize, Serialize)]
+#[derive(Clone, Copy, Default, Debug)]
 ///A rectangle with a top-left position and a size
 pub struct Rectangle {
     ///The top-left coordinate of the rectangle
     pub pos: Vector,
     ///The width and height of the rectangle
-    pub size: Vector
+    pub size: Vector,
 }
 
 impl Rectangle {
     ///Create a rectangle from a top-left vector and a size vector
     pub fn new(pos: impl Into<Vector>, size: impl Into<Vector>) -> Rectangle {
         Rectangle {
-            pos:  pos.into(),
-            size: size.into()
+            pos: pos.into(),
+            size: size.into(),
         }
     }
 
     ///Create a rectangle at the origin with the given size
     pub fn new_sized(size: impl Into<Vector>) -> Rectangle {
         Rectangle {
-            pos:  Vector::ZERO,
-            size: size.into()
+            pos: Vector::ZERO,
+            size: size.into(),
         }
-    }
-
-    #[cfg(feature="ncollide2d")]
-    ///Create a rectangle with a given center and Cuboid from ncollide
-    pub fn from_cuboid(center: impl Into<Vector>, cuboid: &Cuboid<f32>) -> Rectangle {
-        let half_size = cuboid.half_extents().clone().into();
-        Rectangle::new(center.into() - half_size, half_size * 2)
-    }
-   
-    ///Convert this rect into an ncollide Cuboid2
-    #[cfg(feature="ncollide2d")]
-    pub fn into_cuboid(self) -> Cuboid<f32> {
-        Cuboid::new((self.size() / 2).into_vector())
-    }
-    
-    ///Convert this rect into an ncollide AABB2
-    #[cfg(feature="ncollide2d")]
-    pub fn into_aabb(self) -> AABB<f32> { 
-        let min = self.top_left().into_point(); 
-        let max = (self.top_left() + self.size()).into_point();
-        AABB::new(min, max)
     }
 
     ///Get the top left coordinate of the Rectangle
@@ -87,21 +62,14 @@ impl Rectangle {
 
 impl PartialEq for Rectangle {
     fn eq(&self, other: &Rectangle) -> bool {
-        about_equal(self.x(), other.pos.x) && about_equal(self.y(), other.pos.y) && about_equal(self.width(), other.size.x)
+        about_equal(self.x(), other.pos.x)
+            && about_equal(self.y(), other.pos.y)
+            && about_equal(self.width(), other.size.x)
             && about_equal(self.height(), other.size.y)
     }
 }
 
 impl Eq for Rectangle {}
-
-#[cfg(feature="ncollide2d")]
-impl From<AABB<f32>> for Rectangle {
-    fn from(other: AABB<f32>) -> Rectangle {
-        let min: Vector = Clone::clone(other.mins()).into();
-        let max: Vector = Clone::clone(other.maxs()).into();
-        Rectangle::new(min, max - min)
-    }
-}
 
 #[cfg(test)]
 mod tests {

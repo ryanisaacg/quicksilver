@@ -1,10 +1,7 @@
-#[cfg(feature="ncollide2d")] use ncollide2d::shape::Ball;
 use crate::geom::{about_equal, Scalar, Vector};
-use std::{
-    cmp::{Eq, PartialEq},
-};
+use std::cmp::{Eq, PartialEq};
 
-#[derive(Clone, Copy, Default, Debug, Deserialize, Serialize)]
+#[derive(Clone, Copy, Default, Debug)]
 ///A circle with a center and a radius
 pub struct Circle {
     /// The position of the center of the circle
@@ -17,27 +14,15 @@ impl Circle {
     /// Create a circle with the center as a vector
     pub fn new(center: impl Into<Vector>, radius: impl Scalar) -> Circle {
         Circle {
-            pos:    center.into(),
-            radius: radius.float()
+            pos: center.into(),
+            radius: radius.float(),
         }
-    }
-
-    ///Construct a circle from a center and a Ball
-    #[cfg(feature="ncollide2d")]
-    pub fn from_ball(center: impl Into<Vector>, ball: Ball<f32>) -> Circle {
-        Circle::new(center.into(), ball.radius())
-    }
-
-    ///Convert the circle into an ncollide Ball
-    #[cfg(feature="ncollide2d")]
-    pub fn into_ball(self) -> Ball<f32> {
-        Ball::new(self.radius)
     }
 }
 
 impl PartialEq for Circle {
     fn eq(&self, other: &Circle) -> bool {
-        return about_equal(self.pos.x, other.pos.x)
+        about_equal(self.pos.x, other.pos.x)
             && about_equal(self.pos.y, other.pos.y)
             && about_equal(self.radius, other.radius)
     }
@@ -93,7 +78,9 @@ mod tests {
     fn translate() {
         let circ = Circle::new((0, 0), 16);
         let translate = Vector::new(4, 4);
-        assert_eq!(circ.center() + translate, circ.translate(translate).center());
+        assert_eq!(
+            circ.center() + translate,
+            circ.translate(translate).center()
+        );
     }
-
 }

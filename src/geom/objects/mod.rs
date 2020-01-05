@@ -1,7 +1,4 @@
 mod line;
 mod triangle;
 
-pub use self::{
-    line::Line,
-    triangle::Triangle,
-};
+pub use self::{line::Line, triangle::Triangle};

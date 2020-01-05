@@ -1,16 +1,16 @@
-use crate::{
-    geom::{Transform, Vector},
-    graphics::{Background, GpuTriangle, Vertex}
-};
+use crate::graphics::{Element, Image, Vertex};
 
 /// A way to store rendered objects without having to re-process them
 pub struct Mesh {
     /// All the vertices in the mesh
     pub vertices: Vec<Vertex>,
-    /// All the triangles in the mesh
-    pub triangles: Vec<GpuTriangle>
+    /// The properties that define the elements to draw
+    pub elements: Vec<Element>,
+    /// If the vertices reference an image, this is the image they will use
+    pub image: Option<Image>,
 }
 
+/*
 impl Mesh {
     /// Create a new, empty mesh
     ///
@@ -42,4 +42,4 @@ impl Mesh {
         self.vertices.extend(other.vertices.iter().cloned());
         self.triangles.extend(other.triangles.iter().cloned());
     }
-}
+}*/

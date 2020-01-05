@@ -1,93 +1,26 @@
-use crate::{
-    geom::{Scalar, Vector},
-    graphics::{Background, Color, Image}
-};
-use std::cmp::Ordering;
+use crate::geom::Vector;
+use crate::graphics::Color;
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 /// A vertex for drawing items to the GPU
 pub struct Vertex {
-    /// The position of the vertex in space
+    /// The position of the vertex in 2D space
     pub pos: Vector,
     /// If there is a texture attached to this vertex, where to get the texture data from
     ///
     /// It is normalized from 0 to 1
-    pub tex_pos: Option<Vector>,
+    pub uv: Option<Vector>,
     /// The color to blend this vertex with
-    pub col: Color,
+    pub color: Color,
 }
 
-impl Vertex {
-    /// Create a new GPU vertex
-    pub fn new(pos: impl Into<Vector>, tex_pos: Option<Vector>, bkg: Background) -> Vertex {
-        Vertex {
-            pos: pos.into(),
-            tex_pos: tex_pos.map(|pos| pos.into()),
-            col: bkg.color()
-        }
-    }
-}
-
+/// A shape to draw, using uploaded [`Vertex`] values
 #[derive(Clone)]
-/// A triangle to draw to the GPU
-pub struct GpuTriangle {
-    /// The plane the triangle falls on
-    pub z: f32,
-    /// The indexes in the vertex list that the GpuTriangle uses
-    pub indices: [u32; 3],
-    /// The (optional) image used by the GpuTriangle
-    ///
-    /// All of the vertices used by the triangle should agree on whether it uses an image,
-    /// it is up to you to maintain this
-    pub image: Option<Image>
+pub enum Element {
+    /// A single point, with the given vertex index
+    Point(u32),
+    /// A line 1 pixel thick, with the two given vertices
+    Line([u32; 2]),
+    /// A filled triangle, with the 3 given indices
+    Triangle([u32; 3]),
 }
-
-impl GpuTriangle {
-    /// Create a new untextured GPU Triangle
-    pub fn new(offset: u32, indices: [u32; 3], z: impl Scalar, bkg: Background) -> GpuTriangle {
-        GpuTriangle {
-            z: z.float(),
-            indices: [indices[0] + offset, indices[1] + offset, indices[2] + offset],
-            image: bkg.image().cloned()
-        }
-    }
-}
-
-#[doc(hidden)]
-impl PartialEq for GpuTriangle {
-    fn eq(&self, other: &GpuTriangle) -> bool {
-        match (&self.image, &other.image) {
-            (&Some(ref a), &Some(ref b)) => a.get_id() == b.get_id(),
-            (&None, &None) => true,
-            _ => false
-        }
-    }
-}
-
-#[doc(hidden)]
-impl Eq for GpuTriangle {}
-
-#[doc(hidden)]
-impl PartialOrd for GpuTriangle {
-    fn partial_cmp(&self, other: &GpuTriangle) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
-#[doc(hidden)]
-impl Ord for GpuTriangle {
-    fn cmp(&self, other: &GpuTriangle) -> Ordering {
-        match self.z.partial_cmp(&other.z) {
-            None | Some(Ordering::Equal) => 
-                match (&self.image, &other.image) {
-                    (&Some(ref a), &Some(ref b)) => a.get_id().cmp(&b.get_id()),
-                    (&Some(_), &None) => Ordering::Greater,
-                    (&None, &Some(_)) => Ordering::Less,
-                    (&None, &None) => Ordering::Equal,
-                },
-            Some(result) => result
-        }
-    }
-}
-
-

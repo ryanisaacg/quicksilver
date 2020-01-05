@@ -1,4 +1,5 @@
-#[derive(Clone, Copy, Debug, Default, PartialEq, Deserialize, Serialize)]
+// TODO: optional serde
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
 /// An RGBA color represented by normalized floats
 pub struct Color {
     ///The red component of the color
@@ -38,7 +39,7 @@ impl Color {
             r: self.r * other.r,
             g: self.g * other.g,
             b: self.b * other.b,
-            a: self.a * other.a
+            a: self.a * other.a,
         }
     }
 
@@ -48,7 +49,7 @@ impl Color {
             r: red as f32 / 255.0,
             g: green as f32 / 255.0,
             b: blue as f32 / 255.0,
-            a
+            a,
         }
     }
 
@@ -57,36 +58,91 @@ impl Color {
         let trimmed_hex = hex.trim_start_matches('#');
         match trimmed_hex.len() {
             3 => {
-                let longer_hex: Vec<String> = trimmed_hex.chars().map(|single_char| {
-                    single_char.to_string().repeat(2)
-                })
-                .collect();
+                let longer_hex: Vec<String> = trimmed_hex
+                    .chars()
+                    .map(|single_char| single_char.to_string().repeat(2))
+                    .collect();
                 Color::from_hex(&longer_hex.concat())
-            },
+            }
             6 => {
                 let red = u8::from_str_radix(&trimmed_hex[0..=1], 16).unwrap();
                 let green = u8::from_str_radix(&trimmed_hex[2..=3], 16).unwrap();
                 let blue = u8::from_str_radix(&trimmed_hex[4..=5], 16).unwrap();
                 Color::from_rgba(red, green, blue, 1.0)
-            },
-            _ => panic!("Malformed hex string")
+            }
+            _ => panic!("Malformed hex string"),
         }
     }
 }
 
 #[allow(missing_docs)]
 impl Color {
-    pub const WHITE: Color =    Color { r: 1.0, g: 1.0, b: 1.0, a: 1.0 };
-    pub const BLACK: Color =    Color { r: 0.0, g: 0.0, b: 0.0, a: 1.0 };
-    pub const RED: Color =      Color { r: 1.0, g: 0.0, b: 0.0, a: 1.0 };
-    pub const ORANGE: Color =   Color { r: 1.0, g: 0.5, b: 0.0, a: 1.0 };
-    pub const YELLOW: Color =   Color { r: 1.0, g: 1.0, b: 0.0, a: 1.0 };
-    pub const GREEN: Color =    Color { r: 0.0, g: 1.0, b: 0.0, a: 1.0 };
-    pub const CYAN: Color =     Color { r: 0.0, g: 1.0, b: 1.0, a: 1.0 };
-    pub const BLUE: Color =     Color { r: 0.0, g: 0.0, b: 1.0, a: 1.0 };
-    pub const MAGENTA: Color =  Color { r: 1.0, g: 0.0, b: 0.5, a: 1.0 };
-    pub const PURPLE: Color =   Color { r: 1.0, g: 0.0, b: 1.0, a: 1.0 };
-    pub const INDIGO: Color =   Color { r: 0.5, g: 0.0, b: 1.0, a: 1.0 };
+    pub const WHITE: Color = Color {
+        r: 1.0,
+        g: 1.0,
+        b: 1.0,
+        a: 1.0,
+    };
+    pub const BLACK: Color = Color {
+        r: 0.0,
+        g: 0.0,
+        b: 0.0,
+        a: 1.0,
+    };
+    pub const RED: Color = Color {
+        r: 1.0,
+        g: 0.0,
+        b: 0.0,
+        a: 1.0,
+    };
+    pub const ORANGE: Color = Color {
+        r: 1.0,
+        g: 0.5,
+        b: 0.0,
+        a: 1.0,
+    };
+    pub const YELLOW: Color = Color {
+        r: 1.0,
+        g: 1.0,
+        b: 0.0,
+        a: 1.0,
+    };
+    pub const GREEN: Color = Color {
+        r: 0.0,
+        g: 1.0,
+        b: 0.0,
+        a: 1.0,
+    };
+    pub const CYAN: Color = Color {
+        r: 0.0,
+        g: 1.0,
+        b: 1.0,
+        a: 1.0,
+    };
+    pub const BLUE: Color = Color {
+        r: 0.0,
+        g: 0.0,
+        b: 1.0,
+        a: 1.0,
+    };
+    pub const MAGENTA: Color = Color {
+        r: 1.0,
+        g: 0.0,
+        b: 0.5,
+        a: 1.0,
+    };
+    pub const PURPLE: Color = Color {
+        r: 1.0,
+        g: 0.0,
+        b: 1.0,
+        a: 1.0,
+    };
+    pub const INDIGO: Color = Color {
+        r: 0.5,
+        g: 0.0,
+        b: 1.0,
+        a: 1.0,
+    };
 }
 
 #[cfg(test)]
@@ -95,8 +151,18 @@ mod tests {
 
     #[test]
     fn colors() {
-        let colors = [Color::WHITE, Color::BLACK, Color::RED, Color::ORANGE, Color::YELLOW,
-            Color::GREEN, Color::CYAN, Color::BLUE, Color::PURPLE, Color::INDIGO];
+        let colors = [
+            Color::WHITE,
+            Color::BLACK,
+            Color::RED,
+            Color::ORANGE,
+            Color::YELLOW,
+            Color::GREEN,
+            Color::CYAN,
+            Color::BLUE,
+            Color::PURPLE,
+            Color::INDIGO,
+        ];
         for i in 0..colors.len() {
             for j in 0..colors.len() {
                 assert_eq!(i == j, colors[i].clone() == *&colors[j]);
@@ -110,8 +176,14 @@ mod tests {
     #[test]
     fn colors_from_rgba() {
         assert_eq!(Color::BLACK.with_red(1.0), Color::from_rgba(255, 0, 0, 1.0));
-        assert_eq!(Color::BLACK.with_green(1.0), Color::from_rgba(0, 255, 0, 1.0));
-        assert_eq!(Color::BLACK.with_blue(1.0), Color::from_rgba(0, 0, 255, 1.0));
+        assert_eq!(
+            Color::BLACK.with_green(1.0),
+            Color::from_rgba(0, 255, 0, 1.0)
+        );
+        assert_eq!(
+            Color::BLACK.with_blue(1.0),
+            Color::from_rgba(0, 0, 255, 1.0)
+        );
     }
 
     #[test]
