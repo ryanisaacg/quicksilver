@@ -547,6 +547,7 @@ for point in points:
 print("];")
 */
 #[allow(clippy::unreadable_literal)]
+#[allow(clippy::excessive_precision)]
 const CIRCLE_POINTS: [Vector; CIRCLE_LEN] = [
     Vector { x: 1.0, y: 0.0 },
     Vector {
