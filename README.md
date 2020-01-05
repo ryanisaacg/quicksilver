@@ -83,6 +83,9 @@ web (instructions below).
     - [rsribeiro](https://github.com/rsribeiro/): [Evil Alligator](https://rsribeiro.github.io/website/)
     - [nycex](https://gitlab.com/nycex): [Axosnake](https://gitlab.com/nycex/axosnake)
     - [Leinnan](https://github.com/Leinnan): [Slavic Castles](https://github.com/Leinnan/slavic_castles)
+    - [Lenscas](https://github.com/lenscas): [Arena keeper](https://github.com/lenscas/arena_keeper_quick)
+- Libraries
+    - [Lenscas](https://github.com/lenscas): [Mergui](https://crates.io/crates/mergui)
 
 Want to add your project? Feel free to open an issue or PR!
 
