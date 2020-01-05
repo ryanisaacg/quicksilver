@@ -298,14 +298,15 @@ impl Graphics {
         self.stroke_polygon(&Self::circle_points(center, radius)[..], color);
     }
 
-    fn circle_points<'a>(center: Vector, radius: f32) -> [Vector; CIRCLE_LEN] {
-        let mut points = CIRCLE_POINTS.clone();
+    fn circle_points(center: Vector, radius: f32) -> [Vector; CIRCLE_LEN] {
+        let mut points = CIRCLE_POINTS;
         for point in points.iter_mut() {
             *point = Vector {
                 x: center.x + radius * point.x,
                 y: center.y + radius * point.y,
             }
         }
+
         points
     }
 

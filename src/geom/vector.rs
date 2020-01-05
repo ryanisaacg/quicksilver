@@ -25,6 +25,7 @@ impl Vector {
     pub const ONE: Vector = Vector { x: 1f32, y: 1f32 };
 }
 
+#[allow(clippy::len_without_is_empty)]
 impl Vector {
     ///Create a new vector
     pub fn new(x: impl Scalar, y: impl Scalar) -> Vector {

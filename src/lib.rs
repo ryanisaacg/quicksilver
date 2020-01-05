@@ -140,6 +140,8 @@
     unused_qualifications
 )]
 
+#![allow(clippy::needless_doctest_main)]
+
 mod error;
 pub mod geom;
 pub mod graphics;
