@@ -1,11 +1,13 @@
-use crate::graphics::{DrawGroup, Vertex};
+use crate::graphics::{Element, Image, Vertex};
 
 /// A way to store rendered objects without having to re-process them
 pub struct Mesh {
     /// All the vertices in the mesh
     pub vertices: Vec<Vertex>,
     /// The properties that define the elements to draw
-    pub group: DrawGroup,
+    pub elements: Vec<Element>,
+    /// If the vertices reference an image, this is the image they will use
+    pub image: Option<Image>
 }
 
 /*

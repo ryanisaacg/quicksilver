@@ -1,5 +1,13 @@
-//! A module to draw 2D graphics in a window
-//!  It also includes image loading
+//! Draw 2D graphics to the screen
+//!
+//! The main type is [`Graphics`], which is provided to your application by [`run`]. It handles
+//! drawing shapes via methods like [`Graphics::fill_rect`] and [`Graphics::stroke_rect`]. If the
+//! existing drawing methods don't fit your needs, try [`Graphics::draw_elements`] for manual
+//! control over the shapes drawn.
+//!
+//! For loading and drawing images, to the screen, use [`Image`]. 
+//!
+//! [`run`]: crate::lifecycle::run
 
 use crate::QuicksilverError;
 
@@ -11,7 +19,7 @@ mod vertex;
 pub use self::color::Color;
 pub use self::image::Image;
 pub use self::mesh::Mesh;
-pub use self::vertex::{DrawGroup, Element, Vertex};
+pub use self::vertex::{Element, Vertex};
 
 use crate::geom::*;
 use golem::*;
@@ -22,6 +30,19 @@ use std::iter;
 
 // TODO: image views
 
+/// The struct that handles sending draw calls to the GPU
+///
+/// The basic flow of using `Graphics` is a loop of [`Graphics::clear`], draw, and [`Graphics::present`].
+///
+/// When drawing, keep in mind the projection and transformation. The projection is set by
+/// [`Graphics::set_projection`], and usually [`Transform::orthographic`]. It is a transformation
+/// applied to every single vertex, and it's advised to keep it constant as much as possible. The
+/// transformation is used to rotate, scale, or translate a handful of draw calls, and is set by
+/// [`Graphics::set_transform`].
+/// 
+/// For best performance, try to reduce unnecessary state changes. Sources of state changes include
+/// changing the image you're drawing, changing the projection, or changing the type of geomety
+/// you're drawing.
 pub struct Graphics {
     ctx: Context,
     vb: VertexBuffer,
@@ -32,7 +53,7 @@ pub struct Graphics {
     image_changes: Vec<(usize, Image)>,
     projection_changes: Vec<(usize, Transform)>,
     geom_mode_changes: Vec<(usize, GeometryMode)>,
-    transform_changes: Vec<(usize, Transform)>,
+    transform: Transform,
 }
 
 const VERTEX_SIZE: usize = 8;
@@ -55,10 +76,9 @@ impl Graphics {
                 uniforms: &[
                     Uniform::new("image", UniformType::Sampler2D),
                     Uniform::new("projection", UniformType::Matrix(D3)),
-                    Uniform::new("transform", UniformType::Matrix(D3)),
                 ],
                 vertex_shader: r#" void main() {
-                vec3 transformed = projection * transform * vec3(vert_position, 1.0);
+                vec3 transformed = projection * vec3(vert_position, 1.0);
                 gl_Position = vec4(transformed.xy, 0, 1);
                 frag_uv = vert_uv;
                 frag_color = vert_color;
@@ -75,6 +95,7 @@ impl Graphics {
         let vb = VertexBuffer::new(&ctx)?;
         let eb = ElementBuffer::new(&ctx)?;
         shader.bind();
+        ctx.set_blend_mode(Default::default());
 
         Ok(Graphics {
             ctx,
@@ -86,25 +107,38 @@ impl Graphics {
             image_changes: Vec::new(),
             projection_changes: Vec::new(),
             geom_mode_changes: Vec::new(),
-            transform_changes: Vec::new(),
+            transform: Transform::IDENTITY,
         })
     }
 
+    /// Clear the screen to the given color
     pub fn clear(&mut self, color: Color) {
         self.ctx.set_clear_color(color.r, color.g, color.b, color.a);
         self.ctx.clear();
     }
 
+    /// Set the projection matrix, which is applied to all vertices on the GPU
+    ///
+    /// Use this to determine the drawable area with [`Transform::orthographic`], which is
+    /// important to handling resizes.
     pub fn set_projection(&mut self, transform: Transform) {
         let head = self.index_data.len();
         self.projection_changes.push((head, transform));
     }
 
+    /// Set the transformation matrix, which is applied to all vertices on the CPU
+    ///
+    /// Use this to rotate, scale, or translate individual draws or small groups of draws
     pub fn set_transform(&mut self, transform: Transform) {
-        let head = self.index_data.len();
-        self.transform_changes.push((head, transform));
+        self.transform = transform;
     }
 
+    /// Draw a collection of vertices
+    ///
+    /// Elements determines how to interpret the vertices. While it is convenient to mix-and-match
+    /// within a single call, be aware that this can incur a performance penalty.
+    ///
+    /// If any of the provided vertices reference an image, they will use the provided image.
     pub fn draw_elements(
         &mut self,
         vertices: impl Iterator<Item = Vertex>,
@@ -119,13 +153,14 @@ impl Graphics {
 
         for vertex in vertices {
             let uv = vertex.uv.unwrap_or(Vector { x: -1.0, y: -1.0 });
+            let pos = self.transform * vertex.pos;
             self.vertex_data.extend_from_slice(&[
                 vertex.color.r,
                 vertex.color.g,
                 vertex.color.b,
                 vertex.color.a,
-                vertex.pos.x,
-                vertex.pos.y,
+                pos.x,
+                pos.y,
                 uv.x,
                 uv.y,
             ]);
@@ -170,6 +205,7 @@ impl Graphics {
         }
     }
 
+    /// Draw a single, pixel-sized point
     pub fn draw_point(&mut self, pos: Vector, color: Color) {
         let vertex = Vertex {
             pos,
@@ -179,14 +215,20 @@ impl Graphics {
         self.draw_elements(iter::once(vertex), iter::once(Element::Point(0)), None);
     }
 
+    /// Draw a mesh, which is shorthand for passing the [`Mesh`]'s data to
+    /// [`Graphics::draw_elements`]
     pub fn draw_mesh(&mut self, mesh: &Mesh) {
         self.draw_elements(
             mesh.vertices.iter().cloned(),
-            mesh.group.elements.iter().cloned(),
-            mesh.group.image.as_ref(),
+            mesh.elements.iter().cloned(),
+            mesh.image.as_ref(),
         );
     }
 
+    /// Draw a filled-in polygon of a given color
+    ///
+    /// The provided points must form a clockwise or counter-clockwise set of points in a convex
+    /// polygon
     pub fn fill_polygon(&mut self, points: &[Vector], color: Color) {
         assert!(points.len() >= 3);
         let vertices = points.iter().cloned().map(|pos| Vertex {
@@ -199,6 +241,7 @@ impl Graphics {
         self.draw_elements(vertices, indices, None);
     }
 
+    /// Draw a series of lines that connect the given points, in order
     pub fn stroke_path(&mut self, points: &[Vector], color: Color) {
         let vertices = points.iter().cloned().map(|pos| Vertex {
             pos,
@@ -210,6 +253,10 @@ impl Graphics {
         self.draw_elements(vertices, indices, None);
     }
 
+    /// Draw an outline of a polygon of a given color
+    ///
+    /// The provided points must form a clockwise or counter-clockwise set of points in a convex
+    /// polygon
     pub fn stroke_polygon(&mut self, points: &[Vector], color: Color) {
         assert!(points.len() >= 3);
         let vertices = points.iter().cloned().map(|pos| Vertex {
@@ -231,20 +278,24 @@ impl Graphics {
         ]
     }
 
+    /// Draw a filled-in rectangle of a given color
     pub fn fill_rect(&mut self, rect: &Rectangle, color: Color) {
         self.fill_polygon(&Self::rect_to_poly(rect), color);
     }
 
+    /// Outline a rectangle with a given color
     pub fn stroke_rect(&mut self, rect: &Rectangle, color: Color) {
         self.stroke_polygon(&Self::rect_to_poly(rect), color);
     }
 
-    pub fn stroke_circle(&mut self, center: Vector, radius: f32, color: Color) {
-        self.stroke_polygon(&Self::circle_points(center, radius)[..], color);
-    }
-
+    /// Draw a filled-in circle of a given color
     pub fn fill_circle(&mut self, center: Vector, radius: f32, color: Color) {
         self.fill_polygon(&Self::circle_points(center, radius)[..], color);
+    }
+
+    /// Outline a circle with a given color
+    pub fn stroke_circle(&mut self, center: Vector, radius: f32, color: Color) {
+        self.stroke_polygon(&Self::circle_points(center, radius)[..], color);
     }
 
     fn circle_points<'a>(center: Vector, radius: f32) -> [Vector; CIRCLE_LEN] {
@@ -258,20 +309,28 @@ impl Graphics {
         points
     }
 
+    /// Drawn an image to the given area, stretching if necessary
     pub fn draw_image(&mut self, image: &Image, location: Rectangle) {
         let region = Rectangle::new_sized(image.size());
         self.draw_subimage_tinted(image, region, location, Color::WHITE);
     }
 
+    /// Drawn a tinted image to the given area, stretching if necessary
+    ///
+    /// The tint is applied by multiplying the color components at each pixel. If the Color has
+    /// (r, g, b, a) of (1.0, 0.5, 0.0, 1.0), all the pixels will have their normal red value, half
+    /// their green value, and no blue value.
     pub fn draw_image_tinted(&mut self, image: &Image, location: Rectangle, tint: Color) {
         let region = Rectangle::new_sized(image.size());
         self.draw_subimage_tinted(image, region, location, tint);
     }
 
+    /// Draw a given part of an image to the screen, see [`Graphics::draw_image`]
     pub fn draw_subimage(&mut self, image: &Image, region: Rectangle, location: Rectangle) {
         self.draw_subimage_tinted(image, region, location, Color::WHITE);
     }
 
+    /// Draw a given part of a tinted image to the screen, see [`Graphics::draw_image_tinted`]
     pub fn draw_subimage_tinted(
         &mut self,
         image: &Image,
@@ -315,6 +374,10 @@ impl Graphics {
         );
     }
 
+    /// Send the accumulated draw data to the GPU
+    ///
+    /// This should almost never be necessary for a user to call directly, use
+    /// [`Graphics::present`] instead.
     pub fn flush(&mut self) -> Result<(), QuicksilverError> {
         const TEX_BIND_POINT: u32 = 1;
         let max_index = (self.vertex_data.len() / VERTEX_SIZE) as u32;
@@ -329,24 +392,16 @@ impl Graphics {
             self.vb.set_sub_data(0, self.vertex_data.as_slice());
             self.eb.set_sub_data(0, self.index_data.as_slice());
         }
-        // If there are no transforms, at least insert an identity so OpenGL doesn't 0 it out
-        if self.transform_changes.is_empty() {
-            let ident = Transform::IDENTITY;
-            self.transform_changes.push((0, ident.into()));
-        }
         self.shader
             .set_uniform("image", UniformValue::Int(TEX_BIND_POINT as i32))?;
         let mut previous = 0;
         let mut element_mode = GeometryMode::Triangles;
         let change_list = join_change_lists(
             join_change_lists(
-                join_change_lists(
-                    self.image_changes.drain(..),
-                    self.projection_changes.drain(..),
-                ),
-                self.geom_mode_changes.drain(..),
+                self.image_changes.drain(..),
+                self.projection_changes.drain(..),
             ),
-            self.transform_changes.drain(..),
+            self.geom_mode_changes.drain(..),
         );
         for (index, changes) in change_list {
             // Before we change state, draw the old state
@@ -357,30 +412,22 @@ impl Graphics {
                 previous = index;
             }
             // Change the render state
-            if let Some(changes) = changes.0 {
-                if let Some(first) = changes.0 {
-                    // If we're switching what image to use, do so now
-                    if let Some(image) = first.0 {
-                        let bind_point = std::num::NonZeroU32::new(TEX_BIND_POINT).unwrap();
-                        image.raw().set_active(bind_point);
-                    }
-                    // If we're switching what projection to use, do so now
-                    if let Some(projection) = first.1 {
-                        let matrix = Self::transform_to_gl(projection);
-                        self.shader
-                            .set_uniform("projection", UniformValue::Matrix3(matrix))?;
-                    }
+            if let Some(first) = changes.0 {
+                // If we're switching what image to use, do so now
+                if let Some(image) = first.0 {
+                    let bind_point = std::num::NonZeroU32::new(TEX_BIND_POINT).unwrap();
+                    image.raw().set_active(bind_point);
                 }
-                // If we're switching the element mode, do so now
-                if let Some(g_m) = changes.1 {
-                    element_mode = g_m;
+                // If we're switching what projection to use, do so now
+                if let Some(projection) = first.1 {
+                    let matrix = Self::transform_to_gl(projection);
+                    self.shader
+                        .set_uniform("projection", UniformValue::Matrix3(matrix))?;
                 }
             }
-            // If we're switching what transform to use, do so now
-            if let Some(trans) = changes.1 {
-                let matrix = Self::transform_to_gl(trans);
-                self.shader
-                    .set_uniform("transform", UniformValue::Matrix3(matrix))?;
+            // If we're switching the element mode, do so now
+            if let Some(g_m) = changes.1 {
+                element_mode = g_m;
             }
         }
         if previous != self.index_data.len() {
@@ -403,6 +450,7 @@ impl Graphics {
         matrix.into()
     }
 
+    /// Send the draw data to the GPU and paint it to the Window
     pub fn present(&mut self, win: &blinds::Window) -> Result<(), QuicksilverError> {
         self.flush()?;
         win.present();
