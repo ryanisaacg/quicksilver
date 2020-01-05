@@ -139,7 +139,6 @@
     unused_import_braces,
     unused_qualifications
 )]
-
 #![allow(clippy::needless_doctest_main)]
 
 mod error;
