@@ -33,8 +33,7 @@ Below is more information about the project organization and styleguides for Qui
 
 ### Branch structure
 
-The main branch of quicksilver is `master`, which generally tracks the previous release on crates.io. Changes that are intended for the next version
-are merged into `development`, and then all merged into `master` when it is time for a release.
+The main branch of quicksilver is `master`, which generally tracks the previous release on crates.io. Breaking changes are merged into their own branches, and only merged into `master` when they're released.
 
 ### Git styleguide
 
@@ -48,18 +47,17 @@ are merged into `development`, and then all merged into `master` when it is time
 
 - Add an entry in `CHANGES.md`, which can generally be the summary(s) of your git commits
 - If you changed the public API, note [BREAKING] in front of your change
-- Additionally, make sure you didn't break the code snippet in the website, the README, or `src/lib.rs`. If you did, make sure to update them.
+- Additionally, make sure you didn't break the code snippet in the website, the README, or `src/lib.rs`. If you did, make sure to update them. (These are all the snippet, and are all also one of the examples. If you have to change `src/lib.rs`'s example to get CI to pass, remember to update the website and README)
 
 ### Testing your changes
 
 - Make sure to run `cargo test` which will both verify the tests pass and also make sure the crate and all examples compile
-- Make sure to run `cargo web check` which will verify that the crate compiles for web
-- If you changed core code (rendering, sound playback, file loading) make sure to actually run any examples you affected,
-on any platforms you have changed.
+- Make sure to run `cargo web check --features stdweb` which will verify that the crate compiles for web
+- For functionality changes, make sure you test the examples.
 
 ### Dealing with issues
 
-- If an individual commit fixes an issue, note that at the bottom of the summary with Resolves #n, where n is the issue number.
+- If an individual commit fixes an issue, note that in the "Motivation and Context" with Resolves #n, where n is the issue number.
 - If a PR as a whole fixes an issue, note that at the bottom of the PR summary with the same syntax.
 - If a commit or PR affects an issue but does not fix it, make sure to refer to it by number using the #n syntax so it is linked on Github.
 
