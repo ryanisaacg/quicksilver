@@ -213,5 +213,5 @@ pub use crate::error::QuicksilverError;
 /// [`Future`]: std::future::Future
 pub use platter::load_file;
 
-/// A Result that returns either success or a Quicksilver Error
+/// A Result that returns either success or a [`QuicksilverError`]
 pub type Result<T> = std::result::Result<T, QuicksilverError>;
