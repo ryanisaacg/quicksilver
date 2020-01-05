@@ -1,6 +1,6 @@
 # Changelog
 
-## In-development
+## 0.3.22
 - [Breaking, Soundness Fix] Mark Surface::render_to as unsafe
 
 ## 0.3.21
