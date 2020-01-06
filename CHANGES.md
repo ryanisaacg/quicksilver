@@ -3,7 +3,7 @@
 ## In-development
 
 ## 0.4.0-alpha0
-The API change *very breaking*. It can be considered nearly a full re-write of Quicksilver.
+The API change is *very breaking*. It can be considered nearly a full re-write of Quicksilver.
 
 - Added the new async API, via `blinds`
 - Added experimental support for `web-sys` behind the feature named `web-sys`
