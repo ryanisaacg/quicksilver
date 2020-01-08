@@ -33,7 +33,9 @@ impl Image {
         Ok(Image::new(gfx.create_image(data, width, height, format)?))
     }
 
-    /// Create an image from an encoded image format, such as PNG or JPEG
+    /// Create an image from an encoded image format
+    ///
+    /// JPEG and PNG are supported
     pub fn from_encoded_bytes(gfx: &Graphics, raw: &[u8]) -> Result<Image, QuicksilverError> {
         let img = image::load_from_memory(raw)?.to_rgba();
         let width = img.width();
@@ -48,6 +50,8 @@ impl Image {
     }
 
     /// Load an image from a file at the given path
+    ///
+    /// JPEG and PNG file formats are supported
     pub async fn load(gfx: &Graphics, path: impl AsRef<Path>) -> Result<Image, QuicksilverError> {
         let file_contents = platter::load_file(path).await?;
         Image::from_encoded_bytes(gfx, file_contents.as_slice())
