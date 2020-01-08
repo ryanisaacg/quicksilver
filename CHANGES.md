@@ -1,6 +1,7 @@
 # Changelog
 
 ## In-development
+- Fix the default blend mode: it should mix colors using their alphas
 
 ## 0.4.0-alpha0
 The API change is *very breaking*. It can be considered nearly a full re-write of Quicksilver.
