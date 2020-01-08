@@ -1,6 +1,7 @@
 # Changelog
 
 ## In-development
+- [Breaking] Remove support for image types other than jpeg and png
 
 ## 0.4.0-alpha0
 The API change is *very breaking*. It can be considered nearly a full re-write of Quicksilver.
