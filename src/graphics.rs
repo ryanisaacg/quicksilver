@@ -95,7 +95,7 @@ impl Graphics {
         let vb = VertexBuffer::new(&ctx)?;
         let eb = ElementBuffer::new(&ctx)?;
         shader.bind();
-        ctx.set_blend_mode(Default::default());
+        ctx.set_blend_mode(Some(Default::default()));
 
         Ok(Graphics {
             ctx,
