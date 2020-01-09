@@ -1,6 +1,7 @@
 # Changelog
 
 ## In-development
+- Fix the default blend mode: it should mix colors using their alphas
 - [Breaking] Remove support for image types other than jpeg and png
 
 ## 0.4.0-alpha0
