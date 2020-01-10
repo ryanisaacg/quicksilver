@@ -545,7 +545,7 @@ impl Image {
             y: self.raw().height() as f32,
         }
     }
-    
+
     /// Determine how the texture should scale down
     pub fn set_minification(&self, min: TextureFilter) {
         self.raw().set_minification(min);
@@ -575,16 +575,18 @@ pub struct Surface(golem::Surface);
 
 impl Surface {
     pub fn new(gfx: &Graphics, attachment: Image) -> Result<Surface, QuicksilverError> {
-        let tex = attachment.into_raw()
+        let tex = attachment
+            .into_raw()
             .map_err(|_| QuicksilverError::SurfaceImageError)?;
         Ok(Surface(golem::Surface::new(&gfx.ctx, tex)?))
     }
 
     pub fn attach(&mut self, attachment: Image) -> Result<(), QuicksilverError> {
-        let tex = attachment.into_raw()
+        let tex = attachment
+            .into_raw()
             .map_err(|_| QuicksilverError::SurfaceImageError)?;
         self.0.put_texture(tex);
-        
+
         Ok(())
     }
 
@@ -634,4 +636,3 @@ fn join_change_lists<'a, U, V>(
         }
     })
 }
-
