@@ -581,7 +581,7 @@ impl Image {
 ///
 /// If you want to render to a texture, [`attach`] it and then pass the surface to
 /// [`Graphics::flush`].
-/// 
+///
 /// If you want to get data from a texture, [`attach`] it and use [`Surface::screenshot`].
 ///
 /// [`attach`]: Surface::attach
@@ -617,7 +617,7 @@ impl Surface {
 
         Ok(())
     }
-    
+
     /// Take the Image out of this Surface
     ///
     /// To use the data that has been rendered to a Surface, its attachment has to be removed to
@@ -638,7 +638,8 @@ impl Surface {
     ) -> Vec<u8> {
         self.0.bind();
         let mut buffer = vec![0; (width * height * format.bytes_per_pixel()) as usize];
-        self.0.get_pixel_data(x, y, width, height, format, &mut buffer[..]);
+        self.0
+            .get_pixel_data(x, y, width, height, format, &mut buffer[..]);
         golem::Surface::unbind(&gfx.ctx);
 
         buffer
