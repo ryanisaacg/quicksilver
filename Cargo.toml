@@ -30,7 +30,7 @@ maintenance = { status = "actively-developed" }
 [dependencies]
 bytemuck = "1.0"
 gestalt = { version = "0.1", optional = true }
-golem = "0.1.0-alpha5"
+golem = "0.1.0-alpha6"
 image = "0.21"
 log = "0.4"
 mint = "0.5.3"

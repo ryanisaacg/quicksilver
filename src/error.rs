@@ -15,6 +15,8 @@ pub enum QuicksilverError {
     /// This is almost always a system or internal error, and probably means you should open a bug
     /// report
     GraphicsError(GolemError),
+    /// An image was passed to a Surface with a non-exclusive references
+    SurfaceImageError,
 }
 
 impl From<ImageError> for QuicksilverError {
