@@ -3,6 +3,9 @@
 ## In-development
 - Fix the default blend mode: it should mix colors using their alphas
 - [Breaking] Remove support for image types other than jpeg and png
+- [Breaking] Add a parameter to `Graphics::flush` which determines what Surface to render to
+- Add the Surface API, for rendering to textures
+- Add functions to set texture parameters and to set texture data
 
 ## 0.4.0-alpha0
 The API change is *very breaking*. It can be considered nearly a full re-write of Quicksilver.
