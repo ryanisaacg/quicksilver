@@ -53,6 +53,7 @@ pub struct Graphics {
     image_changes: Vec<(usize, Image)>,
     projection_changes: Vec<(usize, Transform)>,
     geom_mode_changes: Vec<(usize, GeometryMode)>,
+    clear_changes: Vec<(usize, Color)>,
     transform: Transform,
 }
 
@@ -107,14 +108,15 @@ impl Graphics {
             image_changes: Vec::new(),
             projection_changes: Vec::new(),
             geom_mode_changes: Vec::new(),
+            clear_changes: Vec::new(),
             transform: Transform::IDENTITY,
         })
     }
 
     /// Clear the screen to the given color
     pub fn clear(&mut self, color: Color) {
-        self.ctx.set_clear_color(color.r, color.g, color.b, color.a);
-        self.ctx.clear();
+        let head = self.index_data.len();
+        self.clear_changes.push((head, color));
     }
 
     /// Set the projection matrix, which is applied to all vertices on the GPU
@@ -378,7 +380,8 @@ impl Graphics {
     /// Send the accumulated draw data to the GPU
     ///
     /// Except when rendering to a [`Surface`], this should almost never be necessary for a user
-    /// to call directly. Use [`Graphics::present`] to draw to the window instead.
+    /// to call directly. Use [`Graphics::present`] to draw to the window instead. When rendering
+    /// to a [`Surface`], remember to set the viewport via [`Graphics::set_viewport`]
     pub fn flush(&mut self, surface: Option<&Surface>) -> Result<(), QuicksilverError> {
         // Either bind a surface or draw directly to the default framebuffer, depending on the
         // argument
@@ -405,10 +408,13 @@ impl Graphics {
         let mut element_mode = GeometryMode::Triangles;
         let change_list = join_change_lists(
             join_change_lists(
-                self.image_changes.drain(..),
-                self.projection_changes.drain(..),
+                join_change_lists(
+                    self.image_changes.drain(..),
+                    self.projection_changes.drain(..),
+                ),
+                self.geom_mode_changes.drain(..),
             ),
-            self.geom_mode_changes.drain(..),
+            self.clear_changes.drain(..),
         );
         for (index, changes) in change_list {
             // Before we change state, draw the old state
@@ -419,22 +425,28 @@ impl Graphics {
                 previous = index;
             }
             // Change the render state
-            if let Some(first) = changes.0 {
-                // If we're switching what image to use, do so now
-                if let Some(image) = first.0 {
-                    let bind_point = std::num::NonZeroU32::new(TEX_BIND_POINT).unwrap();
-                    image.raw().set_active(bind_point);
+            if let Some(changes) = changes.0 {
+                if let Some(changes) = changes.0 {
+                    // If we're switching what image to use, do so now
+                    if let Some(image) = changes.0 {
+                        let bind_point = std::num::NonZeroU32::new(TEX_BIND_POINT).unwrap();
+                        image.raw().set_active(bind_point);
+                    }
+                    // If we're switching what projection to use, do so now
+                    if let Some(projection) = changes.1 {
+                        let matrix = Self::transform_to_gl(projection);
+                        self.shader
+                            .set_uniform("projection", UniformValue::Matrix3(matrix))?;
+                    }
                 }
-                // If we're switching what projection to use, do so now
-                if let Some(projection) = first.1 {
-                    let matrix = Self::transform_to_gl(projection);
-                    self.shader
-                        .set_uniform("projection", UniformValue::Matrix3(matrix))?;
+                // If we're switching the element mode, do so now
+                if let Some(g_m) = changes.1 {
+                    element_mode = g_m;
                 }
             }
-            // If we're switching the element mode, do so now
-            if let Some(g_m) = changes.1 {
-                element_mode = g_m;
+            if let Some(color) = changes.1 {
+                self.ctx.set_clear_color(color.r, color.g, color.b, color.a);
+                self.ctx.clear();
             }
         }
         if previous != self.index_data.len() {
@@ -443,6 +455,7 @@ impl Graphics {
                     .draw_prepared(previous..self.index_data.len(), element_mode);
             }
         }
+        golem::Surface::unbind(&self.ctx);
         self.vertex_data.clear();
         self.index_data.clear();
 
@@ -463,6 +476,22 @@ impl Graphics {
         win.present();
 
         Ok(())
+    }
+
+    /// Select the area to draw to
+    ///
+    /// Generally, the best practice is to set this to (0, 0, window_width, window_height), but
+    /// when rendering to a subset of the screen it can be useful to change this. Additionally, you
+    /// probably want to set the viewport when rendering to a [`Surface`] in [`Graphics::flush`].
+    ///
+    /// The units given are physical units, not logical units. As such when using [`Window::width`]
+    /// and [`Window::height`], be sure to multiply by [`Window::scale_factor`].
+    ///
+    /// [`Window::width`]: crate::lifecycle::Window::width
+    /// [`Window::height`]: crate::lifecycle::Window::height
+    /// [`Window::scale_factor`]: crate::lifecycle::Window::scale_factor
+    pub fn set_viewport(&self, x: u32, y: u32, width: u32, height: u32) {
+        self.ctx.set_viewport(x, y, width, height);
     }
 }
 
