@@ -25,6 +25,21 @@ use golem::*;
 
 pub use golem::ColorFormat as PixelFormat;
 
+/// Options to configure custom blending pipelines
+///
+/// By default, pixels are blended based on the alpha of the new pixel. However, with
+/// [`Graphics::set_blend_mode`], that can be changed.
+pub mod blend {
+    /// The overall state of the blend pipeline
+    ///
+    /// See [`Graphics::set_blend_mode`]
+    ///
+    /// [`Graphics::set_blend_mode`]: super::Graphics::set_blend_mode
+    pub type BlendMode = golem::blend::BlendMode;
+
+    pub use golem::blend::{BlendChannel, BlendEquation, BlendFactor, BlendFunction, BlendInput, BlendOperation};
+}
+
 use std::cell::{Ref, RefCell};
 use std::iter;
 use std::path::Path;
@@ -54,6 +69,7 @@ pub struct Graphics {
     projection_changes: Vec<(usize, Transform)>,
     geom_mode_changes: Vec<(usize, GeometryMode)>,
     clear_changes: Vec<(usize, Color)>,
+    blend_mode_changes: Vec<(usize, Option<blend::BlendMode>)>,
     transform: Transform,
 }
 
@@ -109,6 +125,7 @@ impl Graphics {
             projection_changes: Vec::new(),
             geom_mode_changes: Vec::new(),
             clear_changes: Vec::new(),
+            blend_mode_changes: Vec::new(),
             transform: Transform::IDENTITY,
         })
     }
@@ -133,6 +150,14 @@ impl Graphics {
     /// Use this to rotate, scale, or translate individual draws or small groups of draws
     pub fn set_transform(&mut self, transform: Transform) {
         self.transform = transform;
+    }
+
+    /// Set the blend mode, which determines how pixels mix when drawn over each other
+    ///
+    /// Pass `None` to disable blending entirely
+    pub fn set_blend_mode(&mut self, blend_mode: Option<blend::BlendMode>) {
+        let head = self.index_data.len();
+        self.blend_mode_changes.push((head, blend_mode));
     }
 
     /// Draw a collection of vertices
@@ -409,12 +434,15 @@ impl Graphics {
         let change_list = join_change_lists(
             join_change_lists(
                 join_change_lists(
-                    self.image_changes.drain(..),
-                    self.projection_changes.drain(..),
+                    join_change_lists(
+                        self.image_changes.drain(..),
+                        self.projection_changes.drain(..),
+                    ),
+                    self.geom_mode_changes.drain(..),
                 ),
-                self.geom_mode_changes.drain(..),
+                self.clear_changes.drain(..),
             ),
-            self.clear_changes.drain(..),
+            self.blend_mode_changes.drain(..),
         );
         for (index, changes) in change_list {
             // Before we change state, draw the old state
@@ -427,26 +455,31 @@ impl Graphics {
             // Change the render state
             if let Some(changes) = changes.0 {
                 if let Some(changes) = changes.0 {
-                    // If we're switching what image to use, do so now
-                    if let Some(image) = changes.0 {
-                        let bind_point = std::num::NonZeroU32::new(TEX_BIND_POINT).unwrap();
-                        image.raw().set_active(bind_point);
+                    if let Some(changes) = changes.0 {
+                        // If we're switching what image to use, do so now
+                        if let Some(image) = changes.0 {
+                            let bind_point = std::num::NonZeroU32::new(TEX_BIND_POINT).unwrap();
+                            image.raw().set_active(bind_point);
+                        }
+                        // If we're switching what projection to use, do so now
+                        if let Some(projection) = changes.1 {
+                            let matrix = Self::transform_to_gl(projection);
+                            self.shader
+                                .set_uniform("projection", UniformValue::Matrix3(matrix))?;
+                        }
                     }
-                    // If we're switching what projection to use, do so now
-                    if let Some(projection) = changes.1 {
-                        let matrix = Self::transform_to_gl(projection);
-                        self.shader
-                            .set_uniform("projection", UniformValue::Matrix3(matrix))?;
+                    // If we're switching the element mode, do so now
+                    if let Some(g_m) = changes.1 {
+                        element_mode = g_m;
                     }
                 }
-                // If we're switching the element mode, do so now
-                if let Some(g_m) = changes.1 {
-                    element_mode = g_m;
+                if let Some(color) = changes.1 {
+                    self.ctx.set_clear_color(color.r, color.g, color.b, color.a);
+                    self.ctx.clear();
                 }
             }
-            if let Some(color) = changes.1 {
-                self.ctx.set_clear_color(color.r, color.g, color.b, color.a);
-                self.ctx.clear();
+            if let Some(blend_mode) = changes.1 {
+                self.ctx.set_blend_mode(blend_mode);
             }
         }
         if previous != self.index_data.len() {
@@ -484,11 +517,10 @@ impl Graphics {
     /// when rendering to a subset of the screen it can be useful to change this. Additionally, you
     /// probably want to set the viewport when rendering to a [`Surface`] in [`Graphics::flush`].
     ///
-    /// The units given are physical units, not logical units. As such when using [`Window::width`]
-    /// and [`Window::height`], be sure to multiply by [`Window::scale_factor`].
+    /// The units given are physical units, not logical units. As such when using [`Window::size`],
+    /// be sure to multiply by [`Window::scale_factor`].
     ///
-    /// [`Window::width`]: crate::lifecycle::Window::width
-    /// [`Window::height`]: crate::lifecycle::Window::height
+    /// [`Window::size`]: crate::lifecycle::Window::size
     /// [`Window::scale_factor`]: crate::lifecycle::Window::scale_factor
     pub fn set_viewport(&self, x: u32, y: u32, width: u32, height: u32) {
         self.ctx.set_viewport(x, y, width, height);
