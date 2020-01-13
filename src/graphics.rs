@@ -37,7 +37,9 @@ pub mod blend {
     /// [`Graphics::set_blend_mode`]: super::Graphics::set_blend_mode
     pub type BlendMode = golem::blend::BlendMode;
 
-    pub use golem::blend::{BlendChannel, BlendEquation, BlendFactor, BlendFunction, BlendInput, BlendOperation};
+    pub use golem::blend::{
+        BlendChannel, BlendEquation, BlendFactor, BlendFunction, BlendInput, BlendOperation,
+    };
 }
 
 use std::cell::{Ref, RefCell};
