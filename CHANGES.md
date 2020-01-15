@@ -6,6 +6,7 @@
 - [Breaking] Add a parameter to `Graphics::flush` which determines what Surface to render to
 - Add the Surface API, for rendering to textures
 - Add functions to set texture parameters and to set texture data
+- Add the ability to set the blend pipeline
 
 ## 0.4.0-alpha0
 The API change is *very breaking*. It can be considered nearly a full re-write of Quicksilver.
