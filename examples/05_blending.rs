@@ -2,8 +2,8 @@
 // Draw an image to the screen
 use quicksilver::{
     geom::{Rectangle, Vector},
+    graphics::blend::{BlendChannel, BlendFactor, BlendFunction, BlendInput, BlendMode},
     graphics::{Color, Graphics, Image},
-    graphics::blend::{BlendChannel, BlendMode, BlendInput, BlendFactor, BlendFunction},
     lifecycle::{run, EventStream, Settings, Window},
     Result,
 };
