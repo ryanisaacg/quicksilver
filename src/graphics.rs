@@ -22,6 +22,7 @@ pub use self::vertex::{Element, Vertex};
 
 use crate::geom::*;
 use golem::*;
+use std::mem::size_of;
 
 pub use golem::ColorFormat as PixelFormat;
 
@@ -421,7 +422,9 @@ impl Graphics {
         for index in self.index_data.iter() {
             assert!(*index < max_index, "Element index out of bounds: are you calling draw_elements with invalid index values?");
         }
-        if self.vertex_data.len() > self.vb.size() || self.index_data.len() > self.eb.size() {
+        let vertex_data_size = self.vertex_data.len() * size_of::<f32>();
+        let index_data_size = self.index_data.len() * size_of::<f32>();
+        if vertex_data_size > self.vb.size() || index_data_size > self.eb.size() {
             self.vb.set_data(self.vertex_data.as_slice());
             self.eb.set_data(self.index_data.as_slice());
             self.shader.prepare_draw(&self.vb, &self.eb)?;
