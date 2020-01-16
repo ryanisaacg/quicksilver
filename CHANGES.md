@@ -7,6 +7,7 @@
 - Add the Surface API, for rendering to textures
 - Add functions to set texture parameters and to set texture data
 - Add the ability to set the blend pipeline
+- Fix over-estimation of GPU buffer sizes
 
 ## 0.4.0-alpha0
 The API change is *very breaking*. It can be considered nearly a full re-write of Quicksilver.
