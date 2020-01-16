@@ -424,7 +424,7 @@ impl Graphics {
         }
         let vertex_data_size = self.vertex_data.len() * size_of::<f32>();
         let index_data_size = self.index_data.len() * size_of::<f32>();
-        if vertex_data_size > self.vb.size() || index_data_size > self.eb.size() {
+        if vertex_data_size >= self.vb.size() || index_data_size >= self.eb.size() {
             self.vb.set_data(self.vertex_data.as_slice());
             self.eb.set_data(self.index_data.as_slice());
             self.shader.prepare_draw(&self.vb, &self.eb)?;
@@ -432,6 +432,7 @@ impl Graphics {
             self.vb.set_sub_data(0, self.vertex_data.as_slice());
             self.eb.set_sub_data(0, self.index_data.as_slice());
         }
+
         self.shader
             .set_uniform("image", UniformValue::Int(TEX_BIND_POINT as i32))?;
         let mut previous = 0;
