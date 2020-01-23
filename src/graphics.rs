@@ -13,16 +13,21 @@ use crate::QuicksilverError;
 
 mod circle_points;
 mod color;
+mod image;
 mod mesh;
+mod surface;
 mod vertex;
 
 pub use self::color::Color;
+pub use self::image::Image;
 pub use self::mesh::Mesh;
+pub use self::surface::Surface;
 pub use self::vertex::{Element, Vertex};
 
 use crate::geom::*;
 use golem::*;
 use std::mem::size_of;
+use std::iter;
 
 pub use golem::ColorFormat as PixelFormat;
 
@@ -42,11 +47,6 @@ pub mod blend {
         BlendChannel, BlendEquation, BlendFactor, BlendFunction, BlendInput, BlendOperation,
     };
 }
-
-use std::cell::{Ref, RefCell};
-use std::iter;
-use std::path::Path;
-use std::rc::Rc;
 
 /// The struct that handles sending draw calls to the GPU
 ///
@@ -522,6 +522,8 @@ impl Graphics {
     /// Generally, the best practice is to set this to (0, 0, window_width, window_height), but
     /// when rendering to a subset of the screen it can be useful to change this. Additionally, you
     /// probably want to set the viewport when rendering to a [`Surface`] in [`Graphics::flush`].
+    /// To set the viewport to take up the entire region of a [`Surface`], use
+    /// [`Graphics::fit_to_surface`].
     ///
     /// The units given are physical units, not logical units. As such when using [`Window::size`],
     /// be sure to multiply by [`Window::scale_factor`].
@@ -531,185 +533,27 @@ impl Graphics {
     pub fn set_viewport(&self, x: u32, y: u32, width: u32, height: u32) {
         self.ctx.set_viewport(x, y, width, height);
     }
-}
 
-/// A 2D image, stored on the GPU
-///
-/// See [`Graphics::draw_image`] to draw it
-#[derive(Clone)]
-pub struct Image(Rc<RefCell<Texture>>);
-
-impl Image {
-    fn new(texture: Texture) -> Image {
-        Image(Rc::new(RefCell::new(texture)))
-    }
-
-    /// Create an image with a given width and height
+    /// Set the viewport to cover the given Surface
     ///
-    /// Either source the data from an array of bytes, or create a blank image.
-    /// `format` determines how to interpet the bytes when creating the image
-    pub fn from_raw(
-        gfx: &Graphics,
-        data: Option<&[u8]>,
-        width: u32,
-        height: u32,
-        format: PixelFormat,
-    ) -> Result<Image, GolemError> {
-        let mut texture = Texture::new(&gfx.ctx)?;
-        texture.set_image(data, width, height, format);
+    /// Will return an error if the surface has no image attachment, because then it has no size
+    pub fn fit_to_surface(&self, surface: &Surface) -> Result<(), QuicksilverError> {
+        if let (Some(width), Some(height)) = (surface.0.width(), surface.0.height()) {
+            self.ctx.set_viewport(0, 0, width, height);
 
-        Ok(Image::new(texture))
-    }
-
-    /// Create an image from an encoded image format
-    ///
-    /// JPEG and PNG are supported
-    pub fn from_encoded_bytes(gfx: &Graphics, raw: &[u8]) -> Result<Image, QuicksilverError> {
-        let img = image::load_from_memory(raw)?.to_rgba();
-        let width = img.width();
-        let height = img.height();
-        Ok(Image::from_raw(
-            gfx,
-            Some(img.into_raw().as_slice()),
-            width,
-            height,
-            PixelFormat::RGBA,
-        )?)
-    }
-
-    /// Load an image from a file at the given path
-    ///
-    /// JPEG and PNG file formats are supported
-    pub async fn load(gfx: &Graphics, path: impl AsRef<Path>) -> Result<Image, QuicksilverError> {
-        let file_contents = platter::load_file(path).await?;
-        Image::from_encoded_bytes(gfx, file_contents.as_slice())
-    }
-
-    /// Replace the backing data for the image, or create a blank image
-    pub fn set_data(&mut self, data: Option<&[u8]>, width: u32, height: u32, color: ColorFormat) {
-        self.0.borrow_mut().set_image(data, width, height, color);
-    }
-
-    /// Set the data for some region of this image, without clearing it
-    pub fn set_sub_data(
-        &self,
-        data: &[u8],
-        x: u32,
-        y: u32,
-        width: u32,
-        height: u32,
-        color: ColorFormat,
-    ) {
-        self.raw().set_subimage(data, x, y, width, height, color);
-    }
-
-    pub(crate) fn raw(&self) -> Ref<Texture> {
-        self.0.borrow()
-    }
-
-    pub(crate) fn ptr_eq(&self, other: &Image) -> bool {
-        Rc::ptr_eq(&self.0, &other.0)
-    }
-
-    /// Get the size of the image
-    pub fn size(&self) -> Vector {
-        Vector {
-            x: self.raw().width() as f32,
-            y: self.raw().height() as f32,
+            Ok(())
+        } else {
+            Err(QuicksilverError::NoSurfaceImageBound)
         }
     }
 
-    /// Determine how the texture should scale down
-    pub fn set_minification(&self, min: TextureFilter) {
-        self.raw().set_minification(min);
-    }
-
-    /// Determine how the texture should scale up
-    pub fn set_magnification(&self, max: TextureFilter) {
-        self.raw().set_magnification(max);
-    }
-
-    /// Determine how the texture is wrapped horizontally
-    pub fn set_wrap_h(&self, wrap: TextureWrap) {
-        self.raw().set_wrap_h(wrap);
-    }
-
-    /// Determine how the texture is wrapped vertically
-    pub fn set_wrap_v(&self, wrap: TextureWrap) {
-        self.raw().set_wrap_v(wrap);
-    }
-
-    fn into_raw(self) -> Result<Texture, Rc<RefCell<Texture>>> {
-        Ok(Rc::try_unwrap(self.0)?.into_inner())
-    }
-}
-
-/// A Surface is the core struct for rendering to textures, or getting data from them.
-///
-/// If you want to render to a texture, [`attach`] it and then pass the surface to
-/// [`Graphics::flush`].
-///
-/// If you want to get data from a texture, [`attach`] it and use [`Surface::screenshot`].
-///
-/// [`attach`]: Surface::attach
-pub struct Surface(golem::Surface);
-
-impl Surface {
-    /// Create a Surface with an attached Image
-    ///
-    /// The image must not have any other references to it, or this function will return an error.
-    pub fn new(gfx: &Graphics, attachment: Image) -> Result<Surface, QuicksilverError> {
-        let tex = attachment
-            .into_raw()
-            .map_err(|_| QuicksilverError::SurfaceImageError)?;
-        Ok(Surface(golem::Surface::new(&gfx.ctx, tex)?))
-    }
-
-    /// Use the attached image as the backing data for this Surface
-    ///
-    /// To either get the data for an image via [`Surface::screenshot`] or set it via
-    /// [`Graphics::flush`], an image needs to be attached to this Surface.
-    ///
-    /// The image must not have any other references to it, or this function will return an error.
-    ///
-    /// It's generally faster to create one [`Surface`] per [`Image`], and only attach and
-    /// [`detach`] when necessary.
-    ///
-    /// [`detach`]: Surface::detach
-    pub fn attach(&mut self, attachment: Image) -> Result<(), QuicksilverError> {
-        let tex = attachment
-            .into_raw()
-            .map_err(|_| QuicksilverError::SurfaceImageError)?;
-        self.0.put_texture(tex);
-
-        Ok(())
-    }
-
-    /// Take the Image out of this Surface
-    ///
-    /// To use the data that has been rendered to a Surface, its attachment has to be removed to
-    /// avoid creating a loop (where the Image is both being drawn *from* and being drawn *to*.)
-    pub fn detach(&mut self) -> Option<Image> {
-        Some(Image::new(self.0.take_texture()?))
-    }
-
-    /// Get the pixel data of a given region of this surface
-    pub fn screenshot(
-        &self,
-        gfx: &Graphics,
-        x: u32,
-        y: u32,
-        width: u32,
-        height: u32,
-        format: ColorFormat,
-    ) -> Vec<u8> {
-        self.0.bind();
-        let mut buffer = vec![0; (width * height * format.bytes_per_pixel()) as usize];
-        self.0
-            .get_pixel_data(x, y, width, height, format, &mut buffer[..]);
-        golem::Surface::unbind(&gfx.ctx);
-
-        buffer
+    /// Set the viewport to cover the window, taking into account DPI
+    pub fn fit_to_window(&self, window: &blinds::Window) {
+        let size = window.size();
+        let scale = window.scale_factor();
+        let width = size.x * scale;
+        let height = size.y * scale;
+        self.ctx.set_viewport(0, 0, width as u32, height as u32);
     }
 }
 
