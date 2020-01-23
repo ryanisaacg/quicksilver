@@ -1,6 +1,6 @@
-use crate::QuicksilverError;
-use crate::geom::Vector;
 use super::{ColorFormat, Graphics, PixelFormat};
+use crate::geom::Vector;
+use crate::QuicksilverError;
 
 use std::cell::{Ref, RefCell};
 use std::path::Path;

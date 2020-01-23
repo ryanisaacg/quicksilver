@@ -26,8 +26,8 @@ pub use self::vertex::{Element, Vertex};
 
 use crate::geom::*;
 use golem::*;
-use std::mem::size_of;
 use std::iter;
+use std::mem::size_of;
 
 pub use golem::ColorFormat as PixelFormat;
 

@@ -1,6 +1,6 @@
-use crate::QuicksilverError;
-use crate::geom::Vector;
 use super::{ColorFormat, Graphics, Image};
+use crate::geom::Vector;
+use crate::QuicksilverError;
 
 /// A Surface is the core struct for rendering to textures, or getting data from them.
 ///
