@@ -6,9 +6,12 @@ use crate::graphics::Graphics;
 use crate::Result;
 use std::future::Future;
 
+pub use blinds::event;
+#[cfg(feature = "event-cache")]
+pub use blinds::{CachedEventStream, EventCache};
 pub use blinds::{
-    CursorIcon, ElementState, Event, EventStream, GamepadAxis, GamepadButton, GamepadEvent,
-    GamepadId, Key, Modifiers, MouseButton, MouseScrollDelta, Pointer, Settings, Window,
+    CursorIcon, Event, EventStream, GamepadAxis, GamepadButton, GamepadId, Key, MouseButton,
+    PointerId, Settings, Window,
 };
 
 /// The entry point of a Quicksilver application
