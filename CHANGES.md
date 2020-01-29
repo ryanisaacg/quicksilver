@@ -11,6 +11,10 @@
 - Add functions on Graphics to set the viewport (`set_viewport`, `fit_to_surfcae`, `fit_to_window`)
 - Add `ResizeHandler` to help with maintaing the same aspect ratio when the screen size changes
 - Re-export `blinds`, `golem`, `mint`, and `log`
+- [Breaking] Update to blinds 0.1.0:
+    - [Breaking] Reworked the events API for forwards-compatibility
+    - Set the tab title on web
+    - Add an optional module to cache event states
 
 ## 0.4.0-alpha0
 The API change is *very breaking*. It can be considered nearly a full re-write of Quicksilver.
