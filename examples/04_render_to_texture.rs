@@ -1,7 +1,7 @@
 // Example 4: Render to Texture
 // Render some data to an image, and draw that image to the screen
 use quicksilver::{
-    geom::{Circle, Rectangle, Vector},
+    geom::{Rectangle, Vector},
     graphics::{Color, Graphics, Image, PixelFormat, Surface},
     lifecycle::{run, EventStream, Settings, Window},
     Result,
@@ -26,7 +26,7 @@ async fn app(window: Window, mut gfx: Graphics, mut events: EventStream) -> Resu
         Image::from_raw(&gfx, None, 512, 512, PixelFormat::RGBA)?,
     )?;
     // Set the render area to the surface size
-    gfx.set_viewport(0, 0, 512, 512);
+    gfx.fit_to_surface(&surface)?;
     // Draw a circle inside a rectangle
     gfx.fill_rect(
         &Rectangle::new(Vector::new(350.0, 100.0), Vector::new(100.0, 100.0)),
@@ -38,9 +38,7 @@ async fn app(window: Window, mut gfx: Graphics, mut events: EventStream) -> Resu
 
     gfx.clear(Color::BLACK);
     // Reset the viewport to the window size
-    let size: Vector = window.size().into();
-    let size = size * window.scale_factor();
-    gfx.set_viewport(0, 0, size.x as u32, size.y as u32);
+    gfx.fit_to_window(&window);
     // Extract the image from the surface to use
     let image = surface.detach().expect("The image failed to detach");
     // Draw that image to the screen twice
