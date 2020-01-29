@@ -10,6 +10,7 @@
 - Fix over-estimation of GPU buffer sizes
 - Add functions on Graphics to set the viewport (`set_viewport`, `fit_to_surfcae`, `fit_to_window`)
 - Add `ResizeHandler` to help with maintaing the same aspect ratio when the screen size changes
+- Re-export `blinds`, `golem`, `mint`, and `log`
 - [Breaking] Update to blinds 0.1.0:
     - [Breaking] Reworked the events API for forwards-compatibility
     - Set the tab title on web
