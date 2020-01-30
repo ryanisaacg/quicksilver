@@ -141,6 +141,12 @@
 )]
 #![allow(clippy::needless_doctest_main)]
 
+// Re-export every library that appears in the public API
+pub use blinds;
+pub use golem;
+pub use log;
+pub use mint;
+
 mod error;
 pub mod geom;
 pub mod graphics;
