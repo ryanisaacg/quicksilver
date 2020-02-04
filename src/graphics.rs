@@ -319,22 +319,19 @@ impl Graphics {
     }
 
     /// Draw a filled-in circle of a given color
-    pub fn fill_circle(&mut self, center: Vector, radius: f32, color: Color) {
-        self.fill_polygon(&Self::circle_points(center, radius)[..], color);
+    pub fn fill_circle(&mut self, circle: &Circle, color: Color) {
+        self.fill_polygon(&Self::circle_points(circle)[..], color);
     }
 
     /// Outline a circle with a given color
-    pub fn stroke_circle(&mut self, center: Vector, radius: f32, color: Color) {
-        self.stroke_polygon(&Self::circle_points(center, radius)[..], color);
+    pub fn stroke_circle(&mut self, circle: &Circle, color: Color) {
+        self.stroke_polygon(&Self::circle_points(circle)[..], color);
     }
 
-    fn circle_points(center: Vector, radius: f32) -> [Vector; circle_points::CIRCLE_LEN] {
+    fn circle_points(circle: &Circle) -> [Vector; circle_points::CIRCLE_LEN] {
         let mut points = circle_points::CIRCLE_POINTS;
         for point in points.iter_mut() {
-            *point = Vector {
-                x: center.x + radius * point.x,
-                y: center.y + radius * point.y,
-            }
+            *point = circle.center() + (*point * circle.radius);
         }
 
         points

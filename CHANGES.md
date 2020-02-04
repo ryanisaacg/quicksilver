@@ -2,6 +2,7 @@
 
 ## v0.4.0-alpha0.2
 - Fix the "easy-log" feature
+- [BREAKING] `fill_circle` now takes a `&Circle` instead of a separate center and radius
 
 ## 0.4.0-alpha0.1
 - Fix the default blend mode: it should mix colors using their alphas

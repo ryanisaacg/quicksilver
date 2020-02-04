@@ -1,7 +1,7 @@
 // Example 4: Render to Texture
 // Render some data to an image, and draw that image to the screen
 use quicksilver::{
-    geom::{Rectangle, Vector},
+    geom::{Circle, Rectangle, Vector},
     graphics::{Color, Graphics, Image, PixelFormat, Surface},
     lifecycle::{run, EventStream, Settings, Window},
     Result,
@@ -32,7 +32,7 @@ async fn app(window: Window, mut gfx: Graphics, mut events: EventStream) -> Resu
         &Rectangle::new(Vector::new(350.0, 100.0), Vector::new(100.0, 100.0)),
         Color::RED,
     );
-    gfx.fill_circle(Vector::new(400.0, 150.0), 50.0, Color::BLACK);
+    gfx.fill_circle(&Circle::new(Vector::new(400.0, 150.0), 50.0), Color::BLACK);
     // Flush to the surface, which draws to the image
     gfx.flush(Some(&surface))?;
 
