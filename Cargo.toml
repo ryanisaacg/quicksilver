@@ -25,7 +25,6 @@ web-sys = ["gestalt/web-sys", "platter/web-sys", "blinds/web-sys", "golem/web-sy
 
 [badges]
 
-travis-ci = { repository = "ryanisaacg/quicksilver", branch = "master" }
 maintenance = { status = "actively-developed" }
 
 [dependencies]
