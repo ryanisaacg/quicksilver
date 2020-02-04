@@ -1,5 +1,8 @@
 # Changelog
 
+## v0.4.0-alpha0.2
+- Fix the "easy-log" feature
+
 ## 0.4.0-alpha0.1
 - Fix the default blend mode: it should mix colors using their alphas
 - [Breaking] Remove support for image types other than jpeg and png

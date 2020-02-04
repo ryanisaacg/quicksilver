@@ -23,7 +23,7 @@ where
     T: 'static + Future<Output = Result<()>>,
     F: 'static + FnOnce(Window, Graphics, EventStream) -> T,
 {
-    #[cfg(feature = "easy_log")]
+    #[cfg(feature = "easy-log")]
     set_logger();
 
     let size = settings.size;
@@ -54,7 +54,7 @@ where
     });
 }
 
-#[cfg(feature = "easy_log")]
+#[cfg(feature = "easy-log")]
 fn set_logger() {
     #[cfg(target_arch = "wasm32")]
     web_logger::custom_init(web_logger::Config {
