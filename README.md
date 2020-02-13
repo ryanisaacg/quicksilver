@@ -85,7 +85,9 @@ web (instructions below).
     - [Leinnan](https://github.com/Leinnan): [Slavic Castles](https://github.com/Leinnan/slavic_castles)
     - [Lenscas](https://github.com/lenscas): [Arena keeper](https://github.com/lenscas/arena_keeper_quick)
 - Libraries
-    - [Lenscas](https://github.com/lenscas): [Mergui](https://crates.io/crates/mergui)
+    - [Lenscas](https://github.com/lenscas): [Mergui](https://crates.io/crates/mergui) - A simple GUI system
+    - [johnpmayer](https://github.com/johnpmayer): [quicksilver-utils-async](https://crates.io/crates/quicksilver-utils-async) - Tasks, timers, and net code
+    - [johnpmayer](https://github.com/johnpmayer): [quicksilver-utils-ecs](https://crates.io/crates/quicksilver-utils-ecs) - Entity Component System integrations
 
 Want to add your project? Feel free to open an issue or PR!
 
