@@ -14,7 +14,7 @@ edition = "2018"
 
 [features]
 # complex_shapes, fonts, gamepads, sounds
-default = ["easy_log", "gamepad", "saving"]
+default = ["easy_log", "saving"]
 
 easy_log = ["simple_logger", "web_logger"]
 gamepad = ["blinds/gamepad"]
