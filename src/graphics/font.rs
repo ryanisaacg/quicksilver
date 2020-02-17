@@ -1,4 +1,21 @@
-use crate::{
+use super::*;
+
+use std::rc::Rc;
+use elefont::FontCache;
+
+pub struct Font(Rc<FontContents>);
+
+struct FontContents {
+    cache: FontCache<Image>,
+}
+
+impl Font {
+    pub(crate) fn cache(&self) -> &FontCache {
+        &self.0.cache
+    }
+}
+
+/*use crate::{
     load_file,
     Result,
     error::QuicksilverError,
@@ -105,4 +122,4 @@ impl FontStyle {
             color
         }
     }
-}
+}*/

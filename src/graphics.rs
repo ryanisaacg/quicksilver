@@ -402,6 +402,10 @@ impl Graphics {
         );
     }
 
+    pub fn draw_text(&mut self, font: &Font, text: &str, position: Vector) {
+
+    }
+
     /// Send the accumulated draw data to the GPU
     ///
     /// Except when rendering to a [`Surface`], this should almost never be necessary for a user
