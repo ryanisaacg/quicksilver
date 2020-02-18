@@ -2,6 +2,7 @@
 
 ## v0.4.0-alpha0.3
 - Update `golem` to `v0.1.1` to fix non-power-of-2 textures
+- `impl std::iter::Sum for geom::Vector`
 
 ## v0.4.0-alpha0.2
 - Fix the "easy-log" feature
