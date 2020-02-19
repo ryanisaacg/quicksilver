@@ -262,6 +262,25 @@ mod tests {
     }
 
     #[test]
+    fn test_add() {
+        let identity = Transform::IDENTITY;
+        let trans = Transform::scale(Vector::ONE * 2);
+        let double_trans = identity + identity;
+        let vec = Vector::new(2, 2);
+        let scaled = trans * vec;
+        let doubled = double_trans * vec;
+        assert_eq!(scaled, doubled);
+    }
+
+    #[test]
+    fn test_sub() {
+        let identity = Transform::IDENTITY;
+        let double = identity + identity;
+        let triple = double + identity;
+        let right = triple - identity;
+        assert_eq!(double, right);
+    }
+    #[test]
     fn complex_inverse() {
         let a = Transform::rotate(5f32)
             * Transform::scale(Vector::new(0.2, 1.23))
