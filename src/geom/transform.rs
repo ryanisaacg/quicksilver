@@ -4,7 +4,7 @@ use std::{
     default::Default,
     f32::consts::PI,
     fmt,
-    ops::Mul,
+    ops::{Add, Mul, Sub},
 };
 
 /// A 2D transformation represented by a matrix
@@ -149,6 +149,40 @@ impl<T: Scalar> Mul<T> for Transform {
             }
         }
         ret
+    }
+}
+
+/// Add the values of two transforms together
+///
+/// Note you probably want Mul to combine Transforms. Addition is only useful in less common use cases like interpolation
+impl Add<Transform> for Transform {
+    type Output = Transform;
+
+    fn add(self, other: Transform) -> Transform {
+        let mut returnval = Transform::IDENTITY;
+        for i in 0..3 {
+            for j in 0..3 {
+                returnval.0[i][j] = other.0[i][j] + self.0[i][j];
+            }
+        }
+        returnval
+    }
+}
+
+/// Subtract the values of one transform from another
+///
+/// Note you probably want Mul to combine Transforms. Subtraction is only useful in less common use cases like interpolation
+impl Sub<Transform> for Transform {
+    type Output = Transform;
+
+    fn sub(self, other: Transform) -> Transform {
+        let mut returnval = Transform::IDENTITY;
+        for i in 0..3 {
+            for j in 0..3 {
+                returnval.0[i][j] = self.0[i][j] - other.0[i][j];
+            }
+        }
+        returnval
     }
 }
 
