@@ -6,9 +6,12 @@ use crate::graphics::Graphics;
 use crate::Result;
 use std::future::Future;
 
+pub use blinds::event;
+#[cfg(feature = "event-cache")]
+pub use blinds::{CachedEventStream, EventCache};
 pub use blinds::{
-    CursorIcon, ElementState, Event, EventStream, GamepadAxis, GamepadButton, GamepadEvent,
-    GamepadId, Key, Modifiers, MouseButton, MouseScrollDelta, Pointer, Settings, Window,
+    CursorIcon, Event, EventStream, GamepadAxis, GamepadButton, GamepadId, Key, MouseButton,
+    PointerId, Settings, Window,
 };
 
 /// The entry point of a Quicksilver application
@@ -20,7 +23,7 @@ where
     T: 'static + Future<Output = Result<()>>,
     F: 'static + FnOnce(Window, Graphics, EventStream) -> T,
 {
-    #[cfg(feature = "easy_log")]
+    #[cfg(feature = "easy-log")]
     set_logger();
 
     let size = settings.size;
@@ -51,7 +54,7 @@ where
     });
 }
 
-#[cfg(feature = "easy_log")]
+#[cfg(feature = "easy-log")]
 fn set_logger() {
     #[cfg(target_arch = "wasm32")]
     web_logger::custom_init(web_logger::Config {

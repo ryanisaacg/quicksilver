@@ -26,21 +26,19 @@ async fn app(window: Window, mut gfx: Graphics, mut events: EventStream) -> Resu
         Image::from_raw(&gfx, None, 512, 512, PixelFormat::RGBA)?,
     )?;
     // Set the render area to the surface size
-    gfx.set_viewport(0, 0, 512, 512);
+    gfx.fit_to_surface(&surface)?;
     // Draw a circle inside a rectangle
     gfx.fill_rect(
         &Rectangle::new(Vector::new(350.0, 100.0), Vector::new(100.0, 100.0)),
         Color::RED,
     );
-    gfx.fill_circle(Vector::new(400.0, 150.0), 50.0, Color::BLACK);
+    gfx.fill_circle(&Circle::new(Vector::new(400.0, 150.0), 50.0), Color::BLACK);
     // Flush to the surface, which draws to the image
     gfx.flush(Some(&surface))?;
 
     gfx.clear(Color::BLACK);
     // Reset the viewport to the window size
-    let size: Vector = window.size().into();
-    let size = size * window.scale_factor();
-    gfx.set_viewport(0, 0, size.x as u32, size.y as u32);
+    gfx.fit_to_window(&window);
     // Extract the image from the surface to use
     let image = surface.detach().expect("The image failed to detach");
     // Draw that image to the screen twice

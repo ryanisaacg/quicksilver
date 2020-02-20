@@ -13,22 +13,40 @@ use crate::QuicksilverError;
 
 mod circle_points;
 mod color;
+mod image;
 mod mesh;
+mod surface;
 mod vertex;
 
 pub use self::color::Color;
+pub use self::image::Image;
 pub use self::mesh::Mesh;
+pub use self::surface::Surface;
 pub use self::vertex::{Element, Vertex};
 
 use crate::geom::*;
 use golem::*;
+use std::iter;
+use std::mem::size_of;
 
 pub use golem::ColorFormat as PixelFormat;
 
-use std::cell::{Ref, RefCell};
-use std::iter;
-use std::path::Path;
-use std::rc::Rc;
+/// Options to configure custom blending pipelines
+///
+/// By default, pixels are blended based on the alpha of the new pixel. However, with
+/// [`Graphics::set_blend_mode`], that can be changed.
+pub mod blend {
+    /// The overall state of the blend pipeline
+    ///
+    /// See [`Graphics::set_blend_mode`]
+    ///
+    /// [`Graphics::set_blend_mode`]: super::Graphics::set_blend_mode
+    pub type BlendMode = golem::blend::BlendMode;
+
+    pub use golem::blend::{
+        BlendChannel, BlendEquation, BlendFactor, BlendFunction, BlendInput, BlendOperation,
+    };
+}
 
 /// The struct that handles sending draw calls to the GPU
 ///
@@ -54,6 +72,7 @@ pub struct Graphics {
     projection_changes: Vec<(usize, Transform)>,
     geom_mode_changes: Vec<(usize, GeometryMode)>,
     clear_changes: Vec<(usize, Color)>,
+    blend_mode_changes: Vec<(usize, Option<blend::BlendMode>)>,
     transform: Transform,
 }
 
@@ -109,6 +128,7 @@ impl Graphics {
             projection_changes: Vec::new(),
             geom_mode_changes: Vec::new(),
             clear_changes: Vec::new(),
+            blend_mode_changes: Vec::new(),
             transform: Transform::IDENTITY,
         })
     }
@@ -133,6 +153,14 @@ impl Graphics {
     /// Use this to rotate, scale, or translate individual draws or small groups of draws
     pub fn set_transform(&mut self, transform: Transform) {
         self.transform = transform;
+    }
+
+    /// Set the blend mode, which determines how pixels mix when drawn over each other
+    ///
+    /// Pass `None` to disable blending entirely
+    pub fn set_blend_mode(&mut self, blend_mode: Option<blend::BlendMode>) {
+        let head = self.index_data.len();
+        self.blend_mode_changes.push((head, blend_mode));
     }
 
     /// Draw a collection of vertices
@@ -291,22 +319,19 @@ impl Graphics {
     }
 
     /// Draw a filled-in circle of a given color
-    pub fn fill_circle(&mut self, center: Vector, radius: f32, color: Color) {
-        self.fill_polygon(&Self::circle_points(center, radius)[..], color);
+    pub fn fill_circle(&mut self, circle: &Circle, color: Color) {
+        self.fill_polygon(&Self::circle_points(circle)[..], color);
     }
 
     /// Outline a circle with a given color
-    pub fn stroke_circle(&mut self, center: Vector, radius: f32, color: Color) {
-        self.stroke_polygon(&Self::circle_points(center, radius)[..], color);
+    pub fn stroke_circle(&mut self, circle: &Circle, color: Color) {
+        self.stroke_polygon(&Self::circle_points(circle)[..], color);
     }
 
-    fn circle_points(center: Vector, radius: f32) -> [Vector; circle_points::CIRCLE_LEN] {
+    fn circle_points(circle: &Circle) -> [Vector; circle_points::CIRCLE_LEN] {
         let mut points = circle_points::CIRCLE_POINTS;
         for point in points.iter_mut() {
-            *point = Vector {
-                x: center.x + radius * point.x,
-                y: center.y + radius * point.y,
-            }
+            *point = circle.center() + (*point * circle.radius);
         }
 
         points
@@ -394,7 +419,9 @@ impl Graphics {
         for index in self.index_data.iter() {
             assert!(*index < max_index, "Element index out of bounds: are you calling draw_elements with invalid index values?");
         }
-        if self.vertex_data.len() > self.vb.size() || self.index_data.len() > self.eb.size() {
+        let vertex_data_size = self.vertex_data.len() * size_of::<f32>();
+        let index_data_size = self.index_data.len() * size_of::<f32>();
+        if vertex_data_size >= self.vb.size() || index_data_size >= self.eb.size() {
             self.vb.set_data(self.vertex_data.as_slice());
             self.eb.set_data(self.index_data.as_slice());
             self.shader.prepare_draw(&self.vb, &self.eb)?;
@@ -402,6 +429,7 @@ impl Graphics {
             self.vb.set_sub_data(0, self.vertex_data.as_slice());
             self.eb.set_sub_data(0, self.index_data.as_slice());
         }
+
         self.shader
             .set_uniform("image", UniformValue::Int(TEX_BIND_POINT as i32))?;
         let mut previous = 0;
@@ -409,12 +437,15 @@ impl Graphics {
         let change_list = join_change_lists(
             join_change_lists(
                 join_change_lists(
-                    self.image_changes.drain(..),
-                    self.projection_changes.drain(..),
+                    join_change_lists(
+                        self.image_changes.drain(..),
+                        self.projection_changes.drain(..),
+                    ),
+                    self.geom_mode_changes.drain(..),
                 ),
-                self.geom_mode_changes.drain(..),
+                self.clear_changes.drain(..),
             ),
-            self.clear_changes.drain(..),
+            self.blend_mode_changes.drain(..),
         );
         for (index, changes) in change_list {
             // Before we change state, draw the old state
@@ -427,26 +458,31 @@ impl Graphics {
             // Change the render state
             if let Some(changes) = changes.0 {
                 if let Some(changes) = changes.0 {
-                    // If we're switching what image to use, do so now
-                    if let Some(image) = changes.0 {
-                        let bind_point = std::num::NonZeroU32::new(TEX_BIND_POINT).unwrap();
-                        image.raw().set_active(bind_point);
+                    if let Some(changes) = changes.0 {
+                        // If we're switching what image to use, do so now
+                        if let Some(image) = changes.0 {
+                            let bind_point = std::num::NonZeroU32::new(TEX_BIND_POINT).unwrap();
+                            image.raw().set_active(bind_point);
+                        }
+                        // If we're switching what projection to use, do so now
+                        if let Some(projection) = changes.1 {
+                            let matrix = Self::transform_to_gl(projection);
+                            self.shader
+                                .set_uniform("projection", UniformValue::Matrix3(matrix))?;
+                        }
                     }
-                    // If we're switching what projection to use, do so now
-                    if let Some(projection) = changes.1 {
-                        let matrix = Self::transform_to_gl(projection);
-                        self.shader
-                            .set_uniform("projection", UniformValue::Matrix3(matrix))?;
+                    // If we're switching the element mode, do so now
+                    if let Some(g_m) = changes.1 {
+                        element_mode = g_m;
                     }
                 }
-                // If we're switching the element mode, do so now
-                if let Some(g_m) = changes.1 {
-                    element_mode = g_m;
+                if let Some(color) = changes.1 {
+                    self.ctx.set_clear_color(color.r, color.g, color.b, color.a);
+                    self.ctx.clear();
                 }
             }
-            if let Some(color) = changes.1 {
-                self.ctx.set_clear_color(color.r, color.g, color.b, color.a);
-                self.ctx.clear();
+            if let Some(blend_mode) = changes.1 {
+                self.ctx.set_blend_mode(blend_mode);
             }
         }
         if previous != self.index_data.len() {
@@ -483,195 +519,38 @@ impl Graphics {
     /// Generally, the best practice is to set this to (0, 0, window_width, window_height), but
     /// when rendering to a subset of the screen it can be useful to change this. Additionally, you
     /// probably want to set the viewport when rendering to a [`Surface`] in [`Graphics::flush`].
+    /// To set the viewport to take up the entire region of a [`Surface`], use
+    /// [`Graphics::fit_to_surface`].
     ///
-    /// The units given are physical units, not logical units. As such when using [`Window::width`]
-    /// and [`Window::height`], be sure to multiply by [`Window::scale_factor`].
+    /// The units given are physical units, not logical units. As such when using [`Window::size`],
+    /// be sure to multiply by [`Window::scale_factor`].
     ///
-    /// [`Window::width`]: crate::lifecycle::Window::width
-    /// [`Window::height`]: crate::lifecycle::Window::height
+    /// [`Window::size`]: crate::lifecycle::Window::size
     /// [`Window::scale_factor`]: crate::lifecycle::Window::scale_factor
     pub fn set_viewport(&self, x: u32, y: u32, width: u32, height: u32) {
         self.ctx.set_viewport(x, y, width, height);
     }
-}
 
-/// A 2D image, stored on the GPU
-///
-/// See [`Graphics::draw_image`] to draw it
-#[derive(Clone)]
-pub struct Image(Rc<RefCell<Texture>>);
-
-impl Image {
-    fn new(texture: Texture) -> Image {
-        Image(Rc::new(RefCell::new(texture)))
-    }
-
-    /// Create an image with a given width and height
+    /// Set the viewport to cover the given Surface
     ///
-    /// Either source the data from an array of bytes, or create a blank image.
-    /// `format` determines how to interpet the bytes when creating the image
-    pub fn from_raw(
-        gfx: &Graphics,
-        data: Option<&[u8]>,
-        width: u32,
-        height: u32,
-        format: PixelFormat,
-    ) -> Result<Image, GolemError> {
-        let mut texture = Texture::new(&gfx.ctx)?;
-        texture.set_image(data, width, height, format);
+    /// Will return an error if the surface has no image attachment, because then it has no size
+    pub fn fit_to_surface(&self, surface: &Surface) -> Result<(), QuicksilverError> {
+        if let (Some(width), Some(height)) = (surface.0.width(), surface.0.height()) {
+            self.ctx.set_viewport(0, 0, width, height);
 
-        Ok(Image::new(texture))
-    }
-
-    /// Create an image from an encoded image format
-    ///
-    /// JPEG and PNG are supported
-    pub fn from_encoded_bytes(gfx: &Graphics, raw: &[u8]) -> Result<Image, QuicksilverError> {
-        let img = image::load_from_memory(raw)?.to_rgba();
-        let width = img.width();
-        let height = img.height();
-        Ok(Image::from_raw(
-            gfx,
-            Some(img.into_raw().as_slice()),
-            width,
-            height,
-            PixelFormat::RGBA,
-        )?)
-    }
-
-    /// Load an image from a file at the given path
-    ///
-    /// JPEG and PNG file formats are supported
-    pub async fn load(gfx: &Graphics, path: impl AsRef<Path>) -> Result<Image, QuicksilverError> {
-        let file_contents = platter::load_file(path).await?;
-        Image::from_encoded_bytes(gfx, file_contents.as_slice())
-    }
-
-    /// Replace the backing data for the image, or create a blank image
-    pub fn set_data(&mut self, data: Option<&[u8]>, width: u32, height: u32, color: ColorFormat) {
-        self.0.borrow_mut().set_image(data, width, height, color);
-    }
-
-    /// Set the data for some region of this image, without clearing it
-    pub fn set_sub_data(
-        &self,
-        data: &[u8],
-        x: u32,
-        y: u32,
-        width: u32,
-        height: u32,
-        color: ColorFormat,
-    ) {
-        self.raw().set_subimage(data, x, y, width, height, color);
-    }
-
-    pub(crate) fn raw(&self) -> Ref<Texture> {
-        self.0.borrow()
-    }
-
-    pub(crate) fn ptr_eq(&self, other: &Image) -> bool {
-        Rc::ptr_eq(&self.0, &other.0)
-    }
-
-    /// Get the size of the image
-    pub fn size(&self) -> Vector {
-        Vector {
-            x: self.raw().width() as f32,
-            y: self.raw().height() as f32,
+            Ok(())
+        } else {
+            Err(QuicksilverError::NoSurfaceImageBound)
         }
     }
 
-    /// Determine how the texture should scale down
-    pub fn set_minification(&self, min: TextureFilter) {
-        self.raw().set_minification(min);
-    }
-
-    /// Determine how the texture should scale up
-    pub fn set_magnification(&self, max: TextureFilter) {
-        self.raw().set_magnification(max);
-    }
-
-    /// Determine how the texture is wrapped horizontally
-    pub fn set_wrap_h(&self, wrap: TextureWrap) {
-        self.raw().set_wrap_h(wrap);
-    }
-
-    /// Determine how the texture is wrapped vertically
-    pub fn set_wrap_v(&self, wrap: TextureWrap) {
-        self.raw().set_wrap_v(wrap);
-    }
-
-    fn into_raw(self) -> Result<Texture, Rc<RefCell<Texture>>> {
-        Ok(Rc::try_unwrap(self.0)?.into_inner())
-    }
-}
-
-/// A Surface is the core struct for rendering to textures, or getting data from them.
-///
-/// If you want to render to a texture, [`attach`] it and then pass the surface to
-/// [`Graphics::flush`].
-///
-/// If you want to get data from a texture, [`attach`] it and use [`Surface::screenshot`].
-///
-/// [`attach`]: Surface::attach
-pub struct Surface(golem::Surface);
-
-impl Surface {
-    /// Create a Surface with an attached Image
-    ///
-    /// The image must not have any other references to it, or this function will return an error.
-    pub fn new(gfx: &Graphics, attachment: Image) -> Result<Surface, QuicksilverError> {
-        let tex = attachment
-            .into_raw()
-            .map_err(|_| QuicksilverError::SurfaceImageError)?;
-        Ok(Surface(golem::Surface::new(&gfx.ctx, tex)?))
-    }
-
-    /// Use the attached image as the backing data for this Surface
-    ///
-    /// To either get the data for an image via [`Surface::screenshot`] or set it via
-    /// [`Graphics::flush`], an image needs to be attached to this Surface.
-    ///
-    /// The image must not have any other references to it, or this function will return an error.
-    ///
-    /// It's generally faster to create one [`Surface`] per [`Image`], and only attach and
-    /// [`detach`] when necessary.
-    ///
-    /// [`detach`]: Surface::detach
-    pub fn attach(&mut self, attachment: Image) -> Result<(), QuicksilverError> {
-        let tex = attachment
-            .into_raw()
-            .map_err(|_| QuicksilverError::SurfaceImageError)?;
-        self.0.put_texture(tex);
-
-        Ok(())
-    }
-
-    /// Take the Image out of this Surface
-    ///
-    /// To use the data that has been rendered to a Surface, its attachment has to be removed to
-    /// avoid creating a loop (where the Image is both being drawn *from* and being drawn *to*.)
-    pub fn detach(&mut self) -> Option<Image> {
-        Some(Image::new(self.0.take_texture()?))
-    }
-
-    /// Get the pixel data of a given region of this surface
-    pub fn screenshot(
-        &self,
-        gfx: &Graphics,
-        x: u32,
-        y: u32,
-        width: u32,
-        height: u32,
-        format: ColorFormat,
-    ) -> Vec<u8> {
-        self.0.bind();
-        let mut buffer = vec![0; (width * height * format.bytes_per_pixel()) as usize];
-        self.0
-            .get_pixel_data(x, y, width, height, format, &mut buffer[..]);
-        golem::Surface::unbind(&gfx.ctx);
-
-        buffer
+    /// Set the viewport to cover the window, taking into account DPI
+    pub fn fit_to_window(&self, window: &blinds::Window) {
+        let size = window.size();
+        let scale = window.scale_factor();
+        let width = size.x * scale;
+        let height = size.y * scale;
+        self.ctx.set_viewport(0, 0, width as u32, height as u32);
     }
 }
 

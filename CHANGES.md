@@ -1,12 +1,31 @@
 # Changelog
 
-## In-development
+## Work In Progress
+- Addition and subtraction of Tranforms supported to help with easing function calculations
+
+## v0.4.0-alpha0.3
+- Update `golem` to `v0.1.1` to fix non-power-of-2 textures
+- `impl std::iter::Sum for geom::Vector`
+
+## v0.4.0-alpha0.2
+- Fix the "easy-log" feature
+- [BREAKING] `fill_circle` now takes a `&Circle` instead of a separate center and radius
+
+## 0.4.0-alpha0.1
 - Fix the default blend mode: it should mix colors using their alphas
 - [Breaking] Remove support for image types other than jpeg and png
 - [Breaking] Add a parameter to `Graphics::flush` which determines what Surface to render to
 - Add the Surface API, for rendering to textures
 - Add functions to set texture parameters and to set texture data
-- Addition and subtraction of Tranforms supported to help with easing function calculations
+- Add the ability to set the blend pipeline
+- Fix over-estimation of GPU buffer sizes
+- Add functions on Graphics to set the viewport (`set_viewport`, `fit_to_surfcae`, `fit_to_window`)
+- Add `ResizeHandler` to help with maintaing the same aspect ratio when the screen size changes
+- Re-export `blinds`, `golem`, `mint`, and `log`
+- [Breaking] Update to blinds 0.1.0:
+    - [Breaking] Reworked the events API for forwards-compatibility
+    - Set the tab title on web
+    - Add an optional module to cache event states
 
 ## 0.4.0-alpha0
 The API change is *very breaking*. It can be considered nearly a full re-write of Quicksilver.
