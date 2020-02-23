@@ -6,13 +6,15 @@ use std::path::Path;
 use elefont::{FontCache, FontProvider, PixelType, Texture, TextureGlyph};
 
 // TODO: size?
-const CACHE_SIZE: u32 = 2048;
+const CACHE_SIZE: usize = 2048;
+const CACHE_DIM: u32 = CACHE_SIZE as u32;
+static CACHE_DATA: [u8; CACHE_SIZE * CACHE_SIZE * 4] = [0u8; CACHE_SIZE * CACHE_SIZE * 4];
 
 pub struct Font(FontCache<FontImage>);
 
 impl Font {
     pub fn from_font_source(gfx: &Graphics, source: Box<dyn FontProvider>) -> crate::Result<Self> {
-        let image = Image::from_raw(gfx, None, CACHE_SIZE, CACHE_SIZE, PixelFormat::RGBA)?;
+        let image = Image::from_raw(gfx, Some(&CACHE_DATA[..]), CACHE_DIM, CACHE_DIM, PixelFormat::RGBA)?;
         let backing_texture = FontImage {
             image,
             buffer: Vec::new(),
