@@ -75,7 +75,8 @@ impl Texture for FontImage {
                 self.buffer.extend_from_slice(data);
             }
         }
-        self.image.set_sub_data(&self.buffer[..], gpu.x, gpu.y, gpu.width, gpu.height, ColorFormat::RGBA);
+        let bounds = gpu.bounds;
+        self.image.set_sub_data(&self.buffer[..], bounds.x as u32, bounds.y as u32, bounds.width, bounds.height, ColorFormat::RGBA);
     }
 }
 

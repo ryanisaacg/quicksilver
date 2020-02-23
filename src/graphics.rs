@@ -30,6 +30,7 @@ pub use self::vertex::{Element, Vertex};
 
 use crate::geom::*;
 use golem::*;
+use std::collections::VecDeque;
 use std::iter;
 use std::mem::size_of;
 
@@ -410,22 +411,33 @@ impl Graphics {
     pub fn draw_text(&mut self, font: &mut Font, text: &str, size: f32, color: Color, position: Vector) {
         let cache = font.cache();
         let mut cursor = position;
-        //let (space, _) = cache.render_string(" "){
+        let space_glyph = cache.font().single_glyph(' ');
+        let space_metrics = cache.font().metrics(elefont::GlyphKey::new(space_glyph, size));
+        let mut glyphs = VecDeque::new();
         for line in text.split('\n') {
             for word in line.split(' ') {
-                let glyphs: Vec<_> = cache.render_string(word, size).collect();
-                for glyph in  glyphs {
+                glyphs.extend(cache.render_string(word, size));
+                while let Some(glyph) = glyphs.pop_front() {
                     let (metrics, glyph) = glyph.expect("TODO: Failed to fit character in cache");
-                    let glyph_size = Vector::new(glyph.width as f32, glyph.height as f32);
+                    let tex_bounds = glyph.bounds;
+                    let glyph_position = metrics.bounds.map_or(Vector::ZERO, |b| Vector::new(b.x as f32, b.y as f32));
+                    let glyph_size = Vector::new(tex_bounds.width as f32, tex_bounds.height as f32);
 
-                    let region = Rectangle::new(Vector::new(glyph.x as f32, glyph.y as f32), glyph_size);
-                    let location = Rectangle::new(cursor, glyph_size);
+                    let region = Rectangle::new(Vector::new(tex_bounds.x as f32, tex_bounds.y as f32), glyph_size);
+                    let location = Rectangle::new(cursor + glyph_position, glyph_size);
                     self.draw_subimage_tinted(&cache.texture().image, region, location, color);
 
                     cursor.x += metrics.advance_x;
+                    // If there's a next glyph, try kerning
+                    if let Some(Ok((_, next))) = glyphs.front() {
+                        if let Some(kerning) = cache.font().kerning(glyph.key.glyph, next.key.glyph, size) {
+                            cursor.x += kerning;
+                        }
+                    }
                 }
-                // TODO: advance cursor a space
+                cursor.x += space_metrics.advance_x;
             }
+            cursor.x = position.x;
             cursor.y += cache.font().line_height(size);
         }
     }

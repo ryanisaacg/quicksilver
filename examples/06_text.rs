@@ -1,5 +1,5 @@
-// Example 2: The Image
-// Draw an image to the screen
+// Example 6: Text
+// Write some text on the screen
 use quicksilver::{
     geom::{Rectangle, Vector},
     graphics::{Color, Font, Graphics, Image},
@@ -18,12 +18,11 @@ fn main() {
     );
 }
 
-// This time we might return an error, so we use a Result
 async fn app(window: Window, mut gfx: Graphics, mut events: EventStream) -> Result<()> {
-    // Load the image and wait for it to finish
-    // We also use '?' to handle errors like file-not-found
+    // Load the Font, just like loading any other asset
     let mut font = Font::load_ttf(&gfx, "font.ttf").await?;
     gfx.clear(Color::WHITE);
+    // Use the font rendering API to draw some text
     gfx.draw_text(&mut font, "Hello world!", 72.0, Color::BLACK, Vector::new(100.0, 100.0));
     gfx.present(&window)?;
 
