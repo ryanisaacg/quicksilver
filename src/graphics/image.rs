@@ -118,3 +118,4 @@ impl Image {
         Ok(Rc::try_unwrap(self.0)?.into_inner())
     }
 }
+

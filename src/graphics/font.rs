@@ -1,19 +1,84 @@
 use super::*;
 
-use std::rc::Rc;
-use elefont::FontCache;
+use std::future::Future;
+use std::iter;
+use std::path::Path;
+use elefont::{FontCache, FontProvider, PixelType, Texture, TextureGlyph};
 
-pub struct Font(Rc<FontContents>);
+// TODO: size?
+const CACHE_SIZE: u32 = 2048;
 
-struct FontContents {
-    cache: FontCache<Image>,
-}
+pub struct Font(FontCache<FontImage>);
 
 impl Font {
-    pub(crate) fn cache(&self) -> &FontCache {
-        &self.0.cache
+    pub fn from_font_source(gfx: &Graphics, source: Box<dyn FontProvider>) -> crate::Result<Self> {
+        let image = Image::from_raw(gfx, None, CACHE_SIZE, CACHE_SIZE, PixelFormat::RGBA)?;
+        let backing_texture = FontImage {
+            image,
+            buffer: Vec::new(),
+        };
+        let cache = FontCache::new(source, backing_texture);
+
+        Ok(Font(cache))
+    }
+
+    #[cfg(feature="ttf")]
+    pub fn from_ttf_slice(gfx: &Graphics, data: &'static [u8]) -> crate::Result<Self> {
+        use rusttype::FontCollection;
+        let font = FontCollection::from_bytes(data).unwrap().into_font().unwrap();
+        Self::from_font_source(gfx, Box::new(font))
+    }
+    
+    #[cfg(feature="ttf")]
+    pub fn from_ttf_bytes(gfx: &Graphics, data: Vec<u8>) -> crate::Result<Self> {
+        use rusttype::FontCollection;
+        let font = FontCollection::from_bytes(data).unwrap().into_font().unwrap();
+        Self::from_font_source(gfx, Box::new(font))
+    }
+
+    #[cfg(feature="ttf")]
+    pub async fn load_ttf(gfx: &Graphics, path: impl AsRef<Path>) -> crate::Result<Self> {
+        let file_contents = platter::load_file(path).await?;
+        Font::from_ttf_bytes(gfx, file_contents)
+    }
+
+    pub(crate) fn cache(&mut self) -> &mut FontCache<FontImage> {
+        &mut self.0
     }
 }
+
+pub(crate) struct FontImage {
+    pub image: Image,
+    pub buffer: Vec<u8>,
+}
+
+impl Texture for FontImage {
+    fn width(&self) -> u32 {
+        self.image.raw().width()
+    }
+
+    fn height(&self) -> u32 {
+        self.image.raw().height()
+    }
+
+    /// Write the data from a font into a texture
+    fn put_rect(&mut self, pixel: PixelType, data: &[u8], gpu: &TextureGlyph) {
+        self.buffer.clear();
+        match pixel {
+            PixelType::Alpha => {
+                self.buffer.extend(iter::repeat(255).take(data.len() * 4));
+                for i in 0..data.len() {
+                    self.buffer[i * 4 + 3] = data[i];
+                }
+            }
+            PixelType::RGBA => {
+                self.buffer.extend_from_slice(data);
+            }
+        }
+        self.image.set_sub_data(&self.buffer[..], gpu.x, gpu.y, gpu.width, gpu.height, ColorFormat::RGBA);
+    }
+}
+
 
 /*use crate::{
     load_file,

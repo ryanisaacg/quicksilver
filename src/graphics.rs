@@ -13,12 +13,16 @@ use crate::QuicksilverError;
 
 mod circle_points;
 mod color;
+#[cfg(feature = "font")]
+mod font;
 mod image;
 mod mesh;
 mod surface;
 mod vertex;
 
 pub use self::color::Color;
+#[cfg(feature = "font")]
+pub use self::font::Font;
 pub use self::image::Image;
 pub use self::mesh::Mesh;
 pub use self::surface::Surface;
@@ -402,8 +406,28 @@ impl Graphics {
         );
     }
 
-    pub fn draw_text(&mut self, font: &Font, text: &str, position: Vector) {
+    #[cfg(feature = "font")]
+    pub fn draw_text(&mut self, font: &mut Font, text: &str, size: f32, color: Color, position: Vector) {
+        let cache = font.cache();
+        let mut cursor = position;
+        //let (space, _) = cache.render_string(" "){
+        for line in text.split('\n') {
+            for word in line.split(' ') {
+                let glyphs: Vec<_> = cache.render_string(word, size).collect();
+                for glyph in  glyphs {
+                    let (metrics, glyph) = glyph.expect("TODO: Failed to fit character in cache");
+                    let glyph_size = Vector::new(glyph.width as f32, glyph.height as f32);
 
+                    let region = Rectangle::new(Vector::new(glyph.x as f32, glyph.y as f32), glyph_size);
+                    let location = Rectangle::new(cursor, glyph_size);
+                    self.draw_subimage_tinted(&cache.texture().image, region, location, color);
+
+                    cursor.x += metrics.advance_x;
+                }
+                // TODO: advance cursor a space
+            }
+            cursor.y += cache.font().line_height(size);
+        }
     }
 
     /// Send the accumulated draw data to the GPU
