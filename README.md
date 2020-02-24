@@ -18,7 +18,7 @@ changes from the 0.3.x API to the new API would be appreciated.
 
 Create a rust project and add this line to your `Cargo.toml` file under `[dependencies]`:
 ```text
-quicksilver = "=0.4.0-alpha0"
+quicksilver = "=0.4.0-alpha0.2"
 ```
 Then replace `src/main.rs` with the following (the contents of quicksilver's
 `examples/01_square.rs`):
