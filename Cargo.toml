@@ -34,7 +34,7 @@ blinds = { version = "0.1.0", default-features = false, features = ["gl"] }
 bytemuck = "1.0"
 elefont = { git = "https://github.com/ryanisaacg/elefont", features = ["rusttype", "unicode-normalization"], optional = true }
 gestalt = { version = "0.1", optional = true }
-golem = { path = "../golem" }
+golem = "0.1.2"
 image = { version = "0.22", default-features = false, features = ["png_codec", "jpeg"] }
 log = "0.4"
 mint = "0.5.3"
