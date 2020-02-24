@@ -1,6 +1,5 @@
 use super::*;
 
-use std::future::Future;
 use std::iter;
 use std::path::Path;
 use elefont::{FontCache, FontProvider, PixelType, Texture, TextureGlyph};
