@@ -140,7 +140,7 @@ The optional features available are:
 [simple_logger](https://github.com/borntyping/rust-simple_logger), and
 [web_logger](https://github.com/yewstack/web_logger))
 - gamepad event generation (via [gilrs](https://gitlab.com/gilrs-project/gilrs))
-- saving (via [gestalt](https://github.com/ryanisaacg/golem))
+- saving (via [gestalt](https://github.com/ryanisaacg/gestalt))
 
 Each are enabled by default, but you can
 [specify which features](https://doc.rust-lang.org/cargo/reference/specifying-dependencies.html#choosing-features)
