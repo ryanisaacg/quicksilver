@@ -3,7 +3,7 @@
 //! The [`run`] function is the entry point for all applications
 use crate::geom::{Rectangle, Transform};
 use crate::graphics::Graphics;
-use crate::Result;
+use std::error::Error;
 use std::future::Future;
 
 pub use blinds::event;
@@ -18,9 +18,10 @@ pub use blinds::{
 ///
 /// It provides your application (represented by an async closure or function) with a [`Window`],
 /// [`Graphics`] context, and [`EventStream`].
-pub fn run<F, T>(settings: Settings, app: F) -> !
+pub fn run<E, F, T>(settings: Settings, app: F) -> !
 where
-    T: 'static + Future<Output = Result<()>>,
+    E: Into<Box<dyn Error + Send + Sync>>,
+    T: 'static + Future<Output = Result<(), E>>,
     F: 'static + FnOnce(Window, Graphics, EventStream) -> T,
 {
     #[cfg(feature = "easy-log")]
@@ -46,6 +47,7 @@ where
             match app(window, graphics, events).await {
                 Ok(()) => log::info!("Exited successfully"),
                 Err(err) => {
+                    let err = err.into();
                     log::error!("Error: {:?}", err);
                     panic!("{:?}", err);
                 }
