@@ -47,7 +47,7 @@ impl Display for QuicksilverError {
         match self {
             QuicksilverError::ImageError(e) => e.fmt(fmt),
             QuicksilverError::IOError(e) => e.fmt(fmt),
-            QuicksilverError::GraphicsError(e) => write!(fmt, "{:?}", e),
+            QuicksilverError::GraphicsError(e) => e.fmt(fmt),
             QuicksilverError::SurfaceImageError => write!(
                 fmt,
                 "An image was passed to Surface with non-exclusive reference"
@@ -65,7 +65,7 @@ impl Error for QuicksilverError {
         match self {
             QuicksilverError::ImageError(e) => Some(e),
             QuicksilverError::IOError(e) => Some(e),
-            // GolemError is not Error :-(
+            QuicksilverError::GraphicsError(e) => Some(e),
             _ => None,
         }
     }
