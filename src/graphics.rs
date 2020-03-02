@@ -22,7 +22,7 @@ mod vertex;
 
 pub use self::color::Color;
 #[cfg(feature = "font")]
-pub use self::font::Font;
+pub use self::font::{Font, LayoutGlyph};
 pub use self::image::Image;
 pub use self::mesh::Mesh;
 pub use self::surface::Surface;
@@ -408,38 +408,16 @@ impl Graphics {
     }
 
     #[cfg(feature = "font")]
-    pub fn draw_text(&mut self, font: &mut Font, text: &str, size: f32, color: Color, position: Vector) {
-        let cache = font.cache();
-        let mut cursor = position;
-        let space_glyph = cache.font().single_glyph(' ');
-        let space_metrics = cache.font().metrics(elefont::GlyphKey::new(space_glyph, size));
-        let mut glyphs = VecDeque::new();
-        for line in text.split('\n') {
-            for word in line.split(' ') {
-                glyphs.extend(cache.render_string(word, size));
-                while let Some(glyph) = glyphs.pop_front() {
-                    let (metrics, glyph) = glyph.expect("TODO: Failed to fit character in cache");
-                    let tex_bounds = glyph.bounds;
-                    let glyph_position = metrics.bounds.map_or(Vector::ZERO, |b| Vector::new(b.x as f32, b.y as f32));
-                    let glyph_size = Vector::new(tex_bounds.width as f32, tex_bounds.height as f32);
+    pub fn draw_text(&mut self, font: &mut Font, text: &str, size: f32, color: Color, offset: Vector) {
+        font.layout_glyphs(text, size, None, |font, layout| {
+            let LayoutGlyph { position, glyph } = layout;
 
-                    let region = Rectangle::new(Vector::new(tex_bounds.x as f32, tex_bounds.y as f32), glyph_size);
-                    let location = Rectangle::new(cursor + glyph_position, glyph_size);
-                    self.draw_subimage_tinted(&cache.texture().image, region, location, color);
-
-                    cursor.x += metrics.advance_x;
-                    // If there's a next glyph, try kerning
-                    if let Some(Ok((_, next))) = glyphs.front() {
-                        if let Some(kerning) = cache.font().kerning(glyph.key.glyph, next.key.glyph, size) {
-                            cursor.x += kerning;
-                        }
-                    }
-                }
-                cursor.x += space_metrics.advance_x;
-            }
-            cursor.x = position.x;
-            cursor.y += cache.font().line_height(size);
-        }
+            let tex_bounds = glyph.bounds;
+            let glyph_size = Vector::new(tex_bounds.width as f32, tex_bounds.height as f32);
+            let region = Rectangle::new(Vector::new(tex_bounds.x as f32, tex_bounds.y as f32), glyph_size);
+            let location = Rectangle::new(offset + position, glyph_size);
+            self.draw_subimage_tinted(&font.cache().texture().image, region, location, color);
+        });
     }
 
     /// Send the accumulated draw data to the GPU

@@ -46,6 +46,45 @@ impl Font {
     pub(crate) fn cache(&mut self) -> &mut FontCache<FontImage> {
         &mut self.0
     }
+
+    /// Lay out the given text at a given font size, with a given maximum width
+    pub fn layout_glyphs(&mut self, text: &str, size: f32, max_width: Option<f32>, mut callback: impl FnMut(&mut Font, LayoutGlyph)) {
+        let mut cursor = Vector::ZERO;
+        let space_glyph = self.0.font().single_glyph(' ');
+        let space_metrics = self.0.font().metrics(elefont::GlyphKey::new(space_glyph, size));
+        let mut glyphs = VecDeque::new();
+        // TODO: handle max width
+        for line in text.split('\n') {
+            for word in line.split(' ') {
+                glyphs.extend(self.0.render_string(word, size));
+                while let Some(glyph) = glyphs.pop_front() {
+                    let (metrics, glyph) = glyph.expect("TODO: Failed to fit character in cache");
+                    let glyph_position = metrics.bounds.map_or(Vector::ZERO, |b| Vector::new(b.x as f32, b.y as f32));
+
+                    callback(self, LayoutGlyph {
+                        position: cursor + glyph_position,
+                        glyph,
+                    });
+
+                    cursor.x += metrics.advance_x;
+                    // If there's a next glyph, try kerning
+                    if let Some(Ok((_, next))) = glyphs.front() {
+                        if let Some(kerning) = self.0.font().kerning(glyph.key.glyph, next.key.glyph, size) {
+                            cursor.x += kerning;
+                        }
+                    }
+                }
+                cursor.x += space_metrics.advance_x;
+            }
+            cursor.x = 0.0;
+            cursor.y += self.0.font().line_height(size);
+        }
+    }
+}
+
+pub struct LayoutGlyph {
+    pub position: Vector,
+    pub glyph: TextureGlyph,
 }
 
 pub(crate) struct FontImage {
