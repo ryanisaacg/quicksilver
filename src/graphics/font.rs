@@ -48,6 +48,9 @@ impl Font {
     }
 
     /// Lay out the given text at a given font size, with a given maximum width
+    ///
+    /// Each glyph (and the font) is passed into the callback as it is layed out, giving the option
+    /// to render right away, examine and move on, etc.
     pub fn layout_glyphs(&mut self, text: &str, size: f32, max_width: Option<f32>, mut callback: impl FnMut(&mut Font, LayoutGlyph)) {
         let mut cursor = Vector::ZERO;
         let space_glyph = self.0.font().single_glyph(' ');
@@ -79,6 +82,21 @@ impl Font {
             cursor.x = 0.0;
             cursor.y += self.0.font().line_height(size);
         }
+    }
+
+    /// Find the extents of the text layed out with the given parameters
+    ///
+    /// Retrieves the furthest right extend and furthest bottom extend of the text layout
+    pub fn text_extents(&mut self, text: &str, size: f32, max_width: Option<f32>) -> Vector {
+        let mut extents = Vector::ZERO;
+        self.layout_glyphs(text, size, max_width, |_, LayoutGlyph { position, glyph }| {
+            let right = position.x + glyph.bounds.width as f32;
+            let bottom= position.y + glyph.bounds.height as f32;
+            extents.x = extents.x.max(right);
+            extents.y = extents.y.max(bottom);
+        });
+
+        extents
     }
 }
 
