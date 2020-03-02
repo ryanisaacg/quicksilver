@@ -408,8 +408,8 @@ impl Graphics {
     }
 
     #[cfg(feature = "font")]
-    pub fn draw_text(&mut self, font: &mut Font, text: &str, size: f32, color: Color, offset: Vector) {
-        font.layout_glyphs(text, size, None, |font, layout| {
+    pub fn draw_text(&mut self, font: &mut Font, text: &str, size: f32, max_width: Option<f32>, color: Color, offset: Vector) {
+        font.layout_glyphs(text, size, max_width, |font, layout| {
             let LayoutGlyph { position, glyph } = layout;
 
             let tex_bounds = glyph.bounds;

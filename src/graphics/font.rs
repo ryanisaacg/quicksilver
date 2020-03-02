@@ -4,7 +4,6 @@ use std::iter;
 use std::path::Path;
 use elefont::{FontCache, FontProvider, PixelType, Texture, TextureGlyph};
 
-// TODO: size?
 const CACHE_SIZE: usize = 2048;
 const CACHE_DIM: u32 = CACHE_SIZE as u32;
 static CACHE_DATA: [u8; CACHE_SIZE * CACHE_SIZE * 4] = [0u8; CACHE_SIZE * CACHE_SIZE * 4];
@@ -55,13 +54,38 @@ impl Font {
         let mut cursor = Vector::ZERO;
         let space_glyph = self.0.font().single_glyph(' ');
         let space_metrics = self.0.font().metrics(elefont::GlyphKey::new(space_glyph, size));
-        let mut glyphs = VecDeque::new();
-        // TODO: handle max width
+        let mut glyphs = Vec::new();
+        let line_height = self.0.font().line_height(size);
+
         for line in text.split('\n') {
             for word in line.split(' ') {
-                glyphs.extend(self.0.render_string(word, size));
-                while let Some(glyph) = glyphs.pop_front() {
-                    let (metrics, glyph) = glyph.expect("TODO: Failed to fit character in cache");
+                // Retrieve the glyphs from the font
+                glyphs.extend(self.0.render_string(word, size)
+                    .map(|glyph| glyph.expect("TODO: Failed to fit character in cache")));
+
+                // If we're word wrapping, look ahead to the total width of the word. In the case
+                // where the word would overflow the line, move down a line
+                if let Some(width) = max_width {
+                    let mut word_width = 0.0;
+                    let mut it = glyphs.iter().peekable();
+                    while let Some((metrics, glyph)) = it.next() {
+                        word_width += metrics.advance_x;
+                        // If there's a next glyph, try kerning
+                        if let Some((_, next)) = it.peek() {
+                            if let Some(kerning) = self.0.font().kerning(glyph.key.glyph, next.key.glyph, size) {
+                                word_width += kerning;
+                            }
+                        }
+                    }
+                    if cursor.x + word_width > width {
+                        cursor.x = 0.0;
+                        cursor.y += line_height;
+                    }
+                }
+
+                // Send each glyph to the callback
+                let mut it = glyphs.drain(..).peekable();
+                while let Some((metrics, glyph)) = it.next() {
                     let glyph_position = metrics.bounds.map_or(Vector::ZERO, |b| Vector::new(b.x as f32, b.y as f32));
 
                     callback(self, LayoutGlyph {
@@ -71,7 +95,7 @@ impl Font {
 
                     cursor.x += metrics.advance_x;
                     // If there's a next glyph, try kerning
-                    if let Some(Ok((_, next))) = glyphs.front() {
+                    if let Some((_, next)) = it.peek() {
                         if let Some(kerning) = self.0.font().kerning(glyph.key.glyph, next.key.glyph, size) {
                             cursor.x += kerning;
                         }
@@ -80,7 +104,7 @@ impl Font {
                 cursor.x += space_metrics.advance_x;
             }
             cursor.x = 0.0;
-            cursor.y += self.0.font().line_height(size);
+            cursor.y += line_height;
         }
     }
 
