@@ -143,7 +143,7 @@ impl Graphics {
     /// Quicksilver's graphics stack is built on. The main advantage you gain is custom shaders, as
     /// well as being able to manage multiple different GPU buffers. See the
     /// [`golem`](https://crates/io/crates/golem) crate for more details.
-    pub fn to_raw_context(self) -> Context {
+    pub fn into_raw_context(self) -> Context {
         self.ctx
     }
 
