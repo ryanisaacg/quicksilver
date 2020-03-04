@@ -30,7 +30,6 @@ pub use self::vertex::{Element, Vertex};
 
 use crate::geom::*;
 use golem::*;
-use std::collections::VecDeque;
 use std::iter;
 use std::mem::size_of;
 
