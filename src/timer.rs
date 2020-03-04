@@ -1,13 +1,16 @@
-use std::time::{Duration, Instant};
+use instant::Instant;
+use std::time::Duration;
+
 pub struct Timer {
 	period: Duration,
 	init: Instant,
 }
+
 impl Timer {
 	pub fn time_per_second(times: f32) -> Timer {
-		Timer::new(Duration::from_secs_f32(1.0 / times))
+		Timer::with_duration(Duration::from_secs_f32(1.0 / times))
 	}
-	pub fn new(period: Duration) -> Timer {
+	pub fn with_duration(period: Duration) -> Timer {
 		Timer {
 			period,
 			init: Instant::now(),
@@ -21,7 +24,7 @@ impl Timer {
 			false
 		}
 	}
-	pub fn ms_remaining(&self) -> Duration {
-		self.period - self.init.elapsed()
+	pub fn remaining(&self) -> Option<Duration> {
+		self.init.elapsed().checked_sub(self.period)
 	}
 }
