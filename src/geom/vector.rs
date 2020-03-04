@@ -2,6 +2,7 @@ use crate::geom::{about_equal, Scalar};
 use std::{
     cmp::{Eq, PartialEq},
     fmt,
+    iter::Sum,
     ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign},
 };
 
@@ -200,6 +201,15 @@ impl<T: Scalar> MulAssign<T> for Vector {
     }
 }
 
+impl Sum for Vector {
+    fn sum<I>(iter: I) -> Vector
+    where
+        I: Iterator<Item = Vector>,
+    {
+        iter.fold(Vector::ZERO, |a, b| a + b)
+    }
+}
+
 impl PartialEq for Vector {
     fn eq(&self, other: &Vector) -> bool {
         about_equal(self.x, other.x) && about_equal(self.y, other.y)
@@ -320,5 +330,12 @@ mod tests {
         assert_eq!(a.distance(Vector::ZERO), 1.0);
         assert_eq!(b.distance(a), 2_f32.sqrt());
         assert_eq!(c.distance(Vector::ZERO), 2_f32.sqrt());
+    }
+
+    #[test]
+    fn sum() {
+        let input = vec![Vector::new(1, 2), Vector::new(2, 3), Vector::new(3, 4)];
+        let sum = input.into_iter().sum();
+        assert_eq!(Vector::new(6, 9), sum);
     }
 }

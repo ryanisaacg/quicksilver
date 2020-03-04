@@ -95,23 +95,33 @@ impl Image {
     }
 
     /// Determine how the texture should scale down
+    ///
+    /// Only textures with a power-of-2 size support mipmaps, all others will return errors
     pub fn set_minification(&self, min: TextureFilter) -> Result<(), QuicksilverError> {
         Ok(self.raw().set_minification(min)?)
     }
 
     /// Determine how the texture should scale up
+    ///
+    /// Attempting to use a mipmap filter for magnification will result in an error
     pub fn set_magnification(&self, max: TextureFilter) -> Result<(), QuicksilverError> {
         Ok(self.raw().set_magnification(max)?)
     }
 
     /// Determine how the texture is wrapped horizontally
-    pub fn set_wrap_h(&self, wrap: TextureWrap) {
-        self.raw().set_wrap_h(wrap);
+    ///
+    /// Only textures with a power-of-2 size support texture wrapping, all others must ClampToEdge
+    /// or will return an error
+    pub fn set_wrap_h(&self, wrap: TextureWrap) -> Result<(), QuicksilverError> {
+        Ok(self.raw().set_wrap_h(wrap)?)
     }
 
     /// Determine how the texture is wrapped vertically
-    pub fn set_wrap_v(&self, wrap: TextureWrap) {
-        self.raw().set_wrap_v(wrap);
+    ///
+    /// Only textures with a power-of-2 size support texture wrapping, all others must ClampToEdge
+    /// or will return an error
+    pub fn set_wrap_v(&self, wrap: TextureWrap) -> Result<(), QuicksilverError> {
+        Ok(self.raw().set_wrap_v(wrap)?)
     }
 
     pub(crate) fn into_raw(self) -> Result<Texture, Rc<RefCell<Texture>>> {

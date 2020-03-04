@@ -18,7 +18,7 @@ changes from the 0.3.x API to the new API would be appreciated.
 
 Create a rust project and add this line to your `Cargo.toml` file under `[dependencies]`:
 ```text
-quicksilver = "=0.4.0-alpha0"
+quicksilver = "=0.4.0-alpha0.2"
 ```
 Then replace `src/main.rs` with the following (the contents of quicksilver's
 `examples/01_square.rs`):
@@ -85,7 +85,9 @@ web (instructions below).
     - [Leinnan](https://github.com/Leinnan): [Slavic Castles](https://github.com/Leinnan/slavic_castles)
     - [Lenscas](https://github.com/lenscas): [Arena keeper](https://github.com/lenscas/arena_keeper_quick)
 - Libraries
-    - [Lenscas](https://github.com/lenscas): [Mergui](https://crates.io/crates/mergui)
+    - [Lenscas](https://github.com/lenscas): [Mergui](https://crates.io/crates/mergui) - A simple GUI system
+    - [johnpmayer](https://github.com/johnpmayer): [quicksilver-utils-async](https://crates.io/crates/quicksilver-utils-async) - Tasks, timers, and net code
+    - [johnpmayer](https://github.com/johnpmayer): [quicksilver-utils-ecs](https://crates.io/crates/quicksilver-utils-ecs) - Entity Component System integrations
 
 Want to add your project? Feel free to open an issue or PR!
 
@@ -138,7 +140,7 @@ The optional features available are:
 [simple_logger](https://github.com/borntyping/rust-simple_logger), and
 [web_logger](https://github.com/yewstack/web_logger))
 - gamepad event generation (via [gilrs](https://gitlab.com/gilrs-project/gilrs))
-- saving (via [gestalt](https://github.com/ryanisaacg/golem))
+- saving (via [gestalt](https://github.com/ryanisaacg/gestalt))
 
 Each are enabled by default, but you can
 [specify which features](https://doc.rust-lang.org/cargo/reference/specifying-dependencies.html#choosing-features)

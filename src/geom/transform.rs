@@ -4,7 +4,7 @@ use std::{
     default::Default,
     f32::consts::PI,
     fmt,
-    ops::Mul,
+    ops::{Add, Mul, Sub},
 };
 
 /// A 2D transformation represented by a matrix
@@ -152,6 +152,40 @@ impl<T: Scalar> Mul<T> for Transform {
     }
 }
 
+/// Add the values of two transforms together
+///
+/// Note you probably want Mul to combine Transforms. Addition is only useful in less common use cases like interpolation
+impl Add<Transform> for Transform {
+    type Output = Transform;
+
+    fn add(self, other: Transform) -> Transform {
+        let mut returnval = Transform::IDENTITY;
+        for i in 0..3 {
+            for j in 0..3 {
+                returnval.0[i][j] = other.0[i][j] + self.0[i][j];
+            }
+        }
+        returnval
+    }
+}
+
+/// Subtract the values of one transform from another
+///
+/// Note you probably want Mul to combine Transforms. Subtraction is only useful in less common use cases like interpolation
+impl Sub<Transform> for Transform {
+    type Output = Transform;
+
+    fn sub(self, other: Transform) -> Transform {
+        let mut returnval = Transform::IDENTITY;
+        for i in 0..3 {
+            for j in 0..3 {
+                returnval.0[i][j] = self.0[i][j] - other.0[i][j];
+            }
+        }
+        returnval
+    }
+}
+
 impl fmt::Display for Transform {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "[")?;
@@ -261,6 +295,25 @@ mod tests {
         assert_eq!(vec, trans * vec);
     }
 
+    #[test]
+    fn test_add() {
+        let identity = Transform::IDENTITY;
+        let trans = Transform::scale(Vector::ONE * 2);
+        let double_trans = identity + identity;
+        let vec = Vector::new(2, 2);
+        let scaled = trans * vec;
+        let doubled = double_trans * vec;
+        assert_eq!(scaled, doubled);
+    }
+
+    #[test]
+    fn test_sub() {
+        let identity = Transform::IDENTITY;
+        let double = identity + identity;
+        let triple = double + identity;
+        let right = triple - identity;
+        assert_eq!(double, right);
+    }
     #[test]
     fn complex_inverse() {
         let a = Transform::rotate(5f32)
