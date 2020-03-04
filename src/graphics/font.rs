@@ -187,7 +187,7 @@ impl Texture for FontImage {
         match pixel {
             PixelType::Alpha => {
                 self.buffer.extend(iter::repeat(255).take(data.len() * 4));
-                for (i, alpha) in 0..data.iter().enumerate() {
+                for (i, alpha) in data.iter().copied().enumerate() {
                     self.buffer[i * 4 + 3] = alpha;
                 }
             }
