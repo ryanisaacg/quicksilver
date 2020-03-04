@@ -1,8 +1,8 @@
 // Example 6: Text
 // Write some text on the screen
 use quicksilver::{
-    geom::{Rectangle, Vector},
-    graphics::{Color, Font, Graphics, Image},
+    geom::Vector,
+    graphics::{Color, Font, Graphics},
     lifecycle::{run, EventStream, Settings, Window},
     Result,
 };
@@ -27,6 +27,7 @@ async fn app(window: Window, mut gfx: Graphics, mut events: EventStream) -> Resu
         &mut font,
         "Hello world!\nHello Quicksilver!",
         72.0,
+        None,
         Color::BLACK,
         Vector::new(100.0, 100.0),
     );
