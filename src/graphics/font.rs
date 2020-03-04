@@ -1,8 +1,8 @@
 use super::*;
 
+use elefont::{FontCache, FontProvider, PixelType, Texture, TextureGlyph};
 use std::iter;
 use std::path::Path;
-use elefont::{FontCache, FontProvider, PixelType, Texture, TextureGlyph};
 
 const CACHE_SIZE: usize = 2048;
 const CACHE_DIM: u32 = CACHE_SIZE as u32;
@@ -12,7 +12,13 @@ pub struct Font(FontCache<FontImage>);
 
 impl Font {
     pub fn from_font_source(gfx: &Graphics, source: Box<dyn FontProvider>) -> crate::Result<Self> {
-        let image = Image::from_raw(gfx, Some(&CACHE_DATA[..]), CACHE_DIM, CACHE_DIM, PixelFormat::RGBA)?;
+        let image = Image::from_raw(
+            gfx,
+            Some(&CACHE_DATA[..]),
+            CACHE_DIM,
+            CACHE_DIM,
+            PixelFormat::RGBA,
+        )?;
         let backing_texture = FontImage {
             image,
             buffer: Vec::new(),
@@ -22,21 +28,27 @@ impl Font {
         Ok(Font(cache))
     }
 
-    #[cfg(feature="ttf")]
+    #[cfg(feature = "ttf")]
     pub fn from_ttf_slice(gfx: &Graphics, data: &'static [u8]) -> crate::Result<Self> {
         use rusttype::FontCollection;
-        let font = FontCollection::from_bytes(data).unwrap().into_font().unwrap();
-        Self::from_font_source(gfx, Box::new(font))
-    }
-    
-    #[cfg(feature="ttf")]
-    pub fn from_ttf_bytes(gfx: &Graphics, data: Vec<u8>) -> crate::Result<Self> {
-        use rusttype::FontCollection;
-        let font = FontCollection::from_bytes(data).unwrap().into_font().unwrap();
+        let font = FontCollection::from_bytes(data)
+            .unwrap()
+            .into_font()
+            .unwrap();
         Self::from_font_source(gfx, Box::new(font))
     }
 
-    #[cfg(feature="ttf")]
+    #[cfg(feature = "ttf")]
+    pub fn from_ttf_bytes(gfx: &Graphics, data: Vec<u8>) -> crate::Result<Self> {
+        use rusttype::FontCollection;
+        let font = FontCollection::from_bytes(data)
+            .unwrap()
+            .into_font()
+            .unwrap();
+        Self::from_font_source(gfx, Box::new(font))
+    }
+
+    #[cfg(feature = "ttf")]
     pub async fn load_ttf(gfx: &Graphics, path: impl AsRef<Path>) -> crate::Result<Self> {
         let file_contents = platter::load_file(path).await?;
         Font::from_ttf_bytes(gfx, file_contents)
@@ -50,18 +62,30 @@ impl Font {
     ///
     /// Each glyph (and the font) is passed into the callback as it is layed out, giving the option
     /// to render right away, examine and move on, etc.
-    pub fn layout_glyphs(&mut self, text: &str, size: f32, max_width: Option<f32>, mut callback: impl FnMut(&mut Font, LayoutGlyph)) {
+    pub fn layout_glyphs(
+        &mut self,
+        text: &str,
+        size: f32,
+        max_width: Option<f32>,
+        mut callback: impl FnMut(&mut Font, LayoutGlyph),
+    ) {
         let mut cursor = Vector::ZERO;
         let space_glyph = self.0.font().single_glyph(' ');
-        let space_metrics = self.0.font().metrics(elefont::GlyphKey::new(space_glyph, size));
+        let space_metrics = self
+            .0
+            .font()
+            .metrics(elefont::GlyphKey::new(space_glyph, size));
         let mut glyphs = Vec::new();
         let line_height = self.0.font().line_height(size);
 
         for line in text.split('\n') {
             for word in line.split(' ') {
                 // Retrieve the glyphs from the font
-                glyphs.extend(self.0.render_string(word, size)
-                    .map(|glyph| glyph.expect("TODO: Failed to fit character in cache")));
+                glyphs.extend(
+                    self.0
+                        .render_string(word, size)
+                        .map(|glyph| glyph.expect("TODO: Failed to fit character in cache")),
+                );
 
                 // If we're word wrapping, look ahead to the total width of the word. In the case
                 // where the word would overflow the line, move down a line
@@ -72,7 +96,9 @@ impl Font {
                         word_width += metrics.advance_x;
                         // If there's a next glyph, try kerning
                         if let Some((_, next)) = it.peek() {
-                            if let Some(kerning) = self.0.font().kerning(glyph.key.glyph, next.key.glyph, size) {
+                            if let Some(kerning) =
+                                self.0.font().kerning(glyph.key.glyph, next.key.glyph, size)
+                            {
                                 word_width += kerning;
                             }
                         }
@@ -86,17 +112,24 @@ impl Font {
                 // Send each glyph to the callback
                 let mut it = glyphs.drain(..).peekable();
                 while let Some((metrics, glyph)) = it.next() {
-                    let glyph_position = metrics.bounds.map_or(Vector::ZERO, |b| Vector::new(b.x as f32, b.y as f32));
+                    let glyph_position = metrics
+                        .bounds
+                        .map_or(Vector::ZERO, |b| Vector::new(b.x as f32, b.y as f32));
 
-                    callback(self, LayoutGlyph {
-                        position: cursor + glyph_position,
-                        glyph,
-                    });
+                    callback(
+                        self,
+                        LayoutGlyph {
+                            position: cursor + glyph_position,
+                            glyph,
+                        },
+                    );
 
                     cursor.x += metrics.advance_x;
                     // If there's a next glyph, try kerning
                     if let Some((_, next)) = it.peek() {
-                        if let Some(kerning) = self.0.font().kerning(glyph.key.glyph, next.key.glyph, size) {
+                        if let Some(kerning) =
+                            self.0.font().kerning(glyph.key.glyph, next.key.glyph, size)
+                        {
                             cursor.x += kerning;
                         }
                     }
@@ -113,12 +146,17 @@ impl Font {
     /// Retrieves the furthest right extend and furthest bottom extend of the text layout
     pub fn text_extents(&mut self, text: &str, size: f32, max_width: Option<f32>) -> Vector {
         let mut extents = Vector::ZERO;
-        self.layout_glyphs(text, size, max_width, |_, LayoutGlyph { position, glyph }| {
-            let right = position.x + glyph.bounds.width as f32;
-            let bottom= position.y + glyph.bounds.height as f32;
-            extents.x = extents.x.max(right);
-            extents.y = extents.y.max(bottom);
-        });
+        self.layout_glyphs(
+            text,
+            size,
+            max_width,
+            |_, LayoutGlyph { position, glyph }| {
+                let right = position.x + glyph.bounds.width as f32;
+                let bottom = position.y + glyph.bounds.height as f32;
+                extents.x = extents.x.max(right);
+                extents.y = extents.y.max(bottom);
+            },
+        );
 
         extents
     }
@@ -158,10 +196,16 @@ impl Texture for FontImage {
             }
         }
         let bounds = gpu.bounds;
-        self.image.set_sub_data(&self.buffer[..], bounds.x as u32, bounds.y as u32, bounds.width, bounds.height, ColorFormat::RGBA);
+        self.image.set_sub_data(
+            &self.buffer[..],
+            bounds.x as u32,
+            bounds.y as u32,
+            bounds.width,
+            bounds.height,
+            ColorFormat::RGBA,
+        );
     }
 }
-
 
 /*use crate::{
     load_file,

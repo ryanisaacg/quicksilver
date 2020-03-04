@@ -23,7 +23,13 @@ async fn app(window: Window, mut gfx: Graphics, mut events: EventStream) -> Resu
     let mut font = Font::load_ttf(&gfx, "font.ttf").await?;
     gfx.clear(Color::WHITE);
     // Use the font rendering API to draw some text
-    gfx.draw_text(&mut font, "Hello world!\nHello Quicksilver!", 72.0, Color::BLACK, Vector::new(100.0, 100.0));
+    gfx.draw_text(
+        &mut font,
+        "Hello world!\nHello Quicksilver!",
+        72.0,
+        Color::BLACK,
+        Vector::new(100.0, 100.0),
+    );
     gfx.present(&window)?;
 
     loop {
