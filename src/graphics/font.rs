@@ -187,8 +187,8 @@ impl Texture for FontImage {
         match pixel {
             PixelType::Alpha => {
                 self.buffer.extend(iter::repeat(255).take(data.len() * 4));
-                for i in 0..data.len() {
-                    self.buffer[i * 4 + 3] = data[i];
+                for (i, alpha) in 0..data.iter().enumerate() {
+                    self.buffer[i * 4 + 3] = alpha;
                 }
             }
             PixelType::RGBA => {
