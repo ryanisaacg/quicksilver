@@ -2,6 +2,7 @@
 
 ## Work In Progress
 - Addition and subtraction of Tranforms supported to help with easing function calculations
+- Add `Timer` struct to help timing draw calls and a consistent update cycle
 
 ## v0.4.0-alpha0.3
 - Update `golem` to `v0.1.1` to fix non-power-of-2 textures
