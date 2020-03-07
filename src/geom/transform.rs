@@ -214,7 +214,6 @@ impl SubAssign<Transform> for Transform {
     }
 }
 
-
 impl fmt::Display for Transform {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "[")?;
