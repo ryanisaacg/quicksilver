@@ -4,7 +4,7 @@ use std::{
     default::Default,
     f32::consts::PI,
     fmt,
-    ops::{Add, Mul, Sub},
+    ops::{Add, AddAssign, Mul, MulAssign, Sub, SubAssign},
 };
 
 /// A 2D transformation represented by a matrix
@@ -121,6 +121,13 @@ impl Mul<Transform> for Transform {
     }
 }
 
+/// Uses the `impl Mul<Transform> for Transform` internally.
+impl MulAssign<Transform> for Transform {
+    fn mul_assign(&mut self, other: Transform) {
+        *self = *self * other;
+    }
+}
+
 /// Transform a vector
 impl Mul<Vector> for Transform {
     type Output = Vector;
@@ -152,6 +159,13 @@ impl<T: Scalar> Mul<T> for Transform {
     }
 }
 
+/// Uses the `impl<T: Scalar> Mul<T> for Transform` internally.
+impl<T: Scalar> MulAssign<T> for Transform {
+    fn mul_assign(&mut self, other: T) {
+        *self = *self * other;
+    }
+}
+
 /// Add the values of two transforms together
 ///
 /// Note you probably want Mul to combine Transforms. Addition is only useful in less common use cases like interpolation
@@ -166,6 +180,13 @@ impl Add<Transform> for Transform {
             }
         }
         returnval
+    }
+}
+
+/// Uses the `impl Add<Transform> for Transform` internally
+impl AddAssign<Transform> for Transform {
+    fn add_assign(&mut self, other: Transform) {
+        *self = *self + other;
     }
 }
 
@@ -185,6 +206,14 @@ impl Sub<Transform> for Transform {
         returnval
     }
 }
+
+/// Uses the `impl Sub<Transform> for Transform` internally
+impl SubAssign<Transform> for Transform {
+    fn sub_assign(&mut self, other: Transform) {
+        *self = *self - other;
+    }
+}
+
 
 impl fmt::Display for Transform {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
