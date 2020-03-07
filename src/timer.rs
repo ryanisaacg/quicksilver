@@ -21,7 +21,7 @@ impl Timer {
     ///Look if the time has elapsed and if so, starts the countdown for the next tick.
     pub fn tick(&mut self) -> bool {
         if self.init.elapsed() >= self.period {
-            self.init = Instant::now();
+            self.init += self.period;
             true
         } else {
             false
