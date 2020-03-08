@@ -3,10 +3,13 @@
 ## Work In Progress
 - Addition and subtraction of Tranforms supported to help with easing function calculations
 - Add `Timer` struct to help timing draw calls and a consistent update cycle
+- `lifecycle::run` can now accept any kind of Error.
+- Add `into_raw_context` on Graphics, to allow lower-level graphics programming
 
 ## v0.4.0-alpha0.3
 - Update `golem` to `v0.1.1` to fix non-power-of-2 textures
 - `impl std::iter::Sum for geom::Vector`
+- Implement `std::ops::MulAssign`, `std::ops::AddAssign`, and `std::ops::SubAssign` for `Transform`s.
 
 ## v0.4.0-alpha0.2
 - Fix the "easy-log" feature
