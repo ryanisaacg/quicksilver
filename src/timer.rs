@@ -1,6 +1,6 @@
 use instant::Instant;
 use std::time::Duration;
-///A timer that you can use to fix the time between actions, for example updates or draw calls.
+/// A timer that you can use to fix the time between actions, for example updates or draw calls.
 pub struct Timer {
     period: Duration,
     init: Instant,
@@ -18,9 +18,9 @@ impl Timer {
         }
     }
 
-    ///Look if the time has elapsed and if so, starts the countdown for the next tick.
+    /// Look if the time has elapsed and if so, starts the countdown for the next tick.
     ///
-    ///You can use a while loop instead of an if to catch up in the event that you where late
+    /// You can use a while loop instead of an if to catch up in the event that you where late
     pub fn tick(&mut self) -> bool {
         if self.init.elapsed() >= self.period {
             self.init += self.period;
@@ -30,7 +30,7 @@ impl Timer {
         }
     }
 
-    ///look how much time is still left before its time for next tick.
+    /// Look how much time is still left before its time for next tick.
     pub fn remaining(&self) -> Option<Duration> {
         self.init.elapsed().checked_sub(self.period)
     }

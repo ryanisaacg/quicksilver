@@ -22,9 +22,9 @@ async fn app(window: Window, mut gfx: Graphics, mut events: EventStream) -> Resu
     // Clear the screen to a blank, white color
     gfx.clear(Color::WHITE);
 
-    //Here we make 2 kinds of timers.
-    //One to provide an consistant update time, so our example updates 30 times per second
-    //the other informs us when to draw the next frame, this causes our example to draw 60 times per second
+    // Here we make 2 kinds of timers.
+    // One to provide an consistant update time, so our example updates 30 times per second
+    // the other informs us when to draw the next frame, this causes our example to draw 60 times per second
     let mut update_timer = Timer::time_per_second(30.0);
     let mut draw_timer = Timer::time_per_second(60.0);
 
@@ -33,7 +33,7 @@ async fn app(window: Window, mut gfx: Graphics, mut events: EventStream) -> Resu
     loop {
         while let Some(_) = events.next_event().await {}
 
-        //We use a while loop rather than an if so that we can try to catch up in the event of having a slow down.
+        // We use a while loop rather than an if so that we can try to catch up in the event of having a slow down.
         while update_timer.tick() {
             rect.pos.x += 5.0;
         }
