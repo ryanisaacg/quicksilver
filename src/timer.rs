@@ -19,6 +19,8 @@ impl Timer {
     }
 
     ///Look if the time has elapsed and if so, starts the countdown for the next tick.
+    ///
+    ///You can use a while loop instead of an if to catch up in the event that you where late
     pub fn tick(&mut self) -> bool {
         if self.init.elapsed() >= self.period {
             self.init += self.period;

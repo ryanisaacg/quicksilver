@@ -32,11 +32,13 @@ async fn app(window: Window, mut gfx: Graphics, mut events: EventStream) -> Resu
 
     loop {
         while let Some(_) = events.next_event().await {}
-        if update_timer.tick() {
+
+        //We use a while loop rather than an if so that we can try to catch up in the event of having a slow down.
+        while update_timer.tick() {
             rect.pos.x += 5.0;
         }
 
-        if draw_timer.tick() {
+        while draw_timer.tick() {
             gfx.clear(Color::WHITE);
             gfx.fill_rect(&rect, Color::BLUE);
             gfx.stroke_rect(&rect, Color::RED);
