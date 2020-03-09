@@ -148,6 +148,7 @@ pub use log;
 pub use mint;
 
 mod error;
+
 pub mod geom;
 pub mod graphics;
 pub mod lifecycle;
@@ -157,6 +158,9 @@ pub mod saving {
     pub use gestalt::*;
 }
 pub use crate::error::QuicksilverError;
+
+mod timer;
+pub use timer::Timer;
 
 /// Load a file as a [`Future`]
 ///
