@@ -3,6 +3,7 @@
 ## Work In Progress
 - Addition and subtraction of Tranforms supported to help with easing function calculations
 - Added an example with loading progress bar
+- Add `Timer` struct to help timing draw calls and a consistent update cycle
 - `lifecycle::run` can now accept any kind of Error.
 - Add `into_raw_context` on Graphics, to allow lower-level graphics programming
 
