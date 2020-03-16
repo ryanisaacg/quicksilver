@@ -6,6 +6,7 @@
 - Add `Timer` struct to help timing draw calls and a consistent update cycle
 - `lifecycle::run` can now accept any kind of Error.
 - Add `into_raw_context` on Graphics, to allow lower-level graphics programming
+- Implement `From` instead of `Into` for some types
 
 ## v0.4.0-alpha0.3
 - Update `golem` to `v0.1.1` to fix non-power-of-2 textures
