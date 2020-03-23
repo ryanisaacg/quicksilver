@@ -36,7 +36,7 @@ impl Timer {
     pub fn exhaust(&mut self) -> Option<NonZeroUsize> {
         let mut count = 0;
         while self.tick() {
-            count = count + 1;
+            count += 1;
         }
         NonZeroUsize::new(count)
     }
