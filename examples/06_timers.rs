@@ -38,7 +38,10 @@ async fn app(window: Window, mut gfx: Graphics, mut events: EventStream) -> Resu
             rect.pos.x += 5.0;
         }
 
-        while draw_timer.tick() {
+        // Unlike the update cycle drawing doesn't change our state
+        // Because of this there is no point in trying to catch up if we are ever 2 frames late
+        // Instead it is better to drop/skip the lost frames
+        if draw_timer.exhaust().is_some() {
             gfx.clear(Color::WHITE);
             gfx.fill_rect(&rect, Color::BLUE);
             gfx.stroke_rect(&rect, Color::RED);
