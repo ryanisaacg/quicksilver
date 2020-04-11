@@ -29,7 +29,7 @@ async fn app(window: Window, mut gfx: Graphics, mut events: EventStream) -> Resu
         "Hello world!\nHello Quicksilver!",
         Color::BLACK,
         Vector::new(100.0, 100.0),
-    );
+    )?;
     gfx.present(&window)?;
 
     loop {

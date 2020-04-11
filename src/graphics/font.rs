@@ -1,12 +1,9 @@
 use super::*;
 
-use elefont::{FontCache, FontProvider, PixelType, Texture, TextureGlyph};
+use crate::error::FontError;
+use elefont::{CacheError, FontCache, FontProvider, PixelType, Texture, TextureGlyph};
 use std::iter;
 use std::path::Path;
-
-const CACHE_SIZE: usize = 2048;
-const CACHE_DIM: u32 = CACHE_SIZE as u32;
-static CACHE_DATA: [u8; CACHE_SIZE * CACHE_SIZE * 4] = [0u8; CACHE_SIZE * CACHE_SIZE * 4];
 
 #[cfg(feature = "ttf")]
 pub struct VectorFont(rusttype::Font<'static>);
@@ -46,20 +43,45 @@ pub struct FontRenderer(FontCache<FontImage>);
 
 impl FontRenderer {
     pub fn from_font(gfx: &Graphics, source: Box<dyn FontProvider>) -> crate::Result<Self> {
-        let image = Image::from_raw(
-            gfx,
-            Some(&CACHE_DATA[..]),
-            CACHE_DIM,
-            CACHE_DIM,
-            PixelFormat::RGBA,
-        )?;
-        let backing_texture = FontImage {
-            image,
-            buffer: Vec::new(),
-        };
-        let cache = FontCache::new(source, backing_texture);
+        let cache = FontCache::new(source, FontImage::new(gfx)?);
 
         Ok(Self(cache))
+    }
+
+    pub fn draw(
+        &mut self,
+        gfx: &mut Graphics,
+        text: &str,
+        color: Color,
+        offset: Vector,
+    ) -> crate::Result<Vector> {
+        self.draw_wrapping(gfx, text, None, color, offset)
+    }
+
+    pub fn draw_wrapping(
+        &mut self,
+        gfx: &mut Graphics,
+        text: &str,
+        max_width: Option<f32>,
+        color: Color,
+        offset: Vector,
+    ) -> crate::Result<Vector> {
+        self.layout_glyphs(gfx, text, max_width, |gfx, layout| {
+            let LayoutGlyph {
+                position,
+                glyph,
+                image,
+            } = layout;
+
+            let tex_bounds = glyph.bounds;
+            let glyph_size = Vector::new(tex_bounds.width as f32, tex_bounds.height as f32);
+            let region = Rectangle::new(
+                Vector::new(tex_bounds.x as f32, tex_bounds.y as f32),
+                glyph_size,
+            );
+            let location = Rectangle::new(offset + position, glyph_size);
+            gfx.draw_subimage_tinted(&image, region, location, color);
+        })
     }
 
     /// Lay out the given text at a given font size, with a given maximum width, returning its
@@ -69,11 +91,13 @@ impl FontRenderer {
     /// to render right away, examine and move on, etc.
     pub fn layout_glyphs(
         &mut self,
+        gfx: &mut Graphics,
         text: &str,
         max_width: Option<f32>,
-        mut callback: impl FnMut(LayoutGlyph),
-    ) {
+        mut callback: impl FnMut(&mut Graphics, LayoutGlyph),
+    ) -> crate::Result<Vector> {
         let mut cursor = Vector::ZERO;
+        let mut extents = Vector::ZERO;
         let space_glyph = self.0.font().single_glyph(' ');
         let space_metrics = self.0.font().metrics(space_glyph);
         let mut glyphs = Vec::new();
@@ -81,11 +105,24 @@ impl FontRenderer {
 
         for line in text.split('\n') {
             for word in line.split(' ') {
+                match self.0.cache_string(word) {
+                    Ok(()) => {}
+                    Err(CacheError::OutOfSpace) => {
+                        // If the cache is out of space, clear it and insert a new page
+                        self.0.replace_texture(FontImage::new(&gfx)?);
+                    }
+                    Err(CacheError::NonRenderableGlyph(g)) => {
+                        return Err(FontError::NonRenderableGlyph(g).into());
+                    }
+                    Err(CacheError::TextureTooSmall) => {
+                        return Err(FontError::StringTooLarge.into());
+                    }
+                }
                 // Retrieve the glyphs from the font
                 glyphs.extend(
-                    self.0
-                        .render_string(word)
-                        .map(|glyph| glyph.expect("TODO: Failed to fit character in cache")),
+                    self.0.render_string(word).map(|glyph| {
+                        glyph.expect("A character failed to be rendered unexpectedly")
+                    }),
                 );
 
                 // If we're word wrapping, look ahead to the total width of the word. In the case
@@ -113,11 +150,17 @@ impl FontRenderer {
                         .bounds
                         .map_or(Vector::ZERO, |b| Vector::new(b.x as f32, b.y as f32));
 
-                    callback(LayoutGlyph {
-                        position: cursor + glyph_position,
-                        glyph,
-                        image: self.0.texture().image.clone(),
-                    });
+                    callback(
+                        gfx,
+                        LayoutGlyph {
+                            position: cursor + glyph_position,
+                            glyph,
+                            image: self.0.texture().image.clone(),
+                        },
+                    );
+
+                    let bounds = Vector::new(glyph.bounds.width as f32, glyph.bounds.height as f32);
+                    extents = extents.max(cursor + glyph_position + bounds);
 
                     cursor.x += metrics.advance_x;
                     // If there's a next glyph, try kerning
@@ -130,57 +173,8 @@ impl FontRenderer {
             cursor.x = 0.0;
             cursor.y += line_height;
         }
-    }
 
-    /// Find the extents of the text layed out with the given parameters
-    ///
-    /// Retrieves the furthest right extend and furthest bottom extend of the text layout
-    pub fn text_extents(&mut self, text: &str, max_width: Option<f32>) -> Vector {
-        let mut extents = Vector::ZERO;
-        self.layout_glyphs(
-            text,
-            max_width,
-            |LayoutGlyph {
-                 position, glyph, ..
-             }| {
-                let right = position.x + glyph.bounds.width as f32;
-                let bottom = position.y + glyph.bounds.height as f32;
-                extents.x = extents.x.max(right);
-                extents.y = extents.y.max(bottom);
-            },
-        );
-
-        extents
-    }
-
-    pub fn draw(&mut self, gfx: &mut Graphics, text: &str, color: Color, offset: Vector) {
-        self.draw_wrapping(gfx, text, None, color, offset);
-    }
-
-    pub fn draw_wrapping(
-        &mut self,
-        gfx: &mut Graphics,
-        text: &str,
-        max_width: Option<f32>,
-        color: Color,
-        offset: Vector,
-    ) {
-        self.layout_glyphs(text, max_width, |layout| {
-            let LayoutGlyph {
-                position,
-                glyph,
-                image,
-            } = layout;
-
-            let tex_bounds = glyph.bounds;
-            let glyph_size = Vector::new(tex_bounds.width as f32, tex_bounds.height as f32);
-            let region = Rectangle::new(
-                Vector::new(tex_bounds.x as f32, tex_bounds.y as f32),
-                glyph_size,
-            );
-            let location = Rectangle::new(offset + position, glyph_size);
-            gfx.draw_subimage_tinted(&image, region, location, color);
-        });
+        Ok(extents)
     }
 }
 
@@ -190,9 +184,29 @@ pub struct LayoutGlyph {
     pub image: Image,
 }
 
-pub(crate) struct FontImage {
+struct FontImage {
     pub image: Image,
     pub buffer: Vec<u8>,
+}
+
+const CACHE_SIZE: usize = 2048;
+const CACHE_DIM: u32 = CACHE_SIZE as u32;
+static CACHE_DATA: [u8; CACHE_SIZE * CACHE_SIZE * 4] = [0u8; CACHE_SIZE * CACHE_SIZE * 4];
+
+impl FontImage {
+    fn new(gfx: &Graphics) -> crate::Result<Self> {
+        let image = Image::from_raw(
+            gfx,
+            Some(&CACHE_DATA[..]),
+            CACHE_DIM,
+            CACHE_DIM,
+            PixelFormat::RGBA,
+        )?;
+        Ok(FontImage {
+            image,
+            buffer: Vec::new(),
+        })
+    }
 }
 
 impl Texture for FontImage {
