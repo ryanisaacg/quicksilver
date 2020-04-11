@@ -22,7 +22,7 @@ mod vertex;
 
 pub use self::color::Color;
 #[cfg(feature = "font")]
-pub use self::font::{Font, LayoutGlyph};
+pub use self::font::{FontRenderer, LayoutGlyph, VectorFont};
 pub use self::image::Image;
 pub use self::mesh::Mesh;
 pub use self::surface::Surface;
@@ -409,14 +409,13 @@ impl Graphics {
     #[cfg(feature = "font")]
     pub fn draw_text(
         &mut self,
-        font: &mut Font,
+        font: &mut FontRenderer,
         text: &str,
-        size: f32,
         max_width: Option<f32>,
         color: Color,
         offset: Vector,
     ) {
-        font.layout_glyphs(text, size, max_width, |font, layout| {
+        font.layout_glyphs(text, max_width, |font, layout| {
             let LayoutGlyph { position, glyph } = layout;
 
             let tex_bounds = glyph.bounds;
