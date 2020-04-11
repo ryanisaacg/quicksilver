@@ -62,11 +62,8 @@ impl FontRenderer {
         Ok(Self(cache))
     }
 
-    pub(crate) fn cache(&mut self) -> &mut FontCache<FontImage> {
-        &mut self.0
-    }
-
-    /// Lay out the given text at a given font size, with a given maximum width
+    /// Lay out the given text at a given font size, with a given maximum width, returning its
+    /// extents
     ///
     /// Each glyph (and the font) is passed into the callback as it is layed out, giving the option
     /// to render right away, examine and move on, etc.
@@ -74,7 +71,7 @@ impl FontRenderer {
         &mut self,
         text: &str,
         max_width: Option<f32>,
-        mut callback: impl FnMut(&mut Self, LayoutGlyph),
+        mut callback: impl FnMut(LayoutGlyph),
     ) {
         let mut cursor = Vector::ZERO;
         let space_glyph = self.0.font().single_glyph(' ');
@@ -116,13 +113,11 @@ impl FontRenderer {
                         .bounds
                         .map_or(Vector::ZERO, |b| Vector::new(b.x as f32, b.y as f32));
 
-                    callback(
-                        self,
-                        LayoutGlyph {
-                            position: cursor + glyph_position,
-                            glyph,
-                        },
-                    );
+                    callback(LayoutGlyph {
+                        position: cursor + glyph_position,
+                        glyph,
+                        image: self.0.texture().image.clone(),
+                    });
 
                     cursor.x += metrics.advance_x;
                     // If there's a next glyph, try kerning
@@ -142,12 +137,18 @@ impl FontRenderer {
     /// Retrieves the furthest right extend and furthest bottom extend of the text layout
     pub fn text_extents(&mut self, text: &str, max_width: Option<f32>) -> Vector {
         let mut extents = Vector::ZERO;
-        self.layout_glyphs(text, max_width, |_, LayoutGlyph { position, glyph }| {
-            let right = position.x + glyph.bounds.width as f32;
-            let bottom = position.y + glyph.bounds.height as f32;
-            extents.x = extents.x.max(right);
-            extents.y = extents.y.max(bottom);
-        });
+        self.layout_glyphs(
+            text,
+            max_width,
+            |LayoutGlyph {
+                 position, glyph, ..
+             }| {
+                let right = position.x + glyph.bounds.width as f32;
+                let bottom = position.y + glyph.bounds.height as f32;
+                extents.x = extents.x.max(right);
+                extents.y = extents.y.max(bottom);
+            },
+        );
 
         extents
     }
@@ -164,8 +165,12 @@ impl FontRenderer {
         color: Color,
         offset: Vector,
     ) {
-        self.layout_glyphs(text, max_width, |font, layout| {
-            let LayoutGlyph { position, glyph } = layout;
+        self.layout_glyphs(text, max_width, |layout| {
+            let LayoutGlyph {
+                position,
+                glyph,
+                image,
+            } = layout;
 
             let tex_bounds = glyph.bounds;
             let glyph_size = Vector::new(tex_bounds.width as f32, tex_bounds.height as f32);
@@ -174,7 +179,7 @@ impl FontRenderer {
                 glyph_size,
             );
             let location = Rectangle::new(offset + position, glyph_size);
-            gfx.draw_subimage_tinted(&font.cache().texture().image, region, location, color);
+            gfx.draw_subimage_tinted(&image, region, location, color);
         });
     }
 }
@@ -182,6 +187,7 @@ impl FontRenderer {
 pub struct LayoutGlyph {
     pub position: Vector,
     pub glyph: TextureGlyph,
+    pub image: Image,
 }
 
 pub(crate) struct FontImage {
