@@ -6,10 +6,18 @@ use std::iter;
 use std::path::Path;
 
 #[cfg(feature = "ttf")]
+/// VectorFonts allow drawing characters from TTF files
+///
+/// They store the glyphs as a collection of triangles, allowing them to be scaled up or down
+/// without losing quality. To draw characters to the screen, use the [`to_renderer`] method to
+/// create a [`FontRenderer`].
+///
+/// [`to_renderer`]: VectorFont::to_renderer
 pub struct VectorFont(rusttype::Font<'static>);
 
 #[cfg(feature = "ttf")]
 impl VectorFont {
+    /// Create a VectorFont from a slice of binary TTF data
     pub fn from_slice(data: &[u8]) -> Self {
         VectorFont(
             rusttype::FontCollection::from_bytes(data.to_vec())
@@ -19,6 +27,7 @@ impl VectorFont {
         )
     }
 
+    /// Create a VectorFont from an owned Vec of TTF data
     pub fn from_bytes(data: Vec<u8>) -> Self {
         VectorFont(
             rusttype::FontCollection::from_bytes(data)
@@ -28,26 +37,43 @@ impl VectorFont {
         )
     }
 
+    /// Load a VectorFont from a TTF file at the given path
     pub async fn load(path: impl AsRef<Path>) -> crate::Result<Self> {
         let file_contents = platter::load_file(path).await?;
         Ok(Self::from_bytes(file_contents))
     }
 
+    /// Convert a VectorFont to a [`FontRenderer`] for actual use
     pub fn to_renderer(&self, gfx: &Graphics, font_size: f32) -> crate::Result<FontRenderer> {
         let provider = elefont::rusttype_provider::SizedFont::new(self.0.clone(), font_size);
         FontRenderer::from_font(gfx, Box::new(provider))
     }
 }
 
+/// A FontRenderer pairs a font source (typically a [`VectorFont`] or bitmap font) and a GPU cache
+/// for efficient rendering
+///
+/// Instead of uploading glyphs to the GPU every time they're drawn, this method allows for future
+/// draws to reference these glyphs multiple times.
 pub struct FontRenderer(FontCache<FontImage>);
 
 impl FontRenderer {
+    /// Create a font from an arbitrary [`FontProvider`]
+    ///
+    /// If you want to load a TTF file, consider [`VectorFont::load`] and [`VectorFont::to_renderer`]
+    /// instead.
     pub fn from_font(gfx: &Graphics, source: Box<dyn FontProvider>) -> crate::Result<Self> {
         let cache = FontCache::new(source, FontImage::new(gfx)?);
 
         Ok(Self(cache))
     }
 
+    /// Draw some text to the screen with a given color at a given position, returning the text
+    /// extents
+    ///
+    /// This method will not wrap but will respect newlines. To wrap, use
+    /// [`FontRenderer::draw_wrapping`]. The returned value is how far the text extended past the
+    /// offset, e.g. the furthest right and furthest down position.
     pub fn draw(
         &mut self,
         gfx: &mut Graphics,
@@ -58,6 +84,12 @@ impl FontRenderer {
         self.draw_wrapping(gfx, text, None, color, offset)
     }
 
+    /// Draw some text to the screen with a given color at a given position, returning the text
+    /// extents
+    ///
+    /// If a maximum width is provided, the text will not extend beyond it. If a word encounters
+    /// the maximum width, it will be wrapped down to a newline. The returned value is how far the
+    /// text extended past the offset, e.g. the furthest right and furthest down position.
     pub fn draw_wrapping(
         &mut self,
         gfx: &mut Graphics,
@@ -178,9 +210,16 @@ impl FontRenderer {
     }
 }
 
+/// A glyph that has been laid-out and uploaded to the GPU, making it ready to render
 pub struct LayoutGlyph {
-    pub position: Vector,
+    /// What glyph this is, and what region of the image it takes up
     pub glyph: TextureGlyph,
+    /// Where the glyph should be drawn, relative to the beginning of its block of text
+    pub position: Vector,
+    /// The GPU texture where this glyph is stored
+    ///
+    /// It is not the whole image! Use [`LayoutGlyph::glyph`] to find the region that the glyph
+    /// lies in
     pub image: Image,
 }
 
