@@ -406,29 +406,6 @@ impl Graphics {
         );
     }
 
-    #[cfg(feature = "font")]
-    pub fn draw_text(
-        &mut self,
-        font: &mut FontRenderer,
-        text: &str,
-        max_width: Option<f32>,
-        color: Color,
-        offset: Vector,
-    ) {
-        font.layout_glyphs(text, max_width, |font, layout| {
-            let LayoutGlyph { position, glyph } = layout;
-
-            let tex_bounds = glyph.bounds;
-            let glyph_size = Vector::new(tex_bounds.width as f32, tex_bounds.height as f32);
-            let region = Rectangle::new(
-                Vector::new(tex_bounds.x as f32, tex_bounds.y as f32),
-                glyph_size,
-            );
-            let location = Rectangle::new(offset + position, glyph_size);
-            self.draw_subimage_tinted(&font.cache().texture().image, region, location, color);
-        });
-    }
-
     /// Send the accumulated draw data to the GPU
     ///
     /// Except when rendering to a [`Surface`], this should almost never be necessary for a user
