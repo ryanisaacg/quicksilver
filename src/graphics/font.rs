@@ -13,19 +13,22 @@ pub struct VectorFont(rusttype::Font<'static>);
 
 #[cfg(feature = "ttf")]
 impl VectorFont {
-    // TODO: fallability
     pub fn from_slice(data: &[u8]) -> Self {
-       VectorFont(rusttype::FontCollection::from_bytes(data.to_vec())
-            .unwrap()
-            .into_font()
-            .unwrap())
+        VectorFont(
+            rusttype::FontCollection::from_bytes(data.to_vec())
+                .unwrap()
+                .into_font()
+                .unwrap(),
+        )
     }
-    
+
     pub fn from_bytes(data: Vec<u8>) -> Self {
-       VectorFont(rusttype::FontCollection::from_bytes(data)
-            .unwrap()
-            .into_font()
-            .unwrap())
+        VectorFont(
+            rusttype::FontCollection::from_bytes(data)
+                .unwrap()
+                .into_font()
+                .unwrap(),
+        )
     }
 
     pub async fn load(path: impl AsRef<Path>) -> crate::Result<Self> {
@@ -75,10 +78,7 @@ impl FontRenderer {
     ) {
         let mut cursor = Vector::ZERO;
         let space_glyph = self.0.font().single_glyph(' ');
-        let space_metrics = self
-            .0
-            .font()
-            .metrics(space_glyph);
+        let space_metrics = self.0.font().metrics(space_glyph);
         let mut glyphs = Vec::new();
         let line_height = self.0.font().line_height();
 
@@ -142,16 +142,12 @@ impl FontRenderer {
     /// Retrieves the furthest right extend and furthest bottom extend of the text layout
     pub fn text_extents(&mut self, text: &str, max_width: Option<f32>) -> Vector {
         let mut extents = Vector::ZERO;
-        self.layout_glyphs(
-            text,
-            max_width,
-            |_, LayoutGlyph { position, glyph }| {
-                let right = position.x + glyph.bounds.width as f32;
-                let bottom = position.y + glyph.bounds.height as f32;
-                extents.x = extents.x.max(right);
-                extents.y = extents.y.max(bottom);
-            },
-        );
+        self.layout_glyphs(text, max_width, |_, LayoutGlyph { position, glyph }| {
+            let right = position.x + glyph.bounds.width as f32;
+            let bottom = position.y + glyph.bounds.height as f32;
+            extents.x = extents.x.max(right);
+            extents.y = extents.y.max(bottom);
+        });
 
         extents
     }
@@ -160,7 +156,14 @@ impl FontRenderer {
         self.draw_wrapping(gfx, text, None, color, offset);
     }
 
-    pub fn draw_wrapping(&mut self, gfx: &mut Graphics, text: &str, max_width: Option<f32>, color: Color, offset: Vector) {
+    pub fn draw_wrapping(
+        &mut self,
+        gfx: &mut Graphics,
+        text: &str,
+        max_width: Option<f32>,
+        color: Color,
+        offset: Vector,
+    ) {
         self.layout_glyphs(text, max_width, |font, layout| {
             let LayoutGlyph { position, glyph } = layout;
 
@@ -220,4 +223,3 @@ impl Texture for FontImage {
         );
     }
 }
-

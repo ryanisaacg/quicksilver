@@ -2,7 +2,7 @@
 // Write some text on the screen
 use quicksilver::{
     geom::Vector,
-    graphics::{Color, VectorFont, Graphics},
+    graphics::{Color, Graphics, VectorFont},
     lifecycle::{run, EventStream, Settings, Window},
     Result,
 };
