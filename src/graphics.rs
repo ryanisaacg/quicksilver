@@ -137,6 +137,20 @@ impl Graphics {
         })
     }
 
+    /// Turn this high-level graphics object into a low-level graphics context
+    ///
+    /// It is by design that this is a one-way operation. In order for the graphics API to be safe,
+    /// Quicksilver takes full control of the context and all shaders. If you want to use custom
+    /// shaders or rendering setups, you can no longer use the high-level graphics API.
+    ///
+    /// The context returned is the context from the golem rendering library, which is the library
+    /// Quicksilver's graphics stack is built on. The main advantage you gain is custom shaders, as
+    /// well as being able to manage multiple different GPU buffers. See the
+    /// [`golem`](https://crates/io/crates/golem) crate for more details.
+    pub fn into_raw_context(self) -> Context {
+        self.ctx
+    }
+
     /// Clear the screen to the given color
     pub fn clear(&mut self, color: Color) {
         let head = self.index_data.len();

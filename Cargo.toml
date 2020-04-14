@@ -21,8 +21,8 @@ event-cache = ["blinds/event-cache"]
 font = ["elefont"]
 gamepad = ["blinds/gamepad"]
 saving = ["gestalt"]
-stdweb = ["gestalt/stdweb", "platter/stdweb", "blinds/stdweb", "golem/stdweb"]
-web-sys = ["gestalt/web-sys", "platter/web-sys", "blinds/web-sys", "golem/web-sys"]
+stdweb = ["gestalt/stdweb", "platter/stdweb", "blinds/stdweb", "golem/stdweb","instant/stdweb"]
+web-sys = ["gestalt/web-sys", "platter/web-sys", "blinds/web-sys", "golem/web-sys","instant/web-sys"]
 ttf = ["elefont/rusttype", "rusttype"]
 
 [badges]
@@ -34,8 +34,9 @@ blinds = { version = "0.1.0", default-features = false, features = ["gl"] }
 bytemuck = "1.0"
 elefont = { version = "0.1.3", features = ["rusttype", "unicode-normalization"], optional = true }
 gestalt = { version = "0.1", optional = true }
-golem = "0.1.2"
+golem = { version = "0.1.3", features = ["std"] }
 image = { version = "0.22", default-features = false, features = ["png_codec", "jpeg"] }
+instant = "0.1.2"
 log = "0.4"
 mint = "0.5.3"
 platter = "0.1"
