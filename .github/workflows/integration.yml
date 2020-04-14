@@ -1,6 +1,17 @@
 name: Integration
 on: [push, pull_request]
 jobs:
+  formatting:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: hecrj/setup-rust-action@v1
+      with:
+        rust-version: stable
+        components: rustfmt
+    - name: Check Formatting
+      run: cargo fmt --all -- --check
+
   test:
     runs-on: ${{ matrix.os }}
     strategy:
@@ -11,22 +22,41 @@ jobs:
     - uses: hecrj/setup-rust-action@v1.2.0
       with:
         rust-version: ${{ matrix.rust }}
-        components: clippy,rustfmt
-        targets: wasm32-unknown-unknown
     - uses: actions/checkout@master
     - name: Install libudev
       if: matrix.os == 'ubuntu-latest'
       run: sudo apt update && sudo apt install libudev-dev
-    - name: Check formatting
-      if: matrix.rust == 'stable'
-      run: cargo fmt -- --check
-    - name: Clippy desktop
+    - name: Clippy
+      run: cargo test ${{ matrix.options }} --examples
+
+  clippy:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macOS-latest]
+        rust: [stable]
+    runs-on: ${{ matrix.os }}
+    steps:
+    - uses: hecrj/setup-rust-action@v1.2.0
+      with:
+        rust-version: ${{ matrix.rust }}
+        components: clippy
+    - uses: actions/checkout@master
+    - name: Install libudev
+      if: matrix.os == 'ubuntu-latest'
+      run: sudo apt update && sudo apt install libudev-dev
+    - name: Clippy
       run: cargo clippy -- -D warnings
+  
+  clippy-web:
+    runs-on: macOS-latest
+    steps:
+    - uses: hecrj/setup-rust-action@v1.2.0
+      with:
+        rust-version: ${{ matrix.rust }}
+        components: clippy
+        targets: wasm32-unknown-unknown
+    - uses: actions/checkout@master
     - name: Check stdweb
-      if: matrix.os == 'macOS-latest'
       run: cargo install cargo-web && cargo web check --features stdweb
-    - name: Clippy web-sys
-      if: matrix.os == 'macOS-latest'
+    - name: Clippy
       run: cargo clippy --target wasm32-unknown-unknown --features web-sys -- -D warnings
-    - name: Examples
-      run: cargo test --examples
