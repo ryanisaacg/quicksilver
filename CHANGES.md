@@ -7,6 +7,9 @@
 - Add `exhaust` and `reset` function to timer so they can be used for more than just an update cycle
 - `lifecycle::run` can now accept any kind of Error.
 - Add `into_raw_context` on Graphics, to allow lower-level graphics programming
+- Add font support!
+  - `VectorFont` allows you to load TTF files via rusttype
+  - `FontRenderer` allows you to draw glyphs to the screen
 
 ## v0.4.0-alpha0.3
 - Update `golem` to `v0.1.1` to fix non-power-of-2 textures
