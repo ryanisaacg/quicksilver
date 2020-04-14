@@ -41,6 +41,8 @@ jobs:
         rust-version: ${{ matrix.rust }}
         components: clippy
     - uses: actions/checkout@master
+    - name: Install libudev
+      if: matrix.os == 'ubuntu-latest'
     - name: Clippy
       run: cargo clippy -- -D warnings
   
