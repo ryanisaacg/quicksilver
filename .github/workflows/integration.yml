@@ -43,6 +43,8 @@ jobs:
     - uses: actions/checkout@master
     - name: Install libudev
       if: matrix.os == 'ubuntu-latest'
+      run: sudo apt update && sudo apt install libudev-dev
+    - name: Clippy
     - name: Clippy
       run: cargo clippy -- -D warnings
   
