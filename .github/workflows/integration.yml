@@ -18,7 +18,6 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macOS-latest]
         rust: [stable, nightly]
-        features: ['', '--all-features', "--features image,rusttype"]
     steps:
     - uses: hecrj/setup-rust-action@v1.2.0
       with:
