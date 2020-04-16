@@ -1,4 +1,4 @@
-// Example 6: Text
+// Example 7: Text
 // Write some text on the screen
 use quicksilver::{
     geom::Vector,
@@ -11,7 +11,7 @@ fn main() {
     run(
         Settings {
             size: Vector::new(800.0, 600.0).into(),
-            title: "Image Example",
+            title: "Font Example",
             ..Settings::default()
         },
         app,
