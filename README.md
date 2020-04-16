@@ -9,10 +9,10 @@ A simple 2D game framework written in pure Rust, for both the Web and Desktop
 
 ## Alpha Notice
 
-This version of Quicksilver is currently in a very early alpha! There are still planned changes
-to the API, some of them breaking. Additionally, major features (like audio support or text, for
-example) are entirely missing. Use at your own risk! Feedback on alpha-related bugs or the API
-changes from the 0.3.x API to the new API would be appreciated.
+This version of Quicksilver is currently working its way through alpha! There is still work to do
+on the API and on bugfixes, as well as waiting on an upstream library for audio support.
+Please feel free to use this version and **provide feedback!** If you run into bugs or want to
+give feedback on API decisions, please open an issue.
 
 ## A quick example
 
@@ -127,8 +127,8 @@ favorite browser to the port it provides.
 #### wasm-bindgen support
 
 Quicksilver has recently gained experimental support for `wasm-bindgen`, under the `web-sys`
-feature. The workflow is not currently documented here, but it should be the same as any other
-library.
+feature. The workflow is not currently documented here, but it should be the same as using any other
+library with `wasm-bindgen`.
 
 ## Optional Features
 
@@ -141,6 +141,7 @@ The optional features available are:
 [web_logger](https://github.com/yewstack/web_logger))
 - gamepad event generation (via [gilrs](https://gitlab.com/gilrs-project/gilrs))
 - saving (via [gestalt](https://github.com/ryanisaacg/gestalt))
+- font rendering (via [elefont](https://github.com/ryanisaacg/elefont)) and TTF parsing (via [rusttype](https://gitlab.redox-os.org/redox-os/rusttype))
 
 Each are enabled by default, but you can
 [specify which features](https://doc.rust-lang.org/cargo/reference/specifying-dependencies.html#choosing-features)

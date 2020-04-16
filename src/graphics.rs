@@ -13,12 +13,16 @@ use crate::QuicksilverError;
 
 mod circle_points;
 mod color;
+#[cfg(feature = "font")]
+mod font;
 mod image;
 mod mesh;
 mod surface;
 mod vertex;
 
 pub use self::color::Color;
+#[cfg(feature = "font")]
+pub use self::font::{FontRenderer, LayoutGlyph, VectorFont};
 pub use self::image::Image;
 pub use self::mesh::Mesh;
 pub use self::surface::Surface;
