@@ -1,6 +1,9 @@
 # Changelog
 
-## Work In Progress
+## v0.4.0-alpha0.3
+- Update `golem` to `v0.1.1` to fix non-power-of-2 textures
+- `impl std::iter::Sum for geom::Vector`
+- Implement `std::ops::MulAssign`, `std::ops::AddAssign`, and `std::ops::SubAssign` for `Transform`s.
 - Addition and subtraction of Tranforms supported to help with easing function calculations
 - Added an example with loading progress bar
 - Add `Timer` struct to help timing draw calls and a consistent update cycle
@@ -10,11 +13,6 @@
 - Add font support!
   - `VectorFont` allows you to load TTF files via rusttype
   - `FontRenderer` allows you to draw glyphs to the screen
-
-## v0.4.0-alpha0.3
-- Update `golem` to `v0.1.1` to fix non-power-of-2 textures
-- `impl std::iter::Sum for geom::Vector`
-- Implement `std::ops::MulAssign`, `std::ops::AddAssign`, and `std::ops::SubAssign` for `Transform`s.
 
 ## v0.4.0-alpha0.2
 - Fix the "easy-log" feature
