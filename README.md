@@ -18,7 +18,7 @@ give feedback on API decisions, please open an issue.
 
 Create a rust project and add this line to your `Cargo.toml` file under `[dependencies]`:
 ```text
-quicksilver = "=0.4.0-alpha0.2"
+quicksilver = "0.4.0-alpha0.3"
 ```
 Then replace `src/main.rs` with the following (the contents of quicksilver's
 `examples/01_square.rs`):
@@ -65,11 +65,8 @@ async fn app(window: Window, mut gfx: Graphics, mut events: EventStream) -> Resu
 A good way to get started with Quicksilver is to
 [read and run the examples](https://github.com/ryanisaacg/quicksilver/tree/master/examples)
 which also serve as tutorials. If you have any questions, feel free to open an issue or ask for
-help in the [#gamdev channel in the Rust Community Discord](https://discord.gg/aVESxV8) from other
+help in the [Rust Community Discord](https://discord.gg/aVESxV8) from other
 Quicksilver users and developers.
-
-Run this with `cargo run` or, if you have the wasm32 toolchain installed, you can build for the
-web (instructions below).
 
 ## Made with Quicksilver
 

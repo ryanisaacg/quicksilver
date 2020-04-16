@@ -18,7 +18,7 @@
 //!
 //! Create a rust project and add this line to your `Cargo.toml` file under `[dependencies]`:
 //! ```text
-//!     quicksilver = "=0.4.0-alpha2"
+//!     quicksilver = "0.4.0-alpha3"
 //! ```
 //! Then replace `src/main.rs` with the following (the contents of quicksilver's
 //! `examples/01_square.rs`):
@@ -68,7 +68,7 @@
 //!
 //! A good way to get started with Quicksilver is to
 //! [read and run the examples](https://github.com/ryanisaacg/quicksilver/tree/master/examples)
-//! which also serve as tutorials. IF you have any questions, feel free to open an issue or ask for
+//! which also serve as tutorials. If you have any questions, feel free to open an issue or ask for
 //! help in the [Rust Community Discord](https://discord.gg/aVESxV8) from other Quicksilver users
 //! and developers.
 //!
@@ -145,6 +145,8 @@
 // Re-export every library that appears in the public API
 pub use blinds;
 pub use golem;
+#[cfg(feature = "font")]
+pub use elefont;
 pub use log;
 pub use mint;
 
