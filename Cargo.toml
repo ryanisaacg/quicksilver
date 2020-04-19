@@ -35,7 +35,7 @@ image = { version = "0.22", default-features = false, features = ["png_codec", "
 log = "0.4"
 mint = "0.5.3"
 platter = "0.1"
-blinds = { version = "0.1.0", default-features = false, features = ["gl"] }
+blinds = { version = "0.1.3", default-features = false, features = ["gl"] }
 instant = "0.1.2"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]

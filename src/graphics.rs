@@ -15,12 +15,14 @@ mod circle_points;
 mod color;
 mod image;
 mod mesh;
+mod resize_handler;
 mod surface;
 mod vertex;
 
 pub use self::color::Color;
 pub use self::image::Image;
 pub use self::mesh::Mesh;
+pub use self::resize_handler::ResizeHandler;
 pub use self::surface::Surface;
 pub use self::vertex::{Element, Vertex};
 
