@@ -51,7 +51,9 @@ jobs:
       run: sudo apt update && sudo apt install libudev-dev
     - name: Clippy
       run: cargo clippy -- -D warnings
-  
+    - name: Featureless clipppy
+      run: cargo clippy --no-default-features -- -D warnings
+
   clippy-web:
     runs-on: macOS-latest
     steps:
