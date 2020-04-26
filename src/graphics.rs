@@ -22,7 +22,9 @@ mod vertex;
 
 pub use self::color::Color;
 #[cfg(feature = "font")]
-pub use self::font::{FontRenderer, LayoutGlyph, VectorFont};
+pub use self::font::{FontRenderer, LayoutGlyph};
+#[cfg(feature = "ttf")]
+pub use self::font::VectorFont;
 pub use self::image::Image;
 pub use self::mesh::Mesh;
 pub use self::surface::Surface;
