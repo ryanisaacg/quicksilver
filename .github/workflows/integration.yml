@@ -60,10 +60,9 @@ jobs:
     - uses: hecrj/setup-rust-action@v1.2.0
       with:
         rust-version: ${{ matrix.rust }}
-        components: clippy
         targets: wasm32-unknown-unknown
     - uses: actions/checkout@master
     - name: Check stdweb
       run: cargo install cargo-web && cargo web check --features stdweb
     - name: Clippy
-      run: cargo clippy --target wasm32-unknown-unknown --features web-sys -- -D warnings
+      run: cargo check --target wasm32-unknown-unknown --features web-sys
