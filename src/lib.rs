@@ -144,9 +144,9 @@
 
 // Re-export every library that appears in the public API
 pub use blinds;
-pub use golem;
 #[cfg(feature = "font")]
 pub use elefont;
+pub use golem;
 pub use log;
 pub use mint;
 
