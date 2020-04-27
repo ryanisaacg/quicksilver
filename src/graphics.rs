@@ -21,10 +21,10 @@ mod surface;
 mod vertex;
 
 pub use self::color::Color;
-#[cfg(feature = "font")]
-pub use self::font::{FontRenderer, LayoutGlyph};
 #[cfg(feature = "ttf")]
 pub use self::font::VectorFont;
+#[cfg(feature = "font")]
+pub use self::font::{FontRenderer, LayoutGlyph};
 pub use self::image::Image;
 pub use self::mesh::Mesh;
 pub use self::surface::Surface;
