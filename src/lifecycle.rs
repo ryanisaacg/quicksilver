@@ -16,7 +16,7 @@ pub use blinds::{
 };
 
 #[deprecated(
-    since = "v0.4.0-alpha0.4",
+    since = "0.4.0-alpha0.4",
     note = "Please use 'run' from the crate root instead"
 )]
 /// The entry point of a Quicksilver application

@@ -154,7 +154,7 @@ pub mod geom;
 pub mod graphics;
 pub mod input;
 #[deprecated(
-    since = "v0.4.0-alpha0.4",
+    since = "0.4.0-alpha0.4",
     note = "Please use input module and 'run' function instead"
 )]
 pub mod lifecycle;
