@@ -4,14 +4,13 @@ use quicksilver::{
     geom::{Rectangle, Vector},
     graphics::blend::{BlendChannel, BlendFactor, BlendFunction, BlendInput, BlendMode},
     graphics::{Color, Graphics, Image},
-    lifecycle::{run, EventStream, Settings, Window},
-    Result,
+    input::{Input, Window},
+    run, Result, Settings,
 };
 
 fn main() {
     run(
         Settings {
-            size: Vector::new(800.0, 600.0).into(),
             title: "Blend Example",
             ..Settings::default()
         },
@@ -20,7 +19,7 @@ fn main() {
 }
 
 // This time we might return an error, so we use a Result
-async fn app(window: Window, mut gfx: Graphics, mut events: EventStream) -> Result<()> {
+async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> {
     let image = Image::load(&gfx, "image.png").await?;
     gfx.clear(Color::WHITE);
     // Set the blend pipeline
@@ -63,6 +62,6 @@ async fn app(window: Window, mut gfx: Graphics, mut events: EventStream) -> Resu
     gfx.present(&window)?;
 
     loop {
-        while let Some(_) = events.next_event().await {}
+        while let Some(_) = input.next_event().await {}
     }
 }

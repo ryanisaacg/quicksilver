@@ -1,0 +1,272 @@
+//! Read events / input state and manage the window
+
+use crate::geom::Vector;
+
+pub use blinds::event::{
+    FocusChangedEvent, GamepadAxisEvent, GamepadButtonEvent, GamepadConnectedEvent,
+    GamepadDisconnectedEvent, KeyboardEvent, ModifiersChangedEvent, PointerEnteredEvent,
+    PointerInputEvent, PointerLeftEvent, ReceivedCharacterEvent, ScaleFactorChangedEvent,
+    ScrollDelta,
+};
+#[cfg(feature = "event-cache")]
+use blinds::event_cache::EventCache;
+#[cfg(feature = "event-cache")]
+pub use blinds::event_cache::GamepadState;
+pub use blinds::{CursorIcon, GamepadAxis, GamepadButton, GamepadId, Key, MouseButton, PointerId};
+
+pub struct Input {
+    source: blinds::EventStream,
+    #[cfg(feature = "event-cache")]
+    cache: EventCache,
+}
+
+impl Input {
+    pub(crate) fn new(source: blinds::EventStream) -> Input {
+        Input {
+            source,
+            #[cfg(feature = "event-cache")]
+            cache: EventCache::new(),
+        }
+    }
+
+    pub async fn next_event(&mut self) -> Option<Event> {
+        while let Some(ev) = self.source.next_event().await {
+            #[cfg(feature = "event-cache")]
+            self.cache.process_event(&ev);
+            // If there is an event, it might not be something Quicksilver can process.
+            // If it's not, skip this and get the next event
+            if let Some(ev) = conv(ev) {
+                return Some(ev);
+            }
+        }
+
+        // We didn't have any Some events before we hit a None
+        None
+    }
+}
+
+#[cfg(feature = "event-cache")]
+impl Input {
+    /// Check if a given key is down
+    pub fn key_down(&self, key: Key) -> bool {
+        self.cache.key(key)
+    }
+
+    /// The state of the global mouse
+    ///
+    /// Under a system with touch input or with multiple cursors, this may report erratic results.
+    /// The state here is tracked for every pointer event, regardless of pointer ID.
+    pub fn mouse(&self) -> PointerState {
+        self.cache.mouse().into()
+    }
+
+    /// The state of the given pointer
+    #[allow(clippy::trivially_copy_pass_by_ref)]
+    pub fn pointer(&self, id: &PointerId) -> Option<PointerState> {
+        self.cache.pointer(id).map(|p| p.into())
+    }
+
+    /// The pointer ID and values that have been tracked
+    pub fn pointers(&self) -> impl Iterator<Item = (&PointerId, PointerState)> {
+        self.cache.pointers().map(|(id, p)| (id, p.into()))
+    }
+
+    /// The state of the given gamepad
+    pub fn gamepad(&self, id: &GamepadId) -> Option<&GamepadState> {
+        self.cache.gamepad(id)
+    }
+
+    /// The gamepad ID and values that have been tracked
+    pub fn gamepads(&self) -> impl Iterator<Item = (&GamepadId, &GamepadState)> {
+        self.cache.gamepads()
+    }
+}
+
+pub struct PointerState {
+    left: bool,
+    right: bool,
+    middle: bool,
+    location: Vector,
+}
+
+impl PointerState {
+    pub fn left(&self) -> bool {
+        self.left
+    }
+
+    pub fn right(&self) -> bool {
+        self.right
+    }
+
+    pub fn middle(&self) -> bool {
+        self.middle
+    }
+
+    pub fn location(&self) -> Vector {
+        self.location
+    }
+}
+
+impl From<&blinds::event_cache::PointerState> for PointerState {
+    fn from(ps: &blinds::event_cache::PointerState) -> PointerState {
+        PointerState {
+            left: ps.left(),
+            right: ps.right(),
+            middle: ps.middle(),
+            location: ps.location().into(),
+        }
+    }
+}
+
+#[derive(Clone, Debug)]
+#[non_exhaustive]
+/// An indicator something has changed or input has been dispatched
+pub enum Event {
+    /// The size of the window has changed, see [`Window::size`]
+    ///
+    /// [`Window::size`]: crate::Window::size
+    Resized(ResizedEvent),
+    /// The scale factor of the window has changed, see [`Window::scale_factor`]
+    ///
+    /// [`Window::scale_factor`]: crate::Window::scale_factor
+    ScaleFactorChanged(ScaleFactorChangedEvent),
+    /// The window has gained operating system focus (true), or lost it (false)
+    FocusChanged(FocusChangedEvent),
+    /// The user typed a character, used for text input
+    ///
+    /// Don't use keyboard events for text! Depending on how the user's operating system and
+    /// keyboard layout are configured, different keys may produce different Unicode characters.
+    ReceivedCharacter(ReceivedCharacterEvent),
+    /// A key has been pressed, released, or held down
+    ///
+    /// Operating systems often have key repeat settings that cause duplicate events to be
+    /// generated for a single press.
+    KeyboardInput(KeyboardEvent),
+    /// A pointer entered the window
+    PointerEntered(PointerEnteredEvent),
+    /// A pointer has exited the window
+    PointerLeft(PointerLeftEvent),
+    /// A pointer has a new position, relative to the window's top-left
+    PointerMoved(PointerMovedEvent),
+    /// A button on a pointer, likely a mouse, has produced an input
+    PointerInput(PointerInputEvent),
+    /// The mousewheel has scrolled, either in lines or pixels (depending on the input method)
+    ScrollInput(ScrollDelta),
+    /// The keyboard modifiers (e.g. shift, alt, ctrl) have changed
+    ModifiersChanged(ModifiersChangedEvent),
+    /// A gamepad has been connected
+    GamepadConnected(GamepadConnectedEvent),
+    /// A gamepad has been disconnected
+    GamepadDisconnected(GamepadDisconnectedEvent),
+    /// A gamepad button has been pressed or released
+    GamepadButton(GamepadButtonEvent),
+    /// A gamepad axis has changed its value
+    GamepadAxis(GamepadAxisEvent),
+}
+
+#[derive(Clone, Debug)]
+/// See [`Event::Resized`]
+pub struct ResizedEvent {
+    size: Vector,
+}
+
+impl ResizedEvent {
+    /// The new size of the window
+    pub fn size(&self) -> Vector {
+        self.size
+    }
+}
+
+#[derive(Clone, Debug)]
+/// See [`Event::PointerMoved`]
+///
+/// [`Event::PointerMoved`]: crate::event::Event::PointerMoved
+pub struct PointerMovedEvent {
+    id: PointerId,
+    location: Vector,
+}
+
+impl PointerMovedEvent {
+    pub fn pointer(&self) -> &PointerId {
+        &self.id
+    }
+
+    /// The logical location of the pointer, relative to the top-left of the window
+    pub fn location(&self) -> Vector {
+        self.location
+    }
+}
+
+fn conv(ev: blinds::Event) -> Option<Event> {
+    use Event::*;
+    Some(match ev {
+        blinds::Event::Resized(x) => Resized(ResizedEvent {
+            size: x.logical_size().into(),
+        }),
+        blinds::Event::ScaleFactorChanged(x) => ScaleFactorChanged(x),
+        blinds::Event::FocusChanged(x) => FocusChanged(x),
+        blinds::Event::ReceivedCharacter(x) => ReceivedCharacter(x),
+        blinds::Event::KeyboardInput(x) => KeyboardInput(x),
+        blinds::Event::PointerEntered(x) => PointerEntered(x),
+        blinds::Event::PointerLeft(x) => PointerLeft(x),
+        blinds::Event::PointerMoved(x) => PointerMoved(PointerMovedEvent {
+            id: *x.pointer(),
+            location: x.location().into(),
+        }),
+        blinds::Event::PointerInput(x) => PointerInput(x),
+        blinds::Event::ScrollInput(x) => ScrollInput(x),
+        blinds::Event::ModifiersChanged(x) => ModifiersChanged(x),
+        blinds::Event::GamepadConnected(x) => GamepadConnected(x),
+        blinds::Event::GamepadDisconnected(x) => GamepadDisconnected(x),
+        blinds::Event::GamepadButton(x) => GamepadButton(x),
+        blinds::Event::GamepadAxis(x) => GamepadAxis(x),
+        _ => return None,
+    })
+}
+
+pub struct Window(blinds::Window);
+
+impl Window {
+    /// Set the cursor icon to some value, or set it to invisible (None)
+    pub fn set_cursor_icon(&self, icon: Option<CursorIcon>) {
+        self.0.set_cursor_icon(icon);
+    }
+
+    /// Get the size of the window in logical units
+    ///
+    /// On a high-dpi display, this doesn't correspond to physical pixels and must be multiplied by
+    /// [`scale`] when passing sizes to functions like `glViewport`.
+    ///
+    /// [`scale`]: Window::scale_factor
+    pub fn size(&self) -> Vector {
+        self.0.size().into()
+    }
+
+    /// Set the size of the inside of the window in logical units
+    pub fn set_size(&self, size: Vector) {
+        self.0.set_size(size.into());
+    }
+
+    /// Set the title of the window or browser tab
+    pub fn set_title(&self, title: &str) {
+        self.0.set_title(title);
+    }
+
+    /// Set if the window should be fullscreen or not
+    ///
+    /// On desktop, it will instantly become fullscreen (borderless windowed on Windows and Linux,
+    /// and fullscreen on macOS). On web, it will become fullscreen after the next user
+    /// interaction, due to browser API restrictions.
+    pub fn set_fullscreen(&self, fullscreen: bool) {
+        self.0.set_fullscreen(fullscreen);
+    }
+
+    /// Draw the current frame to the screen
+    ///
+    /// If vsync is enabled, this will block until the frame is completed on desktop. On web, there
+    /// is no way to control vsync, or to manually control presentation, so this function is a
+    /// no-op.
+    pub fn present(&self) {
+        self.0.present();
+    }
+}

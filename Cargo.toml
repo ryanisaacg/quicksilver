@@ -30,7 +30,7 @@ ttf = ["elefont/rusttype", "rusttype"]
 maintenance = { status = "actively-developed" }
 
 [dependencies]
-blinds = { version = "0.1.0", default-features = false, features = ["gl"] }
+blinds = { version = "0.1.4", default-features = false, features = ["gl", "image"] }
 bytemuck = "1.0"
 elefont = { version = "0.1.3", features = ["rusttype", "unicode-normalization"], optional = true }
 gestalt = { version = "0.1", optional = true }

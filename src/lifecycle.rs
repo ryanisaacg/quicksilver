@@ -1,6 +1,7 @@
 //! Manage events, input, and the window via the [`blinds`] library
 //!
 //! The [`run`] function is the entry point for all applications
+
 use crate::geom::{Rectangle, Transform};
 use crate::graphics::Graphics;
 use std::error::Error;
@@ -14,6 +15,10 @@ pub use blinds::{
     PointerId, Settings, Window,
 };
 
+#[deprecated(
+    since = "v0.4.0-alpha0.4",
+    note = "Please use 'run' from the crate root instead"
+)]
 /// The entry point of a Quicksilver application
 ///
 /// It provides your application (represented by an async closure or function) with a [`Window`],
@@ -25,7 +30,15 @@ where
     F: 'static + FnOnce(Window, Graphics, EventStream) -> T,
 {
     #[cfg(feature = "easy-log")]
-    set_logger();
+    {
+        #[cfg(target_arch = "wasm32")]
+        web_logger::custom_init(web_logger::Config {
+            level: log::Level::Debug,
+        });
+        #[cfg(not(target_arch = "wasm32"))]
+        simple_logger::init_with_level(log::Level::Debug)
+            .expect("A logger was already initialized");
+    }
 
     let size = settings.size;
     let screen_region = Rectangle::new_sized(size);
@@ -54,14 +67,4 @@ where
             }
         }
     });
-}
-
-#[cfg(feature = "easy-log")]
-fn set_logger() {
-    #[cfg(target_arch = "wasm32")]
-    web_logger::custom_init(web_logger::Config {
-        level: log::Level::Debug,
-    });
-    #[cfg(not(target_arch = "wasm32"))]
-    simple_logger::init_with_level(log::Level::Debug).expect("A logger was already initialized");
 }

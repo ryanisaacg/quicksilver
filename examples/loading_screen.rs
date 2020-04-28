@@ -11,14 +11,13 @@ use std::time::Duration;
 use quicksilver::{
     geom::{Rectangle, Vector},
     graphics::{Color, Graphics},
-    lifecycle::{run, EventStream, Settings, Window},
-    Result,
+    input::{Input, Window},
+    run, Result, Settings,
 };
 
 fn main() {
     run(
         Settings {
-            size: Vector::new(800.0, 600.0).into(),
             title: "Square Example",
             ..Settings::default()
         },
@@ -63,7 +62,7 @@ fn draw_loader(window: &Window, gfx: &mut Graphics, progress: usize, total: usiz
     Ok(())
 }
 
-async fn app(window: Window, mut gfx: Graphics, mut events: EventStream) -> Result<()> {
+async fn app(window: Window, mut gfx: Graphics, mut events: Input) -> Result<()> {
     for i in 0..STEPS {
         draw_loader(&window, &mut gfx, i, STEPS)?;
         load_something();

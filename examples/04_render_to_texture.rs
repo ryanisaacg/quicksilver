@@ -3,14 +3,13 @@
 use quicksilver::{
     geom::{Circle, Rectangle, Vector},
     graphics::{Color, Graphics, Image, PixelFormat, Surface},
-    lifecycle::{run, EventStream, Settings, Window},
-    Result,
+    input::{Input, Window},
+    run, Result, Settings,
 };
 
 fn main() {
     run(
         Settings {
-            size: Vector::new(800.0, 600.0).into(),
             title: "Square Example",
             ..Settings::default()
         },
@@ -18,7 +17,7 @@ fn main() {
     );
 }
 
-async fn app(window: Window, mut gfx: Graphics, mut events: EventStream) -> Result<()> {
+async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> {
     gfx.clear(Color::WHITE);
     // Create a surface, which allows rendering to an image
     let mut surface = Surface::new(
@@ -50,6 +49,6 @@ async fn app(window: Window, mut gfx: Graphics, mut events: EventStream) -> Resu
 
     gfx.present(&window)?;
     loop {
-        while let Some(_) = events.next_event().await {}
+        while let Some(_) = input.next_event().await {}
     }
 }

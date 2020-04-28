@@ -3,14 +3,13 @@
 use quicksilver::{
     geom::{Rectangle, Vector},
     graphics::{Color, Graphics},
-    lifecycle::{run, EventStream, Settings, Window},
-    Result, Timer,
+    input::{Input, Window},
+    run, Result, Settings, Timer,
 };
 
 fn main() {
     run(
         Settings {
-            size: Vector::new(800.0, 600.0).into(),
             title: "Square Example",
             ..Settings::default()
         },
@@ -18,7 +17,7 @@ fn main() {
     );
 }
 
-async fn app(window: Window, mut gfx: Graphics, mut events: EventStream) -> Result<()> {
+async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> {
     // Clear the screen to a blank, white color
     gfx.clear(Color::WHITE);
 
@@ -31,7 +30,7 @@ async fn app(window: Window, mut gfx: Graphics, mut events: EventStream) -> Resu
     let mut rect = Rectangle::new(Vector::new(0.0, 100.0), Vector::new(100.0, 100.0));
 
     loop {
-        while let Some(_) = events.next_event().await {}
+        while let Some(_) = input.next_event().await {}
 
         // We use a while loop rather than an if so that we can try to catch up in the event of having a slow down.
         while update_timer.tick() {
