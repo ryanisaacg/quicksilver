@@ -3,6 +3,7 @@ use super::*;
 use crate::error::FontError;
 use elefont::{CacheError, FontCache, FontProvider, PixelType, Texture, TextureGlyph};
 use std::iter;
+#[cfg(feature = "ttf")]
 use std::path::Path;
 
 #[cfg(feature = "ttf")]

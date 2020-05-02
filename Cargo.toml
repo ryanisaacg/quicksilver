@@ -23,7 +23,7 @@ gamepad = ["blinds/gamepad"]
 saving = ["gestalt"]
 stdweb = ["gestalt/stdweb", "platter/stdweb", "blinds/stdweb", "golem/stdweb","instant/stdweb"]
 web-sys = ["gestalt/web-sys", "platter/web-sys", "blinds/web-sys", "golem/web-sys","instant/web-sys"]
-ttf = ["elefont/rusttype", "rusttype"]
+ttf = ["font", "elefont/rusttype", "rusttype"]
 
 [badges]
 

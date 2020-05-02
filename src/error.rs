@@ -81,9 +81,11 @@ impl Display for QuicksilverError {
                 fmt,
                 "A surface operation was attempted with no image bound to the surface"
             ),
+            #[cfg(feature = "font")]
             QuicksilverError::FontError(FontError::NonRenderableGlyph(g)) => {
                 write!(fmt, "This glyph cannot be rendered: {:?}", g)
             }
+            #[cfg(feature = "font")]
             QuicksilverError::FontError(FontError::StringTooLarge) => write!(
                 fmt,
                 "A word or glyph passed to a font was too large to render."
