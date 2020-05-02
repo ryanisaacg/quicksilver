@@ -2,9 +2,8 @@
 // Use timers to know when to draw and to have a consistent update cycle.
 use quicksilver::{
     geom::{Rectangle, Vector},
-    graphics::{Color, Graphics},
-    input::{Input, Window},
-    run, Result, Settings, Timer,
+    graphics::Color,
+    run, Graphics, Input, Result, Settings, Timer, Window,
 };
 
 fn main() {

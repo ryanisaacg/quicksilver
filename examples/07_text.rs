@@ -2,9 +2,8 @@
 // Write some text on the screen
 use quicksilver::{
     geom::Vector,
-    graphics::{Color, Graphics, VectorFont},
-    input::{Input, Window},
-    run, Result, Settings,
+    graphics::{Color, VectorFont},
+    run, Graphics, Input, Result, Settings, Window,
 };
 
 fn main() {

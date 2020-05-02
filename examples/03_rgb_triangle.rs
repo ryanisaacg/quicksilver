@@ -2,9 +2,8 @@
 // Open a window, and draw the standard GPU triangle
 use quicksilver::{
     geom::Vector,
-    graphics::{Color, Element, Graphics, Mesh, Vertex},
-    input::{Input, Window},
-    run, Result, Settings,
+    graphics::{Color, Element, Mesh, Vertex},
+    run, Graphics, Input, Result, Settings, Window,
 };
 
 fn main() {

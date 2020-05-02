@@ -65,7 +65,7 @@ pub fn run<E, F, T>(settings: Settings, app: F) -> !
 where
     E: Into<Box<dyn Error + Send + Sync>>,
     T: 'static + Future<Output = Result<(), E>>,
-    F: 'static + FnOnce(crate::lifecycle::Window, Graphics, Input) -> T,
+    F: 'static + FnOnce(crate::Window, Graphics, Input) -> T,
 {
     #[cfg(feature = "easy-log")]
     set_logger(settings.log_level);
@@ -87,7 +87,7 @@ where
         graphics.set_projection(Transform::orthographic(screen_region));
 
         async {
-            match app(window, graphics, Input::new(events)).await {
+            match app(crate::Window(window), graphics, Input::new(events)).await {
                 Ok(()) => log::info!("Exited successfully"),
                 Err(err) => {
                     let err = err.into();

@@ -167,8 +167,13 @@ pub use crate::error::QuicksilverError;
 
 mod run;
 mod timer;
+mod window;
 pub use run::{run, Settings};
 pub use timer::Timer;
+pub use window::Window;
+
+pub use graphics::Graphics;
+pub use input::Input;
 
 /// Load a file as a [`Future`]
 ///

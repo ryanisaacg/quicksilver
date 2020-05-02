@@ -2,9 +2,8 @@
 // Open a window, and draw a colored square in it
 use quicksilver::{
     geom::{Rectangle, Vector},
-    graphics::{Color, Graphics},
-    input::{Input, Window},
-    run, Result, Settings,
+    graphics::Color,
+    run, Graphics, Input, Result, Settings, Window,
 };
 
 fn main() {

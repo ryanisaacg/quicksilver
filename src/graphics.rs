@@ -29,6 +29,7 @@ pub use self::surface::Surface;
 pub use self::vertex::{Element, Vertex};
 
 use crate::geom::*;
+use crate::Window;
 use golem::*;
 use std::iter;
 use std::mem::size_of;
@@ -525,7 +526,7 @@ impl Graphics {
     }
 
     /// Send the draw data to the GPU and paint it to the Window
-    pub fn present(&mut self, win: &blinds::Window) -> Result<(), QuicksilverError> {
+    pub fn present(&mut self, win: &Window) -> Result<(), QuicksilverError> {
         self.flush(None)?;
         win.present();
 
@@ -563,7 +564,7 @@ impl Graphics {
     }
 
     /// Set the viewport to cover the window, taking into account DPI
-    pub fn fit_to_window(&self, window: &blinds::Window) {
+    pub fn fit_to_window(&self, window: &Window) {
         let size = window.size();
         let scale = window.scale_factor();
         let width = size.x * scale;

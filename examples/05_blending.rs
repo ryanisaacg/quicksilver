@@ -3,9 +3,8 @@
 use quicksilver::{
     geom::{Rectangle, Vector},
     graphics::blend::{BlendChannel, BlendFactor, BlendFunction, BlendInput, BlendMode},
-    graphics::{Color, Graphics, Image},
-    input::{Input, Window},
-    run, Result, Settings,
+    graphics::{Color, Image},
+    run, Graphics, Input, Result, Settings, Window,
 };
 
 fn main() {

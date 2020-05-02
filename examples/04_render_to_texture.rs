@@ -2,9 +2,8 @@
 // Render some data to an image, and draw that image to the screen
 use quicksilver::{
     geom::{Circle, Rectangle, Vector},
-    graphics::{Color, Graphics, Image, PixelFormat, Surface},
-    input::{Input, Window},
-    run, Result, Settings,
+    graphics::{Color, Image, PixelFormat, Surface},
+    run, Graphics, Input, Result, Settings, Window,
 };
 
 fn main() {

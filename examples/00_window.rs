@@ -1,11 +1,7 @@
 // Example 0: The Window
 // The simplest example: Do absolutely nothing other than just opening a window
 
-use quicksilver::{
-    graphics::Graphics,
-    input::{Input, Window},
-    run, Result, Settings,
-};
+use quicksilver::{run, Graphics, Input, Result, Settings, Window};
 
 // main() serves as our kicking-off point, but it doesn't have our application logic
 // Actual logic goes in our app function, which is async
