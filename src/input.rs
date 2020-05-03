@@ -82,6 +82,7 @@ impl Input {
     }
 }
 
+#[cfg(feature = "event-cache")]
 pub struct PointerState {
     left: bool,
     right: bool,
@@ -89,6 +90,7 @@ pub struct PointerState {
     location: Vector,
 }
 
+#[cfg(feature = "event-cache")]
 impl PointerState {
     pub fn left(&self) -> bool {
         self.left
@@ -107,6 +109,7 @@ impl PointerState {
     }
 }
 
+#[cfg(feature = "event-cache")]
 impl From<&blinds::event_cache::PointerState> for PointerState {
     fn from(ps: &blinds::event_cache::PointerState) -> PointerState {
         PointerState {
