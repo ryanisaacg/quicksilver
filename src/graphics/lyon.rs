@@ -1,6 +1,6 @@
 use crate::{
     geom::{Transform, Vector},
-    graphics::{Background::Col, Color, GpuTriangle, Mesh, Vertex}
+    graphics::{Color, Element, Mesh, Vertex}
 };
 use lyon::tessellation::{
     geometry_builder::{Count, GeometryBuilder, GeometryBuilderError, VertexId},
@@ -12,22 +12,18 @@ use lyon::tessellation::{
 /// The ShapeRenderer has a color, transform, and z-ordering it applies to all
 /// incoming shapes. It outputs the shapes to a mutable Mesh reference, which
 /// can be a standalone mesh object or the one obtained by `window.mesh()`
-pub struct ShapeRenderer<'a> {
-    mesh: &'a mut Mesh,
+pub struct ShapeRenderer {
+    mesh: Mesh,
     color: Color,
-    z: f32,
-    trans: Transform,
     dirty: Option<usize>
 }
 
 impl<'a> ShapeRenderer<'a> {
     /// Create a shape renderer with a target mesh and an initial color
-    pub fn new(mesh: &'a mut Mesh, color: Color) -> ShapeRenderer<'a> {
+    pub fn new(color: Color) -> ShapeRenderer<'a> {
         ShapeRenderer {
-            mesh,
+            mesh: Mesh::new(None),
             color,
-            z: 0.0,
-            trans: Transform::IDENTITY,
             dirty: None
         }
     }
@@ -40,26 +36,6 @@ impl<'a> ShapeRenderer<'a> {
     /// Set the color of the incoming shapes
     pub fn set_color(&mut self, color: Color) {
         self.color = color;
-    }
-
-    /// Get the Z position of the incoming shapes
-    pub fn z(&self) -> f32 {
-        self.z
-    }
-
-    /// Set the Z position of the incoming shapes
-    pub fn set_z(&mut self, z: f32) {
-        self.z = z;
-    }
-
-    /// Get the transformation that will be applied to all incoming shapes
-    pub fn transform(&self) -> Transform {
-        self.trans
-    }
-
-    /// Set the transformation that will be applied to all incoming shapes
-    pub fn set_transform(&mut self, trans: Transform) {
-        self.trans = trans;
     }
 }
 
@@ -101,14 +77,22 @@ impl<'a, Input> GeometryBuilder<Input> for ShapeRenderer<'a>
 
 impl VertexConstructor<FillVertex, Vertex> for Color {
     fn new_vertex(&mut self, vertex: FillVertex) -> Vertex {
-        let position = Vector::new(vertex.position.x, vertex.position.y);
-        Vertex::new(position, None, Col(*self))
+        let pos = Vector::new(vertex.position.x, vertex.position.y);
+        Vertex {
+            pos,
+            uv: None,
+            color: *self,
+        }
     }
 }
 
 impl VertexConstructor<StrokeVertex, Vertex> for Color {
     fn new_vertex(&mut self, vertex: StrokeVertex) -> Vertex {
-        let position = Vector::new(vertex.position.x, vertex.position.y);
-        Vertex::new(position, None, Col(*self))
+        let pos = Vector::new(vertex.position.x, vertex.position.y);
+        Vertex {
+            pos,
+            uv: None,
+            color: *self,
+        }
     }
 }

@@ -16,6 +16,8 @@ mod color;
 #[cfg(feature = "font")]
 mod font;
 mod image;
+#[cfg(feature = "lyon")]
+mod lyon;
 mod mesh;
 mod surface;
 mod vertex;
@@ -26,6 +28,8 @@ pub use self::font::VectorFont;
 #[cfg(feature = "font")]
 pub use self::font::{FontRenderer, LayoutGlyph};
 pub use self::image::Image;
+#[cfg(feature = "lyon")]
+pub use self::lyon::ShapeRenderer;
 pub use self::mesh::Mesh;
 pub use self::surface::Surface;
 pub use self::vertex::{Element, Vertex};

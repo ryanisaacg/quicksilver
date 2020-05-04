@@ -10,6 +10,22 @@ pub struct Mesh {
     pub image: Option<Image>,
 }
 
+impl Mesh {
+    /// Create a new, empty mesh
+    pub fn new(image: Option<Image>) -> Mesh {
+        Mesh {
+            vertices: Vec::new(),
+            elements: Vec::new(),
+            image,
+        }
+    }
+
+    pub fn clear(&mut self) {
+        self.vertices.clear();
+        self.elements.clear();
+    }
+}
+
 /*
 impl Mesh {
     /// Create a new, empty mesh
