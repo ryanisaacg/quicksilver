@@ -10,7 +10,7 @@ use quicksilver::{
 fn main() {
     run(
         Settings {
-            title: "Square Example",
+            title: "Input Example",
             ..Settings::default()
         },
         app,
