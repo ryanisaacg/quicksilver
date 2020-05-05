@@ -11,8 +11,7 @@ use std::time::Duration;
 use quicksilver::{
     geom::{Rectangle, Vector},
     graphics::{Color, Graphics},
-    input::{Input, Window},
-    run, Result, Settings,
+    run, Input, Result, Settings, Window,
 };
 
 fn main() {
