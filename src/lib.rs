@@ -163,10 +163,10 @@ pub use crate::error::QuicksilverError;
 mod run;
 mod timer;
 mod window;
+pub use blinds::CursorIcon;
 pub use run::{run, Settings};
 pub use timer::Timer;
 pub use window::Window;
-pub use blinds::CursorIcon;
 
 pub use graphics::Graphics;
 pub use input::Input;
