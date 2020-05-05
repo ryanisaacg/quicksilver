@@ -4,6 +4,7 @@ use crate::input::Input;
 use std::error::Error;
 use std::future::Future;
 
+/// Initial window and behavior options
 pub struct Settings {
     /// The size of the window
     pub size: Vector,

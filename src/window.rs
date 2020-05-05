@@ -1,6 +1,7 @@
 use crate::geom::Vector;
 use blinds::CursorIcon;
 
+/// The window on the user's desktop or in the browser tab
 pub struct Window(pub(crate) blinds::Window);
 
 impl Window {
