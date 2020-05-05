@@ -52,7 +52,7 @@ impl Default for Settings {
             resizable: false,
             title: "",
             log_level: log::Level::Warn,
-            use_static_dir: false,
+            use_static_dir: true,
         }
     }
 }
