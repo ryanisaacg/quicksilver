@@ -1,4 +1,16 @@
-//! Read events / input state and manage the window
+//! Read events / input state
+//!
+//! The main struct for this module is [`Input`], which is provided by the [`run`] method to your
+//! app. [`Input`] allows you to read events from the user, which can range from [`window resizes`]
+//! to [`key presses`].
+//!
+//! There is also an optional feature (enabled by default) to cache input for user convenience.
+//! This allows you to write quick expressions like `if input.key_down(Key::W)` rather than having
+//! to write code to handle the event when it comes in.
+//!
+//! [`run`]: crate::run::run
+//! [`window resizes`]: ResizedEvent
+//! [`key presses`]: KeyboardEvent
 
 use crate::geom::Vector;
 
@@ -10,10 +22,12 @@ pub use blinds::event::{
 };
 #[cfg(feature = "event-cache")]
 use blinds::event_cache::EventCache;
+/// The button and axis values of a gamepad
 #[cfg(feature = "event-cache")]
 pub use blinds::event_cache::GamepadState;
-pub use blinds::{CursorIcon, GamepadAxis, GamepadButton, GamepadId, Key, MouseButton, PointerId};
+pub use blinds::{GamepadAxis, GamepadButton, GamepadId, Key, MouseButton, PointerId};
 
+/// The source of events and input device state
 pub struct Input {
     source: blinds::EventStream,
     #[cfg(feature = "event-cache")]
@@ -29,6 +43,13 @@ impl Input {
         }
     }
 
+    /// Retrieve the next event from the environment, or wait until there is one
+    ///
+    /// If an event has occured since this method was last called, it will be return as
+    /// `Some(event)`. Once all events have been handled, `None` will be returned. At this point you
+    /// should run any update or drawing logic in your app. When this method is called after it
+    /// returns `None`, it will yield control back to the environment until your app should run
+    /// again.
     pub async fn next_event(&mut self) -> Option<Event> {
         while let Some(ev) = self.source.next_event().await {
             #[cfg(feature = "event-cache")]
@@ -82,6 +103,7 @@ impl Input {
     }
 }
 
+/// The buttons and location of a given pointer
 #[cfg(feature = "event-cache")]
 pub struct PointerState {
     left: bool,
@@ -183,7 +205,7 @@ impl ResizedEvent {
 #[derive(Clone, Debug)]
 /// See [`Event::PointerMoved`]
 ///
-/// [`Event::PointerMoved`]: crate::event::Event::PointerMoved
+/// [`Event::PointerMoved`]: crate::input::Event::PointerMoved
 pub struct PointerMovedEvent {
     id: PointerId,
     location: Vector,

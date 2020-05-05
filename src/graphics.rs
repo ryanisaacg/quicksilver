@@ -7,7 +7,7 @@
 //!
 //! For loading and drawing images, to the screen, use [`Image`].
 //!
-//! [`run`]: crate::lifecycle::run
+//! [`run`]: crate::run::run
 
 use crate::QuicksilverError;
 
@@ -546,8 +546,8 @@ impl Graphics {
     /// The units given are physical units, not logical units. As such when using [`Window::size`],
     /// be sure to multiply by [`Window::scale_factor`].
     ///
-    /// [`Window::size`]: crate::lifecycle::Window::size
-    /// [`Window::scale_factor`]: crate::lifecycle::Window::scale_factor
+    /// [`Window::size`]: crate::Window::size
+    /// [`Window::scale_factor`]: crate::Window::scale_factor
     pub fn set_viewport(&self, x: u32, y: u32, width: u32, height: u32) {
         self.ctx.set_viewport(x, y, width, height);
     }

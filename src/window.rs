@@ -41,9 +41,13 @@ impl Window {
 
     /// The DPI scale factor of the window
     ///
-    /// For a good example of DPI scale factors, see the [winit docs] on the subject
+    /// Mostly, this isn't important to you. Some computer screens have more "physical" pixels than
+    /// "logical" pixels, allowing them to draw sharper-looking images. Quicksilver abstracts this
+    /// away. However, if you are manually [`setting the viewport`], you need to take this into
+    /// account.
     ///
-    /// [winit docs]: winit::dpi
+    ///
+    /// [`setting the viewport`]: crate::Graphics::set_viewport
     pub fn scale_factor(&self) -> f32 {
         self.0.scale_factor()
     }

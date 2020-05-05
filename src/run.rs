@@ -9,7 +9,7 @@ pub struct Settings {
     /// The size of the window
     pub size: Vector,
     /// If the cursor should be visible over the application, or if the cursor should be hidden
-    pub cursor_icon: Option<blinds::CursorIcon>,
+    pub cursor_icon: Option<crate::CursorIcon>,
     /// If the application should be fullscreen
     pub fullscreen: bool,
     /// The icon on the window or the favicon on the tab
@@ -61,7 +61,11 @@ impl Default for Settings {
 /// The entry point of a Quicksilver application
 ///
 /// It provides your application (represented by an async closure or function) with a [`Window`],
-/// [`Graphics`] context, and [`EventStream`].
+/// [`Graphics`] context, and [`Input`].
+///
+/// [`Graphics`]: crate::Graphics
+/// [`Window`]: crate::Window
+/// [`Input`]: crate::Input
 pub fn run<E, F, T>(settings: Settings, app: F) -> !
 where
     E: Into<Box<dyn Error + Send + Sync>>,

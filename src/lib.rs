@@ -166,6 +166,7 @@ mod window;
 pub use run::{run, Settings};
 pub use timer::Timer;
 pub use window::Window;
+pub use blinds::CursorIcon;
 
 pub use graphics::Graphics;
 pub use input::Input;
