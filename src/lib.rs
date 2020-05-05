@@ -153,11 +153,6 @@ mod error;
 pub mod geom;
 pub mod graphics;
 pub mod input;
-#[deprecated(
-    since = "0.4.0-alpha0.4",
-    note = "Please use input module and 'run' function instead"
-)]
-pub mod lifecycle;
 #[cfg(feature = "saving")]
 pub mod saving {
     //! A module to manage cross-platform save data via the [`gestalt`] library
