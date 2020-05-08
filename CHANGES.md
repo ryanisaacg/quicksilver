@@ -2,6 +2,10 @@
 
 ## WIP
 - Fix compile issues with font-related features
+- [BREAKING] Replace 'lifecycle' module with 'input' module:
+    - [BREAKING] Rename `EventStream` to `Input`
+    - Integrate the input state cache directly into `Input`
+    - [BREAKING] The `blinds::Window` struct and the `Event` enums are now wrapped with methods that use `quicksilver::geom::Vector` instead of `mint::Vector2`
 
 ## v0.4.0-alpha0.3
 - Update `golem` to `v0.1.1` to fix non-power-of-2 textures

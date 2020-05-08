@@ -26,18 +26,16 @@
 //! ```no_run
 //! // Example 1: The Square
 //! // Open a window, and draw a colored square in it
-//! use mint::Vector2;
 //! use quicksilver::{
 //!     geom::{Rectangle, Vector},
 //!     graphics::{Color, Graphics},
-//!     lifecycle::{run, EventStream, Settings, Window},
-//!     Result,
+//!     input::{Input, Window},
+//!     Result, Settings, run,
 //! };
 //!
 //! fn main() {
 //!     run(
 //!         Settings {
-//!             size: Vector2 { x: 800.0, y: 600.0 },
 //!             title: "Square Example",
 //!             ..Settings::default()
 //!         },
@@ -45,7 +43,7 @@
 //!     );
 //! }
 //!
-//! async fn app(window: Window, mut gfx: Graphics, mut events: EventStream) -> Result<()> {
+//! async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> {
 //!     // Clear the screen to a blank, white color
 //!     gfx.clear(Color::WHITE);
 //!     // Paint a blue square with a red outline in the center of our screen
@@ -56,7 +54,7 @@
 //!     // Send the data to be drawn
 //!     gfx.present(&window)?;
 //!     loop {
-//!         while let Some(_) = events.next_event().await {}
+//!         while let Some(_) = input.next_event().await {}
 //!     }
 //! }
 //! ```
@@ -154,7 +152,7 @@ mod error;
 
 pub mod geom;
 pub mod graphics;
-pub mod lifecycle;
+pub mod input;
 #[cfg(feature = "saving")]
 pub mod saving {
     //! A module to manage cross-platform save data via the [`gestalt`] library
@@ -162,8 +160,16 @@ pub mod saving {
 }
 pub use crate::error::QuicksilverError;
 
+mod run;
 mod timer;
+mod window;
+pub use blinds::CursorIcon;
+pub use run::{run, Settings};
 pub use timer::Timer;
+pub use window::Window;
+
+pub use graphics::Graphics;
+pub use input::Input;
 
 /// Load a file as a [`Future`]
 ///

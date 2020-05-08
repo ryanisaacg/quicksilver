@@ -2,15 +2,13 @@
 // Open a window, and draw the standard GPU triangle
 use quicksilver::{
     geom::Vector,
-    graphics::{Color, Element, Graphics, Mesh, Vertex},
-    lifecycle::{run, EventStream, Settings, Window},
-    Result,
+    graphics::{Color, Element, Mesh, Vertex},
+    run, Graphics, Input, Result, Settings, Window,
 };
 
 fn main() {
     run(
         Settings {
-            size: Vector::new(800.0, 600.0).into(),
             title: "RGB Triangle Example",
             ..Settings::default()
         },
@@ -18,7 +16,7 @@ fn main() {
     );
 }
 
-async fn app(window: Window, mut gfx: Graphics, mut events: EventStream) -> Result<()> {
+async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> {
     // Clear the screen to a blank, black color
     gfx.clear(Color::BLACK);
     // Paint a triangle with red, green, and blue vertices, blending the colors for the pixels in-between
@@ -54,6 +52,6 @@ async fn app(window: Window, mut gfx: Graphics, mut events: EventStream) -> Resu
     // Send the data to be drawn
     gfx.present(&window)?;
     loop {
-        while let Some(_) = events.next_event().await {}
+        while let Some(_) = input.next_event().await {}
     }
 }
