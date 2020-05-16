@@ -232,10 +232,7 @@ impl From<mint::Vector2<f32>> for Vector {
 
 impl From<Vector> for mint::Vector2<f32> {
     fn from(vec: Vector) -> mint::Vector2<f32> {
-        mint::Vector2 {
-            x: vec.x,
-            y: vec.y,
-        }
+        mint::Vector2 { x: vec.x, y: vec.y }
     }
 }
 
