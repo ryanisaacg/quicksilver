@@ -254,9 +254,9 @@ impl From<[[f32; 3]; 3]> for Transform {
     }
 }
 
-impl Into<[[f32; 3]; 3]> for Transform {
-    fn into(self) -> [[f32; 3]; 3] {
-        self.0
+impl From<Transform> for [[f32; 3]; 3] {
+    fn from(trans: Transform) -> [[f32; 3]; 3] {
+        trans.0
     }
 }
 
@@ -267,9 +267,9 @@ impl From<mint::RowMatrix3<f32>> for Transform {
     }
 }
 
-impl Into<mint::RowMatrix3<f32>> for Transform {
-    fn into(self) -> mint::RowMatrix3<f32> {
-        let data: [f32; 9] = bytemuck::cast(self.0);
+impl From<Transform> for mint::RowMatrix3<f32> {
+    fn from(trans: Transform) -> mint::RowMatrix3<f32> {
+        let data: [f32; 9] = bytemuck::cast(trans.0);
         data.into()
     }
 }

@@ -230,12 +230,9 @@ impl From<mint::Vector2<f32>> for Vector {
     }
 }
 
-impl Into<mint::Vector2<f32>> for Vector {
-    fn into(self) -> mint::Vector2<f32> {
-        mint::Vector2 {
-            x: self.x,
-            y: self.y,
-        }
+impl From<Vector> for mint::Vector2<f32> {
+    fn from(vec: Vector) -> mint::Vector2<f32> {
+        mint::Vector2 { x: vec.x, y: vec.y }
     }
 }
 
