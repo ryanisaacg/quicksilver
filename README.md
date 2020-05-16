@@ -9,16 +9,16 @@ A simple 2D game framework written in pure Rust, for both the Web and Desktop
 
 ## Alpha Notice
 
-This version of Quicksilver is currently in a very early alpha! There are still planned changes
-to the API, some of them breaking. Additionally, major features (like audio support or text, for
-example) are entirely missing. Use at your own risk! Feedback on alpha-related bugs or the API
-changes from the 0.3.x API to the new API would be appreciated.
+This version of Quicksilver is currently working its way through alpha! There is still work to do
+on the API and on bugfixes, as well as waiting on an upstream library for audio support.
+Please feel free to use this version and **provide feedback!** If you run into bugs or want to
+give feedback on API decisions, please open an issue.
 
 ## A quick example
 
 Create a rust project and add this line to your `Cargo.toml` file under `[dependencies]`:
 ```text
-quicksilver = "=0.4.0-alpha0.2"
+quicksilver = "0.4.0-alpha0.3"
 ```
 Then replace `src/main.rs` with the following (the contents of quicksilver's
 `examples/01_square.rs`):
@@ -29,14 +29,13 @@ Then replace `src/main.rs` with the following (the contents of quicksilver's
 use quicksilver::{
     geom::{Rectangle, Vector},
     graphics::{Color, Graphics},
-    lifecycle::{run, EventStream, Settings, Window},
-    Result,
+    input::{Input, Window},
+    Result, Settings, run,
 };
 
 fn main() {
     run(
         Settings {
-            size: Vector::new(800.0, 600.0).into(),
             title: "Square Example",
             ..Settings::default()
         },
@@ -44,7 +43,7 @@ fn main() {
     );
 }
 
-async fn app(window: Window, mut gfx: Graphics, mut events: EventStream) -> Result<()> {
+async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> {
     // Clear the screen to a blank, white color
     gfx.clear(Color::WHITE);
     // Paint a blue square with a red outline in the center of our screen
@@ -55,7 +54,7 @@ async fn app(window: Window, mut gfx: Graphics, mut events: EventStream) -> Resu
     // Send the data to be drawn
     gfx.present(&window)?;
     loop {
-        while let Some(_) = events.next_event().await {}
+        while let Some(_) = input.next_event().await {}
     }
 }
 ```
@@ -65,11 +64,8 @@ async fn app(window: Window, mut gfx: Graphics, mut events: EventStream) -> Resu
 A good way to get started with Quicksilver is to
 [read and run the examples](https://github.com/ryanisaacg/quicksilver/tree/master/examples)
 which also serve as tutorials. If you have any questions, feel free to open an issue or ask for
-help in the [#gamdev channel in the Rust Community Discord](https://discord.gg/aVESxV8) from other
+help in the [Rust Community Discord](https://discord.gg/aVESxV8) from other
 Quicksilver users and developers.
-
-Run this with `cargo run` or, if you have the wasm32 toolchain installed, you can build for the
-web (instructions below).
 
 ## Made with Quicksilver
 
@@ -127,8 +123,8 @@ favorite browser to the port it provides.
 #### wasm-bindgen support
 
 Quicksilver has recently gained experimental support for `wasm-bindgen`, under the `web-sys`
-feature. The workflow is not currently documented here, but it should be the same as any other
-library.
+feature. The workflow is not currently documented here, but it should be the same as using any other
+library with `wasm-bindgen`.
 
 ## Optional Features
 
@@ -141,6 +137,7 @@ The optional features available are:
 [web_logger](https://github.com/yewstack/web_logger))
 - gamepad event generation (via [gilrs](https://gitlab.com/gilrs-project/gilrs))
 - saving (via [gestalt](https://github.com/ryanisaacg/gestalt))
+- font rendering (via [elefont](https://github.com/ryanisaacg/elefont)) and TTF parsing (via [rusttype](https://gitlab.redox-os.org/redox-os/rusttype))
 
 Each are enabled by default, but you can
 [specify which features](https://doc.rust-lang.org/cargo/reference/specifying-dependencies.html#choosing-features)

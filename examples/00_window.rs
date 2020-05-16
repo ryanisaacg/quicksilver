@@ -1,12 +1,7 @@
 // Example 0: The Window
 // The simplest example: Do absolutely nothing other than just opening a window
 
-use mint::Vector2;
-use quicksilver::{
-    graphics::Graphics,
-    lifecycle::{run, EventStream, Settings, Window},
-    Result,
-};
+use quicksilver::{run, Graphics, Input, Result, Settings, Window};
 
 // main() serves as our kicking-off point, but it doesn't have our application logic
 // Actual logic goes in our app function, which is async
@@ -14,7 +9,6 @@ use quicksilver::{
 fn main() {
     run(
         Settings {
-            size: Vector2 { x: 800.0, y: 600.0 },
             title: "Window Example",
             ..Settings::default()
         },
@@ -23,9 +17,9 @@ fn main() {
 }
 
 // Our actual logic! Not much to see for this example
-async fn app(_window: Window, _gfx: Graphics, mut events: EventStream) -> Result<()> {
+async fn app(_window: Window, _gfx: Graphics, mut input: Input) -> Result<()> {
     loop {
-        while let Some(_) = events.next_event().await {
+        while let Some(_) = input.next_event().await {
             // Normally we'd do some processing here
         }
         // And then we'd do updates and drawing here

@@ -2,15 +2,13 @@
 // Draw an image to the screen
 use quicksilver::{
     geom::{Rectangle, Vector},
-    graphics::{Color, Graphics, Image},
-    lifecycle::{run, EventStream, Settings, Window},
-    Result,
+    graphics::{Color, Image},
+    run, Graphics, Input, Result, Settings, Window,
 };
 
 fn main() {
     run(
         Settings {
-            size: Vector::new(800.0, 600.0).into(),
             title: "Image Example",
             ..Settings::default()
         },
@@ -19,7 +17,7 @@ fn main() {
 }
 
 // This time we might return an error, so we use a Result
-async fn app(window: Window, mut gfx: Graphics, mut events: EventStream) -> Result<()> {
+async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> {
     // Load the image and wait for it to finish
     // We also use '?' to handle errors like file-not-found
     let image = Image::load(&gfx, "image.png").await?;
@@ -30,6 +28,6 @@ async fn app(window: Window, mut gfx: Graphics, mut events: EventStream) -> Resu
     gfx.present(&window)?;
 
     loop {
-        while let Some(_) = events.next_event().await {}
+        while let Some(_) = input.next_event().await {}
     }
 }
