@@ -32,6 +32,8 @@ pub use self::vertex::{Element, Vertex};
 
 use crate::geom::*;
 use crate::Window;
+#[cfg(target_arch = "wasm32")]
+use golem::blend::*;
 use golem::*;
 use std::iter;
 use std::mem::size_of;
@@ -84,6 +86,39 @@ pub struct Graphics {
 }
 
 const VERTEX_SIZE: usize = 8;
+static VERTEX_SHADER: &str = r#" 
+    void main() {
+        vec3 transformed = projection * vec3(vert_position, 1.0);
+        gl_Position = vec4(transformed.xy, 0, 1);
+        frag_uv = vert_uv;
+        frag_color = vert_color;
+    }
+"#;
+
+#[cfg(not(target_arch = "wasm32"))]
+static FRAGMENT_SHADER: &str = r#" 
+    void main() {
+        vec4 tex = vec4(1);
+        if(frag_uv.x >= 0.0 && frag_uv.y >= 0.0) {
+            tex = texture(image, frag_uv);
+        }
+        gl_FragColor = tex * frag_color;
+    }
+"#;
+
+#[cfg(target_arch = "wasm32")]
+static FRAGMENT_SHADER: &str = r#" 
+    void main() {
+        vec4 tex = vec4(1);
+        if(frag_uv.x >= 0.0 && frag_uv.y >= 0.0) {
+            tex = texture(image, frag_uv);
+        }
+
+        vec4 color = tex * frag_color;
+        color.rgb *= color.a;
+        gl_FragColor = color;
+    }
+"#;
 
 impl Graphics {
     pub(crate) fn new(ctx: Context) -> Result<Graphics, QuicksilverError> {
@@ -104,25 +139,33 @@ impl Graphics {
                     Uniform::new("image", UniformType::Sampler2D),
                     Uniform::new("projection", UniformType::Matrix(D3)),
                 ],
-                vertex_shader: r#" void main() {
-                vec3 transformed = projection * vec3(vert_position, 1.0);
-                gl_Position = vec4(transformed.xy, 0, 1);
-                frag_uv = vert_uv;
-                frag_color = vert_color;
-            }"#,
-                fragment_shader: r#" void main() {
-                vec4 tex = vec4(1);
-                if(frag_uv.x >= 0.0 && frag_uv.y >= 0.0) {
-                    tex = texture(image, frag_uv);
-                }
-                gl_FragColor = tex * frag_color;
-            }"#,
+                vertex_shader: VERTEX_SHADER,
+                fragment_shader: FRAGMENT_SHADER,
             },
         )?;
         let vb = VertexBuffer::new(&ctx)?;
         let eb = ElementBuffer::new(&ctx)?;
         shader.bind();
+
+        #[cfg(not(target_arch = "wasm32"))]
         ctx.set_blend_mode(Some(Default::default()));
+
+        // WebGL expects colors to have their RGB values pre-multiplied
+        // by their alpha for blending to work correctly. As such, the
+        // default blend function's source should use BlendFactor::One.
+        #[cfg(target_arch = "wasm32")]
+        ctx.set_blend_mode(Some(BlendMode {
+            equation: BlendEquation::Same(BlendOperation::Add),
+            function: BlendFunction::Same {
+                source: BlendFactor::One,
+                destination: BlendFactor::Color {
+                    input: BlendInput::Source,
+                    channel: BlendChannel::Alpha,
+                    is_inverse: true,
+                },
+            },
+            global_color: [1.0, 1.0, 1.0, 1.0],
+        }));
 
         Ok(Graphics {
             ctx,
