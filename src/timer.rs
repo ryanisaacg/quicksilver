@@ -49,6 +49,6 @@ impl Timer {
 
     /// Look how much time is still left before its time for next tick.
     pub fn remaining(&self) -> Option<Duration> {
-        self.init.elapsed().checked_sub(self.period)
+        self.period.checked_sub(self.init.elapsed())
     }
 }
