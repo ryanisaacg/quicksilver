@@ -47,6 +47,11 @@ impl Timer {
         self.init = Instant::now();
     }
 
+    /// Gets the time in between ticks
+    pub fn period(&self) -> Duration {
+        self.period
+    }
+
     /// Look how much time is still left before its time for next tick.
     pub fn remaining(&self) -> Option<Duration> {
         self.period.checked_sub(self.init.elapsed())
