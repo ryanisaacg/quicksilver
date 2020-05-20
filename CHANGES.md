@@ -1,5 +1,9 @@
 # Changelog
 
+## WIP
+- Fix `Timer::remaining` returning the time until next tick, instead of returning how late the tick is.
+- Add methods to `Timer`: `late_by`, `period`, and `elapsed`
+
 ## v0.4.0-alpha0.4
 - Fix compile issues with font-related features
 - [BREAKING] Replace 'lifecycle' module with 'input' module:
@@ -7,9 +11,6 @@
     - Integrate the input state cache directly into `Input`
     - [BREAKING] The `blinds::Window` struct and the `Event` enums are now wrapped with methods that use `quicksilver::geom::Vector` instead of `mint::Vector2`
 - Implement `From` instead of `Into` for some types
-- [BREAKING] Fixed `Timer::remaining` returning the time until next tick, instead of returning how late the tick is.
-- Implement `Timer::period` to get the period of a timer.
-- Implement `Timer::late_by` which returns how late you are with calling tick
 
 ## v0.4.0-alpha0.3
 - Update `golem` to `v0.1.1` to fix non-power-of-2 textures
