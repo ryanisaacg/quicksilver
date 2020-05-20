@@ -1,6 +1,6 @@
 # Changelog
 
-## WIP
+## v0.4.0-alpha0.4
 - Fix compile issues with font-related features
 - [BREAKING] Replace 'lifecycle' module with 'input' module:
     - [BREAKING] Rename `EventStream` to `Input`
