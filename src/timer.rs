@@ -56,4 +56,9 @@ impl Timer {
     pub fn remaining(&self) -> Option<Duration> {
         self.period.checked_sub(self.init.elapsed())
     }
+
+    /// Look how late you are with calling Timer::tick() if you would call it right now
+    pub fn late_by(&self) -> Option<Duration> {
+        self.init.elapsed().checked_sub(self.period)
+    }
 }
