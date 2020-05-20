@@ -82,6 +82,7 @@ Quicksilver users and developers.
     - [Lenscas](https://github.com/lenscas): [Arena keeper](https://github.com/lenscas/arena_keeper_quick)
 - Libraries
     - [Lenscas](https://github.com/lenscas): [Mergui](https://crates.io/crates/mergui) - A simple GUI system
+    - [Lenscas](https://github.com/lenscas): [Silver_Animation](https://crates.io/crates/silver_animation) - An animation system
     - [johnpmayer](https://github.com/johnpmayer): [quicksilver-utils-async](https://crates.io/crates/quicksilver-utils-async) - Tasks, timers, and net code
     - [johnpmayer](https://github.com/johnpmayer): [quicksilver-utils-ecs](https://crates.io/crates/quicksilver-utils-ecs) - Entity Component System integrations
 
