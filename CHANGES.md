@@ -9,6 +9,7 @@
 - Implement `From` instead of `Into` for some types
 - [BREAKING] Fixed `Timer::remaining` returning the time until next tick, instead of returning how late the tick is.
 - Implement `Timer::period` to get the period of a timer.
+- Implement `Timer::late_by` which returns how late you are with calling tick
 
 ## v0.4.0-alpha0.3
 - Update `golem` to `v0.1.1` to fix non-power-of-2 textures
