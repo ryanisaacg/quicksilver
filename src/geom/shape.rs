@@ -7,6 +7,10 @@ pub trait Shape {
     fn contains(&self, point: impl Into<Vector>) -> bool;
     /// If any area bounded by the shape falls on the line
     #[must_use]
+    #[deprecated(
+        since = "v0.4.0-alpha0.5",
+        note = "Use another collision library like `vek` instead; please comment on issue #552 for use-cases other libraries don't solve"
+    )]
     fn intersects(&self, line: &Line) -> bool {
         self.overlaps(line)
     }
@@ -22,6 +26,10 @@ pub trait Shape {
     }
     /// If any area is bounded by both either shape
     #[must_use]
+    #[deprecated(
+        since = "v0.4.0-alpha0.5",
+        note = "Use another collision library like `vek` instead; please comment on issue #552 for use-cases other libraries don't solve"
+    )]
     fn overlaps(&self, other: &impl Shape) -> bool;
 
     /// The point all other points are equidistant to in the shape
@@ -34,6 +42,10 @@ pub trait Shape {
     ///
     /// Note: if you want to get the collision of rotated shapes, you probably
     /// want to use [ncollide](https://crates.io/crates/ncollide)
+    #[deprecated(
+        since = "v0.4.0-alpha0.5",
+        note = "Use another collision library like `vek` instead; please comment on issue #552 for use-cases other libraries don't solve"
+    )]
     #[must_use]
     fn transformed_bounding_box(&self, transform: Transform) -> Rectangle {
         let bb = self.bounding_box();
@@ -152,6 +164,10 @@ impl Shape for Rectangle {
     }
 }
 
+#[deprecated(
+    since = "v0.4.0-alpha0.5",
+    note = "Use another collision library like `vek` instead; please comment on issue #552 for use-cases other libraries don't solve"
+)]
 impl Shape for Triangle {
     fn contains(&self, v: impl Into<Vector>) -> bool {
         let v = v.into();
@@ -207,6 +223,10 @@ impl Shape for Triangle {
     }
 }
 
+#[deprecated(
+    since = "v0.4.0-alpha0.5",
+    note = "Use another collision library like `vek` instead; please comment on issue #552 for use-cases other libraries don't solve"
+)]
 impl Shape for Line {
     fn contains(&self, v: impl Into<Vector>) -> bool {
         let v = v.into();

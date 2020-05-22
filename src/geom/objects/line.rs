@@ -1,6 +1,10 @@
 use crate::geom::{Scalar, Vector};
 use std::cmp::{Eq, PartialEq};
 
+#[deprecated(
+    since = "v0.4.0-alpha0.5",
+    note = "Use another collision library like `vek` instead; please comment on issue #552 for use-cases other libraries don't solve"
+)]
 #[derive(Clone, Copy, Default, Debug)]
 ///A line with a starting and end point
 pub struct Line {
