@@ -13,9 +13,10 @@ impl Window {
     /// Get the size of the window in logical units
     ///
     /// On a high-dpi display, this doesn't correspond to physical pixels and must be multiplied by
-    /// [`scale`] when passing sizes to functions like `glViewport`.
+    /// [`scale_factor`] when passing sizes to functions like [`set_viewport`]
     ///
-    /// [`scale`]: Window::scale_factor
+    /// [`scale_factor`]: Window::scale_factor
+    /// [`set_viewport`]: crate::Graphics::set_viewport
     pub fn size(&self) -> Vector {
         self.0.size().into()
     }
@@ -43,11 +44,11 @@ impl Window {
     ///
     /// Mostly, this isn't important to you. Some computer screens have more "physical" pixels than
     /// "logical" pixels, allowing them to draw sharper-looking images. Quicksilver abstracts this
-    /// away. However, if you are manually [`setting the viewport`], you need to take this into
+    /// away. However, if you are manually [setting the viewport], you need to take this into
     /// account.
     ///
     ///
-    /// [`setting the viewport`]: crate::Graphics::set_viewport
+    /// [setting the viewport]: crate::Graphics::set_viewport
     pub fn scale_factor(&self) -> f32 {
         self.0.scale_factor()
     }
