@@ -183,7 +183,15 @@ pub use input::Input;
 /// ```
 ///
 /// [`Future`]: std::future::Future
+/// [`run`]: crate::ran
 pub use platter::load_file;
 
 /// A Result that returns either success or a [`QuicksilverError`]
 pub type Result<T> = std::result::Result<T, QuicksilverError>;
+
+// Evil hack to preserve docs from Blinds
+// The events from Blinds want to link to crate::event::*,
+// so this creates those links
+mod event {
+    pub use crate::input::*;
+}
