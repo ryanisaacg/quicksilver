@@ -18,7 +18,7 @@ impl Triangle {
         note = "Use another collision library like `vek` instead; please comment on issue #552 for use-cases other libraries don't solve"
     )]
     ///Create a triangle from `Vector`s of all three points
-    pub fn new(a: impl Into<Vector>, b: impl Into<Vector>, c: impl Into<Vector>) -> Triangle {
+    pub fn new(a: Vector, b: Vector, c: Vector) -> Triangle {
         Triangle {
             a: a.into(),
             b: b.into(),

@@ -19,7 +19,7 @@ fn main() {
 
 async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> {
     // Keep track of the position of the square
-    let mut square_position = Vector::new(300, 300);
+    let mut square_position = Vector::new(300.0, 300.0);
     loop {
         while let Some(_) = input.next_event().await {}
         // Check the state of the keys, and move the square accordingly

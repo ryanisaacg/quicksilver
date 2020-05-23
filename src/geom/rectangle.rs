@@ -12,18 +12,18 @@ pub struct Rectangle {
 
 impl Rectangle {
     ///Create a rectangle from a top-left vector and a size vector
-    pub fn new(pos: impl Into<Vector>, size: impl Into<Vector>) -> Rectangle {
+    pub fn new(pos: Vector, size: Vector) -> Rectangle {
         Rectangle {
-            pos: pos.into(),
-            size: size.into(),
+            pos: pos,
+            size: size,
         }
     }
 
     ///Create a rectangle at the origin with the given size
-    pub fn new_sized(size: impl Into<Vector>) -> Rectangle {
+    pub fn new_sized(size: Vector) -> Rectangle {
         Rectangle {
             pos: Vector::ZERO,
-            size: size.into(),
+            size: size,
         }
     }
 

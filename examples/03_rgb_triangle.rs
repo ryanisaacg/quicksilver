@@ -23,17 +23,17 @@ async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> 
     // Define the 3 vertices and move them inside a Vec
     let vertices = {
         let top = Vertex {
-            pos: Vector::new(400, 200),
+            pos: Vector::new(400.0, 200.0),
             uv: None,
             color: Color::RED,
         };
         let left = Vertex {
-            pos: Vector::new(200, 400),
+            pos: Vector::new(200.0, 400.0),
             uv: None,
             color: Color::GREEN,
         };
         let right = Vertex {
-            pos: Vector::new(600, 400),
+            pos: Vector::new(600.0, 400.0),
             uv: None,
             color: Color::BLUE,
         };

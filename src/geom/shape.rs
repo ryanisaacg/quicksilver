@@ -4,13 +4,9 @@ use crate::geom::{about_equal, Circle, Line, Rectangle, Transform, Triangle, Vec
 pub trait Shape {
     /// If the point lies on the shape's boundary or within it
     #[must_use]
-    fn contains(&self, point: impl Into<Vector>) -> bool;
+    fn contains(&self, point: Vector) -> bool;
     /// If any area bounded by the shape falls on the line
     #[must_use]
-    #[deprecated(
-        since = "v0.4.0-alpha0.5",
-        note = "Use another collision library like `vek` instead; please comment on issue #552 for use-cases other libraries don't solve"
-    )]
     fn intersects(&self, line: &Line) -> bool {
         self.overlaps(line)
     }
@@ -55,8 +51,8 @@ pub trait Shape {
             * Transform::translate(-bb.pos - bb.center());
         // Get new corner position
         let tl = transform * bb.pos;
-        let tr = transform * (bb.pos + Vector::new(bb.size.x, 0));
-        let bl = transform * (bb.pos + Vector::new(0, bb.size.y));
+        let tr = transform * (bb.pos + Vector::new(bb.size.x, 0.0));
+        let bl = transform * (bb.pos + Vector::new(0.0, bb.size.y));
         let br = transform * (bb.pos + bb.size);
         // Get min and max points
         let min = tr.min(tl).min(bl).min(br);
@@ -66,7 +62,7 @@ pub trait Shape {
     }
     /// Create a copy of the shape with an offset center
     #[must_use]
-    fn translate(&self, amount: impl Into<Vector>) -> Self
+    fn translate(&self, amount: Vector) -> Self
     where
         Self: Sized;
     /// Create a copy of the shape that is contained within the bound
@@ -84,17 +80,17 @@ pub trait Shape {
     }
     /// Create a copy of the shape with an offset center
     #[must_use]
-    fn with_center(&self, center: impl Into<Vector>) -> Self
+    fn with_center(&self, center: Vector) -> Self
     where
         Self: Sized,
     {
-        self.translate(center.into() - self.center())
+        self.translate(center - self.center())
     }
 }
 
 impl Shape for Circle {
-    fn contains(&self, v: impl Into<Vector>) -> bool {
-        (v.into() - self.center()).len2() < self.radius.powi(2)
+    fn contains(&self, v: Vector) -> bool {
+        (v - self.center()).len2() < self.radius.powi(2)
     }
     fn overlaps_circle(&self, c: &Circle) -> bool {
         (self.center() - c.center()).len2() < (self.radius + c.radius).powi(2)
@@ -109,10 +105,10 @@ impl Shape for Circle {
     fn bounding_box(&self) -> Rectangle {
         Rectangle::new(
             self.pos - Vector::ONE * self.radius,
-            Vector::ONE * 2 * self.radius,
+            Vector::ONE * 2.0 * self.radius,
         )
     }
-    fn translate(&self, v: impl Into<Vector>) -> Self {
+    fn translate(&self, v: Vector) -> Self {
         Circle {
             pos: self.pos + v.into(),
             radius: self.radius,
@@ -121,9 +117,7 @@ impl Shape for Circle {
 }
 
 impl Shape for Rectangle {
-    fn contains(&self, point: impl Into<Vector>) -> bool {
-        let p = point.into();
-
+    fn contains(&self, p: Vector) -> bool {
         p.x >= self.x()
             && p.y >= self.y()
             && p.x < self.x() + self.width()
@@ -151,12 +145,12 @@ impl Shape for Rectangle {
     }
 
     fn center(&self) -> Vector {
-        self.pos + self.size / 2
+        self.pos + self.size / 2.0
     }
     fn bounding_box(&self) -> Rectangle {
         *self
     }
-    fn translate(&self, v: impl Into<Vector>) -> Self {
+    fn translate(&self, v: Vector) -> Self {
         Rectangle {
             pos: self.pos + v.into(),
             size: self.size,
@@ -169,7 +163,7 @@ impl Shape for Rectangle {
     note = "Use another collision library like `vek` instead; please comment on issue #552 for use-cases other libraries don't solve"
 )]
 impl Shape for Triangle {
-    fn contains(&self, v: impl Into<Vector>) -> bool {
+    fn contains(&self, v: Vector) -> bool {
         let v = v.into();
         // form three triangles with this new vector
         let t_1 = Triangle::new(v, self.a, self.b);
@@ -206,14 +200,14 @@ impl Shape for Triangle {
     }
 
     fn center(&self) -> Vector {
-        (self.a + self.b + self.c) / 3
+        (self.a + self.b + self.c) / 3.0
     }
     fn bounding_box(&self) -> Rectangle {
         let min = self.a.min(self.b.min(self.c));
         let max = self.a.max(self.b.max(self.c));
         Rectangle::new(min, max - min)
     }
-    fn translate(&self, v: impl Into<Vector>) -> Self {
+    fn translate(&self, v: Vector) -> Self {
         let v = v.into();
         Triangle {
             a: self.a + v,
@@ -228,8 +222,7 @@ impl Shape for Triangle {
     note = "Use another collision library like `vek` instead; please comment on issue #552 for use-cases other libraries don't solve"
 )]
 impl Shape for Line {
-    fn contains(&self, v: impl Into<Vector>) -> bool {
-        let v = v.into();
+    fn contains(&self, v: Vector) -> bool {
         about_equal(
             v.distance(self.a) + v.distance(self.b),
             self.a.distance(self.b),
@@ -286,15 +279,14 @@ impl Shape for Line {
     }
 
     fn center(&self) -> Vector {
-        (self.a + self.b) / 2
+        (self.a + self.b) / 2.0
     }
     fn bounding_box(&self) -> Rectangle {
         let min = self.a.min(self.b);
         let max = self.a.max(self.b);
         Rectangle::new(min, max - min)
     }
-    fn translate(&self, v: impl Into<Vector>) -> Self {
-        let v = v.into();
+    fn translate(&self, v: Vector) -> Self {
         Line {
             a: self.a + v,
             b: self.b + v,
@@ -304,8 +296,8 @@ impl Shape for Line {
 }
 
 impl Shape for Vector {
-    fn contains(&self, v: impl Into<Vector>) -> bool {
-        *self == v.into()
+    fn contains(&self, v: Vector) -> bool {
+        *self == v
     }
     fn overlaps(&self, shape: &impl Shape) -> bool {
         shape.contains(*self)
@@ -317,7 +309,7 @@ impl Shape for Vector {
     fn bounding_box(&self) -> Rectangle {
         Rectangle::new(*self, Vector::ONE)
     }
-    fn translate(&self, v: impl Into<Vector>) -> Vector {
-        *self + v.into()
+    fn translate(&self, v: Vector) -> Vector {
+        *self + v
     }
 }

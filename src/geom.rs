@@ -10,7 +10,6 @@
 mod circle;
 mod objects;
 mod rectangle;
-mod scalar;
 mod shape;
 mod transform;
 mod util;
@@ -19,7 +18,6 @@ pub use self::{
     circle::Circle,
     objects::{Line, Triangle},
     rectangle::Rectangle,
-    scalar::Scalar,
     shape::Shape,
     transform::Transform,
     util::{about_equal, lerp, lerp_angle},

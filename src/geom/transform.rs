@@ -1,4 +1,4 @@
-use crate::geom::{about_equal, Rectangle, Scalar, Vector};
+use crate::geom::{about_equal, Rectangle, Vector};
 use std::{
     cmp::{Eq, PartialEq},
     default::Default,
@@ -39,22 +39,19 @@ impl Transform {
         Transform([[1f32, 0f32, 0f32], [0f32, 1f32, 0f32], [0f32, 0f32, 1f32]]);
 
     /// Create a rotation transformation
-    pub fn rotate<T: Scalar>(angle: T) -> Transform {
-        let angle = angle.float();
+    pub fn rotate(angle: f32) -> Transform {
         let c = (angle * PI / 180f32).cos();
         let s = (angle * PI / 180f32).sin();
         Transform([[c, -s, 0f32], [s, c, 0f32], [0f32, 0f32, 1f32]])
     }
 
     /// Create a translation transformation
-    pub fn translate(vec: impl Into<Vector>) -> Transform {
-        let vec = vec.into();
+    pub fn translate(vec: Vector) -> Transform {
         Transform([[1f32, 0f32, vec.x], [0f32, 1f32, vec.y], [0f32, 0f32, 1f32]])
     }
 
     /// Create a scale transformation
-    pub fn scale(vec: impl Into<Vector>) -> Transform {
-        let vec = vec.into();
+    pub fn scale(vec: Vector) -> Transform {
         Transform([[vec.x, 0f32, 0f32], [0f32, vec.y, 0f32], [0f32, 0f32, 1f32]])
     }
 
@@ -144,11 +141,10 @@ impl Mul<Vector> for Transform {
 ///
 /// Note this will NOT scale vectors multiplied by this transform, and generally you shouldn't need
 /// to use this.
-impl<T: Scalar> Mul<T> for Transform {
+impl Mul<f32> for Transform {
     type Output = Transform;
 
-    fn mul(self, other: T) -> Transform {
-        let other = other.float();
+    fn mul(self, other: f32) -> Transform {
         let mut ret = Transform::IDENTITY;
         for i in 0..3 {
             for j in 0..3 {
@@ -159,9 +155,9 @@ impl<T: Scalar> Mul<T> for Transform {
     }
 }
 
-/// Uses the `impl<T: Scalar> Mul<T> for Transform` internally.
-impl<T: Scalar> MulAssign<T> for Transform {
-    fn mul_assign(&mut self, other: T) {
+/// Uses the `impl Mul<f32> for Transform` internally.
+impl MulAssign<f32> for Transform {
+    fn mul_assign(&mut self, other: f32) {
         *self = *self * other;
     }
 }
