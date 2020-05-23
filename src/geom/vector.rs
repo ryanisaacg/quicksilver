@@ -30,18 +30,12 @@ impl Vector {
 impl Vector {
     ///Create a new vector
     pub fn new(x: f32, y: f32) -> Vector {
-        Vector {
-            x: x,
-            y: y,
-        }
+        Vector { x: x, y: y }
     }
 
     ///Create a unit vector at a given angle
     pub fn from_angle(angle: f32) -> Vector {
-        Vector::new(
-            angle.to_radians().cos(),
-            angle.to_radians().sin(),
-        )
+        Vector::new(angle.to_radians().cos(), angle.to_radians().sin())
     }
 
     ///Get the squared length of the vector (faster than getting the length)
