@@ -1,3 +1,5 @@
+#![allow(deprecated)]
+
 use crate::geom::{about_equal, Circle, Line, Rectangle, Transform, Triangle, Vector};
 
 /// The collision and positional attributes of shapes
