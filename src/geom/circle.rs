@@ -15,7 +15,7 @@ impl Circle {
     pub fn new(center: Vector, radius: f32) -> Circle {
         Circle {
             pos: center,
-            radius: radius,
+            radius,
         }
     }
 }

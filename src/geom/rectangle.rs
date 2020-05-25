@@ -13,17 +13,14 @@ pub struct Rectangle {
 impl Rectangle {
     ///Create a rectangle from a top-left vector and a size vector
     pub fn new(pos: Vector, size: Vector) -> Rectangle {
-        Rectangle {
-            pos: pos,
-            size: size,
-        }
+        Rectangle { pos, size }
     }
 
     ///Create a rectangle at the origin with the given size
     pub fn new_sized(size: Vector) -> Rectangle {
         Rectangle {
             pos: Vector::ZERO,
-            size: size,
+            size,
         }
     }
 

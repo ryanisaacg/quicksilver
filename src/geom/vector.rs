@@ -30,7 +30,7 @@ impl Vector {
 impl Vector {
     ///Create a new vector
     pub fn new(x: f32, y: f32) -> Vector {
-        Vector { x: x, y: y }
+        Vector { x, y }
     }
 
     ///Create a unit vector at a given angle
