@@ -25,7 +25,7 @@ pub trait Shape {
     /// If any area is bounded by both either shape
     #[must_use]
     #[deprecated(
-        since = "v0.4.0-alpha0.5",
+        since = "0.4.0-alpha0.5",
         note = "Use another collision library like `vek` instead; please comment on issue #552 for use-cases other libraries don't solve"
     )]
     fn overlaps(&self, other: &impl Shape) -> bool;
@@ -41,7 +41,7 @@ pub trait Shape {
     /// Note: if you want to get the collision of rotated shapes, you probably
     /// want to use [ncollide](https://crates.io/crates/ncollide)
     #[deprecated(
-        since = "v0.4.0-alpha0.5",
+        since = "0.4.0-alpha0.5",
         note = "Use another collision library like `vek` instead; please comment on issue #552 for use-cases other libraries don't solve"
     )]
     #[must_use]
@@ -112,7 +112,7 @@ impl Shape for Circle {
     }
     fn translate(&self, v: Vector) -> Self {
         Circle {
-            pos: self.pos + v.into(),
+            pos: self.pos + v,
             radius: self.radius,
         }
     }
@@ -154,19 +154,18 @@ impl Shape for Rectangle {
     }
     fn translate(&self, v: Vector) -> Self {
         Rectangle {
-            pos: self.pos + v.into(),
+            pos: self.pos + v,
             size: self.size,
         }
     }
 }
 
 #[deprecated(
-    since = "v0.4.0-alpha0.5",
+    since = "0.4.0-alpha0.5",
     note = "Use another collision library like `vek` instead; please comment on issue #552 for use-cases other libraries don't solve"
 )]
 impl Shape for Triangle {
     fn contains(&self, v: Vector) -> bool {
-        let v = v.into();
         // form three triangles with this new vector
         let t_1 = Triangle::new(v, self.a, self.b);
         let t_2 = Triangle::new(v, self.b, self.c);
@@ -210,7 +209,6 @@ impl Shape for Triangle {
         Rectangle::new(min, max - min)
     }
     fn translate(&self, v: Vector) -> Self {
-        let v = v.into();
         Triangle {
             a: self.a + v,
             b: self.b + v,
@@ -220,7 +218,7 @@ impl Shape for Triangle {
 }
 
 #[deprecated(
-    since = "v0.4.0-alpha0.5",
+    since = "0.4.0-alpha0.5",
     note = "Use another collision library like `vek` instead; please comment on issue #552 for use-cases other libraries don't solve"
 )]
 impl Shape for Line {

@@ -14,14 +14,14 @@ pub struct Line {
 
 impl Line {
     #[deprecated(
-        since = "v0.4.0-alpha0.5",
+        since = "0.4.0-alpha0.5",
         note = "Use another collision library like `vek` instead; please comment on issue #552 for use-cases other libraries don't solve"
     )]
     ///Create a new line with a start- and an endpoint
     pub fn new(start: Vector, end: Vector) -> Line {
         Line {
-            a: start.into(),
-            b: end.into(),
+            a: start,
+            b: end,
             t: 1.0,
         }
     }
