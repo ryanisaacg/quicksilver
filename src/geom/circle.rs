@@ -1,4 +1,4 @@
-use crate::geom::{about_equal, Scalar, Vector};
+use crate::geom::{about_equal, Vector};
 use std::cmp::{Eq, PartialEq};
 
 #[derive(Clone, Copy, Default, Debug)]
@@ -12,10 +12,10 @@ pub struct Circle {
 
 impl Circle {
     /// Create a circle with the center as a vector
-    pub fn new(center: impl Into<Vector>, radius: impl Scalar) -> Circle {
+    pub fn new(center: Vector, radius: f32) -> Circle {
         Circle {
-            pos: center.into(),
-            radius: radius.float(),
+            pos: center,
+            radius,
         }
     }
 }

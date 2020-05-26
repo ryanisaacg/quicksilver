@@ -1,4 +1,4 @@
-use crate::geom::{about_equal, Scalar};
+use crate::geom::about_equal;
 use std::{
     cmp::{Eq, PartialEq},
     fmt,
@@ -29,19 +29,13 @@ impl Vector {
 #[allow(clippy::len_without_is_empty)]
 impl Vector {
     ///Create a new vector
-    pub fn new(x: impl Scalar, y: impl Scalar) -> Vector {
-        Vector {
-            x: x.float(),
-            y: y.float(),
-        }
+    pub fn new(x: f32, y: f32) -> Vector {
+        Vector { x, y }
     }
 
     ///Create a unit vector at a given angle
-    pub fn from_angle<T: Scalar>(angle: T) -> Vector {
-        Vector::new(
-            angle.float().to_radians().cos(),
-            angle.float().to_radians().sin(),
-        )
+    pub fn from_angle(angle: f32) -> Vector {
+        Vector::new(angle.to_radians().cos(), angle.to_radians().sin())
     }
 
     ///Get the squared length of the vector (faster than getting the length)
@@ -56,8 +50,7 @@ impl Vector {
 
     ///Clamp a vector somewhere between a minimum and a maximum
     #[must_use]
-    pub fn clamp(self, min_bound: impl Into<Vector>, max_bound: impl Into<Vector>) -> Vector {
-        let (min_bound, max_bound) = (min_bound.into(), max_bound.into());
+    pub fn clamp(self, min_bound: Vector, max_bound: Vector) -> Vector {
         Vector::new(
             max_bound.x.min(min_bound.x.max(self.x)),
             max_bound.y.min(min_bound.y.max(self.y)),
@@ -65,14 +58,12 @@ impl Vector {
     }
 
     ///Get the cross product of a vector
-    pub fn cross(self, other: impl Into<Vector>) -> f32 {
-        let other = other.into();
+    pub fn cross(self, other: Vector) -> f32 {
         self.x * other.y - self.y * other.x
     }
 
     ///Get the dot product of a vector
-    pub fn dot(self, other: impl Into<Vector>) -> f32 {
-        let other = other.into();
+    pub fn dot(self, other: Vector) -> f32 {
         self.x * other.x + self.y * other.y
     }
 
@@ -169,34 +160,30 @@ impl SubAssign for Vector {
     }
 }
 
-impl<T: Scalar> Div<T> for Vector {
+impl Div<f32> for Vector {
     type Output = Vector;
 
-    fn div(self, rhs: T) -> Vector {
-        let rhs = rhs.float();
+    fn div(self, rhs: f32) -> Vector {
         Vector::new(self.x / rhs, self.y / rhs)
     }
 }
 
-impl<T: Scalar> DivAssign<T> for Vector {
-    fn div_assign(&mut self, rhs: T) {
-        let rhs = rhs.float();
+impl DivAssign<f32> for Vector {
+    fn div_assign(&mut self, rhs: f32) {
         *self = *self / rhs;
     }
 }
 
-impl<T: Scalar> Mul<T> for Vector {
+impl Mul<f32> for Vector {
     type Output = Vector;
 
-    fn mul(self, rhs: T) -> Vector {
-        let rhs = rhs.float();
+    fn mul(self, rhs: f32) -> Vector {
         Vector::new(self.x * rhs, self.y * rhs)
     }
 }
 
-impl<T: Scalar> MulAssign<T> for Vector {
-    fn mul_assign(&mut self, rhs: T) {
-        let rhs = rhs.float();
+impl MulAssign<f32> for Vector {
+    fn mul_assign(&mut self, rhs: f32) {
         *self = *self * rhs;
     }
 }
@@ -236,8 +223,8 @@ impl From<Vector> for mint::Vector2<f32> {
     }
 }
 
-impl<T: Scalar, U: Scalar> From<(T, U)> for Vector {
-    fn from(other: (T, U)) -> Vector {
+impl From<(f32, f32)> for Vector {
+    fn from(other: (f32, f32)) -> Vector {
         Vector::new(other.0, other.1)
     }
 }

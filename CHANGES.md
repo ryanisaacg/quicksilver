@@ -3,6 +3,9 @@
 ## WIP
 - Fix `Timer::remaining` returning the time until next tick, instead of returning how late the tick is.
 - Add methods to `Timer`: `late_by`, `period`, and `elapsed`
+- Remove `Scalar` and replace it with `f32`
+- Remove all uses of `impl Into<Vector>`
+- Deprecate `Line`, `Triangle`, and a handful of `Shape` methods
 
 ## v0.4.0-alpha0.4
 - Fix compile issues with font-related features
