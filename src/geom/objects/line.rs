@@ -1,4 +1,4 @@
-use crate::geom::{Scalar, Vector};
+use crate::geom::Vector;
 use std::cmp::{Eq, PartialEq};
 
 #[derive(Clone, Copy, Default, Debug)]
@@ -13,20 +13,24 @@ pub struct Line {
 }
 
 impl Line {
+    #[deprecated(
+        since = "0.4.0-alpha0.5",
+        note = "Use another collision library like `vek` instead; please comment on issue #552 for use-cases other libraries don't solve"
+    )]
     ///Create a new line with a start- and an endpoint
-    pub fn new(start: impl Into<Vector>, end: impl Into<Vector>) -> Line {
+    pub fn new(start: Vector, end: Vector) -> Line {
         Line {
-            a: start.into(),
-            b: end.into(),
+            a: start,
+            b: end,
             t: 1.0,
         }
     }
 
     ///Create a line with a changed thickness
     #[must_use]
-    pub fn with_thickness(self, thickness: impl Scalar) -> Line {
+    pub fn with_thickness(self, thickness: f32) -> Line {
         Line {
-            t: thickness.float(),
+            t: thickness,
             ..self
         }
     }

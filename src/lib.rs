@@ -9,16 +9,16 @@
 //!
 //! ## Alpha Notice
 //!
-//! This version of Quicksilver is currently in a very early alpha! There are still planned changes
-//! to the API, some of them breaking. Additionally, major features (like audio support or text, for
-//! example) are entirely missing. Use at your own risk! Feedback on alpha-related bugs or the API
-//! changes from the 0.3.x API to the new API would be appreciated.
+//! This version of Quicksilver is currently working its way through alpha! There is still work to do
+//! on the API and on bugfixes, as well as waiting on an upstream library for audio support.
+//! Please feel free to use this version and **provide feedback!** If you run into bugs or want to
+//! give feedback on API decisions, please open an issue.
 //!
 //! ## A quick example
 //!
 //! Create a rust project and add this line to your `Cargo.toml` file under `[dependencies]`:
 //! ```text
-//!     quicksilver = "=0.4.0-alpha0"
+//!     quicksilver = "0.4.0-alpha3"
 //! ```
 //! Then replace `src/main.rs` with the following (the contents of quicksilver's
 //! `examples/01_square.rs`):
@@ -26,18 +26,16 @@
 //! ```no_run
 //! // Example 1: The Square
 //! // Open a window, and draw a colored square in it
-//! use mint::Vector2;
 //! use quicksilver::{
 //!     geom::{Rectangle, Vector},
 //!     graphics::{Color, Graphics},
-//!     lifecycle::{run, EventStream, Settings, Window},
-//!     Result,
+//!     input::{Input, Window},
+//!     Result, Settings, run,
 //! };
 //!
 //! fn main() {
 //!     run(
 //!         Settings {
-//!             size: Vector2 { x: 800.0, y: 600.0 },
 //!             title: "Square Example",
 //!             ..Settings::default()
 //!         },
@@ -45,7 +43,7 @@
 //!     );
 //! }
 //!
-//! async fn app(window: Window, mut gfx: Graphics, mut events: EventStream) -> Result<()> {
+//! async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> {
 //!     // Clear the screen to a blank, white color
 //!     gfx.clear(Color::WHITE);
 //!     // Paint a blue square with a red outline in the center of our screen
@@ -56,7 +54,7 @@
 //!     // Send the data to be drawn
 //!     gfx.present(&window)?;
 //!     loop {
-//!         while let Some(_) = events.next_event().await {}
+//!         while let Some(_) = input.next_event().await {}
 //!     }
 //! }
 //! ```
@@ -68,7 +66,7 @@
 //!
 //! A good way to get started with Quicksilver is to
 //! [read and run the examples](https://github.com/ryanisaacg/quicksilver/tree/master/examples)
-//! which also serve as tutorials. IF you have any questions, feel free to open an issue or ask for
+//! which also serve as tutorials. If you have any questions, feel free to open an issue or ask for
 //! help in the [Rust Community Discord](https://discord.gg/aVESxV8) from other Quicksilver users
 //! and developers.
 //!
@@ -108,8 +106,8 @@
 //! #### wasm-bindgen support
 //!
 //! Quicksilver has recently gained experimental support for `wasm-bindgen`, under the `web-sys`
-//! feature. The workflow is not currently documented here, but it should be the same as any other
-//! library.
+//! feature. The workflow is not currently documented here, but it should be the same as using any other
+//! library with `wasm-bindgen`.
 //!
 //! ## Optional Features
 //!
@@ -122,6 +120,7 @@
 //! [web_logger](https://github.com/yewstack/web_logger))
 //! - gamepad event generation (via [gilrs](https://gitlab.com/gilrs-project/gilrs))
 //! - saving (via [gestalt](https://github.com/ryanisaacg/golem))
+//! - font rendering (via [elefont](https://github.com/ryanisaacg/elefont)) and TTF parsing (via [rusttype](https://gitlab.redox-os.org/redox-os/rusttype))
 //!
 //! Each are enabled by default, but you can
 //! [specify which features](https://doc.rust-lang.org/cargo/reference/specifying-dependencies.html#choosing-features)
@@ -143,6 +142,8 @@
 
 // Re-export every library that appears in the public API
 pub use blinds;
+#[cfg(feature = "font")]
+pub use elefont;
 pub use golem;
 pub use log;
 pub use mint;
@@ -151,7 +152,7 @@ mod error;
 
 pub mod geom;
 pub mod graphics;
-pub mod lifecycle;
+pub mod input;
 #[cfg(feature = "saving")]
 pub mod saving {
     //! A module to manage cross-platform save data via the [`gestalt`] library
@@ -159,8 +160,16 @@ pub mod saving {
 }
 pub use crate::error::QuicksilverError;
 
+mod run;
 mod timer;
+mod window;
+pub use blinds::CursorIcon;
+pub use run::{run, Settings};
 pub use timer::Timer;
+pub use window::Window;
+
+pub use graphics::Graphics;
+pub use input::Input;
 
 /// Load a file as a [`Future`]
 ///
@@ -174,7 +183,15 @@ pub use timer::Timer;
 /// ```
 ///
 /// [`Future`]: std::future::Future
+/// [`run`]: crate::ran
 pub use platter::load_file;
 
 /// A Result that returns either success or a [`QuicksilverError`]
 pub type Result<T> = std::result::Result<T, QuicksilverError>;
+
+// Evil hack to preserve docs from Blinds
+// The events from Blinds want to link to crate::event::*,
+// so this creates those links
+mod event {
+    pub use crate::input::*;
+}

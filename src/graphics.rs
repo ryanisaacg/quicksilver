@@ -7,12 +7,14 @@
 //!
 //! For loading and drawing images, to the screen, use [`Image`].
 //!
-//! [`run`]: crate::lifecycle::run
+//! [`run`]: crate::run::run
 
 use crate::QuicksilverError;
 
 mod circle_points;
 mod color;
+#[cfg(feature = "font")]
+mod font;
 mod image;
 mod mesh;
 mod resize_handler;
@@ -20,6 +22,10 @@ mod surface;
 mod vertex;
 
 pub use self::color::Color;
+#[cfg(feature = "ttf")]
+pub use self::font::VectorFont;
+#[cfg(feature = "font")]
+pub use self::font::{FontRenderer, LayoutGlyph};
 pub use self::image::Image;
 pub use self::mesh::Mesh;
 pub use self::resize_handler::ResizeHandler;
@@ -27,6 +33,7 @@ pub use self::surface::Surface;
 pub use self::vertex::{Element, Vertex};
 
 use crate::geom::*;
+use crate::Window;
 use golem::*;
 use std::iter;
 use std::mem::size_of;
@@ -523,7 +530,7 @@ impl Graphics {
     }
 
     /// Send the draw data to the GPU and paint it to the Window
-    pub fn present(&mut self, win: &blinds::Window) -> Result<(), QuicksilverError> {
+    pub fn present(&mut self, win: &Window) -> Result<(), QuicksilverError> {
         self.flush(None)?;
         win.present();
 
@@ -541,8 +548,8 @@ impl Graphics {
     /// The units given are physical units, not logical units. As such when using [`Window::size`],
     /// be sure to multiply by [`Window::scale_factor`].
     ///
-    /// [`Window::size`]: crate::lifecycle::Window::size
-    /// [`Window::scale_factor`]: crate::lifecycle::Window::scale_factor
+    /// [`Window::size`]: crate::Window::size
+    /// [`Window::scale_factor`]: crate::Window::scale_factor
     pub fn set_viewport(&self, x: u32, y: u32, width: u32, height: u32) {
         self.ctx.set_viewport(x, y, width, height);
     }
@@ -561,7 +568,7 @@ impl Graphics {
     }
 
     /// Set the viewport to cover the window, taking into account DPI
-    pub fn fit_to_window(&self, window: &blinds::Window) {
+    pub fn fit_to_window(&self, window: &Window) {
         let size = window.size();
         let scale = window.scale_factor();
         let width = size.x * scale;

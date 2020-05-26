@@ -1,7 +1,7 @@
 [package]
 name = "quicksilver"
 description = "A simple game framework for 2D games in pure Rust"
-version = "0.4.0-alpha0.2"
+version = "0.4.0-alpha0.4"
 authors = ["Ryan Goldstein <ryanisaacg@gmail.com>"]
 categories = ["game-engines"]
 homepage = "https://ryanisaacg.github.io/quicksilver"
@@ -14,29 +14,33 @@ edition = "2018"
 
 [features]
 # complex_shapes, fonts, gamepads, sounds
-default = ["easy-log", "event-cache", "gamepad", "saving"]
+default = ["easy-log", "event-cache", "font", "gamepad", "saving", "ttf"]
 
 easy-log = ["simple_logger", "web_logger"]
 event-cache = ["blinds/event-cache"]
+font = ["elefont"]
 gamepad = ["blinds/gamepad"]
 saving = ["gestalt"]
 stdweb = ["gestalt/stdweb", "platter/stdweb", "blinds/stdweb", "golem/stdweb","instant/stdweb"]
 web-sys = ["gestalt/web-sys", "platter/web-sys", "blinds/web-sys", "golem/web-sys","instant/web-sys"]
+ttf = ["font", "elefont/rusttype", "rusttype"]
 
 [badges]
 
 maintenance = { status = "actively-developed" }
 
 [dependencies]
+blinds = { version = "0.1.4", default-features = false, features = ["gl", "image"] }
 bytemuck = "1.0"
+elefont = { version = "0.1.3", features = ["rusttype", "unicode-normalization"], optional = true }
 gestalt = { version = "0.1", optional = true }
 golem = { version = "0.1.3", features = ["std"] }
 image = { version = "0.22", default-features = false, features = ["png_codec", "jpeg"] }
+instant = "0.1.2"
 log = "0.4"
 mint = "0.5.3"
 platter = "0.1"
-blinds = { version = "0.1.3", default-features = false, features = ["gl"] }
-instant = "0.1.2"
+rusttype = { version = "0.8.2", optional = true }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 simple_logger = { version = "1.4", optional = true }

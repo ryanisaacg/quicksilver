@@ -1,17 +1,33 @@
 # Changelog
 
-## Work In Progress
+## WIP
+- Fix `Timer::remaining` returning the time until next tick, instead of returning how late the tick is.
+- Add methods to `Timer`: `late_by`, `period`, and `elapsed`
+- Remove `Scalar` and replace it with `f32`
+- Remove all uses of `impl Into<Vector>`
+- Deprecate `Line`, `Triangle`, and a handful of `Shape` methods
+
+## v0.4.0-alpha0.4
+- Fix compile issues with font-related features
+- [BREAKING] Replace 'lifecycle' module with 'input' module:
+    - [BREAKING] Rename `EventStream` to `Input`
+    - Integrate the input state cache directly into `Input`
+    - [BREAKING] The `blinds::Window` struct and the `Event` enums are now wrapped with methods that use `quicksilver::geom::Vector` instead of `mint::Vector2`
+- Implement `From` instead of `Into` for some types
+
+## v0.4.0-alpha0.3
+- Update `golem` to `v0.1.1` to fix non-power-of-2 textures
+- `impl std::iter::Sum for geom::Vector`
+- Implement `std::ops::MulAssign`, `std::ops::AddAssign`, and `std::ops::SubAssign` for `Transform`s.
 - Addition and subtraction of Tranforms supported to help with easing function calculations
 - Added an example with loading progress bar
 - Add `Timer` struct to help timing draw calls and a consistent update cycle
 - Add `exhaust` and `reset` function to timer so they can be used for more than just an update cycle
 - `lifecycle::run` can now accept any kind of Error.
 - Add `into_raw_context` on Graphics, to allow lower-level graphics programming
-
-## v0.4.0-alpha0.3
-- Update `golem` to `v0.1.1` to fix non-power-of-2 textures
-- `impl std::iter::Sum for geom::Vector`
-- Implement `std::ops::MulAssign`, `std::ops::AddAssign`, and `std::ops::SubAssign` for `Transform`s.
+- Add font support!
+  - `VectorFont` allows you to load TTF files via rusttype
+  - `FontRenderer` allows you to draw glyphs to the screen
 
 ## v0.4.0-alpha0.2
 - Fix the "easy-log" feature

@@ -22,6 +22,24 @@ pub enum QuicksilverError {
     SurfaceImageError,
     /// A surface operation was attempted with no image bound to the surface
     NoSurfaceImageBound,
+    #[cfg(feature = "font")]
+    FontError(FontError),
+}
+
+#[cfg(feature = "font")]
+#[derive(Debug)]
+pub enum FontError {
+    /// A non-renderable glyph was passed to a font rendering function
+    ///
+    /// Generally this means the glyph was not included in the font, e.g. passing a non-ASCII
+    /// character to an ASCII-only font
+    NonRenderableGlyph(elefont::Glyph),
+    /// The string passed to the font (at the given size) is too large to render
+    ///
+    /// Because glyphs are cached on the GPU, a given character or word may be too large to render.
+    /// This is unlikely to be an issue for most applications, but if a character is rendered at a
+    /// size larger than 2048x2048, this error may occur.
+    StringTooLarge,
 }
 
 impl From<ImageError> for QuicksilverError {
@@ -42,6 +60,13 @@ impl From<GolemError> for QuicksilverError {
     }
 }
 
+#[cfg(feature = "font")]
+impl From<FontError> for QuicksilverError {
+    fn from(err: FontError) -> QuicksilverError {
+        QuicksilverError::FontError(err)
+    }
+}
+
 impl Display for QuicksilverError {
     fn fmt(&self, fmt: &mut Formatter) -> FmtResult {
         match self {
@@ -55,6 +80,15 @@ impl Display for QuicksilverError {
             QuicksilverError::NoSurfaceImageBound => write!(
                 fmt,
                 "A surface operation was attempted with no image bound to the surface"
+            ),
+            #[cfg(feature = "font")]
+            QuicksilverError::FontError(FontError::NonRenderableGlyph(g)) => {
+                write!(fmt, "This glyph cannot be rendered: {:?}", g)
+            }
+            #[cfg(feature = "font")]
+            QuicksilverError::FontError(FontError::StringTooLarge) => write!(
+                fmt,
+                "A word or glyph passed to a font was too large to render."
             ),
         }
     }

@@ -5,4 +5,4 @@ about: Ask a question about Quicksilver; anything that's not a bug or a feature 
 
 ---
 
-<!-- Feel free to ask questions here or on gitter at https://gitter.im/quicksilver-rs/Lobby -->
+<!-- Feel free to ask questions here, about project direction, docs, or whatever else -->
