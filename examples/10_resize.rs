@@ -1,4 +1,4 @@
-// Example 7: Resize Handling
+// Example 10: Resize Handling
 // Show the different ways of resizing the window
 use quicksilver::{
     geom::{Rectangle, Transform, Vector},
@@ -16,7 +16,8 @@ fn main() {
     run(
         Settings {
             size: SIZE,
-            title: "RGB Triangle Example",
+            title: "Resizing example",
+            // By default, resizing is disabled: Here we need to enable it!
             resizable: true,
             ..Settings::default()
         },
@@ -25,8 +26,7 @@ fn main() {
 }
 
 async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> {
-    // Paint a triangle with red, green, and blue vertices, blending the colors for the pixels in-between
-    // Define the 3 vertices and move them inside a Vec
+    // We'll use the triangle from the rgb_triangle example
     let vertices = {
         let top = Vertex {
             pos: Vector::new(400.0, 200.0),
@@ -45,34 +45,43 @@ async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> 
         };
         vec![top, left, right]
     };
-    // A triangle is simply a pointer to indices of the vertices
     let elements = vec![Element::Triangle([0, 1, 2])];
-    // Bring the vertices and the triangle elements together to define a mesh
     let mesh = Mesh {
         vertices,
         elements,
         image: None,
     };
+    // Create a ResizeHandler that will Fit the content to the screen, leaving off area if we need
+    // to. Here, we provide an aspect ratio of 4:3. 
     let resize_handler = ResizeHandler::Fit {
         aspect_width: 4.0,
         aspect_height: 3.0,
     };
-    let projection = Transform::orthographic(Rectangle::new_sized(SIZE));
+    let screen = Rectangle::new_sized(SIZE);
+    // If we want to handle resizes, we'll be setting the 'projection.' This is a transformation
+    // applied to eveyrthing we draw. By default, the projection is an 'orthographic' view of our
+    // window size. This means it takes a rectangle equal to the size of our window and transforms
+    // those coordinates to draw correctly on the screen.
+    let projection = Transform::orthographic(screen);
     loop {
         while let Some(ev) = input.next_event().await {
             if let Event::Resized(ev) = ev {
+                // Using our resize handler from above, create a transform that will correctly fit
+                // our content to the screen size
                 let letterbox = resize_handler.projection(ev.size());
+                // Apply our projection (convert content coordinates to screen coordinates) and
+                // then the letterbox (fit the content correctly on the screen)
                 gfx.set_projection(letterbox * projection);
             }
         }
-        // Clear the screen to a blank, black color
         gfx.clear(Color::BLACK);
         // Fill the relevant part of the screen with white
-        let rect = Rectangle::new_sized(SIZE);
-        gfx.fill_rect(&rect, Color::WHITE);
-        // Pass a reference to the mesh to the graphics object to draw
+        // This helps us determine what part of the screen is the black bars, and what is the
+        // background. If we wanted white bars and a black background, we could simply clear to
+        // Color::WHITE and fill a rectangle of Color::BLACK
+        gfx.fill_rect(&screen, Color::WHITE);
+        // Draw the RGB triangle, which lets us see the squash and stress caused by resizing
         gfx.draw_mesh(&mesh);
-        // Send the data to be drawn
         gfx.present(&window)?;
     }
 }
