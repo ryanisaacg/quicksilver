@@ -4,13 +4,10 @@ use quicksilver::{
     geom::{Rectangle, Transform, Vector},
     graphics::{Color, Element, Graphics, Mesh, ResizeHandler, Vertex},
     input::Event,
-    Input, Window, Result, Settings, run,
+    run, Input, Result, Settings, Window,
 };
 
-const SIZE: Vector = Vector {
-    x: 800.0,
-    y: 600.0,
-};
+const SIZE: Vector = Vector { x: 800.0, y: 600.0 };
 
 fn main() {
     run(
@@ -52,7 +49,7 @@ async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> 
         image: None,
     };
     // Create a ResizeHandler that will Fit the content to the screen, leaving off area if we need
-    // to. Here, we provide an aspect ratio of 4:3. 
+    // to. Here, we provide an aspect ratio of 4:3.
     let resize_handler = ResizeHandler::Fit {
         aspect_width: 4.0,
         aspect_height: 3.0,
