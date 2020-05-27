@@ -17,6 +17,7 @@ mod color;
 mod font;
 mod image;
 mod mesh;
+mod resize_handler;
 mod surface;
 mod vertex;
 
@@ -27,6 +28,7 @@ pub use self::font::VectorFont;
 pub use self::font::{FontRenderer, LayoutGlyph};
 pub use self::image::Image;
 pub use self::mesh::Mesh;
+pub use self::resize_handler::ResizeHandler;
 pub use self::surface::Surface;
 pub use self::vertex::{Element, Vertex};
 
@@ -528,7 +530,14 @@ impl Graphics {
     }
 
     /// Send the draw data to the GPU and paint it to the Window
+    ///
+    /// This will also re-set the viewport to fit the window before drawing to the screen.
+    /// If you don't want to use a custom viewport (the vast majority of cases), this takes care of
+    /// setting your viewport during resizes and similar situations.
+    /// If you would like to render to a custom viewport size (again, you probably don't), set your
+    /// viewport, flush, then present.
     pub fn present(&mut self, win: &Window) -> Result<(), QuicksilverError> {
+        self.fit_to_window(win);
         self.flush(None)?;
         win.present();
 
