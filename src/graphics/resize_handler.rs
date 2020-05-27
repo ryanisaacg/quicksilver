@@ -1,4 +1,4 @@
-use crate::geom::{Rectangle, Transform, Vector};
+use crate::geom::{Transform, Vector};
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 #[non_exhaustive]
@@ -35,11 +35,37 @@ impl ResizeHandler {
     /// Create the projection to handle the given render target size
     ///
     /// When using a ResizeHandler, generally it is a good idea to listen for [resize events],
-    /// calculate the projection with this method, and set it via [`Graphics::set_projection`]
+    /// calculate the projection with this method, and set it via [`Graphics::set_projection`].
+    /// This transform should be applied after your 'normal' projection, which is probably a call
+    /// to `Transform::orthographic`. If you wanted to draw your content at 800x600, and keep it at
+    /// a 4:3 aspect ratio with optional letterboxing, it would look something like:
     ///
-    /// [resize events]: blinds::Event::Resized
+    /// ```no_run
+    /// use quicksilver::graphics::{Graphics, ResizeHandler};
+    /// use quicksilver::geom::{Rectangle, Vector, Transform};
+    /// fn handle_resizes(gfx: &mut Graphics, my_screen_size: Vector) {
+    ///     let handler = ResizeHandler::Fit {
+    ///         aspect_width: 4.0,
+    ///         aspect_height: 3.0,
+    ///     };
+    ///     let camera = Rectangle::new_sized(Vector::new(800.0, 600.0));
+    ///     let projection = Transform::orthographic(camera);
+    ///     let resize_adjustment = handler.projection(my_screen_size);
+    ///     gfx.set_projection(resize_adjustment * projection);
+    /// }
+    /// ```
+    ///
+    /// [resize events]: crate::input::ResizedEvent
     /// [`Graphics::set_projection`]: super::Graphics::set_projection
     pub fn projection(self, size: Vector) -> Transform {
+        ResizeHandler::transform_for_size(self.content_size(size), size)
+    }
+
+    /// Determine the size of the content given a window size
+    ///
+    /// This depends on which ResizeStrategy is in use; check the documentation for each enum
+    /// variant for more.
+    pub fn content_size(self, size: Vector) -> Vector {
         use ResizeHandler::*;
 
         let is_fill = match self { Fill { .. } => true, _ => false };
@@ -47,7 +73,7 @@ impl ResizeHandler {
         // First find the size we actually want to draw to, given the total size
         // For example, for stretching, we just always use the entire screen
         // For Maintain, we always use the size provided
-        let content_size = match self {
+        match self {
             Stretch => size,
             Maintain { width, height } => Vector::new(width, height),
             Fill { aspect_width, aspect_height } | Fit { aspect_width, aspect_height } => {
@@ -66,8 +92,20 @@ impl ResizeHandler {
                 // content
                 Vector::new(aspect_width, aspect_height) * int_scale(size.x / aspect_width).min(int_scale(size.y / aspect_height))
             }
-        };
+        }
+    }
 
+    /// Given a content size and a screen size, find a transformation that can be applied in
+    /// GL-space to properly position it on screen.
+    ///
+    /// You can use this with the value returned from [`content_size`], but in that case you're
+    /// better off just using [`projection`]. This is most useful if you are creating a custom
+    /// resize strategy; it saves you having to muck around with the linear algebra. Just provide
+    /// the size and this method will do the hard parts.
+    ///
+    /// [`content_size`]: ResizeHandler::content_size
+    /// [`projection`]: ResizeHandler::projection
+    pub fn transform_for_size(content_size: Vector, size: Vector) -> Transform {
         // We can easily calculate the position to offset our content_size window relative to the
         // larger window
         // However, this is is 'screen-space' coordinates. If we want to letterbox with 3 pixels of
@@ -101,56 +139,20 @@ fn int_scale(value: f32) -> f32 {
 mod tests {
     use super::*;
 
-    const BASE: Vector = Vector { x: 16.0, y: 9.0 };
-
-    fn test(resize: ResizeStrategy, new: Vector, expected: Rectangle) {
-        assert_eq!(resize.resize(BASE, new), expected);
-        assert_eq!(resize.resize(expected.size(), BASE), Rectangle::new_sized(BASE));
-    }
-
     #[test]
-    fn resize() {
-        let new = [
-            BASE / 2,
-            BASE,
-            BASE * 2,
-            BASE.x_comp() * 2 + BASE.y_comp(),
-            BASE.x_comp() + BASE.y_comp() * 2
-        ];
-        let maintain = [
-            Rectangle::new(-BASE / 4, BASE),
-            Rectangle::new_sized(BASE),
-            Rectangle::new(BASE / 2, BASE),
-            Rectangle::new(BASE.x_comp() / 2, BASE),
-            Rectangle::new(BASE.y_comp() / 2, BASE),
-        ];
-        let fill = [
-            Rectangle::new_sized(BASE / 2),
-            Rectangle::new_sized(BASE),
-            Rectangle::new_sized(BASE * 2),
-            Rectangle::new(-BASE.y_comp() / 2, BASE * 2),
-            Rectangle::new(-BASE.x_comp() / 2, BASE * 2)
-        ];
-        let fit = [
-            Rectangle::new_sized(BASE / 2),
-            Rectangle::new_sized(BASE),
-            Rectangle::new_sized(BASE * 2),
-            Rectangle::new(BASE.x_comp() / 2, BASE),
-            Rectangle::new(BASE.y_comp() / 2, BASE)
-        ];
-        let scale = [
-            Rectangle::new_sized(BASE / 2),
-            Rectangle::new_sized(BASE),
-            Rectangle::new_sized(BASE * 2),
-            Rectangle::new(BASE.x_comp() / 2, BASE),
-            Rectangle::new(BASE.y_comp() / 2, BASE),
-        ];
-        for i in 0..new.len() {
-            test(ResizeStrategy::Maintain, new[i], maintain[i]);
-            test(ResizeStrategy::Fill, new[i], fill[i]);
-            test(ResizeStrategy::Fit, new[i], fit[i]);
-            test(ResizeStrategy::Stretch, new[i], Rectangle::new_sized(new[i]));
-            test(ResizeStrategy::IntegerScale { width: 16, height: 9 }, new[i], scale[i]);
-        }
+    fn transform_for_size() {
+        use crate::geom::Rectangle;
+
+        let screen = Vector::new(1600.0, 1200.0);
+        let resize = ResizeHandler::Fit {
+            aspect_width: 4.0,
+            aspect_height: 3.0,
+        };
+        let content = Rectangle::new_sized(Vector::new(800.0, 600.0));
+        let projection = Transform::orthographic(content);
+        let projection = resize.projection(screen) * projection;
+
+        assert_eq!(projection * Vector::ZERO, Vector::new(-1.0, 1.0));
+        assert_eq!(projection * content.size(), Vector::new(1.0, -1.0));
     }
 }
