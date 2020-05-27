@@ -43,4 +43,3 @@ impl PartialEq for Line {
 }
 
 impl Eq for Line {}
-

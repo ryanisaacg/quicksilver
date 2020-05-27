@@ -40,4 +40,3 @@ impl PartialEq for Triangle {
 }
 
 impl Eq for Triangle {}
-

@@ -318,7 +318,11 @@ mod tests {
 
     #[test]
     fn sum() {
-        let input = vec![Vector::new(1.0, 2.0), Vector::new(2.0, 3.0), Vector::new(3.0, 4.0)];
+        let input = vec![
+            Vector::new(1.0, 2.0),
+            Vector::new(2.0, 3.0),
+            Vector::new(3.0, 4.0),
+        ];
         let sum = input.into_iter().sum();
         assert_eq!(Vector::new(6.0, 9.0), sum);
     }
