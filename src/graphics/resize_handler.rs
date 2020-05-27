@@ -44,6 +44,9 @@ impl ResizeHandler {
 
         let is_fill = match self { Fill { .. } => true, _ => false };
 
+        // First find the size we actually want to draw to, given the total size
+        // For example, for stretching, we just always use the entire screen
+        // For Maintain, we always use the size provided
         let content_size = match self {
             Stretch => size,
             Maintain { width, height } => Vector::new(width, height),
@@ -57,15 +60,31 @@ impl ResizeHandler {
                 }
             },
             IntegerScale { aspect_width, aspect_height } => {
+                let aspect_width = aspect_width as f32;
+                let aspect_height = aspect_height as f32;
                 // Find the integer scale that fills the most amount of screen with no cut off
                 // content
-                Vector::new(aspect_width, aspect_height) * int_scale(size.x / aspect_width as f32).min(int_scale(size.y / aspect_height as f32))
+                Vector::new(aspect_width, aspect_height) * int_scale(size.x / aspect_width).min(int_scale(size.y / aspect_height))
             }
         };
-        let offset = (size - content_size) / 2;
-        let scale = content_size.times(size.recip());
 
-        Transform::orthographic(Rectangle::new_sized(size)) * Transform::translate(offset) * Transform::scale(scale)
+        // We can easily calculate the position to offset our content_size window relative to the
+        // larger window
+        // However, this is is 'screen-space' coordinates. If we want to letterbox with 3 pixels of
+        // space on each side of the content, we can't just translate with a Vector equal to <3, 0>
+        // because the letterbox has to be applied *after* the initial projection. The letterbox
+        // has to operate in GL-coordinates, which range from (-1, -1) to (1, 1). The code below
+        // finds the offset and scale in GL coordinates necessary to provide our resize strategy
+        let r_size = size.recip();
+        let offset = (size - content_size).times(r_size).times(Vector::new(1.0, -1.0));
+        let scale = content_size.times(r_size);
+
+        // Once we have our offset and scale, we translate the scene so it stretches from (0, 0) to
+        // (2, 2). This allows us to scale it without repositioning it. After scaling, we apply our
+        // offset and undo our earlier translation. This forms a matrix that can be applied after
+        // any projection that will letterbox correctly.
+        let zero_start = Vector::new(-1.0, 1.0);
+        Transform::translate(zero_start + offset) * Transform::scale(scale) * Transform::translate(-zero_start)
     }
 }
 
