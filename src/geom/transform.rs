@@ -21,13 +21,13 @@ use std::{
 /// that involves rotating a shape 30 degrees and then moving it six units up could be written as
 /// ```no_run
 /// use quicksilver::geom::{Transform, Vector};
-/// let transform = Transform::rotate(30) * Transform::translate(Vector::new(0, -6));
+/// let transform = Transform::rotate(30.0) * Transform::translate(Vector::new(0.0, -6.0));
 /// ```
 /// and then applied to a Vector
 /// ```no_run
 /// # use quicksilver::geom::{Transform, Vector};
-/// # let transform  = Transform::rotate(30) * Transform::translate(Vector::new(0, -6));
-/// transform * Vector::new(5, 5)
+/// # let transform  = Transform::rotate(30.0) * Transform::translate(Vector::new(0.0, -6.0));
+/// transform * Vector::new(5.0, 5.0)
 /// # ;
 /// ```
 #[derive(Clone, Copy, Debug)]
@@ -72,9 +72,9 @@ impl Transform {
     /// A transform's inverse will cancel it out when multplied with it, as seen below:
     /// ```
     /// # use quicksilver::geom::{Transform, Vector};
-    /// let transform = Transform::translate(Vector::new(4, 5));
+    /// let transform = Transform::translate(Vector::new(4.0, 5.0));
     /// let inverse = transform.inverse();
-    /// let vector = Vector::new(10, 10);
+    /// let vector = Vector::new(10.0, 10.0);
     /// assert_eq!(vector, transform * inverse * vector);
     /// assert_eq!(vector, inverse * transform * vector);
     /// ```
@@ -277,31 +277,31 @@ mod tests {
     #[test]
     fn equality() {
         assert_eq!(Transform::IDENTITY, Transform::IDENTITY);
-        assert_eq!(Transform::rotate(5), Transform::rotate(5));
+        assert_eq!(Transform::rotate(5.0), Transform::rotate(5.0));
     }
 
     #[test]
     fn inverse() {
-        let vec = Vector::new(2, 4);
+        let vec = Vector::new(2.0, 4.0);
         let translate = Transform::scale(Vector::ONE * 0.5);
         let inverse = translate.inverse();
         let transformed = inverse * vec;
-        let expected = vec * 2;
+        let expected = vec * 2.0;
         assert_eq!(transformed, expected);
     }
 
     #[test]
     fn scale() {
-        let trans = Transform::scale(Vector::ONE * 2);
-        let vec = Vector::new(2, 5);
+        let trans = Transform::scale(Vector::ONE * 2.0);
+        let vec = Vector::new(2.0, 5.0);
         let scaled = trans * vec;
-        let expected = vec * 2;
+        let expected = vec * 2.0;
         assert_eq!(scaled, expected);
     }
 
     #[test]
     fn translate() {
-        let translate = Vector::new(3, 4);
+        let translate = Vector::new(3.0, 4.0);
         let trans = Transform::translate(translate);
         let vec = Vector::ONE;
         let translated = trans * vec;
@@ -313,18 +313,18 @@ mod tests {
     fn identity() {
         let trans = Transform::IDENTITY
             * Transform::translate(Vector::ZERO)
-            * Transform::rotate(0f32)
+            * Transform::rotate(0.0)
             * Transform::scale(Vector::ONE);
-        let vec = Vector::new(15, 12);
+        let vec = Vector::new(15.0, 12.0);
         assert_eq!(vec, trans * vec);
     }
 
     #[test]
     fn test_add() {
         let identity = Transform::IDENTITY;
-        let trans = Transform::scale(Vector::ONE * 2);
+        let trans = Transform::scale(Vector::ONE * 2.0);
         let double_trans = identity + identity;
-        let vec = Vector::new(2, 2);
+        let vec = Vector::new(2.0, 2.0);
         let scaled = trans * vec;
         let doubled = double_trans * vec;
         assert_eq!(scaled, doubled);
@@ -340,11 +340,11 @@ mod tests {
     }
     #[test]
     fn complex_inverse() {
-        let a = Transform::rotate(5f32)
+        let a = Transform::rotate(5.0)
             * Transform::scale(Vector::new(0.2, 1.23))
-            * Transform::translate(Vector::ONE * 100f32);
+            * Transform::translate(Vector::ONE * 100.0);
         let a_inv = a.inverse();
-        let vec = Vector::new(120f32, 151f32);
+        let vec = Vector::new(120.0, 151.0);
         assert_eq!(vec, a * a_inv * vec);
         assert_eq!(vec, a_inv * a * vec);
     }
@@ -363,6 +363,6 @@ mod tests {
             view * (region.pos + region.size.x_comp()),
             Vector::X + Vector::Y
         );
-        assert_eq!(view * (region.pos + region.size / 2), Vector::ZERO);
+        assert_eq!(view * (region.pos + region.size / 2.0), Vector::ZERO);
     }
 }

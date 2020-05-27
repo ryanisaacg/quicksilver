@@ -29,8 +29,7 @@
 //! use quicksilver::{
 //!     geom::{Rectangle, Vector},
 //!     graphics::{Color, Graphics},
-//!     input::{Input, Window},
-//!     Result, Settings, run,
+//!     Input, Window, Result, Settings, run,
 //! };
 //!
 //! fn main() {
