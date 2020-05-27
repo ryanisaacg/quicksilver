@@ -74,37 +74,37 @@ mod tests {
 
     #[test]
     fn overlap() {
-        let a = &Rectangle::new_sized((32, 32));
-        let b = &Rectangle::new((16, 16), (32, 32));
-        let c = &Rectangle::new((50, 50), (5, 5));
-        assert!(a.overlaps(b));
-        assert!(!a.overlaps(c));
+        let a = &Rectangle::new_sized(Vector::new(32.0, 32.0));
+        let b = &Rectangle::new(Vector::new(16.0, 16.0), Vector::new(32.0, 32.0));
+        let c = &Rectangle::new(Vector::new(50.0, 50.0), Vector::new(5.0, 5.0));
+        assert!(a.overlaps_rectangle(b));
+        assert!(!a.overlaps_rectangle(c));
     }
 
     #[test]
     fn contains() {
-        let rect = Rectangle::new_sized((32, 32));
-        let vec1 = Vector::new(5, 5);
-        let vec2 = Vector::new(33, 1);
+        let rect = Rectangle::new_sized(Vector::new(32.0, 32.0));
+        let vec1 = Vector::new(5.0, 5.0);
+        let vec2 = Vector::new(33.0, 1.0);
         assert!(rect.contains(vec1));
         assert!(!rect.contains(vec2));
     }
 
     #[test]
     fn constraint() {
-        let constraint = &Rectangle::new_sized((10, 10));
-        let a = Rectangle::new((-1, 3), (5, 5));
-        let b = Rectangle::new((4, 4), (8, 3));
+        let constraint = &Rectangle::new_sized(Vector::new(10.0, 10.0));
+        let a = Rectangle::new(Vector::new(-1.0, 3.0), Vector::new(5.0, 5.0));
+        let b = Rectangle::new(Vector::new(4.0, 4.0), Vector::new(8.0, 3.0));
         let a = a.constrain(constraint);
-        assert_eq!(a.top_left(), Vector::new(0, 3));
+        assert_eq!(a.top_left(), Vector::new(0.0, 3.0));
         let b = b.constrain(constraint);
-        assert_eq!(b.top_left(), Vector::new(2, 4));
+        assert_eq!(b.top_left(), Vector::new(2.0, 4.0));
     }
 
     #[test]
     fn translate() {
-        let a = Rectangle::new((10, 10), (5, 5));
-        let v = Vector::new(1, -1);
+        let a = Rectangle::new(Vector::new(10.0, 10.0), Vector::new(5.0, 5.0));
+        let v = Vector::new(1.0, -1.0);
         let translated = a.translate(v);
         assert_eq!(a.top_left() + v, translated.top_left());
     }

@@ -16,7 +16,7 @@ pub struct Vector {
 }
 
 impl Vector {
-    /// A vector with x = 0, y = 0
+    /// A vector with x = 0.0, y = 0
     pub const ZERO: Vector = Vector { x: 0f32, y: 0f32 };
     /// A vector with x = 1, y = 0
     pub const X: Vector = Vector { x: 1f32, y: 0f32 };
@@ -235,64 +235,64 @@ mod tests {
 
     #[test]
     fn arithmetic() {
-        let a = Vector::new(5, 10);
-        let b = Vector::new(1, -2);
+        let a = Vector::new(5.0, 10.0);
+        let b = Vector::new(1.0, -2.0);
         assert!((a + b).x == 6f32);
         assert!((a - b).y == 12f32);
     }
 
     #[test]
     fn equality() {
-        assert_eq!(Vector::new(5, 5), Vector::new(5, 5));
-        assert_ne!(Vector::new(0, 5), Vector::new(5, 5));
+        assert_eq!(Vector::new(5.0, 5.0), Vector::new(5.0, 5.0));
+        assert_ne!(Vector::new(0.0, 5.0), Vector::new(5.0, 5.0));
     }
 
     #[test]
     fn inverse() {
-        let vec = Vector::new(3, 5);
+        let vec = Vector::new(3.0, 5.0);
         let inverse = vec.recip();
         assert_eq!(Vector::new(1.0 / 3.0, 1.0 / 5.0), inverse);
     }
 
     #[test]
     fn length() {
-        let vec = Vector::X * 5;
+        let vec = Vector::X * 5.0;
         assert!(about_equal(vec.len2(), 25f32));
         assert!(about_equal(vec.len(), 5f32));
     }
 
     #[test]
     fn scale() {
-        let vec = Vector::new(1, 1);
-        let doubled = Vector::new(2, 2);
-        assert_eq!(vec * 2, doubled);
+        let vec = Vector::new(1.0, 1.0);
+        let doubled = Vector::new(2.0, 2.0);
+        assert_eq!(vec * 2.0, doubled);
         let halved = Vector::new(0.5, 0.5);
-        assert_eq!(vec / 2, halved);
+        assert_eq!(vec / 2.0, halved);
     }
 
     #[test]
     fn clamp() {
-        let min = Vector::new(-10, -2);
-        let max = Vector::new(5, 6);
-        let vec = Vector::new(-11, 3);
+        let min = Vector::new(-10.0, -2.0);
+        let max = Vector::new(5.0, 6.0);
+        let vec = Vector::new(-11.0, 3.0);
         let clamped = vec.clamp(min, max);
-        let expected = Vector::new(-10, 3);
+        let expected = Vector::new(-10.0, 3.0);
         assert_eq!(clamped, expected);
     }
 
     #[test]
     fn dot() {
         assert!(about_equal(
-            Vector::new(6, 5).dot(Vector::new(2, -8)),
+            Vector::new(6.0, 5.0).dot(Vector::new(2.0, -8.0)),
             -28f32
         ));
     }
 
     #[test]
     fn times() {
-        let vec = Vector::new(3, -2);
-        let two = Vector::ONE * 2;
-        assert_eq!(vec.times(two), vec * 2);
+        let vec = Vector::new(3.0, -2.0);
+        let two = Vector::ONE * 2.0;
+        assert_eq!(vec.times(two), vec * 2.0);
     }
 
     #[test]
@@ -318,8 +318,8 @@ mod tests {
 
     #[test]
     fn sum() {
-        let input = vec![Vector::new(1, 2), Vector::new(2, 3), Vector::new(3, 4)];
+        let input = vec![Vector::new(1.0, 2.0), Vector::new(2.0, 3.0), Vector::new(3.0, 4.0)];
         let sum = input.into_iter().sum();
-        assert_eq!(Vector::new(6, 9), sum);
+        assert_eq!(Vector::new(6.0, 9.0), sum);
     }
 }
