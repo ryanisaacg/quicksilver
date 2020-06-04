@@ -28,9 +28,8 @@ Then replace `src/main.rs` with the following (the contents of quicksilver's
 // Open a window, and draw a colored square in it
 use quicksilver::{
     geom::{Rectangle, Vector},
-    graphics::{Color, Graphics},
-    input::{Input, Window},
-    Result, Settings, run,
+    graphics::Color,
+    run, Graphics, Input, Result, Settings, Window,
 };
 
 fn main() {
