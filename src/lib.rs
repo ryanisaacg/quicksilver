@@ -18,7 +18,7 @@
 //!
 //! Create a rust project and add this line to your `Cargo.toml` file under `[dependencies]`:
 //! ```text
-//!     quicksilver = "0.4.0-alpha3"
+//!     quicksilver = "0.4.0-alpha5"
 //! ```
 //! Then replace `src/main.rs` with the following (the contents of quicksilver's
 //! `examples/01_square.rs`):
