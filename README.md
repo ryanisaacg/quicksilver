@@ -124,7 +124,7 @@ If you're deploying for the web, first make sure you've
 [installed the cargo web tool](https://github.com/koute/cargo-web). Then use `cargo web deploy`
 to build your application for distribution (located at `target/deploy`).
 
-If you want to test your application locally, use `cargo web start --features stdweb` and open your
+If you want to test your application locally, use `cargo web start --features quicksilver/stdweb` and open your
 favorite browser to the port it provides.
 
 #### wasm-bindgen support
