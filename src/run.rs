@@ -107,9 +107,9 @@ where
 #[cfg(feature = "easy-log")]
 fn set_logger(level: log::Level) {
     #[cfg(target_arch = "wasm32")]
-    web_logger::custom_init(web_logger::Config { level });
+    let _ = web_logger::try_init(web_logger::Config { level });
     #[cfg(not(target_arch = "wasm32"))]
-    simple_logger::init_with_level(level).expect("A logger was already initialized");
+    let _ = simple_logger::init_with_level(level);
 }
 
 impl From<&Settings> for blinds::Settings {
