@@ -1,5 +1,7 @@
 # Changelog
 
+- Logging may be initialized before starting quicksilver
+
 ## v0.4.0-alpha0.5
 - Fix `Timer::remaining` returning the time until next tick, instead of returning how late the tick is.
 - Add methods to `Timer`: `late_by`, `period`, and `elapsed`
