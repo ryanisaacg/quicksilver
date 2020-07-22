@@ -5,7 +5,12 @@ use std::{
     iter::Sum,
     ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign},
 };
+#[cfg(feature = "saving")]
+use serde::{Serialize,Deserialize};
 
+
+
+#[cfg_attr(feature = "saving", derive(Serialize, Deserialize))]
 #[derive(Copy, Clone, Default, Debug)]
 ///A 2D vector with an arbitrary numeric type
 pub struct Vector {

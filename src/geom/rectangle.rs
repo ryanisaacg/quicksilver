@@ -1,7 +1,10 @@
 use crate::geom::{about_equal, Vector};
 use std::cmp::{Eq, PartialEq};
+#[cfg(feature = "saving")]
+use serde::{Serialize,Deserialize};
 
 #[derive(Clone, Copy, Default, Debug)]
+#[cfg_attr(feature = "saving", derive(Serialize, Deserialize))]
 ///A rectangle with a top-left position and a size
 pub struct Rectangle {
     ///The top-left coordinate of the rectangle

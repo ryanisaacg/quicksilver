@@ -1,6 +1,7 @@
 # Changelog
 
 - Logging may be initialized before starting quicksilver
+- Add serde support for Circle, Vector and Rectangle if saving is enabled
 
 ## v0.4.0-alpha0.5
 - Fix `Timer::remaining` returning the time until next tick, instead of returning how late the tick is.

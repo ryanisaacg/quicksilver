@@ -1,7 +1,10 @@
 use crate::geom::{about_equal, Vector};
 use std::cmp::{Eq, PartialEq};
+#[cfg(feature = "saving")]
+use serde::{Serialize,Deserialize};
 
 #[derive(Clone, Copy, Default, Debug)]
+#[cfg_attr(feature = "saving", derive(Serialize, Deserialize))]
 ///A circle with a center and a radius
 pub struct Circle {
     /// The position of the center of the circle
