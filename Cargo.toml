@@ -20,10 +20,11 @@ easy-log = ["simple_logger", "web_logger"]
 event-cache = ["blinds/event-cache"]
 font = ["elefont"]
 gamepad = ["blinds/gamepad"]
-saving = ["gestalt", "serde"]
+saving = ["gestalt"]
 stdweb = ["gestalt/stdweb", "platter/stdweb", "blinds/stdweb", "golem/stdweb","instant/stdweb"]
 web-sys = ["gestalt/web-sys", "platter/web-sys", "blinds/web-sys", "golem/web-sys","instant/web-sys"]
 ttf = ["font", "elefont/rusttype", "rusttype"]
+serde-support = ["serde"]
 
 [badges]
 
