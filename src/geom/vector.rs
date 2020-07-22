@@ -1,14 +1,12 @@
 use crate::geom::about_equal;
+#[cfg(feature = "saving")]
+use serde::{Deserialize, Serialize};
 use std::{
     cmp::{Eq, PartialEq},
     fmt,
     iter::Sum,
     ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign},
 };
-#[cfg(feature = "saving")]
-use serde::{Serialize,Deserialize};
-
-
 
 #[cfg_attr(feature = "saving", derive(Serialize, Deserialize))]
 #[derive(Copy, Clone, Default, Debug)]

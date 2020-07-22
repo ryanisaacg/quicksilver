@@ -1,7 +1,7 @@
 use crate::geom::{about_equal, Vector};
-use std::cmp::{Eq, PartialEq};
 #[cfg(feature = "saving")]
-use serde::{Serialize,Deserialize};
+use serde::{Deserialize, Serialize};
+use std::cmp::{Eq, PartialEq};
 
 #[derive(Clone, Copy, Default, Debug)]
 #[cfg_attr(feature = "saving", derive(Serialize, Deserialize))]
