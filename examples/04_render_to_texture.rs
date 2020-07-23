@@ -1,7 +1,7 @@
 // Example 4: Render to Texture
 // Render some data to an image, and draw that image to the screen
 use quicksilver::{
-    geom::{Circle, Rectangle, Vector},
+    geom::{Circle, Rectangle, Transform, Vector},
     graphics::{Color, Image, PixelFormat, Surface},
     run, Graphics, Input, Result, Settings, Window,
 };
@@ -23,8 +23,11 @@ async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> 
         &gfx,
         Image::from_raw(&gfx, None, 512, 512, PixelFormat::RGBA)?,
     )?;
-    // Set the render area to the surface size
-    gfx.fit_to_surface(&surface)?;
+    // We can use projections to add letterboxing around the content, split-screen,
+    // picture-in-picture, etc. For now we'll just change the size of our rendering area.
+    // The projection controls how coordinates map to the drawing target
+    // Here, we're mapping the coordinates one-to-one from our coordinates to the Surface
+    gfx.set_projection(Transform::orthographic(Rectangle::new_sized(surface.size().unwrap())));
     // Draw a circle inside a rectangle
     gfx.fill_rect(
         &Rectangle::new(Vector::new(350.0, 100.0), Vector::new(100.0, 100.0)),
@@ -32,11 +35,11 @@ async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> 
     );
     gfx.fill_circle(&Circle::new(Vector::new(400.0, 150.0), 50.0), Color::BLACK);
     // Flush to the surface, which draws to the image
-    gfx.flush(Some(&surface))?;
+    gfx.flush_surface(&surface)?;
 
     gfx.clear(Color::BLACK);
-    // Reset the viewport to the window size
-    gfx.fit_to_window(&window);
+    // Now we're going to set the projection again, this time to the size of the window
+    gfx.set_projection(Transform::orthographic(Rectangle::new_sized(window.size())));
     // Extract the image from the surface to use
     let image = surface.detach().expect("The image failed to detach");
     // Draw that image to the screen twice
@@ -45,8 +48,8 @@ async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> 
         &image,
         Rectangle::new(Vector::new(400.0, 300.0), Vector::new(400.0, 300.0)),
     );
-
     gfx.present(&window)?;
+
     loop {
         while let Some(_) = input.next_event().await {}
     }

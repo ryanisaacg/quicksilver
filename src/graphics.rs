@@ -425,18 +425,40 @@ impl Graphics {
         );
     }
 
+    pub fn flush_surface(&mut self, surface: &Surface) -> Result<(), QuicksilverError> {
+        if let (Some(width), Some(height)) = (surface.0.width(), surface.0.height()) {
+            self.ctx.set_viewport(0, 0, width, height);
+        } else {
+            return Err(QuicksilverError::NoSurfaceImageBound);
+        }
+        surface.0.bind();
+        self.flush_gpu()?;
+        Ok(())
+    }
+
+    pub fn flush_window(&mut self, window: &Window) -> Result<(), QuicksilverError> {
+        let size = window.size();
+        let scale = window.scale_factor();
+        let width = size.x * scale;
+        let height = size.y * scale;
+        self.ctx.set_viewport(0, 0, width as u32, height as u32);
+        golem::Surface::unbind(&self.ctx);
+        self.flush_gpu()?;
+        Ok(())
+    }
+
     /// Send the accumulated draw data to the GPU
     ///
     /// Except when rendering to a [`Surface`], this should almost never be necessary for a user
     /// to call directly. Use [`Graphics::present`] to draw to the window instead. When rendering
     /// to a [`Surface`], remember to set the viewport via [`Graphics::set_viewport`]
-    pub fn flush(&mut self, surface: Option<&Surface>) -> Result<(), QuicksilverError> {
+    fn flush_gpu(&mut self) -> Result<(), QuicksilverError> {
         // Either bind a surface or draw directly to the default framebuffer, depending on the
         // argument
-        match surface {
+        /*match surface {
             Some(surface) => surface.0.bind(),
             None => golem::Surface::unbind(&self.ctx),
-        }
+        }*/
         const TEX_BIND_POINT: u32 = 1;
         let max_index = (self.vertex_data.len() / VERTEX_SIZE) as u32;
         for index in self.index_data.iter() {
@@ -537,28 +559,10 @@ impl Graphics {
     /// If you would like to render to a custom viewport size (again, you probably don't), set your
     /// viewport, flush, then present.
     pub fn present(&mut self, win: &Window) -> Result<(), QuicksilverError> {
-        self.fit_to_window(win);
-        self.flush(None)?;
+        self.flush_window(win)?;
         win.present();
 
         Ok(())
-    }
-
-    /// Select the area to draw to
-    ///
-    /// Generally, the best practice is to set this to (0, 0, window_width, window_height), but
-    /// when rendering to a subset of the screen it can be useful to change this. Additionally, you
-    /// probably want to set the viewport when rendering to a [`Surface`] in [`Graphics::flush`].
-    /// To set the viewport to take up the entire region of a [`Surface`], use
-    /// [`Graphics::fit_to_surface`].
-    ///
-    /// The units given are physical units, not logical units. As such when using [`Window::size`],
-    /// be sure to multiply by [`Window::scale_factor`].
-    ///
-    /// [`Window::size`]: crate::Window::size
-    /// [`Window::scale_factor`]: crate::Window::scale_factor
-    pub fn set_viewport(&self, x: u32, y: u32, width: u32, height: u32) {
-        self.ctx.set_viewport(x, y, width, height);
     }
 
     /// Set the viewport to cover the given Surface
