@@ -1,4 +1,6 @@
 use crate::geom::about_equal;
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
 use std::{
     cmp::{Eq, PartialEq},
     fmt,
@@ -6,6 +8,7 @@ use std::{
     ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign},
 };
 
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Copy, Clone, Default, Debug)]
 ///A 2D vector with an arbitrary numeric type
 pub struct Vector {
