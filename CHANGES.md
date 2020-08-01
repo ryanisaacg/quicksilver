@@ -1,7 +1,10 @@
 # Changelog
 
+## WIP
+
 - Logging may be initialized before starting quicksilver
 - Add optional dependency on serde, when enabled it adds the Serialize and Deserialize traits to Circle, Vector and Rectangle
+- Fix a bug where text extents were improperly reported
 
 ## v0.4.0-alpha0.5
 - Fix `Timer::remaining` returning the time until next tick, instead of returning how late the tick is.
