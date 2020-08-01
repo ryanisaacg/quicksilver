@@ -171,6 +171,14 @@ impl Graphics {
         self.projection_changes.push((head, transform));
     }
 
+    /// Set the projection to a Rectangle of the given size
+    ///
+    /// When setting the projection to display a rectangle of a given size, this is a convenient
+    /// helper method.
+    pub fn fit_projection(&mut self, size: Vector) {
+        self.set_projection(Transform::orthographic(Rectangle::new_sized(size)));
+    }
+
     /// Set the transformation matrix, which is applied to all vertices on the CPU
     ///
     /// Use this to rotate, scale, or translate individual draws or small groups of draws
