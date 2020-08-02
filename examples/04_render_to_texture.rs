@@ -23,14 +23,9 @@ async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> 
         &gfx,
         Image::from_raw(&gfx, None, 512, 512, PixelFormat::RGBA)?,
     )?;
-    // We can use projections to add letterboxing around the content, split-screen,
-    // picture-in-picture, etc. For now we'll just change the size of our rendering area.
-    // The projection controls how coordinates map to the drawing target
-    // Here, we're mapping the coordinates one-to-one from our coordinates to the Surface
-    gfx.fit_projection(surface.size().unwrap());
     // Draw a circle inside a rectangle
     gfx.fill_rect(
-        &Rectangle::new(Vector::new(350.0, 100.0), Vector::new(100.0, 100.0)),
+        &Rectangle::new(Vector::new(0.0, 0.0), Vector::new(100.0, 100.0)),
         Color::RED,
     );
     gfx.fill_circle(&Circle::new(Vector::new(400.0, 150.0), 50.0), Color::BLACK);
@@ -38,8 +33,6 @@ async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> 
     gfx.flush_surface(&surface)?;
 
     gfx.clear(Color::BLACK);
-    // Now we're going to set the projection again, this time to the size of the window
-    gfx.fit_projection(window.size());
     // Extract the image from the surface to use
     let image = surface.detach().expect("The image failed to detach");
     // Draw that image to the screen twice
