@@ -145,7 +145,7 @@ impl Graphics {
             transform: Transform::IDENTITY,
             resize: ResizeHandler::Fit {
                 aspect_width: world_size.x,
-                aspect_height: world_size.y
+                aspect_height: world_size.y,
             },
             world_size,
             projection: Transform::IDENTITY,
@@ -480,7 +480,10 @@ impl Graphics {
         if let (Some(width), Some(height)) = (surface.0.width(), surface.0.height()) {
             self.ctx.set_viewport(0, 0, width, height);
             let flip = Transform::scale(Vector::new(1.0, -1.0));
-            let ortho = Transform::orthographic(Rectangle::new_sized(Vector::new(width as f32, height as f32)));
+            let ortho = Transform::orthographic(Rectangle::new_sized(Vector::new(
+                width as f32,
+                height as f32,
+            )));
             self.projection = flip * ortho;
         } else {
             return Err(QuicksilverError::NoSurfaceImageBound);
@@ -502,7 +505,12 @@ impl Graphics {
         let size = viewport.size() * window.scale_factor();
         dbg!(offset);
         dbg!(size);
-        self.ctx.set_viewport(offset.x as u32, offset.y as u32, size.x as u32, size.y as u32);
+        self.ctx.set_viewport(
+            offset.x as u32,
+            offset.y as u32,
+            size.x as u32,
+            size.y as u32,
+        );
         golem::Surface::unbind(&self.ctx);
         self.flush_gpu()?;
         Ok(())
@@ -538,18 +546,17 @@ impl Graphics {
 
         self.shader
             .set_uniform("image", UniformValue::Int(TEX_BIND_POINT as i32))?;
-        self.shader
-            .set_uniform("projection", UniformValue::Matrix3(Self::transform_to_gl(self.projection)))?;
+        self.shader.set_uniform(
+            "projection",
+            UniformValue::Matrix3(Self::transform_to_gl(self.projection)),
+        )?;
 
         let mut previous = 0;
         let mut element_mode = GeometryMode::Triangles;
         let change_list = join_change_lists(
             join_change_lists(
                 join_change_lists(
-                    join_change_lists(
-                        self.image_changes.drain(..),
-                        self.view_changes.drain(..),
-                    ),
+                    join_change_lists(self.image_changes.drain(..), self.view_changes.drain(..)),
                     self.geom_mode_changes.drain(..),
                 ),
                 self.clear_changes.drain(..),
