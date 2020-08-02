@@ -192,7 +192,7 @@ impl Graphics {
     /// Project a point from the screen to the world
     ///
     /// Use this when checking the mouse position against rendered objects, like a game or UI
-    pub fn screen_to_world(&self, window: &Window, position: Vector) -> Vector {
+    pub fn screen_to_camera(&self, window: &Window, position: Vector) -> Vector {
         let viewport = self.calculate_viewport(window);
         let mut projected = position - viewport.top_left();
 
@@ -202,14 +202,19 @@ impl Graphics {
         projected
     }
 
-    /// Set the size of the virtual window
+    /// Set the size of the virtual camera
     ///
     /// Regardless of the size of the actual window, the draw functions all work on a virtual
-    /// window size. By default, this is the initial size in your Settings. If you start at
+    /// camera size. By default, this is the initial size in your Settings. If you start at
     /// 400x300, a 400x300 Rectangle will fill the drawable area. If the Window is doubled in size,
     /// a 400x300 Rectangle will still fill the drawable area. This function changes the size of
-    /// the 'virtual window.'
-    pub fn set_world_size(&mut self, size: Vector) {
+    /// the 'virtual camera.'
+    ///
+    /// If you want to position a camera at an arbitrary point within world space, or apply
+    /// rotations or scaling, use [`set_view`].
+    ///
+    /// [`set_view`]: Self::set_view
+    pub fn set_camera_size(&mut self, size: Vector) {
         self.world_size = size;
     }
 
