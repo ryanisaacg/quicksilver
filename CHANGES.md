@@ -3,9 +3,11 @@
 ## WIP
 - Do not crash if logging is already initalized
 - Add optional dependency on serde, when enabled it adds the Serialize and Deserialize traits to Circle, Vector and Rectangle
+- Fix a bug where text extents were improperly reported
 - [BREAKING] Remove `set_viewport`, `fit_to_surface`, and `fit_to_window`; the viewport is now set automatically
 - [BREAKING] Remove `flush(Option<Surface>)` in favor of `flush_surface` and `flush_window`
-- Add a new convenience function, `fit_projection`
+- [BREAKING] Remove `Graphics::set_projection` in favor of `Graphics::set_view`
+- [BREAKING] Remove `transform_for_size` and `projection` from `ResizeHandler`, in favor of `Graphics::set_resize_handler`
 
 ## v0.4.0-alpha0.5
 - Fix `Timer::remaining` returning the time until next tick, instead of returning how late the tick is.

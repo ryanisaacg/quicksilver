@@ -205,6 +205,8 @@ impl FontRenderer {
             }
             cursor.x = 0.0;
             cursor.y += line_height;
+
+            extents = extents.max(cursor);
         }
 
         Ok(extents)
