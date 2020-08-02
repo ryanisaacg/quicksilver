@@ -476,6 +476,7 @@ impl Graphics {
         );
     }
 
+    /// Draw to a Surface
     pub fn flush_surface(&mut self, surface: &Surface) -> Result<(), QuicksilverError> {
         if let (Some(width), Some(height)) = (surface.0.width(), surface.0.height()) {
             self.ctx.set_viewport(0, 0, width, height);
@@ -493,11 +494,7 @@ impl Graphics {
         Ok(())
     }
 
-    fn calculate_viewport(&self, window: &Window) -> Rectangle {
-        let size = self.resize.content_size(window.size());
-        Rectangle::new((window.size() - size) / 2.0, size)
-    }
-
+    /// Draw to the Window, without writing those changes to the screen
     pub fn flush_window(&mut self, window: &Window) -> Result<(), QuicksilverError> {
         self.projection = Transform::orthographic(Rectangle::new_sized(self.world_size));
         let viewport = self.calculate_viewport(window);
@@ -516,18 +513,17 @@ impl Graphics {
         Ok(())
     }
 
+    fn calculate_viewport(&self, window: &Window) -> Rectangle {
+        let size = self.resize.content_size(window.size());
+        Rectangle::new((window.size() - size) / 2.0, size)
+    }
+
     /// Send the accumulated draw data to the GPU
     ///
     /// Except when rendering to a [`Surface`], this should almost never be necessary for a user
     /// to call directly. Use [`Graphics::present`] to draw to the window instead. When rendering
     /// to a [`Surface`], remember to set the viewport via [`Graphics::set_viewport`]
     fn flush_gpu(&mut self) -> Result<(), QuicksilverError> {
-        // Either bind a surface or draw directly to the default framebuffer, depending on the
-        // argument
-        /*match surface {
-            Some(surface) => surface.0.bind(),
-            None => golem::Surface::unbind(&self.ctx),
-        }*/
         const TEX_BIND_POINT: u32 = 1;
         let max_index = (self.vertex_data.len() / VERTEX_SIZE) as u32;
         for index in self.index_data.iter() {
@@ -624,38 +620,13 @@ impl Graphics {
 
     /// Send the draw data to the GPU and paint it to the Window
     ///
-    /// This will also re-set the viewport to fit the window before drawing to the screen.
-    /// If you don't want to use a custom viewport (the vast majority of cases), this takes care of
-    /// setting your viewport during resizes and similar situations.
-    /// If you would like to render to a custom viewport size (again, you probably don't), set your
-    /// viewport, flush, then present.
+    /// On desktop, this will block until drawing has completed. If vsync is enabled, it will block
+    /// until the frame completes. **Call this at the end of your frame.**
     pub fn present(&mut self, win: &Window) -> Result<(), QuicksilverError> {
         self.flush_window(win)?;
         win.present();
 
         Ok(())
-    }
-
-    /// Set the viewport to cover the given Surface
-    ///
-    /// Will return an error if the surface has no image attachment, because then it has no size
-    pub fn fit_to_surface(&self, surface: &Surface) -> Result<(), QuicksilverError> {
-        if let (Some(width), Some(height)) = (surface.0.width(), surface.0.height()) {
-            self.ctx.set_viewport(0, 0, width, height);
-
-            Ok(())
-        } else {
-            Err(QuicksilverError::NoSurfaceImageBound)
-        }
-    }
-
-    /// Set the viewport to cover the window, taking into account DPI
-    pub fn fit_to_window(&self, window: &Window) {
-        let size = window.size();
-        let scale = window.scale_factor();
-        let width = size.x * scale;
-        let height = size.y * scale;
-        self.ctx.set_viewport(0, 0, width as u32, height as u32);
     }
 }
 

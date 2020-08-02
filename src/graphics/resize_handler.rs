@@ -1,4 +1,4 @@
-use crate::geom::{Transform, Vector};
+use crate::geom::Vector;
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 #[non_exhaustive]
