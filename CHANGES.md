@@ -1,7 +1,6 @@
 # Changelog
 
 ## WIP
-
 - Logging may be initialized before starting quicksilver
 - Add optional dependency on serde, when enabled it adds the Serialize and Deserialize traits to Circle, Vector and Rectangle
 - Fix a bug where text extents were improperly reported
