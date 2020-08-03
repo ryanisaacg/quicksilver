@@ -8,6 +8,8 @@
 - [BREAKING] Remove `flush(Option<Surface>)` in favor of `flush_surface` and `flush_window`
 - [BREAKING] Remove `Graphics::set_projection` in favor of `Graphics::set_view`
 - [BREAKING] Remove `transform_for_size` and `projection` from `ResizeHandler`, in favor of `Graphics::set_resize_handler`
+- Add the `set_camera_size` to `Graphics` to manage the new virtual camera abstraction
+- Add `screen_to_camera` to `Graphics` for mapping the mouse position to the camera space
 
 ## v0.4.0-alpha0.5
 - Fix `Timer::remaining` returning the time until next tick, instead of returning how late the tick is.
