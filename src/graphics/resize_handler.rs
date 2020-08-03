@@ -87,24 +87,3 @@ fn int_scale(value: f32) -> f32 {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn transform_for_size() {
-        use crate::geom::Rectangle;
-
-        let screen = Vector::new(1600.0, 1200.0);
-        let resize = ResizeHandler::Fit {
-            aspect_width: 4.0,
-            aspect_height: 3.0,
-        };
-        let content = Rectangle::new_sized(Vector::new(800.0, 600.0));
-        let projection = Transform::orthographic(content);
-        let projection = resize.projection(screen) * projection;
-
-        assert_eq!(projection * Vector::ZERO, Vector::new(-1.0, 1.0));
-        assert_eq!(projection * content.size(), Vector::new(1.0, -1.0));
-    }
-}
