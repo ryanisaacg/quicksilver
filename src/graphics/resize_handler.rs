@@ -86,4 +86,3 @@ fn int_scale(value: f32) -> f32 {
         value.recip().floor().recip()
     }
 }
-
