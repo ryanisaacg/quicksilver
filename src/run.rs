@@ -1,4 +1,4 @@
-use crate::geom::{Rectangle, Transform, Vector};
+use crate::geom::{Transform, Vector};
 use crate::graphics::Graphics;
 use crate::input::Input;
 use std::error::Error;
@@ -75,9 +75,6 @@ where
     #[cfg(feature = "easy-log")]
     set_logger(settings.log_level);
 
-    let size = settings.size;
-    let screen_region = Rectangle::new_sized(size);
-
     blinds::run_gl((&settings).into(), move |window, ctx, events| {
         #[cfg(not(target_arch = "wasm32"))]
         {
@@ -88,8 +85,8 @@ where
         }
 
         let ctx = golem::Context::from_glow(ctx).unwrap();
-        let mut graphics = Graphics::new(ctx).unwrap();
-        graphics.set_projection(Transform::orthographic(screen_region));
+        let mut graphics = Graphics::new(ctx, settings.size).unwrap();
+        graphics.set_view(Transform::IDENTITY);
 
         async {
             match app(crate::Window(window), graphics, Input::new(events)).await {

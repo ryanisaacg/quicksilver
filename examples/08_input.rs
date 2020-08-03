@@ -44,7 +44,8 @@ async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> 
             Color::BLUE,
         );
         // Paint a red square at the mouse position
-        gfx.fill_circle(&Circle::new(input.mouse().location(), 32.0), Color::RED);
+        let mouse = gfx.screen_to_camera(&window, input.mouse().location());
+        gfx.fill_circle(&Circle::new(mouse, 32.0), Color::RED);
         gfx.present(&window)?;
     }
 }

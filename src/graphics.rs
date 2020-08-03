@@ -78,17 +78,20 @@ pub struct Graphics {
     vertex_data: Vec<f32>,
     index_data: Vec<u32>,
     image_changes: Vec<(usize, Image)>,
-    projection_changes: Vec<(usize, Transform)>,
+    view_changes: Vec<(usize, Transform)>,
     geom_mode_changes: Vec<(usize, GeometryMode)>,
     clear_changes: Vec<(usize, Color)>,
     blend_mode_changes: Vec<(usize, Option<blend::BlendMode>)>,
     transform: Transform,
+    resize: ResizeHandler,
+    world_size: Vector,
+    projection: Transform,
 }
 
 const VERTEX_SIZE: usize = 8;
 
 impl Graphics {
-    pub(crate) fn new(ctx: Context) -> Result<Graphics, QuicksilverError> {
+    pub(crate) fn new(ctx: Context, world_size: Vector) -> Result<Graphics, QuicksilverError> {
         use Dimension::*;
         let mut shader = ShaderProgram::new(
             &ctx,
@@ -105,9 +108,10 @@ impl Graphics {
                 uniforms: &[
                     Uniform::new("image", UniformType::Sampler2D),
                     Uniform::new("projection", UniformType::Matrix(D3)),
+                    Uniform::new("view", UniformType::Matrix(D3)),
                 ],
                 vertex_shader: r#" void main() {
-                vec3 transformed = projection * vec3(vert_position, 1.0);
+                vec3 transformed = projection * view * vec3(vert_position, 1.0);
                 gl_Position = vec4(transformed.xy, 0, 1);
                 frag_uv = vert_uv;
                 frag_color = vert_color;
@@ -134,11 +138,17 @@ impl Graphics {
             vertex_data: Vec::new(),
             index_data: Vec::new(),
             image_changes: Vec::new(),
-            projection_changes: Vec::new(),
+            view_changes: Vec::new(),
             geom_mode_changes: Vec::new(),
             clear_changes: Vec::new(),
             blend_mode_changes: Vec::new(),
             transform: Transform::IDENTITY,
+            resize: ResizeHandler::Fit {
+                aspect_width: world_size.x,
+                aspect_height: world_size.y,
+            },
+            world_size,
+            projection: Transform::IDENTITY,
         })
     }
 
@@ -162,20 +172,61 @@ impl Graphics {
         self.clear_changes.push((head, color));
     }
 
-    /// Set the projection matrix, which is applied to all vertices on the GPU
+    /// Set the view matrix, which is applied to all vertices on the GPU
     ///
-    /// Use this to determine the drawable area with [`Transform::orthographic`], which is
-    /// important to handling resizes.
-    pub fn set_projection(&mut self, transform: Transform) {
+    /// Most of the time, you won't need this at all. However, if you want to apply a change to a
+    /// great many objects (screen shake, rotations, etc.) setting the view matrix is a good way to
+    /// do that.
+    pub fn set_view(&mut self, transform: Transform) {
         let head = self.index_data.len();
-        self.projection_changes.push((head, transform));
+        self.view_changes.push((head, transform));
     }
 
     /// Set the transformation matrix, which is applied to all vertices on the CPU
     ///
-    /// Use this to rotate, scale, or translate individual draws or small groups of draws
+    /// Use this to rotate, scale, or translate individual draws or small groups of draws.
     pub fn set_transform(&mut self, transform: Transform) {
         self.transform = transform;
+    }
+
+    /// Project a point from the screen to the world
+    ///
+    /// Use this when checking the mouse position against rendered objects, like a game or UI
+    pub fn screen_to_camera(&self, window: &Window, position: Vector) -> Vector {
+        let viewport = self.calculate_viewport(window);
+        let mut projected = position - viewport.top_left();
+
+        projected.x *= self.world_size.x / viewport.width();
+        projected.y *= self.world_size.y / viewport.height();
+
+        projected
+    }
+
+    /// Set the size of the virtual camera
+    ///
+    /// Regardless of the size of the actual window, the draw functions all work on a virtual
+    /// camera size. By default, this is the initial size in your Settings. If you start at
+    /// 400x300, a 400x300 Rectangle will fill the drawable area. If the Window is doubled in size,
+    /// a 400x300 Rectangle will still fill the drawable area. This function changes the size of
+    /// the 'virtual camera.'
+    ///
+    /// If you want to position a camera at an arbitrary point within world space, or apply
+    /// rotations or scaling, use [`set_view`].
+    ///
+    /// [`set_view`]: Self::set_view
+    pub fn set_camera_size(&mut self, size: Vector) {
+        self.world_size = size;
+    }
+
+    /// Change how to respond to the window resizing
+    ///
+    /// The default method of handling resizes is `ResizeHandler::Fit`, which maximizes the area
+    /// drawn on screen while maintaining aspect ratio. There are a variety of other
+    /// [`ResizeHandler`] options to choose from.
+    ///
+    /// [`ResizeHandler`]: crate::graphics::ResizeHandler
+    pub fn set_resize_handler(&mut self, resize: ResizeHandler) {
+        self.resize = resize;
     }
 
     /// Set the blend mode, which determines how pixels mix when drawn over each other
@@ -425,18 +476,54 @@ impl Graphics {
         );
     }
 
+    /// Draw to a Surface
+    pub fn flush_surface(&mut self, surface: &Surface) -> Result<(), QuicksilverError> {
+        if let (Some(width), Some(height)) = (surface.0.width(), surface.0.height()) {
+            self.ctx.set_viewport(0, 0, width, height);
+            let flip = Transform::scale(Vector::new(1.0, -1.0));
+            let ortho = Transform::orthographic(Rectangle::new_sized(Vector::new(
+                width as f32,
+                height as f32,
+            )));
+            self.projection = flip * ortho;
+        } else {
+            return Err(QuicksilverError::NoSurfaceImageBound);
+        }
+        surface.0.bind();
+        self.flush_gpu()?;
+        Ok(())
+    }
+
+    /// Draw to the Window, without writing those changes to the screen
+    pub fn flush_window(&mut self, window: &Window) -> Result<(), QuicksilverError> {
+        self.projection = Transform::orthographic(Rectangle::new_sized(self.world_size));
+        let viewport = self.calculate_viewport(window);
+        let offset = viewport.top_left() * window.scale_factor();
+        let size = viewport.size() * window.scale_factor();
+        dbg!(offset);
+        dbg!(size);
+        self.ctx.set_viewport(
+            offset.x as u32,
+            offset.y as u32,
+            size.x as u32,
+            size.y as u32,
+        );
+        golem::Surface::unbind(&self.ctx);
+        self.flush_gpu()?;
+        Ok(())
+    }
+
+    fn calculate_viewport(&self, window: &Window) -> Rectangle {
+        let size = self.resize.content_size(window.size());
+        Rectangle::new((window.size() - size) / 2.0, size)
+    }
+
     /// Send the accumulated draw data to the GPU
     ///
     /// Except when rendering to a [`Surface`], this should almost never be necessary for a user
     /// to call directly. Use [`Graphics::present`] to draw to the window instead. When rendering
     /// to a [`Surface`], remember to set the viewport via [`Graphics::set_viewport`]
-    pub fn flush(&mut self, surface: Option<&Surface>) -> Result<(), QuicksilverError> {
-        // Either bind a surface or draw directly to the default framebuffer, depending on the
-        // argument
-        match surface {
-            Some(surface) => surface.0.bind(),
-            None => golem::Surface::unbind(&self.ctx),
-        }
+    fn flush_gpu(&mut self) -> Result<(), QuicksilverError> {
         const TEX_BIND_POINT: u32 = 1;
         let max_index = (self.vertex_data.len() / VERTEX_SIZE) as u32;
         for index in self.index_data.iter() {
@@ -455,15 +542,17 @@ impl Graphics {
 
         self.shader
             .set_uniform("image", UniformValue::Int(TEX_BIND_POINT as i32))?;
+        self.shader.set_uniform(
+            "projection",
+            UniformValue::Matrix3(Self::transform_to_gl(self.projection)),
+        )?;
+
         let mut previous = 0;
         let mut element_mode = GeometryMode::Triangles;
         let change_list = join_change_lists(
             join_change_lists(
                 join_change_lists(
-                    join_change_lists(
-                        self.image_changes.drain(..),
-                        self.projection_changes.drain(..),
-                    ),
+                    join_change_lists(self.image_changes.drain(..), self.view_changes.drain(..)),
                     self.geom_mode_changes.drain(..),
                 ),
                 self.clear_changes.drain(..),
@@ -488,10 +577,10 @@ impl Graphics {
                             image.raw().set_active(bind_point);
                         }
                         // If we're switching what projection to use, do so now
-                        if let Some(projection) = changes.1 {
-                            let matrix = Self::transform_to_gl(projection);
+                        if let Some(view) = changes.1 {
+                            let matrix = Self::transform_to_gl(view);
                             self.shader
-                                .set_uniform("projection", UniformValue::Matrix3(matrix))?;
+                                .set_uniform("view", UniformValue::Matrix3(matrix))?;
                         }
                     }
                     // If we're switching the element mode, do so now
@@ -531,56 +620,13 @@ impl Graphics {
 
     /// Send the draw data to the GPU and paint it to the Window
     ///
-    /// This will also re-set the viewport to fit the window before drawing to the screen.
-    /// If you don't want to use a custom viewport (the vast majority of cases), this takes care of
-    /// setting your viewport during resizes and similar situations.
-    /// If you would like to render to a custom viewport size (again, you probably don't), set your
-    /// viewport, flush, then present.
+    /// On desktop, this will block until drawing has completed. If vsync is enabled, it will block
+    /// until the frame completes. **Call this at the end of your frame.**
     pub fn present(&mut self, win: &Window) -> Result<(), QuicksilverError> {
-        self.fit_to_window(win);
-        self.flush(None)?;
+        self.flush_window(win)?;
         win.present();
 
         Ok(())
-    }
-
-    /// Select the area to draw to
-    ///
-    /// Generally, the best practice is to set this to (0, 0, window_width, window_height), but
-    /// when rendering to a subset of the screen it can be useful to change this. Additionally, you
-    /// probably want to set the viewport when rendering to a [`Surface`] in [`Graphics::flush`].
-    /// To set the viewport to take up the entire region of a [`Surface`], use
-    /// [`Graphics::fit_to_surface`].
-    ///
-    /// The units given are physical units, not logical units. As such when using [`Window::size`],
-    /// be sure to multiply by [`Window::scale_factor`].
-    ///
-    /// [`Window::size`]: crate::Window::size
-    /// [`Window::scale_factor`]: crate::Window::scale_factor
-    pub fn set_viewport(&self, x: u32, y: u32, width: u32, height: u32) {
-        self.ctx.set_viewport(x, y, width, height);
-    }
-
-    /// Set the viewport to cover the given Surface
-    ///
-    /// Will return an error if the surface has no image attachment, because then it has no size
-    pub fn fit_to_surface(&self, surface: &Surface) -> Result<(), QuicksilverError> {
-        if let (Some(width), Some(height)) = (surface.0.width(), surface.0.height()) {
-            self.ctx.set_viewport(0, 0, width, height);
-
-            Ok(())
-        } else {
-            Err(QuicksilverError::NoSurfaceImageBound)
-        }
-    }
-
-    /// Set the viewport to cover the window, taking into account DPI
-    pub fn fit_to_window(&self, window: &Window) {
-        let size = window.size();
-        let scale = window.scale_factor();
-        let width = size.x * scale;
-        let height = size.y * scale;
-        self.ctx.set_viewport(0, 0, width as u32, height as u32);
     }
 }
 
