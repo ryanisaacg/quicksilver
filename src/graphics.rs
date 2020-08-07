@@ -549,6 +549,10 @@ impl Graphics {
 
         let mut previous = 0;
         let mut element_mode = GeometryMode::Triangles;
+        // We need to store the images while we're drawing them. Otherwise, their destructors will
+        // run and they will get freed before the draw call goes through. That's bad.
+        // So we hold the image if necessary
+        let mut retained_image = None;
         let change_list = join_change_lists(
             join_change_lists(
                 join_change_lists(
@@ -575,6 +579,7 @@ impl Graphics {
                         if let Some(image) = changes.0 {
                             let bind_point = std::num::NonZeroU32::new(TEX_BIND_POINT).unwrap();
                             image.raw().set_active(bind_point);
+                            retained_image = Some(image);
                         }
                         // If we're switching what projection to use, do so now
                         if let Some(view) = changes.1 {
@@ -603,6 +608,7 @@ impl Graphics {
                     .draw_prepared(previous..self.index_data.len(), element_mode);
             }
         }
+        drop(retained_image); // Now we don't need the image anymore
         golem::Surface::unbind(&self.ctx);
         self.vertex_data.clear();
         self.index_data.clear();
