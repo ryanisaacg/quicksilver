@@ -500,8 +500,6 @@ impl Graphics {
         let viewport = self.calculate_viewport(window);
         let offset = viewport.top_left() * window.scale_factor();
         let size = viewport.size() * window.scale_factor();
-        dbg!(offset);
-        dbg!(size);
         self.ctx.set_viewport(
             offset.x as u32,
             offset.y as u32,
