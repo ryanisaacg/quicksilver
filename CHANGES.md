@@ -1,5 +1,8 @@
 # Changelog
 
+## WIP
+- Derive Debug and Clone on `Timer`
+
 ## v0.4.0-alpha0.6
 - Do not crash if logging is already initalized
 - Add optional dependency on serde, when enabled it adds the Serialize and Deserialize traits to Circle, Vector and Rectangle

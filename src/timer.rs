@@ -2,6 +2,7 @@ use core::num::NonZeroUsize;
 use instant::Instant;
 use std::time::Duration;
 
+#[derive(Debug, Clone)]
 /// A timer that you can use to fix the time between actions, for example updates or draw calls.
 ///
 /// See the article [Fix Your Timestep](https://gafferongames.com/post/fix_your_timestep/) for more
