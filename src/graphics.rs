@@ -194,7 +194,12 @@ impl Graphics {
 
     /// Project a point from the screen to the world
     ///
-    /// Use this when checking the mouse position against rendered objects, like a game or UI
+    /// Use this when checking the mouse position against rendered objects, like a game or UI. The
+    /// given point is scaled from the window to the size of the virtual camera (see
+    /// [`set_camera_size`]) and the inverse of the view (see [`set_view`]).
+    ///
+    /// [`set_camera_size`]: Graphics::set_camera_size
+    /// [`set_view`]: Graphics::set_view
     pub fn screen_to_camera(&self, window: &Window, position: Vector) -> Vector {
         let viewport = self.calculate_viewport(window);
         let mut projected = position - viewport.top_left();
