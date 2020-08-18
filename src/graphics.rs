@@ -83,6 +83,7 @@ pub struct Graphics {
     clear_changes: Vec<(usize, Color)>,
     blend_mode_changes: Vec<(usize, Option<blend::BlendMode>)>,
     transform: Transform,
+    unproject_view: Transform,
     resize: ResizeHandler,
     world_size: Vector,
     projection: Transform,
@@ -143,6 +144,7 @@ impl Graphics {
             clear_changes: Vec::new(),
             blend_mode_changes: Vec::new(),
             transform: Transform::IDENTITY,
+            unproject_view: Transform::IDENTITY,
             resize: ResizeHandler::Fit {
                 aspect_width: world_size.x,
                 aspect_height: world_size.y,
@@ -180,6 +182,7 @@ impl Graphics {
     pub fn set_view(&mut self, transform: Transform) {
         let head = self.index_data.len();
         self.view_changes.push((head, transform));
+        self.unproject_view = transform.inverse();
     }
 
     /// Set the transformation matrix, which is applied to all vertices on the CPU
@@ -191,7 +194,12 @@ impl Graphics {
 
     /// Project a point from the screen to the world
     ///
-    /// Use this when checking the mouse position against rendered objects, like a game or UI
+    /// Use this when checking the mouse position against rendered objects, like a game or UI. The
+    /// given point is scaled from the window to the size of the virtual camera (see
+    /// [`set_camera_size`]) and the inverse of the view (see [`set_view`]).
+    ///
+    /// [`set_camera_size`]: Graphics::set_camera_size
+    /// [`set_view`]: Graphics::set_view
     pub fn screen_to_camera(&self, window: &Window, position: Vector) -> Vector {
         let viewport = self.calculate_viewport(window);
         let mut projected = position - viewport.top_left();
@@ -199,7 +207,7 @@ impl Graphics {
         projected.x *= self.world_size.x / viewport.width();
         projected.y *= self.world_size.y / viewport.height();
 
-        projected
+        self.unproject_view * projected
     }
 
     /// Set the size of the virtual camera

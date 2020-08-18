@@ -2,6 +2,7 @@
 
 ## WIP
 - Derive Debug and Clone on `Timer`
+- Apply the inverse of `set_view` in `screen_to_camera`
 
 ## v0.4.0-alpha0.7
 - Remove stray calls to `dbg!`
