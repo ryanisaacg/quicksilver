@@ -28,79 +28,49 @@
             <li> Keyboard and 3-button mouse support </li>
             <li> OpenGL hardware-accelerated graphics </li>
             <li> A variety of image formats </li>
-            <li> Sound clips and a looping music player </li>
+            <li> Cross-platform event loop powered by `async/await` </li>
             <li> Asynchronous asset loading </li>
             <li> Unified codebase across desktop and the web </li>
-            <li> Collision support (via <a target="_blank" href="https://github.com/sebcrozet/ncollide"> ncollide2d </a>) </li>
             <li> TTF font support (via <a target="_blank" href="https://github.com/redox-os/rusttype"> rusttype </a>)  </li>
             <li> Gamepad support (via <a target="_blank" href="https://gitlab.com/gilrs-project/gilrs"> gilrs </a>) </li>
-            <li> Saving on web and desktop (via <a target="_blank" href="https://github.com/serde-rs/json"> serde_json </a>) </li>
-            <li> Complex shape / svg rendering (via <a target="_blank" href="https://github.com/nical/lyon"> lyon </a>) </li>
-            <li> Immediate-mode GUIs (via <a target="_blank" href="https://github.com/tomaka/immi"> immi </a>) </li>
+            <li> Saving and configuration on web and desktop (via <a target="_blank" href="https://github.com/serde-rs/json"> serde_json </a>) </li>
         </ul>
 
         <h3> A Quick Example </h3>
         <pre>
             <code class="language-rust">
-// Draw some multi-colored geometry to the screen
-extern crate quicksilver;
-
+// Example: The Square
+// Open a window, and draw a colored square in it
 use quicksilver::{
-    Result,
-    geom::{Circle, Line, Rectangle, Transform, Triangle, Vector},
-    graphics::{Background::Col, Color},
-    lifecycle::{Settings, State, Window, run},
+    geom::{Rectangle, Vector},
+    graphics::Color,
+    run, Graphics, Input, Result, Settings, Window,
 };
 
-// A unit struct that we're going to use to run the Quicksilver functions
-struct DrawGeometry;
-
-impl State for DrawGeometry {
-    // Initialize the struct
-    fn new() -> Result&lt;DrawGeometry&gt; {
-        Ok(DrawGeometry)
-    }
-
-    fn draw(&mut self, window: &mut Window) -> Result&lt;()&gt; {
-        // Remove any lingering artifacts from the previous frame
-        window.clear(Color::WHITE)?;
-        // Draw a rectangle with a top-left corner at (100, 100) and a width and height of 32 with
-        // a blue background
-        window.draw(&Rectangle::new((100, 100), (32, 32)), Col(Color::BLUE));
-        // Draw another rectangle, rotated by 45 degrees, with a z-height of 10
-        window.draw_ex(&Rectangle::new((400, 300), (32, 32)), Col(Color::BLUE), Transform::rotate(45), 10);
-        // Draw a circle with its center at (400, 300) and a radius of 100, with a background of
-        // green
-        window.draw(&Circle::new((400, 300), 100), Col(Color::GREEN));
-        // Draw a line with a thickness of 2 pixels, a red background,
-        // and a z-height of 5
-        window.draw_ex(
-            &Line::new((50, 80),(600, 450)).with_thickness(2.0),
-            Col(Color::RED),
-            Transform::IDENTITY,
-            5
-        );
-        // Draw a triangle with a red background, rotated by 45 degrees, and scaled down to half
-        // its size
-        window.draw_ex(
-            &Triangle::new((500, 50), (450, 100), (650, 150)),
-            Col(Color::RED),
-            Transform::rotate(45) * Transform::scale((0.5, 0.5)),
-            0
-        );
-        // We completed with no errors
-        Ok(())
-    }
-}
-
-// The main isn't that important in Quicksilver: it just serves as an entrypoint into the event
-// loop
 fn main() {
-    // Run with DrawGeometry as the event handler, with a window title of 'Draw Geometry' and a
-    // size of (800, 600)
-    run::&lt;DrawGeometry&gt;("Draw Geometry", Vector::new(800, 600), Settings::default());
+    run(
+        Settings {
+            title: "Square Example",
+            ..Settings::default()
+        },
+        app,
+    );
 }
 
+async fn app(window: Window, mut gfx: Graphics, mut input: Input) -> Result<()> {
+    // Clear the screen to a blank, white color
+    gfx.clear(Color::WHITE);
+    // Paint a blue square with a red outline in the center of our screen
+    // It should have a top-left of (350, 100) and a size of (150, 100)
+    let rect = Rectangle::new(Vector::new(350.0, 100.0), Vector::new(100.0, 100.0));
+    gfx.fill_rect(&rect, Color::BLUE);
+    gfx.stroke_rect(&rect, Color::RED);
+    // Send the data to be drawn
+    gfx.present(&window)?;
+    loop {
+        while let Some(_) = input.next_event().await {}
+    }
+}
             </code>
         </pre>
 
@@ -108,54 +78,29 @@ fn main() {
 
         <p>
             Thanks to the magic of WebAssembly, if your browser supports
-            both WebAssembly and WebGL2, then you can view the examples online
+            both WebAssembly and WebGL, then you can view the examples online
             with no plugins required.
         </p>
 
         <ul>
             <li>
-                <a href="example.html?camera">
-                    Camera example: Draw Geometry, but with an arrow-keys controlled camera
+                <a href="example.html?02_image">
+                    Image Example: Load an image and render it to the canvas
                 </a>
             </li>
             <li>
-                <a href="example.html?draw-geometry">
-                    Draw Geometry example: Draw a few colored shapes to the screen
+                <a href="example.html?06_timers">
+                    Timers Example: Move some geometry at a constant rate
                 </a>
             </li>
             <li>
-                <a href="example.html?font">
-                    Font example: write "Sample Text" to the screen with a TrueType font
+                <a href="example.html?07_text">
+                    Text example: Write some text to the canvas
                 </a>
             </li>
             <li>
-                <a href="example.html?image">
-                    Image example: Draw an image to the screen
-                </a>
-            </li>
-            <li>
-                <a href="example.html?lyon">
-                    Lyon example: Use lyon to render the Rust logo
-                </a>
-            </li>
-            <li>
-                <a href="example.html?raycast">
-                    Raycast example: Demonstrate basic raycast lighting with a light source that follows the mouse
-                </a>
-            </li>
-            <li>
-                <a href="example.html?rgb-triangle">
-                    RGB triangle example: Draw the classic graphics-programming triangle with red, green, and blue vertices
-                </a>
-            </li>
-            <li>
-                <a href="example.html?sound">
-                    Sound example: Play a sound when a square is clicked
-                </a>
-            </li>
-            <li>
-                <a href="example.html?stopwatch">
-                    Stopwatch example: Tick forward second, minute, and hour hands on a stopwatch
+                <a href="example.html?08_input">
+                    Input example: Respond to user input
                 </a>
             </li>
         </ul>
