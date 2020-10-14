@@ -27,7 +27,7 @@ ttf = ["font", "elefont/rusttype", "rusttype"]
 
 [badges]
 
-maintenance = { status = "actively-developed" }
+maintenance = { status = "passively-maintained" }
 
 [dependencies]
 blinds = { version = "0.1.4", default-features = false, features = ["gl", "image"] }
