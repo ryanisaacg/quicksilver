@@ -8,7 +8,7 @@
 //! A simple 2D game framework written in pure Rust, for both the Web and Desktop
 //!
 //! ## Maintenance Status
-//! 
+//!
 //! I've [posted an update on my website](https://ryanisaacg.com/posts/quicksilver-goodbye) about Quicksilver.
 //! To keep a long story short: **Quicksilver is no longer actively developed.**
 //! For now I will continue to triage bugs and pull requests and (maybe) fix small bugs.
@@ -24,7 +24,7 @@
 //!
 //! Create a rust project and add this line to your `Cargo.toml` file under `[dependencies]`:
 //! ```text
-//!     quicksilver = "0.4.0-alpha5"
+//!     quicksilver = "0.4"
 //! ```
 //! Then replace `src/main.rs` with the following (the contents of quicksilver's
 //! `examples/01_square.rs`):

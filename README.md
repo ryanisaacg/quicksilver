@@ -25,7 +25,7 @@ give feedback on API decisions, please open an issue.
 
 Create a rust project and add this line to your `Cargo.toml` file under `[dependencies]`:
 ```text
-quicksilver = "0.4.0-alpha0.6"
+quicksilver = "0.4"
 ```
 Then replace `src/main.rs` with the following (the contents of quicksilver's
 `examples/01_square.rs`):
