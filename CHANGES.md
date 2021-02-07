@@ -1,5 +1,7 @@
 # Changelog
 
+- #\[inline] small functions
+
 ## v0.4.0
 - Derive Debug and Clone on `Timer`
 - Apply the inverse of `set_view` in `screen_to_camera`

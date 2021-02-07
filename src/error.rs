@@ -43,18 +43,21 @@ pub enum FontError {
 }
 
 impl From<ImageError> for QuicksilverError {
+    #[inline]
     fn from(err: ImageError) -> QuicksilverError {
         QuicksilverError::ImageError(err)
     }
 }
 
 impl From<IOError> for QuicksilverError {
+    #[inline]
     fn from(err: IOError) -> QuicksilverError {
         QuicksilverError::IOError(err)
     }
 }
 
 impl From<GolemError> for QuicksilverError {
+    #[inline]
     fn from(err: GolemError) -> QuicksilverError {
         QuicksilverError::GraphicsError(err)
     }
@@ -62,6 +65,7 @@ impl From<GolemError> for QuicksilverError {
 
 #[cfg(feature = "font")]
 impl From<FontError> for QuicksilverError {
+    #[inline]
     fn from(err: FontError) -> QuicksilverError {
         QuicksilverError::FontError(err)
     }

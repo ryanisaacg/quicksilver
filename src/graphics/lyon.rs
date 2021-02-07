@@ -22,6 +22,7 @@ pub struct ShapeRenderer<'a> {
 
 impl<'a> ShapeRenderer<'a> {
     /// Create a shape renderer with a target mesh and an initial color
+    #[inline]
     pub fn new(mesh: &'a mut Mesh, color: Color) -> ShapeRenderer<'a> {
         ShapeRenderer {
             mesh,
@@ -33,31 +34,37 @@ impl<'a> ShapeRenderer<'a> {
     }
 
     /// Get the current color of the incoming shapes
+    #[inline]
     pub fn color(&self) -> Color {
         self.color
     }
 
     /// Set the color of the incoming shapes
+    #[inline]
     pub fn set_color(&mut self, color: Color) {
         self.color = color;
     }
 
     /// Get the Z position of the incoming shapes
+    #[inline]
     pub fn z(&self) -> f32 {
         self.z
     }
 
     /// Set the Z position of the incoming shapes
+    #[inline]
     pub fn set_z(&mut self, z: f32) {
         self.z = z;
     }
 
     /// Get the transformation that will be applied to all incoming shapes
+    #[inline]
     pub fn transform(&self) -> Transform {
         self.trans
     }
 
     /// Set the transformation that will be applied to all incoming shapes
+    #[inline]
     pub fn set_transform(&mut self, trans: Transform) {
         self.trans = trans;
     }

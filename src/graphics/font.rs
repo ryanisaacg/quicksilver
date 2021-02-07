@@ -75,6 +75,7 @@ impl FontRenderer {
     /// This method will not wrap but will respect newlines. To wrap, use
     /// [`FontRenderer::draw_wrapping`]. The returned value is how far the text extended past the
     /// offset, e.g. the furthest right and furthest down position.
+    #[inline]
     pub fn draw(
         &mut self,
         gfx: &mut Graphics,
@@ -252,10 +253,12 @@ impl FontImage {
 }
 
 impl Texture for FontImage {
+    #[inline]
     fn width(&self) -> u32 {
         self.image.raw().width()
     }
 
+    #[inline]
     fn height(&self) -> u32 {
         self.image.raw().height()
     }

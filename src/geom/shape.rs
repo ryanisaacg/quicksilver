@@ -97,10 +97,12 @@ impl Shape for Circle {
     fn overlaps_circle(&self, c: &Circle) -> bool {
         (self.center() - c.center()).len2() < (self.radius + c.radius).powi(2)
     }
+    #[inline]
     fn overlaps(&self, shape: &impl Shape) -> bool {
         shape.overlaps_circle(self)
     }
 
+    #[inline]
     fn center(&self) -> Vector {
         self.pos
     }
@@ -110,6 +112,7 @@ impl Shape for Circle {
             Vector::ONE * 2.0 * self.radius,
         )
     }
+    #[inline]
     fn translate(&self, v: Vector) -> Self {
         Circle {
             pos: self.pos + v,
@@ -139,19 +142,24 @@ impl Shape for Rectangle {
             && self.y() + self.height() > b.pos.y
     }
 
+    #[inline]
     fn intersects(&self, l: &Line) -> bool {
         l.overlaps_rectangle(self)
     }
+    #[inline]
     fn overlaps(&self, shape: &impl Shape) -> bool {
         shape.overlaps_rectangle(self)
     }
 
+    #[inline]
     fn center(&self) -> Vector {
         self.pos + self.size / 2.0
     }
+    #[inline]
     fn bounding_box(&self) -> Rectangle {
         *self
     }
+    #[inline]
     fn translate(&self, v: Vector) -> Self {
         Rectangle {
             pos: self.pos + v,
@@ -160,10 +168,6 @@ impl Shape for Rectangle {
     }
 }
 
-#[deprecated(
-    since = "0.4.0-alpha0.5",
-    note = "Use another collision library like `vek` instead; please comment on issue #552 for use-cases other libraries don't solve"
-)]
 impl Shape for Triangle {
     fn contains(&self, v: Vector) -> bool {
         // form three triangles with this new vector
@@ -217,10 +221,6 @@ impl Shape for Triangle {
     }
 }
 
-#[deprecated(
-    since = "0.4.0-alpha0.5",
-    note = "Use another collision library like `vek` instead; please comment on issue #552 for use-cases other libraries don't solve"
-)]
 impl Shape for Line {
     fn contains(&self, v: Vector) -> bool {
         about_equal(
@@ -274,10 +274,12 @@ impl Shape for Line {
             || self.intersects(&Line::new(top_right, bottom_right))
             || self.intersects(&Line::new(bottom_left, bottom_right))
     }
+    #[inline]
     fn overlaps(&self, shape: &impl Shape) -> bool {
         shape.intersects(self)
     }
 
+    #[inline]
     fn center(&self) -> Vector {
         (self.a + self.b) / 2.0
     }
@@ -296,19 +298,24 @@ impl Shape for Line {
 }
 
 impl Shape for Vector {
+    #[inline]
     fn contains(&self, v: Vector) -> bool {
         *self == v
     }
+    #[inline]
     fn overlaps(&self, shape: &impl Shape) -> bool {
         shape.contains(*self)
     }
 
+    #[inline]
     fn center(&self) -> Vector {
         *self
     }
+    #[inline]
     fn bounding_box(&self) -> Rectangle {
         Rectangle::new(*self, Vector::ONE)
     }
+    #[inline]
     fn translate(&self, v: Vector) -> Vector {
         *self + v
     }

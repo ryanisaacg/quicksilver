@@ -120,6 +120,7 @@ impl Mul<Transform> for Transform {
 
 /// Uses the `impl Mul<Transform> for Transform` internally.
 impl MulAssign<Transform> for Transform {
+    #[inline]
     fn mul_assign(&mut self, other: Transform) {
         *self = *self * other;
     }
@@ -129,6 +130,7 @@ impl MulAssign<Transform> for Transform {
 impl Mul<Vector> for Transform {
     type Output = Vector;
 
+    #[inline]
     fn mul(self, other: Vector) -> Vector {
         Vector::new(
             other.x * self.0[0][0] + other.y * self.0[0][1] + self.0[0][2],
@@ -157,6 +159,7 @@ impl Mul<f32> for Transform {
 
 /// Uses the `impl Mul<f32> for Transform` internally.
 impl MulAssign<f32> for Transform {
+    #[inline]
     fn mul_assign(&mut self, other: f32) {
         *self = *self * other;
     }
@@ -181,6 +184,7 @@ impl Add<Transform> for Transform {
 
 /// Uses the `impl Add<Transform> for Transform` internally
 impl AddAssign<Transform> for Transform {
+    #[inline]
     fn add_assign(&mut self, other: Transform) {
         *self = *self + other;
     }
@@ -205,6 +209,7 @@ impl Sub<Transform> for Transform {
 
 /// Uses the `impl Sub<Transform> for Transform` internally
 impl SubAssign<Transform> for Transform {
+    #[inline]
     fn sub_assign(&mut self, other: Transform) {
         *self = *self - other;
     }
@@ -224,6 +229,7 @@ impl fmt::Display for Transform {
 }
 
 impl Default for Transform {
+    #[inline]
     fn default() -> Transform {
         Transform::IDENTITY
     }
@@ -245,18 +251,21 @@ impl PartialEq for Transform {
 impl Eq for Transform {}
 
 impl From<[[f32; 3]; 3]> for Transform {
+    #[inline]
     fn from(array: [[f32; 3]; 3]) -> Transform {
         Transform(array)
     }
 }
 
 impl From<Transform> for [[f32; 3]; 3] {
+    #[inline]
     fn from(trans: Transform) -> [[f32; 3]; 3] {
         trans.0
     }
 }
 
 impl From<mint::RowMatrix3<f32>> for Transform {
+    #[inline]
     fn from(mat: mint::RowMatrix3<f32>) -> Transform {
         let data: [f32; 9] = mat.into();
         Transform(bytemuck::cast(data))
@@ -264,6 +273,7 @@ impl From<mint::RowMatrix3<f32>> for Transform {
 }
 
 impl From<Transform> for mint::RowMatrix3<f32> {
+    #[inline]
     fn from(trans: Transform) -> mint::RowMatrix3<f32> {
         let data: [f32; 9] = bytemuck::cast(trans.0);
         data.into()

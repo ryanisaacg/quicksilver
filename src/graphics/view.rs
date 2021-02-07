@@ -9,6 +9,7 @@ pub struct View {
 
 impl View {
     ///Create a new view that looks at a given area
+    #[inline]
     pub fn new(world: Rectangle) -> View {
         View::new_transformed(world, Transform::IDENTITY)
     }

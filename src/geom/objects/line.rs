@@ -18,6 +18,7 @@ impl Line {
         note = "Use another collision library like `vek` instead; please comment on issue #552 for use-cases other libraries don't solve"
     )]
     ///Create a new line with a start- and an endpoint
+    #[inline]
     pub fn new(start: Vector, end: Vector) -> Line {
         Line {
             a: start,
@@ -28,6 +29,7 @@ impl Line {
 
     ///Create a line with a changed thickness
     #[must_use]
+    #[inline]
     pub fn with_thickness(self, thickness: f32) -> Line {
         Line {
             t: thickness,
@@ -37,6 +39,7 @@ impl Line {
 }
 
 impl PartialEq for Line {
+    #[inline]
     fn eq(&self, other: &Line) -> bool {
         self.a == other.a && self.b == other.b
     }

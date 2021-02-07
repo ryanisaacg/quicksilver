@@ -14,11 +14,13 @@ pub struct Timer {
 
 impl Timer {
     /// Create a timer that ticks n many times per second
+    #[inline]
     pub fn time_per_second(times: f32) -> Timer {
         Timer::with_duration(Duration::from_secs_f32(1.0 / times))
     }
 
     /// Create a timer with a given period (time between ticks)
+    #[inline]
     pub fn with_duration(period: Duration) -> Timer {
         Timer {
             period,
@@ -30,6 +32,7 @@ impl Timer {
     ///
     /// You can use a while loop instead of an if to catch up in the event that you were late. Each
     /// tick will only 'consume' one period worth of time.
+    #[inline]
     pub fn tick(&mut self) -> bool {
         if self.init.elapsed() >= self.period {
             self.init += self.period;
@@ -44,6 +47,7 @@ impl Timer {
     /// This is useful in situations where catching up isn't needed or possible, like rendering to
     /// the screen. If you've missed rendering three frames, there's no point in drawing them now:
     /// just render the current state and move on.
+    #[inline]
     pub fn exhaust(&mut self) -> Option<NonZeroUsize> {
         let mut count = 0;
         while self.tick() {
@@ -55,26 +59,31 @@ impl Timer {
     /// Resets the timer to count from this moment.
     ///
     /// This is the same as creating a new Timer with the same period
+    #[inline]
     pub fn reset(&mut self) {
         self.init = Instant::now();
     }
 
     /// Gets the time in between ticks
+    #[inline]
     pub fn period(&self) -> Duration {
         self.period
     }
 
     /// How much time has passed since the timer was last ticked
+    #[inline]
     pub fn elapsed(&self) -> Duration {
         self.init.elapsed()
     }
 
     /// Look how much time is still left before its time for next tick.
+    #[inline]
     pub fn remaining(&self) -> Option<Duration> {
         self.period.checked_sub(self.init.elapsed())
     }
 
     /// Look how late you are with calling Timer::tick() if you would call it right now
+    #[inline]
     pub fn late_by(&self) -> Option<Duration> {
         self.init.elapsed().checked_sub(self.period)
     }

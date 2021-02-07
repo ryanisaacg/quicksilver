@@ -15,6 +15,7 @@ pub struct Circle {
 
 impl Circle {
     /// Create a circle with the center as a vector
+    #[inline]
     pub fn new(center: Vector, radius: f32) -> Circle {
         Circle {
             pos: center,

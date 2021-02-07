@@ -6,6 +6,7 @@ pub struct Window(pub(crate) blinds::Window);
 
 impl Window {
     /// Set the cursor icon to some value, or set it to invisible (None)
+    #[inline]
     pub fn set_cursor_icon(&self, icon: Option<CursorIcon>) {
         self.0.set_cursor_icon(icon);
     }
@@ -17,16 +18,19 @@ impl Window {
     ///
     /// [`scale_factor`]: Window::scale_factor
     /// [`set_viewport`]: crate::Graphics::set_viewport
+    #[inline]
     pub fn size(&self) -> Vector {
         self.0.size().into()
     }
 
     /// Set the size of the inside of the window in logical units
+    #[inline]
     pub fn set_size(&self, size: Vector) {
         self.0.set_size(size.into());
     }
 
     /// Set the title of the window or browser tab
+    #[inline]
     pub fn set_title(&self, title: &str) {
         self.0.set_title(title);
     }
@@ -36,6 +40,7 @@ impl Window {
     /// On desktop, it will instantly become fullscreen (borderless windowed on Windows and Linux,
     /// and fullscreen on macOS). On web, it will become fullscreen after the next user
     /// interaction, due to browser API restrictions.
+    #[inline]
     pub fn set_fullscreen(&self, fullscreen: bool) {
         self.0.set_fullscreen(fullscreen);
     }
@@ -49,6 +54,7 @@ impl Window {
     ///
     ///
     /// [setting the viewport]: crate::Graphics::set_viewport
+    #[inline]
     pub fn scale_factor(&self) -> f32 {
         self.0.scale_factor()
     }
@@ -58,6 +64,7 @@ impl Window {
     /// If vsync is enabled, this will block until the frame is completed on desktop. On web, there
     /// is no way to control vsync, or to manually control presentation, so this function is a
     /// no-op.
+    #[inline]
     pub fn present(&self) {
         self.0.present();
     }
