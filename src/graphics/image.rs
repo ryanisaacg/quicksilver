@@ -78,6 +78,7 @@ impl Image {
         self.raw().set_subimage(data, x, y, width, height, color);
     }
 
+    #[inline]
     pub(crate) fn raw(&self) -> Ref<Texture> {
         self.0.borrow()
     }
@@ -87,6 +88,7 @@ impl Image {
     }
 
     /// Get the size of the image
+    #[inline]
     pub fn size(&self) -> Vector {
         Vector {
             x: self.raw().width() as f32,
@@ -97,6 +99,7 @@ impl Image {
     /// Determine how the texture should scale down
     ///
     /// Only textures with a power-of-2 size support mipmaps, all others will return errors
+    #[inline]
     pub fn set_minification(&self, min: TextureFilter) -> Result<(), QuicksilverError> {
         Ok(self.raw().set_minification(min)?)
     }
@@ -104,6 +107,7 @@ impl Image {
     /// Determine how the texture should scale up
     ///
     /// Attempting to use a mipmap filter for magnification will result in an error
+    #[inline]
     pub fn set_magnification(&self, max: TextureFilter) -> Result<(), QuicksilverError> {
         Ok(self.raw().set_magnification(max)?)
     }
@@ -112,6 +116,7 @@ impl Image {
     ///
     /// Only textures with a power-of-2 size support texture wrapping, all others must ClampToEdge
     /// or will return an error
+    #[inline]
     pub fn set_wrap_h(&self, wrap: TextureWrap) -> Result<(), QuicksilverError> {
         Ok(self.raw().set_wrap_h(wrap)?)
     }
@@ -120,10 +125,12 @@ impl Image {
     ///
     /// Only textures with a power-of-2 size support texture wrapping, all others must ClampToEdge
     /// or will return an error
+    #[inline]
     pub fn set_wrap_v(&self, wrap: TextureWrap) -> Result<(), QuicksilverError> {
         Ok(self.raw().set_wrap_v(wrap)?)
     }
 
+    #[inline]
     pub(crate) fn into_raw(self) -> Result<Texture, Rc<RefCell<Texture>>> {
         Ok(Rc::try_unwrap(self.0)?.into_inner())
     }

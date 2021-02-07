@@ -15,11 +15,13 @@ pub struct Rectangle {
 
 impl Rectangle {
     ///Create a rectangle from a top-left vector and a size vector
+    #[inline]
     pub fn new(pos: Vector, size: Vector) -> Rectangle {
         Rectangle { pos, size }
     }
 
     ///Create a rectangle at the origin with the given size
+    #[inline]
     pub fn new_sized(size: Vector) -> Rectangle {
         Rectangle {
             pos: Vector::ZERO,
@@ -28,33 +30,39 @@ impl Rectangle {
     }
 
     ///Get the top left coordinate of the Rectangle
+    #[inline]
     pub fn top_left(&self) -> Vector {
         self.pos
     }
 
     ///Get the x-coordinate of the Rectangle
     ///(The origin of a Rectangle is at the top left)
+    #[inline]
     pub fn x(&self) -> f32 {
         self.pos.x
     }
 
     ///Get the y-coordinate of the Rectangle
     ///(The origin of a Rectangle is at the top left)
+    #[inline]
     pub fn y(&self) -> f32 {
         self.pos.y
     }
 
     ///Get the size of the Rectangle
+    #[inline]
     pub fn size(&self) -> Vector {
         self.size
     }
 
     ///Get the height of the Rectangle
+    #[inline]
     pub fn height(&self) -> f32 {
         self.size.y
     }
 
     ///Get the width of the Rectangle
+    #[inline]
     pub fn width(&self) -> f32 {
         self.size.x
     }

@@ -164,11 +164,13 @@ impl Graphics {
     /// Quicksilver's graphics stack is built on. The main advantage you gain is custom shaders, as
     /// well as being able to manage multiple different GPU buffers. See the
     /// [`golem`](https://crates/io/crates/golem) crate for more details.
+    #[inline]
     pub fn into_raw_context(self) -> Context {
         self.ctx
     }
 
     /// Clear the screen to the given color
+    #[inline]
     pub fn clear(&mut self, color: Color) {
         let head = self.index_data.len();
         self.clear_changes.push((head, color));
@@ -188,6 +190,7 @@ impl Graphics {
     /// Set the transformation matrix, which is applied to all vertices on the CPU
     ///
     /// Use this to rotate, scale, or translate individual draws or small groups of draws.
+    #[inline]
     pub fn set_transform(&mut self, transform: Transform) {
         self.transform = transform;
     }
@@ -222,6 +225,7 @@ impl Graphics {
     /// rotations or scaling, use [`set_view`].
     ///
     /// [`set_view`]: Self::set_view
+    #[inline]
     pub fn set_camera_size(&mut self, size: Vector) {
         self.world_size = size;
     }
@@ -233,6 +237,7 @@ impl Graphics {
     /// [`ResizeHandler`] options to choose from.
     ///
     /// [`ResizeHandler`]: crate::graphics::ResizeHandler
+    #[inline]
     pub fn set_resize_handler(&mut self, resize: ResizeHandler) {
         self.resize = resize;
     }
@@ -240,6 +245,7 @@ impl Graphics {
     /// Set the blend mode, which determines how pixels mix when drawn over each other
     ///
     /// Pass `None` to disable blending entirely
+    #[inline]
     pub fn set_blend_mode(&mut self, blend_mode: Option<blend::BlendMode>) {
         let head = self.index_data.len();
         self.blend_mode_changes.push((head, blend_mode));
@@ -318,6 +324,7 @@ impl Graphics {
     }
 
     /// Draw a single, pixel-sized point
+    #[inline]
     pub fn draw_point(&mut self, pos: Vector, color: Color) {
         let vertex = Vertex {
             pos,
@@ -329,6 +336,7 @@ impl Graphics {
 
     /// Draw a mesh, which is shorthand for passing the [`Mesh`]'s data to
     /// [`Graphics::draw_elements`]
+    #[inline]
     pub fn draw_mesh(&mut self, mesh: &Mesh) {
         self.draw_elements(
             mesh.vertices.iter().cloned(),
@@ -381,6 +389,7 @@ impl Graphics {
         self.draw_elements(vertices, indices, None);
     }
 
+    #[inline]
     fn rect_to_poly(rect: &Rectangle) -> [Vector; 4] {
         [
             rect.pos,
@@ -391,21 +400,25 @@ impl Graphics {
     }
 
     /// Draw a filled-in rectangle of a given color
+    #[inline]
     pub fn fill_rect(&mut self, rect: &Rectangle, color: Color) {
         self.fill_polygon(&Self::rect_to_poly(rect), color);
     }
 
     /// Outline a rectangle with a given color
+    #[inline]
     pub fn stroke_rect(&mut self, rect: &Rectangle, color: Color) {
         self.stroke_polygon(&Self::rect_to_poly(rect), color);
     }
 
     /// Draw a filled-in circle of a given color
+    #[inline]
     pub fn fill_circle(&mut self, circle: &Circle, color: Color) {
         self.fill_polygon(&Self::circle_points(circle)[..], color);
     }
 
     /// Outline a circle with a given color
+    #[inline]
     pub fn stroke_circle(&mut self, circle: &Circle, color: Color) {
         self.stroke_polygon(&Self::circle_points(circle)[..], color);
     }
@@ -420,6 +433,7 @@ impl Graphics {
     }
 
     /// Drawn an image to the given area, stretching if necessary
+    #[inline]
     pub fn draw_image(&mut self, image: &Image, location: Rectangle) {
         let region = Rectangle::new_sized(image.size());
         self.draw_subimage_tinted(image, region, location, Color::WHITE);
@@ -430,12 +444,14 @@ impl Graphics {
     /// The tint is applied by multiplying the color components at each pixel. If the Color has
     /// (r, g, b, a) of (1.0, 0.5, 0.0, 1.0), all the pixels will have their normal red value, half
     /// their green value, and no blue value.
+    #[inline]
     pub fn draw_image_tinted(&mut self, image: &Image, location: Rectangle, tint: Color) {
         let region = Rectangle::new_sized(image.size());
         self.draw_subimage_tinted(image, region, location, tint);
     }
 
     /// Draw a given part of an image to the screen, see [`Graphics::draw_image`]
+    #[inline]
     pub fn draw_subimage(&mut self, image: &Image, region: Rectangle, location: Rectangle) {
         self.draw_subimage_tinted(image, region, location, Color::WHITE);
     }
@@ -519,6 +535,7 @@ impl Graphics {
         Ok(())
     }
 
+    #[inline]
     fn calculate_viewport(&self, window: &Window) -> Rectangle {
         let size = self.resize.content_size(window.size());
         Rectangle::new((window.size() - size) / 2.0, size)
@@ -634,6 +651,7 @@ impl Graphics {
     ///
     /// On desktop, this will block until drawing has completed. If vsync is enabled, it will block
     /// until the frame completes. **Call this at the end of your frame.**
+    #[inline]
     pub fn present(&mut self, win: &Window) -> Result<(), QuicksilverError> {
         self.flush_window(win)?;
         win.present();

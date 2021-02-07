@@ -69,6 +69,7 @@ impl Input {
 #[cfg(feature = "event-cache")]
 impl Input {
     /// Check if a given key is down
+    #[inline]
     pub fn key_down(&self, key: Key) -> bool {
         self.cache.key(key)
     }
@@ -77,27 +78,32 @@ impl Input {
     ///
     /// Under a system with touch input or with multiple cursors, this may report erratic results.
     /// The state here is tracked for every pointer event, regardless of pointer ID.
+    #[inline]
     pub fn mouse(&self) -> PointerState {
         self.cache.mouse().into()
     }
 
     /// The state of the given pointer
     #[allow(clippy::trivially_copy_pass_by_ref)]
+    #[inline]
     pub fn pointer(&self, id: &PointerId) -> Option<PointerState> {
         self.cache.pointer(id).map(|p| p.into())
     }
 
     /// The pointer ID and values that have been tracked
+    #[inline]
     pub fn pointers(&self) -> impl Iterator<Item = (&PointerId, PointerState)> {
         self.cache.pointers().map(|(id, p)| (id, p.into()))
     }
 
     /// The state of the given gamepad
+    #[inline]
     pub fn gamepad(&self, id: &GamepadId) -> Option<&GamepadState> {
         self.cache.gamepad(id)
     }
 
     /// The gamepad ID and values that have been tracked
+    #[inline]
     pub fn gamepads(&self) -> impl Iterator<Item = (&GamepadId, &GamepadState)> {
         self.cache.gamepads()
     }
@@ -114,18 +120,22 @@ pub struct PointerState {
 
 #[cfg(feature = "event-cache")]
 impl PointerState {
+    #[inline]
     pub fn left(&self) -> bool {
         self.left
     }
 
+    #[inline]
     pub fn right(&self) -> bool {
         self.right
     }
 
+    #[inline]
     pub fn middle(&self) -> bool {
         self.middle
     }
 
+    #[inline]
     pub fn location(&self) -> Vector {
         self.location
     }
@@ -197,6 +207,7 @@ pub struct ResizedEvent {
 
 impl ResizedEvent {
     /// The new size of the window
+    #[inline]
     pub fn size(&self) -> Vector {
         self.size
     }
@@ -212,11 +223,13 @@ pub struct PointerMovedEvent {
 }
 
 impl PointerMovedEvent {
+    #[inline]
     pub fn pointer(&self) -> &PointerId {
         &self.id
     }
 
     /// The logical location of the pointer, relative to the top-left of the window
+    #[inline]
     pub fn location(&self) -> Vector {
         self.location
     }

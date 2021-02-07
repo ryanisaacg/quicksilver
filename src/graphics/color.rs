@@ -14,26 +14,31 @@ pub struct Color {
 
 impl Color {
     ///Create an identical color with a different red component
+    #[inline]
     pub fn with_red(self, r: f32) -> Color {
         Color { r, ..self }
     }
 
     ///Create an identical color with a different green component
+    #[inline]
     pub fn with_green(self, g: f32) -> Color {
         Color { g, ..self }
     }
 
     ///Create an identical color with a different blue component
+    #[inline]
     pub fn with_blue(self, b: f32) -> Color {
         Color { b, ..self }
     }
 
     ///Create an identical color with a different alpha component
+    #[inline]
     pub fn with_alpha(self, a: f32) -> Color {
         Color { a, ..self }
     }
 
     /// Blend two colors by multiplying their components
+    #[inline]
     pub fn multiply(self, other: Color) -> Color {
         Color {
             r: self.r * other.r,
@@ -44,6 +49,7 @@ impl Color {
     }
 
     /// Create a color from a common RGBA definition
+    #[inline]
     pub fn from_rgba(red: u8, green: u8, blue: u8, a: f32) -> Color {
         Color {
             r: red as f32 / 255.0,
