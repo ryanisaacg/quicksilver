@@ -1,0 +1,35 @@
+[package]
+name = "platter"
+description = "Load files on web and desktop asynchronously"
+version = "0.1.4"
+authors = ["Ryan Goldstein <ryanisaacg@gmail.com>"]
+categories = ["filesystem"]
+keywords = ["async", "file"]
+license = "MIT OR Apache-2.0 OR Zlib"
+edition = "2018"
+readme = "README.md"
+repository = "https://github.com/ryanisaacg/platter"
+
+[badges]
+maintenance = { status = "actively-developed" }
+
+[features]
+"web-sys" = ["web_sys", "js-sys", "wasm-bindgen"]
+
+[dependencies]
+futures-util = { version = "0.3.0", default-features = false }
+stdweb = { version = "0.4.18", optional = true }
+
+js-sys = { version = "0.3.25", optional = true }
+wasm-bindgen = { version = "0.2.48", optional = true }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies.web_sys]
+package = "web-sys"
+version = "0.3.24"
+optional = true
+features = [
+    "XmlHttpRequest",
+    "XmlHttpRequestEventTarget",
+    "XmlHttpRequestResponseType",
+]
+

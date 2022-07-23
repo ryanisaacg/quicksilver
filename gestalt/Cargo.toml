@@ -1,0 +1,27 @@
+[package]
+name = "gestalt"
+description = "Cross-platform configuration and data saving between desktop and web"
+license = "MIT/Apache-2.0"
+version = "0.1.0"
+authors = ["Ryan Goldstein <ryanisaacg@gmail.com>"]
+edition = "2018"
+repository = "https://github.com/ryanisaacg/gestalt"
+
+[dependencies]
+serde_json = "1"
+serde = { version = "1", features = ["derive"] }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+base64 = "0.10"
+stdweb = { version = "0.4.17", optional = true }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies.web-sys]
+version = "0.3.24"
+optional = true
+features = [
+    "Storage",
+    "Window",
+]
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+dirs = "1"

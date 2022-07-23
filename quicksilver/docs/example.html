@@ -1,0 +1,38 @@
+<html>
+    <head>
+        <link rel="stylesheet" href="style.css"></link>
+    </head>
+    <body>
+        <h1 style = "margin-top: 1.5em" id = "head"> </h1>
+        <h3 id = "subtitle"></h3>
+        <a href="index.html#examples">
+            Return to the homepage
+        </a>
+        <br>
+        <br>
+        <br>
+        <a id="source" target="_blank">
+            View the source on GitHub
+        </a>
+        <br>
+        <br>
+        <br>
+        <script>
+            const headers = {
+                '02_image': ['Image Example', 'Load an image and render it to the canvas'],
+                '06_timers': ['Timers Example', 'Move some geometry at a constant rate'],
+                '07_text': ['Text Example', 'Write some text to the canvas'],
+                '08_input': ['Input Example', 'Draw a circle at the mouse position; Use WASD to move a box'],
+            }
+            const url = window.location.href
+            const example = url.split('?')[1]
+            WASM_FILE_LOCATION = `wasm/${example}.wasm`
+            document.getElementById('head').innerHTML = headers[example][0]
+            document.getElementById('subtitle').innerHTML = headers[example][1]
+            document.getElementById('source').href = `https://github.com/ryanisaacg/quicksilver/blob/master/examples/${example}.rs`
+            const script = document.createElement('script')
+            script.src = `${example}.example.js`
+            document.head.appendChild(script)
+        </script>
+    </body>
+</html>

@@ -1,0 +1,52 @@
+[package]
+name = "quicksilver"
+description = "A simple game framework for 2D games in pure Rust"
+version = "0.4.0"
+authors = ["Ryan Goldstein <ryanisaacg@gmail.com>"]
+categories = ["game-engines"]
+homepage = "https://ryanisaacg.github.io/quicksilver"
+keywords = ["game", "audio", "graphics", "gamedev"]
+license = "MIT/Apache-2.0"
+readme = "README.md"
+repository = "https://github.com/ryanisaacg/quicksilver"
+exclude = ["docs/*"]
+edition = "2018"
+
+[features]
+# complex_shapes, fonts, gamepads, sounds
+default = ["easy-log", "event-cache", "font", "gamepad", "saving", "ttf"]
+
+easy-log = ["simple_logger", "web_logger"]
+event-cache = ["blinds/event-cache"]
+font = ["elefont"]
+gamepad = ["blinds/gamepad"]
+saving = ["gestalt"]
+ttf = ["font", "elefont/rusttype", "rusttype"]
+
+[target.'cfg(target_arch = "wasm32")'.features]
+stdweb = ["gestalt/stdweb", "platter/stdweb", "blinds/stdweb", "golem/stdweb","instant/stdweb"]
+web-sys = ["gestalt/web-sys", "platter/web-sys", "blinds/web-sys", "golem/web-sys","instant/web-sys"]
+
+[badges]
+
+maintenance = { status = "passively-maintained" }
+
+[dependencies]
+blinds = { default-features = true, path = "../blinds"} # features = ["image"], features = ["gl"]
+bytemuck = "1.0"
+elefont = { features = ["rusttype", "unicode-normalization"], optional = true, path = "../elefont" }
+gestalt = { optional = true, path = "../gestalt" }
+golem = { features = ["std"], path = "../golem" }
+image = { version = "0.22", default-features = false, features = ["png_codec", "jpeg"] }
+instant = "0.1.2"
+log = "0.4"
+mint = "0.5.3"
+platter = { version = "0.1", path = "../platter" }
+rusttype = { version = "0.9.2", optional = true }
+serde = {version = "1", optional = true, features = ["derive"] }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+simple_logger = { version = "1.4", optional = true }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+web_logger = { version = "0.2", optional = true }
